@@ -11,7 +11,8 @@ cmds = ["npm ci --include=dev"]
 cmds = [
   "npx prisma generate --schema prisma/schema.prisma",
   "npm run build:shared",
-  "npm run build:api"
+  "npm run build:api",
+  "npm -w @newsforge/web run build"
 ]
 
 [start]

@@ -3,6 +3,7 @@ import fs from "node:fs";
 import { prisma } from "../db.js";
 import { asyncHandler } from "../util/asyncHandler.js";
 import { NotFoundError, ValidationError } from "../util/errors.js";
+import { buildRunHtml } from "../services/runHtml.js";
 import { parseBody, parseJson } from "../util/validate.js";
 import {
   CreateRunRequestSchema,
@@ -304,3 +305,20 @@ function applyManualEdits(layout: AssembledLayout, ops: EditOp[]): AssembledLayo
 function clamp(n: number, lo: number, hi: number): number {
   return Math.max(lo, Math.min(hi, n));
 }
+
+// PUBLIC preview-html — same HTML as Puppeteer's /render/:id, but accessible
+// from the browser iframe. Auth = runId existence only (cuid2 ids are unguessable).
+// The internal /render/:id route stays loopback-locked for Puppeteer.
+runsRouter.get("/:id/preview-html", asyncHandler(async (req, res) => {
+  const result = await buildRunHtml(req.params.id);
+  if (!result.ok) {
+    res.status(result.status).json({ error: result.reason });
+    return;
+  }
+  res.setHeader("Content-Type", "text/html; charset=utf-8");
+  res.setHeader("Cache-Control", "private, no-cache");
+  res.setHeader("X-Frame-Options", "SAMEORIGIN");
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("Referrer-Policy", "same-origin");
+  res.send(result.html);
+}));

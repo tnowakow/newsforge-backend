@@ -45,13 +45,31 @@ app.use("/api/uploads", uploadsRouter);
 // Internal render route (NOT under /api — Puppeteer hits this directly on 127.0.0.1).
 app.use("/render", renderRouter);
 
-// Root sanity ping.
-app.get("/", (_req, res) => {
-  res.json({
-    name: "newsforge-api",
-    version: "0.1.0",
-    docs: "/api/health",
-  });
+// Serve the React SPA frontend (apps/web/dist) from the same Express app.
+// The dist folder is built during Railway's nixpacks build phase and lives at
+// <repo>/apps/web/dist. From the compiled API entrypoint at
+// apps/api/dist/index.js, that's ../../web/dist relative to __dirname.
+const __dirname = path.dirname(new URL(import.meta.url).pathname);
+const webDistPath = path.resolve(__dirname, "../../web/dist");
+
+app.use(express.static(webDistPath, { fallthrough: true, index: false }));
+
+// SPA fallback: any non-/api, non-/render, non-/uploads, non-/pdfs GET request
+// returns index.html so React Router can take over. If the build is missing
+// (local dev without `npm run build:web`), fall back to a JSON sanity ping.
+app.get(/^\/(?!api|render|uploads|pdfs).*/, async (_req, res, next) => {
+  try {
+    const indexHtml = path.join(webDistPath, "index.html");
+    await fs.access(indexHtml);
+    res.sendFile(indexHtml);
+  } catch {
+    res.json({
+      name: "newsforge-api",
+      version: "0.1.0",
+      docs: "/api/health",
+      note: "frontend build not found at " + webDistPath,
+    });
+  }
 });
 
 app.use(errorHandler);
