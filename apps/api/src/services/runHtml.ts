@@ -38,21 +38,11 @@ export async function buildRunHtml(runId: string): Promise<RunHtmlResult> {
     return { ok: false, status: 500, reason: "invalid_run_state" };
   }
 
+  // renderRunHtml expects { run, client, template } and handles its own JSON parsing.
   const html = renderRunHtml({
-    clientName: run.client.name,
-    monthLabel: run.monthLabel,
-    brandKit: {
-      primaryColor: run.client.primaryColor,
-      secondaryColor: run.client.secondaryColor,
-      accentColor: run.client.accentColor,
-      headingFont: run.client.headingFont,
-      bodyFont: run.client.bodyFont,
-      logoUrl: run.client.logoUrl,
-    },
-    layout: layout.data,
-    articles: articles.data,
-    images: images.data,
-    recurringSections: recurring.success ? recurring.data : [],
+    run,
+    client: run.client,
+    template: run.template,
   });
 
   return { ok: true, html };
