@@ -11,6 +11,4 @@ restartPolicyMaxRetries = 3
 healthcheckPath = "/api/health"
 healthcheckTimeout = 30
 
-# Vitaly: release command runs migrations then idempotent seed.
-[deploy.releaseCommand]
-command = "npx prisma migrate deploy --schema prisma/schema.prisma && npx tsx prisma/seed.ts"
+# NOTE: migrations + seed run during build (nixpacks.toml) since runtime lacks npm.
