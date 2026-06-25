@@ -1,0 +1,18 @@
+# Railway nixpacks build config for NewsForge backend.
+# Chromium is provided by @sparticuz/chromium at runtime; we only need Node here.
+
+[phases.setup]
+nixPkgs = ["nodejs_22"]
+
+[phases.install]
+cmds = ["npm ci --include=dev"]
+
+[phases.build]
+cmds = [
+  "npx prisma generate --schema prisma/schema.prisma",
+  "npm run build:shared",
+  "npm run build:api"
+]
+
+[start]
+cmd = "node apps/api/dist/index.js"
