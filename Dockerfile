@@ -4,6 +4,9 @@
 
 FROM node:22-alpine AS builder
 
+# OpenSSL required by Prisma engines
+RUN apk add --no-cache openssl openssl-dev libc6-compat
+
 WORKDIR /app
 COPY package.json package-lock.json ./
 COPY packages/shared/package.json packages/shared/
@@ -22,6 +25,9 @@ RUN npm -w @newsforge/web run build
 
 # Runtime
 FROM node:22-alpine
+
+# OpenSSL + Chromium deps for Puppeteer/Prisma
+RUN apk add --no-cache openssl libc6-compat chromium nss freetype harfbuzz ca-certificates ttf-freefont
 
 WORKDIR /app
 
