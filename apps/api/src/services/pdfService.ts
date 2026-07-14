@@ -14,17 +14,29 @@ let lastRenderMs = 0;
 
 async function init(): Promise<void> {
   if (browser && page && !page.isClosed()) return;
-  const executablePath =
-    env.PUPPETEER_EXECUTABLE_PATH && env.PUPPETEER_EXECUTABLE_PATH.length > 0
-      ? env.PUPPETEER_EXECUTABLE_PATH
-      : await sparticuzChromium.executablePath();
-  const args = [
-    ...sparticuzChromium.args,
-    "--no-sandbox",
-    "--disable-setuid-sandbox",
-    "--disable-dev-shm-usage",
-    "--font-render-hinting=none",
-  ];
+  const useSystemChromium =
+    env.PUPPETEER_EXECUTABLE_PATH && env.PUPPETEER_EXECUTABLE_PATH.length > 0;
+  const executablePath = useSystemChromium
+    ? env.PUPPETEER_EXECUTABLE_PATH
+    : await sparticuzChromium.executablePath();
+  // When using system chromium (e.g. Alpine's apk chromium) sparticuz's
+  // lambda-tuned args (--single-process/--no-zygote) crash the target on start,
+  // so use a minimal safe set instead.
+  const args = useSystemChromium
+    ? [
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-dev-shm-usage",
+        "--disable-gpu",
+        "--font-render-hinting=none",
+      ]
+    : [
+        ...sparticuzChromium.args,
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-dev-shm-usage",
+        "--font-render-hinting=none",
+      ];
   log.info("puppeteer_launch", { executablePath, argsCount: args.length });
   browser = await puppeteer.launch({
     args,
