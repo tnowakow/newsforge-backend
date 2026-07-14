@@ -18,7 +18,6 @@
     "prisma:migrate:dev": "prisma migrate dev --schema prisma/schema.prisma",
     "prisma:migrate:deploy": "prisma migrate deploy --schema prisma/schema.prisma",
     "seed": "tsx prisma/seed.ts",
-    "release": "prisma migrate deploy --schema prisma/schema.prisma && tsx prisma/seed.ts",
     "typecheck": "tsc -p apps/api/tsconfig.json --noEmit && tsc -p packages/shared/tsconfig.json --noEmit"
   },
   "devDependencies": {
