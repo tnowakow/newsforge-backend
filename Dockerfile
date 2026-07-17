@@ -3,7 +3,7 @@
 # Migrations + seed run at startup (need DATABASE_URL at runtime)
 
 FROM node:22-alpine AS builder
-ARG BUILD_TIME=1784264126
+ARG BUILD_ID
 
 # OpenSSL required by Prisma engines
 RUN apk add --no-cache openssl openssl-dev libc6-compat
@@ -19,6 +19,8 @@ RUN npm ci --include=dev
 COPY . .
 
 # Generate Prisma client and build
+# $BUILD_ID forces cache invalidation on every Railway deploy
+RUN echo "Build ID: ${BUILD_ID:-$(date +%s)}"
 RUN npx prisma generate --schema prisma/schema.prisma
 RUN npm run build:shared
 RUN npm run build:api
@@ -48,4 +50,4 @@ EXPOSE 3001
 
 # Run migrations + seed at startup, then start the API
 CMD ["sh", "-c", "npx prisma migrate deploy --schema prisma/schema.prisma && npx tsx prisma/seed.ts && node apps/api/dist/index.js"]
-# Build trigger 1784263665
+
