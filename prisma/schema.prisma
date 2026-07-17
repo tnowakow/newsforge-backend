@@ -1,9 +1,8 @@
-// NewsForge Prisma schema — locked by Vitaly §2.
-// JSON columns are typed at the boundary by Zod schemas in @newsforge/shared.
+// NewsForge Prisma schema
+// Field names are contract — do not rename without updating shared schemas.
 
 generator client {
-  provider      = "prisma-client-js"
-  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -48,96 +47,146 @@ enum AssetSource {
   GENERATED
 }
 
+enum ArticleType {
+  RESIDENT_STORY
+  EVENT_RECAP
+  ANNOUNCEMENT
+  BIRTHDAY
+  EXECUTIVE_NOTE
+  OTHER
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  CHANGES_REQUESTED
+}
+
 model Client {
-  id                String   @id @default(cuid())
+  id                String     @id
   name              String
   tagline           String
   city              String
   careLevel         CareLevel
   richnessLevel     Richness
-  logoUrl           String
+  logoUrl           String?
   primaryColor      String
   secondaryColor    String
   accentColor       String
   headingFont       String
   bodyFont          String
   defaultTemplateId String
-  pageCount         Int
+  pageCount         Int        @default(4)
+  /// Array of RecurringSection (see @newsforge/shared schemas/client.ts)
   recurringSections Json
   brandVoice        String
-  createdAt         DateTime @default(now())
+  createdAt         DateTime   @default(now())
+
+  // v2 additive: per-client print geometry (Vitaly §5).
+  bleedInches       Float      @default(0.125)
+  safeAreaInches    Float      @default(0.25)
+  cropMarksEnabled  Boolean    @default(true)
 
   defaultTemplate Template        @relation("ClientDefaultTemplate", fields: [defaultTemplateId], references: [id])
   runs            NewsletterRun[]
   assets          AssetLibrary[]
 
   @@index([richnessLevel])
+  @@index([careLevel])
 }
 
 model Template {
-  id                 String  @id @default(cuid())
-  name               String
-  pageCount          Int
-  gridSpec           Json
-  slotTypes          Json
-  compatibilityHints Json
-  previewImageUrl    String?
+  id                  String  @id
+  name                String
+  pageCount           Int
+  /// GridSpec (see @newsforge/shared schemas/template.ts)
+  gridSpec            Json
+  /// SlotTypes map (see @newsforge/shared schemas/template.ts)
+  slotTypes           Json
+  /// CompatibilityHints (see @newsforge/shared schemas/template.ts)
+  compatibilityHints  Json
+  previewImageUrl     String?
 
   defaultForClients Client[]        @relation("ClientDefaultTemplate")
   runs              NewsletterRun[]
 }
 
 model NewsletterRun {
-  id              String     @id @default(cuid())
-  clientId        String
-  templateId      String
-  monthLabel      String
-  fillerMode      FillerMode
-  articles        Json
-  images          Json
-  assembledLayout Json
-  status          RunStatus  @default(DRAFT)
-  errorMessage    String?
-  pdfPath         String?
-  pdfGeneratedAt  DateTime?
-  layoutVersion   Int        @default(1)
-  createdAt       DateTime   @default(now())
-  updatedAt       DateTime   @updatedAt
+  id               String     @id
+  clientId         String
+  templateId       String
+  monthLabel       String
+  fillerMode       FillerMode @default(PLACEHOLDER)
+  /// Articles[] (see @newsforge/shared schemas/run.ts)
+  articles         Json
+  /// Images[] (see @newsforge/shared schemas/run.ts)
+  images           Json
+  /// AssembledLayout (see @newsforge/shared schemas/run.ts)
+  assembledLayout  Json
+  status           RunStatus  @default(DRAFT)
+  errorMessage     String?
+  pdfPath          String?
+  pdfGeneratedAt   DateTime?
+  layoutVersion    Int        @default(1)
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+
+  // v2 additive fields (Vitaly §5.1). All nullable / defaulted.
+  approvalStatus       ApprovalStatus  @default(PENDING)
+  approvalNotes        String?
+  approvedAt           DateTime?
+  approvedBy           String?
+  printPdfPath         String?
+  printPdfGeneratedAt  DateTime?
+  /// LayoutFitReport (see @newsforge/shared/schemas)
+  layoutFitReport      Json?
+  /// ComplianceFlag[] (see @newsforge/shared/schemas)
+  complianceFlags      Json    @default("[]")
+  bundleZipPath        String?
+  bundleBuiltAt        DateTime?
+  bundleLayoutVersion  Int?
 
   client   Client   @relation(fields: [clientId], references: [id])
   template Template @relation(fields: [templateId], references: [id])
   aiEdits  AiEdit[]
 
-  @@index([clientId, createdAt])
+  @@index([clientId])
+  @@index([templateId])
+  @@index([status])
+  @@index([approvalStatus])
 }
 
 model AssetLibrary {
-  id           String      @id @default(cuid())
-  clientId     String?
-  type         AssetType
-  contentOrUrl String
-  source       AssetSource
-  meta         Json
-  createdAt    DateTime    @default(now())
+  id            String      @id
+  clientId      String?
+  type          AssetType
+  /// For IMAGE: URL or storage path. For ARTICLE: full text content.
+  contentOrUrl  String
+  source        AssetSource
+  /// Free-form metadata (caption, alt, originalFilename, mime, wordCount, etc.)
+  meta          Json
+  createdAt     DateTime    @default(now())
 
   client Client? @relation(fields: [clientId], references: [id])
 
-  @@index([clientId, type])
-  @@index([type, source])
+  @@index([clientId])
+  @@index([type])
 }
 
 model AiEdit {
-  id            String   @id @default(cuid())
+  id            String   @id
   runId         String
   prompt        String
   resultStatus  String
+  /// AiEditDiff (see @newsforge/shared schemas/aiEdit.ts)
   diffSummary   Json?
+  /// Snapshot of layout BEFORE the edit
   layoutBefore  Json
+  /// Snapshot of layout AFTER the edit (null on failure)
   layoutAfter   Json?
-  geminiLatency Int?
   createdAt     DateTime @default(now())
 
-  run NewsletterRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+  run NewsletterRun @relation(fields: [runId], references: [id])
 
-  @@index([runId, createdAt])
+  @@index([runId])
 }

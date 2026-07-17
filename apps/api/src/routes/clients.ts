@@ -1,85 +1,76 @@
 import { Router } from "express";
+import { z } from "zod";
 import { prisma } from "../db.js";
-import { asyncHandler } from "../util/asyncHandler.js";
-import { NotFoundError } from "../util/errors.js";
-import { parseBody, parseJson } from "../util/validate.js";
+import { generateMockContent } from "../services/mockContent.js";
 import {
-  ClientSummaryDtoSchema,
-  ClientFullDtoSchema,
   RecurringSectionsSchema,
-  MockContentRequestSchema,
-  ArticleArraySchema,
-  ImageRefArraySchema,
-} from "@newsforge/shared";
-import { generateMockContent } from "../services/mockContentService.js";
+} from "@newsforge/shared/schemas";
 
-export const clientsRouter = Router();
+export const clientsRouter: Router = Router();
 
-clientsRouter.get(
-  "/",
-  asyncHandler(async (_req, res) => {
-    const rows = await prisma.client.findMany({ orderBy: { name: "asc" } });
-    const out = rows.map((c) =>
-      ClientSummaryDtoSchema.parse({
-        id: c.id,
-        name: c.name,
-        tagline: c.tagline,
-        city: c.city,
-        careLevel: c.careLevel,
-        richnessLevel: c.richnessLevel,
-        logoUrl: c.logoUrl,
-        primaryColor: c.primaryColor,
-        secondaryColor: c.secondaryColor,
-        accentColor: c.accentColor,
-        pageCount: c.pageCount,
-      }),
-    );
-    res.json({ clients: out });
-  }),
-);
+clientsRouter.get("/", async (_req, res) => {
+  const clients = await prisma.client.findMany({
+    select: {
+      id: true,
+      name: true,
+      tagline: true,
+      richnessLevel: true,
+      logoUrl: true,
+      primaryColor: true,
+      pageCount: true,
+    },
+    orderBy: { name: "asc" },
+  });
+  res.json({ clients });
+});
 
-clientsRouter.get(
-  "/:id",
-  asyncHandler(async (req, res) => {
-    const c = await prisma.client.findUnique({ where: { id: req.params.id } });
-    if (!c) throw new NotFoundError("Client");
-    const dto = ClientFullDtoSchema.parse({
-      id: c.id,
-      name: c.name,
-      tagline: c.tagline,
-      city: c.city,
-      careLevel: c.careLevel,
-      richnessLevel: c.richnessLevel,
-      logoUrl: c.logoUrl,
-      primaryColor: c.primaryColor,
-      secondaryColor: c.secondaryColor,
-      accentColor: c.accentColor,
-      pageCount: c.pageCount,
-      headingFont: c.headingFont,
-      bodyFont: c.bodyFont,
-      defaultTemplateId: c.defaultTemplateId,
-      recurringSections: parseJson(RecurringSectionsSchema, c.recurringSections),
-      brandVoice: c.brandVoice,
-    });
-    res.json({ client: dto });
-  }),
-);
+clientsRouter.get("/:id", async (req, res) => {
+  const client = await prisma.client.findUnique({
+    where: { id: req.params.id },
+    include: { defaultTemplate: true },
+  });
+  if (!client) {
+    res.status(404).json({ error: "client_not_found" });
+    return;
+  }
+  res.json({ client });
+});
 
-/** POST /api/clients/:id/mock-content — deterministic per (clientId, monthLabel). */
-clientsRouter.post(
-  "/:id/mock-content",
-  asyncHandler(async (req, res) => {
-    const body = parseBody(MockContentRequestSchema, req.body);
-    const exists = await prisma.client.findUnique({ where: { id: req.params.id } });
-    if (!exists) throw new NotFoundError("Client");
-    const result = await generateMockContent(req.params.id, body.monthLabel, {
-      tone: body.tone,
-      density: body.density,
-      includeSections: body.includeSections,
-    });
-    res.json({
-      articles: ArticleArraySchema.parse(result.articles),
-      images: ImageRefArraySchema.parse(result.images),
-    });
-  }),
-);
+const MockContentBody = z.object({}).optional();
+
+clientsRouter.post("/:id/mock-content", async (req, res) => {
+  const _body = MockContentBody.safeParse(req.body);
+  void _body;
+
+  const client = await prisma.client.findUnique({
+    where: { id: req.params.id },
+  });
+  if (!client) {
+    res.status(404).json({ error: "client_not_found" });
+    return;
+  }
+
+  const recurring = RecurringSectionsSchema.safeParse(client.recurringSections);
+
+  const { articles, images } = generateMockContent({
+    richness: client.richnessLevel,
+    careLevel: client.careLevel,
+    brandVoice: client.brandVoice,
+  });
+
+  // Tag the first N articles to recurring section ids so the fitter can place them.
+  if (recurring.success) {
+    for (let i = 0; i < Math.min(recurring.data.length, articles.length); i++) {
+      articles[i].sectionId = recurring.data[i].id;
+      articles[i].title = recurring.data[i].title;
+    }
+  }
+
+  res.json({
+    clientId: client.id,
+    richnessLevel: client.richnessLevel,
+    articles,
+    images,
+    counts: { articles: articles.length, images: images.length },
+  });
+});

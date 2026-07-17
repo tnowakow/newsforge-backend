@@ -1,0 +1,6 @@
+{
+  "version": 1,
+  "algo": "sharp-8x8-greyscale-dct-hex",
+  "note": "Placeholder denylist. Populate with 50 hero Adobe Stock hashes over time. Empty list = no pHash-based blocks fired; other stock signals still work.",
+  "hashes": []
+}

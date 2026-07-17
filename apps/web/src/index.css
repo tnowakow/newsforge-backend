@@ -2,57 +2,82 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ---------- Brand CSS variables ---------- */
-:root {
-  /* Default Porter palette; ClientWorkspace overrides at runtime. */
-  --brand-primary-rgb: 27 79 138;
-  --brand-secondary-rgb: 22 64 111;
-  --brand-accent-rgb: 200 162 64;
+/* ---- Design tokens (RGB triplets so Tailwind /alpha works) ---- */
+@layer base {
+  :root {
+    --bg: 250 250 247;        /* #FAFAF7 newsprint */
+    --surface: 255 255 255;   /* #FFFFFF */
+    --ink: 26 26 31;          /* #1A1A1F */
+    --ink-muted: 107 107 115; /* #6B6B73 */
+    --rule: 230 228 222;      /* #E6E4DE */
+    --accent: 45 91 255;      /* #2D5BFF action blue */
+    --accent-soft: 234 240 255; /* #EAF0FF */
+    --success: 31 138 91;     /* #1F8A5B */
+    --warn: 194 90 0;         /* #C25A00 */
+    --error: 179 38 30;       /* #B3261E */
 
-  --client-heading-font: "Georgia";
-  --client-body-font: "Inter";
+    /* Porter One Design accent — used lightly in chrome */
+    --porter: 17 24 39;        /* slate-near-black brand */
+  }
+
+  html, body, #root {
+    height: 100%;
+  }
+
+  body {
+    font-family: Inter, system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+    background: rgb(var(--bg));
+    color: rgb(var(--ink));
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  ::selection {
+    background: rgb(var(--accent) / 0.18);
+    color: rgb(var(--ink));
+  }
+
+  /* Visible focus ring everywhere */
+  :focus-visible {
+    outline: 2px solid rgb(var(--accent));
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.001ms !important;
+      transition-duration: 0.001ms !important;
+    }
+  }
 }
 
-/* Smooth scroll for thumbnail navigation. */
-html {
-  scroll-behavior: smooth;
-}
-
-body {
-  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
-}
-
-/* ---------- Reusable utilities ---------- */
 @layer components {
-  .btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-md font-medium
-      transition-colors duration-150 focus:outline-none focus-visible:ring-2
-      focus-visible:ring-offset-2 focus-visible:ring-porter disabled:opacity-50
-      disabled:cursor-not-allowed;
+  .skeleton {
+    @apply relative overflow-hidden bg-rule/60 rounded;
   }
-  .btn-primary {
-    @apply btn px-4 py-2 bg-brand-primary text-white hover:opacity-90;
+  .skeleton::after {
+    content: "";
+    position: absolute; inset: 0;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255,255,255,0.55) 50%,
+      transparent 100%
+    );
+    animation: shimmer 1.4s infinite linear;
   }
-  .btn-secondary {
-    @apply btn px-4 py-2 bg-white border border-slate-300 text-slate-700
-      hover:bg-slate-50;
+
+  .scrim {
+    background: rgba(26,26,31,0.72);
   }
-  .btn-porter {
-    @apply btn px-4 py-2 bg-porter text-white hover:bg-porter-600;
-  }
-  .btn-ghost {
-    @apply btn px-3 py-1.5 text-slate-600 hover:bg-slate-100;
-  }
-  .card {
-    @apply bg-white rounded-lg border border-slate-200 shadow-card;
-  }
-  .input {
-    @apply w-full rounded-md border border-slate-300 px-3 py-2 text-sm
-      placeholder:text-slate-400 focus:outline-none focus:ring-2
-      focus:ring-porter focus:border-transparent;
-  }
-  .chip {
-    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs
-      font-medium;
+
+  /* Newsletter page surface */
+  .page-surface {
+    width: 816px;
+    min-height: 1056px;
+    background: var(--brand-bg, #ffffff);
+    color: var(--brand-text, #1A1A1F);
+    box-shadow: 0 1px 0 rgba(26,26,31,.06), 0 16px 40px rgba(26,26,31,.08);
   }
 }

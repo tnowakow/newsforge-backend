@@ -1,3 +1,5 @@
-export function cn(...parts: Array<string | false | null | undefined>): string {
-  return parts.filter(Boolean).join(" ");
+import clsx, { type ClassValue } from "clsx";
+
+export function cn(...classes: ClassValue[]): string {
+  return clsx(...classes);
 }
