@@ -5,6 +5,7 @@ import type { ClientSummary, Richness } from "@/lib/types";
 import { Card } from "@/components/ui/Card";
 import { RichnessBadge } from "@/components/RichnessBadge";
 import { ColorSwatches } from "@/components/ColorSwatches";
+import { ClientLogo } from "@/components/ClientLogo";
 import { Button } from "@/components/ui/Button";
 import { CardSkeleton } from "@/components/ui/LoadingSkeleton";
 import { useToast } from "@/lib/toast";
@@ -189,21 +190,11 @@ function ClientCard({ client }: { client: ClientSummary }) {
     >
       <Card className="p-4 h-[220px] flex flex-col">
         <div className="flex items-start justify-between">
-          <div
-            className="h-14 w-14 rounded-lg grid place-items-center text-white font-display font-bold text-lg shadow-card"
-            style={{ background: primary }}
-            aria-hidden
-          >
-            {client.logoUrl ? (
-              <img
-                src={client.logoUrl}
-                alt=""
-                className="h-full w-full object-cover rounded-lg"
-              />
-            ) : (
-              <span>{client.name.charAt(0)}</span>
-            )}
-          </div>
+          <ClientLogo
+            name={client.name}
+            logoUrl={client.logoUrl}
+            bgColor={primary}
+          />
           <RichnessBadge level={client.richnessLevel} />
         </div>
 
