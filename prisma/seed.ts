@@ -1198,7 +1198,8 @@ async function main() {
       city: "Louisville, KY",
       careLevel: "MIXED",
       richnessLevel: "RICH",
-      logoUrl: null,
+      // Trilogy monogram — sage/cream/purple per brand kit (V2-BRAND-TRILOGY.md).
+      logoUrl: "data:image/svg+xml;base64," + Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240"><circle cx="120" cy="120" r="116" fill="#5164a9"/><circle cx="120" cy="120" r="98" fill="none" stroke="#fdf5ec" stroke-width="4"/><text x="120" y="148" font-family="Georgia,serif" font-size="90" font-weight="700" text-anchor="middle" fill="#fdf5ec">TH</text></svg>').toString("base64"),
       primaryColor: "#4FB6D9",
       secondaryColor: "#1F7EA5",
       accentColor: "#F2B347",
@@ -1219,7 +1220,7 @@ async function main() {
       city: "Louisville, KY",
       careLevel: "MIXED",
       richnessLevel: "RICH",
-      logoUrl: null,
+      logoUrl: "data:image/svg+xml;base64," + Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240"><circle cx="120" cy="120" r="116" fill="#5164a9"/><circle cx="120" cy="120" r="98" fill="none" stroke="#fdf5ec" stroke-width="4"/><text x="120" y="148" font-family="Georgia,serif" font-size="90" font-weight="700" text-anchor="middle" fill="#fdf5ec">TH</text></svg>').toString("base64"),
       primaryColor: "#4FB6D9",
       secondaryColor: "#1F7EA5",
       accentColor: "#F2B347",
