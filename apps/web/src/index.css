@@ -16,8 +16,18 @@
     --warn: 194 90 0;         /* #C25A00 */
     --error: 179 38 30;       /* #B3261E */
 
-    /* Porter One Design accent — used lightly in chrome */
-    --porter: 17 24 39;        /* slate-near-black brand */
+    /* Porter One Design brand palette (restored from v1) */
+    --porter: 27 79 138;       /* #1B4F8A Porter blue */
+    --porter-dark: 22 64 111;  /* #16406F darker navy */
+    --porter-gold: 200 162 64; /* #C8A240 gold accent */
+
+    /* Client-specific brand tokens (v1 pattern: CSS vars override per client) */
+    --brand-primary-rgb: 27 79 138;
+    --brand-secondary-rgb: 22 64 111;
+    --brand-accent-rgb: 200 162 64;
+
+    --client-heading-font: "Georgia";
+    --client-body-font: "Inter";
   }
 
   html, body, #root {
@@ -33,13 +43,13 @@
   }
 
   ::selection {
-    background: rgb(var(--accent) / 0.18);
+    background: rgb(var(--porter) / 0.18);
     color: rgb(var(--ink));
   }
 
   /* Visible focus ring everywhere */
   :focus-visible {
-    outline: 2px solid rgb(var(--accent));
+    outline: 2px solid rgb(var(--porter));
     outline-offset: 2px;
     border-radius: 4px;
   }

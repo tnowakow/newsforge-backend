@@ -9,8 +9,8 @@ export interface TagProps extends HTMLAttributes<HTMLSpanElement> {
 
 const tones: Record<Tone, string> = {
   neutral: "bg-rule/60 text-ink-muted",
-  blue: "bg-accent-soft text-accent",
-  amber: "bg-[#FFF3D6] text-[#9A6B00]",
+  blue: "bg-porter-50 text-porter",
+  amber: "bg-[#FFF8E1] text-[#9A6B00]",  // Gold accent (v1 richness indicator)
   plum: "bg-[#F3E6F4] text-[#6A2A7A]",
   green: "bg-success/15 text-success",
   red: "bg-error/10 text-error",

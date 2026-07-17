@@ -15,8 +15,20 @@ export default {
         success: "rgb(var(--success) / <alpha-value>)",
         warn: "rgb(var(--warn) / <alpha-value>)",
         error: "rgb(var(--error) / <alpha-value>)",
-        // Porter One Design brand accent (very light use)
-        porter: "rgb(var(--porter) / <alpha-value>)",
+        // Porter One Design brand palette (restored from v1)
+        porter: {
+          DEFAULT: "#1B4F8A",
+          50: "#F2F6FB",
+          100: "#E0EAF4",
+          500: "#1B4F8A",
+          600: "#16406F",
+          700: "#0F2E51",
+        },
+        brand: {
+          primary: "rgb(var(--brand-primary-rgb) / <alpha-value>)",
+          secondary: "rgb(var(--brand-secondary-rgb) / <alpha-value>)",
+          accent: "rgb(var(--brand-accent-rgb) / <alpha-value>)",
+        },
       },
       fontFamily: {
         sans: [

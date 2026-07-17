@@ -17,8 +17,8 @@ const RICHNESS_LABEL: Record<Richness, string> = {
 
 const RICHNESS_TONE: Record<Richness, "neutral" | "blue" | "amber" | "plum"> = {
   SIMPLE: "neutral",
-  MODERATE: "blue",
-  RICH: "amber",
+  MODERATE: "blue",      // Porter blue
+  RICH: "amber",         // Gold accent
   EXTRA_RICH: "plum",
 };
 
@@ -118,7 +118,7 @@ export default function ClientPicker() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search clients… (⌘K)"
-            className="w-full h-10 pl-9 pr-3 bg-surface border border-rule rounded-md text-sm placeholder:text-ink-muted/70 focus:border-accent focus:outline-none"
+            className="w-full h-10 pl-9 pr-3 bg-surface border border-rule rounded-md text-sm placeholder:text-ink-muted/70 focus:border-porter focus:outline-none"
           />
         </label>
         <select
@@ -190,7 +190,7 @@ function ClientCard({ client }: { client: ClientSummary }) {
   return (
     <Link
       to={`/workspace/${client.id}`}
-      className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:rounded-xl"
+      className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-porter focus-visible:rounded-xl"
     >
       <Card className="p-4 h-[220px] flex flex-col">
         <div className="flex items-start justify-between">
