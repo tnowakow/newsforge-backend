@@ -18,7 +18,6 @@ const variants: Record<Variant, string> = {
   porter:
     "bg-porter text-white hover:bg-porter-600 active:bg-porter-700 disabled:bg-porter/40 disabled:cursor-not-allowed",
   secondary:
-  secondary:
     "bg-surface text-ink border border-rule hover:border-ink/30 hover:bg-rule/30 disabled:opacity-50 disabled:cursor-not-allowed",
   ghost:
     "bg-transparent text-ink hover:bg-porter-50 disabled:opacity-50 disabled:cursor-not-allowed",
