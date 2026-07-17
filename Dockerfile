@@ -47,3 +47,4 @@ EXPOSE 3001
 
 # Run migrations + seed at startup, then start the API
 CMD ["sh", "-c", "npx prisma migrate deploy --schema prisma/schema.prisma && npx tsx prisma/seed.ts && node apps/api/dist/index.js"]
+# Build trigger 1784263665
