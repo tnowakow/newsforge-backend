@@ -3,6 +3,7 @@
 # Migrations + seed run at startup (need DATABASE_URL at runtime)
 
 FROM node:22-alpine AS builder
+ARG BUILD_TIME=1784264126
 
 # OpenSSL required by Prisma engines
 RUN apk add --no-cache openssl openssl-dev libc6-compat
