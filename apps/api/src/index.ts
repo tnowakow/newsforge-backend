@@ -99,7 +99,9 @@ const webDistDir = (() => {
 if (webDistDir) {
   console.log(`🖼  Serving SPA from ${webDistDir}`);
   app.use(express.static(webDistDir, { index: "index.html" }));
-  app.get("*", (req, res, next) => {
+  // SPA client-routing fallback. Express 5 changed the wildcard syntax
+  // from "*" to named splat "/{*splat}" — keep this in sync when upgrading.
+  app.get("/{*splat}", (req, res, next) => {
     // Never swallow API/render/uploads/pdfs/exports routes.
     if (
       req.path.startsWith("/api/") ||
