@@ -75,8 +75,31 @@ function unwrapRun(payload: unknown): RunRecord {
 
 export const api = {
   // ---- Clients ----
-  listClients: () => request<ClientSummary[]>("/api/clients"),
-  getClient: (id: string) => request<ClientFull>(`/api/clients/${id}`),
+  // v2: backend routes/clients.ts returns `{ clients: [...] }` and
+  // `{ client: {...} }` respectively. Unwrap here so the SPA sees flat
+  // shapes (matches how ClientPicker.tsx and Workspace.tsx consume them).
+  // Missed in John's Phase 3.6 contract triage; caught post-deploy when
+  // the site rendered blank because ClientPicker set the whole `{clients}`
+  // object as state and .map() blew up. — Bob, 2026-07-17 02:18 UTC
+  listClients: async (): Promise<ClientSummary[]> => {
+    const raw = await request<{ clients: ClientSummary[] } | ClientSummary[]>(
+      "/api/clients",
+    );
+    if (Array.isArray(raw)) return raw;
+    if (raw && typeof raw === "object" && "clients" in raw) {
+      return (raw as { clients: ClientSummary[] }).clients ?? [];
+    }
+    return [];
+  },
+  getClient: async (id: string): Promise<ClientFull> => {
+    const raw = await request<{ client: ClientFull } | ClientFull>(
+      `/api/clients/${id}`,
+    );
+    if (raw && typeof raw === "object" && "client" in raw) {
+      return (raw as { client: ClientFull }).client;
+    }
+    return raw as ClientFull;
+  },
 
   // ---- Mock content ----
   generateMockContent: (
