@@ -4,6 +4,7 @@ import { api, ApiError } from "@/lib/api";
 import type { ClientSummary, Richness } from "@/lib/types";
 import { Card } from "@/components/ui/Card";
 import { RichnessBadge } from "@/components/RichnessBadge";
+import { ColorSwatches } from "@/components/ColorSwatches";
 import { Button } from "@/components/ui/Button";
 import { CardSkeleton } from "@/components/ui/LoadingSkeleton";
 import { useToast } from "@/lib/toast";
@@ -219,20 +220,11 @@ function ClientCard({ client }: { client: ClientSummary }) {
         </div>
 
         <div className="flex items-center justify-between mt-2">
-          <div className="flex gap-1.5" aria-hidden>
-            <span
-              className="h-4 w-4 rounded-full border border-black/5"
-              style={{ background: primary }}
-            />
-            <span
-              className="h-4 w-4 rounded-full border border-black/5"
-              style={{ background: shade(primary, -18) }}
-            />
-            <span
-              className="h-4 w-4 rounded-full border border-black/5"
-              style={{ background: shade(primary, 22) }}
-            />
-          </div>
+          <ColorSwatches
+            primary={primary}
+            secondary={shade(primary, -18)}
+            accent={shade(primary, 22)}
+          />
           <span className="text-2xs text-ink-muted">
             {client.pageCount}p
           </span>
