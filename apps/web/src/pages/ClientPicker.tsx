@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { api, ApiError } from "@/lib/api";
 import type { ClientSummary, Richness } from "@/lib/types";
 import { Card } from "@/components/ui/Card";
-import { Tag } from "@/components/ui/Tag";
+import { RichnessBadge } from "@/components/RichnessBadge";
 import { Button } from "@/components/ui/Button";
 import { CardSkeleton } from "@/components/ui/LoadingSkeleton";
 import { useToast } from "@/lib/toast";
@@ -15,12 +15,7 @@ const RICHNESS_LABEL: Record<Richness, string> = {
   EXTRA_RICH: "Extra-Rich",
 };
 
-const RICHNESS_TONE: Record<Richness, "neutral" | "blue" | "amber" | "plum"> = {
-  SIMPLE: "neutral",
-  MODERATE: "blue",      // Porter blue
-  RICH: "amber",         // Gold accent
-  EXTRA_RICH: "plum",
-};
+
 
 type SortKey = "az" | "za" | "richness" | "recent";
 
@@ -184,7 +179,6 @@ export default function ClientPicker() {
 }
 
 function ClientCard({ client }: { client: ClientSummary }) {
-  const tone = RICHNESS_TONE[client.richnessLevel];
   // For the second/accent chips, mock by darkening/lightening primary if we lack them on the summary.
   const primary = client.primaryColor || "#1F4D8C";
   return (
@@ -209,7 +203,7 @@ function ClientCard({ client }: { client: ClientSummary }) {
               <span>{client.name.charAt(0)}</span>
             )}
           </div>
-          <Tag tone={tone}>{RICHNESS_LABEL[client.richnessLevel]}</Tag>
+          <RichnessBadge level={client.richnessLevel} />
         </div>
 
         <div className="mt-4 flex-1">
