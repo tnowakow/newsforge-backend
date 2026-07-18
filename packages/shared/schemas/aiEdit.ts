@@ -35,3 +35,15 @@ export const GeminiFillerResponseSchema = z.object({
   articles: z.array(GeminiFillerArticleSchema),
 });
 export type GeminiFillerResponse = z.infer<typeof GeminiFillerResponseSchema>;
+
+export const GeminiMockArticleSchema = z.object({
+  title: z.string(),
+  body: z.string(),
+  wordCount: z.number().int().nonnegative(),
+});
+export type GeminiMockArticle = z.infer<typeof GeminiMockArticleSchema>;
+
+export const GeminiMockResponseSchema = z.object({
+  article: GeminiMockArticleSchema,
+});
+export type GeminiMockResponse = z.infer<typeof GeminiMockResponseSchema>;

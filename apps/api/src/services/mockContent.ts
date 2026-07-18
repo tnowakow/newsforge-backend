@@ -1,11 +1,14 @@
 /**
- * Deterministic mock-content generator. Volume varies by client richness:
+ * Mock-content generator. Volume varies by client richness:
  *   SIMPLE      ->  2-3 articles, 4 images
  *   MODERATE    ->  4-5 articles, 7 images
  *   RICH        ->  6-7 articles, 11 images
  *   EXTRA_RICH  ->  8-10 articles, 15-20 images
  *
  * Tone varies by brandVoice (passed as a hint string) and careLevel.
+ *
+ * Each article body is generated via Gemini to match its title and brand voice.
+ * Falls back to deterministic placeholder text if Gemini is unavailable.
  */
 import { createId } from "@paralleldrive/cuid2";
 import type { Article, NewsImage } from "@newsforge/shared/schemas";
@@ -13,6 +16,11 @@ import type {
   Richness,
   CareLevel,
 } from "@newsforge/shared/schemas";
+import {
+  GeminiMockResponseSchema,
+  type GeminiMockResponse,
+} from "@newsforge/shared/schemas";
+import { callGeminiJson } from "../gemini.js";
 
 const SEED_TITLES = [
   "A Note From the Director",
@@ -32,37 +40,52 @@ const SEED_TITLES = [
   "Photo of the Month",
 ];
 
-const BODY_SEED = {
-  warm:
-    "It is hard to believe how quickly the season has turned. The mornings carry a softness now, and our community gathered on the porch this week to share coffee, stories, and the kind of easy laughter that reminds us why this place feels like home.",
-  upbeat:
-    "What a month it has been! From bingo to brunch, from movie nights to a surprise visit from a local school choir, energy has been high and smiles have been everywhere. Read on for everything coming up.",
-  gentle:
-    "We continue to focus on small, comforting routines that bring our residents joy. Quiet mornings with music, afternoon walks in the courtyard, and familiar faces sharing favorite memories together.",
-  formal:
-    "We are pleased to share an update on community activities, resident wellness initiatives, and the calendar of events for the month ahead. Thank you to our dedicated team and family members for your continued partnership.",
+/**
+ * Deterministic fallback bodies — one per seed title.
+ * Used when Gemini is unavailable or times out.
+ */
+const FALLBACK_BODIES: Record<string, string> = {
+  "A Note From the Director":
+    "It has been a wonderful month here at our community. We continue to focus on creating meaningful connections and providing the highest quality of care for every resident. Thank you to our dedicated staff and the families who trust us.",
+  "Welcome to Our Newest Neighbors":
+    "We are thrilled to welcome our newest residents to the community! Please join us in making them feel at home. Stop by the front desk to learn more about how you can help them settle in.",
+  "Resident Spotlight":
+    "This month we are shining a light on one of our cherished residents. Their story, spirit, and contributions to our community continue to inspire everyone around them.",
+  "This Month in the Garden":
+    "Our gardens are blooming beautifully this season. Residents have been tending to flower beds, harvesting vegetables, and enjoying peaceful afternoons outdoors among the greenery.",
+  "Birthdays & Anniversaries":
+    "We are celebrating several special birthdays and anniversaries this month. Please help us make these milestones extra special by sharing a card, a smile, or a song with those being honored.",
+  "Activities Calendar Preview":
+    "Mark your calendars for an exciting lineup of activities coming up this month. From social gatherings to wellness programs, there is something for everyone to enjoy.",
+  "From the Kitchen":
+    "Our culinary team has prepared a delicious menu this month featuring seasonal ingredients and resident favorites. We invite you to try something new and share your feedback with our chefs.",
+  "Wellness Corner":
+    "Staying active and well is a priority for all of us. This month we are highlighting simple wellness practices, from gentle stretches to mindfulness exercises, that residents can incorporate into their daily routine.",
+  "Volunteer of the Month":
+    "We are proud to recognize this month's volunteer of the month for their dedication and kindness. Their efforts make a real difference in the lives of our residents and staff.",
+  "Trips & Outings":
+    "Our upcoming trips and outings offer wonderful opportunities for residents to explore new places and create lasting memories. Check the schedule and sign up at the front desk.",
+  "Memory Lane: A Look Back":
+    "Take a trip down memory lane as we look back at some of the most cherished moments from our community's history. These stories remind us of the rich traditions that make our community special.",
+  "Family Engagement":
+    "Families are the heart of our community. We encourage continued involvement through visits, shared meals, and participation in community events. Your presence makes all the difference.",
+  "Staff Appreciation":
+    "Our staff members work tirelessly to ensure every resident feels valued and cared for. This month we want to take a moment to thank them for their compassion, professionalism, and dedication.",
+  "Community Partners":
+    "We are grateful for the organizations and individuals who partner with us to enhance the quality of life for our residents. Their support and collaboration make our community stronger.",
+  "Photo of the Month":
+    "This month's photo captures a beautiful moment in our community. It reminds us of the joy, connection, and warmth that fill our halls every day.",
 };
 
-function pickVoice(brandVoice: string): keyof typeof BODY_SEED {
-  const v = brandVoice.toLowerCase();
-  if (v.includes("warm") || v.includes("home")) return "warm";
-  if (v.includes("upbeat") || v.includes("lively") || v.includes("fun")) return "upbeat";
-  if (v.includes("gentle") || v.includes("calm") || v.includes("memory")) return "gentle";
-  return "formal";
-}
+const FALLBACK_BODIES_DEFAULT =
+  "We are pleased to share updates on community activities, resident wellness, and the calendar of events for the month ahead. Thank you to our dedicated team and family members for your continued partnership.";
 
-function paragraphsFor(voice: keyof typeof BODY_SEED, paragraphs: number): string {
-  const base = BODY_SEED[voice];
-  const variants = [
-    base,
-    "We continue to invest in the small touches that make daily life richer — fresh flowers in the dining room, new hobby kits in the activity center, and a renewed schedule of off-site outings.",
-    "Several residents have shared how meaningful these gatherings have been, and we are deeply grateful to the staff and volunteers who make them possible.",
-    "Looking ahead, please mark your calendars for the events listed in the back of this newsletter — and don't hesitate to drop by the front desk if you have ideas to share.",
-    "Photos from recent events are posted on the family bulletin board and shared in our weekly update email.",
-  ];
-  return Array.from({ length: paragraphs })
-    .map((_, i) => variants[i % variants.length])
-    .join("\n\n");
+function pickVoice(brandVoice: string): string {
+  const v = brandVoice.toLowerCase();
+  if (v.includes("warm") || v.includes("home")) return "warm and homey";
+  if (v.includes("upbeat") || v.includes("lively") || v.includes("fun")) return "upbeat and lively";
+  if (v.includes("gentle") || v.includes("calm") || v.includes("memory")) return "gentle and comforting";
+  return "professional and respectful";
 }
 
 function wordCount(s: string): number {
@@ -72,17 +95,17 @@ function wordCount(s: string): number {
 function targetForRichness(richness: Richness): {
   articles: number;
   images: number;
-  paragraphsPerArticle: number;
+  targetWords: number;
 } {
   switch (richness) {
     case "SIMPLE":
-      return { articles: 3, images: 4, paragraphsPerArticle: 2 };
+      return { articles: 3, images: 4, targetWords: 100 };
     case "MODERATE":
-      return { articles: 5, images: 7, paragraphsPerArticle: 3 };
+      return { articles: 5, images: 7, targetWords: 140 };
     case "RICH":
-      return { articles: 7, images: 11, paragraphsPerArticle: 4 };
+      return { articles: 7, images: 11, targetWords: 180 };
     case "EXTRA_RICH":
-      return { articles: 10, images: 18, paragraphsPerArticle: 5 };
+      return { articles: 10, images: 18, targetWords: 220 };
   }
 }
 
@@ -120,28 +143,102 @@ export interface GenerateMockContentResult {
   images: NewsImage[];
 }
 
-export function generateMockContent(
+/**
+ * Generate a single article body via Gemini, falling back to deterministic
+ * text if Gemini is unavailable.
+ */
+async function generateArticleBody(
+  title: string,
+  brandVoice: string,
+  careLevel: CareLevel,
+  targetWords: number,
+): Promise<string> {
+  const voice = pickVoice(brandVoice);
+  const flavor = careLevelFlavor(careLevel);
+
+  const fallbackBody =
+    FALLBACK_BODIES[title] ?? FALLBACK_BODIES_DEFAULT;
+
+  const fallback: GeminiMockResponse = {
+    article: {
+      title,
+      body: fallbackBody,
+      wordCount: wordCount(fallbackBody),
+    },
+  };
+
+  const systemPrompt = [
+    "You are a copywriter for a senior-living community newsletter.",
+    `Write a short, on-brand article body for the given title.`,
+    `Tone should be: ${voice}.`,
+    `Target approximately ${targetWords} words.`,
+    `Always respond with valid JSON matching the schema. No prose outside JSON.`,
+  ].join(" ");
+
+  const userPrompt = JSON.stringify(
+    {
+      schema: {
+        article: {
+          title: "string (must match input title)",
+          body: "the article body text",
+          wordCount: "integer",
+        },
+      },
+      title,
+      targetWords,
+    },
+    null,
+    2,
+  );
+
+  try {
+    const result = await callGeminiJson<GeminiMockResponse>({
+      schema: GeminiMockResponseSchema,
+      systemPrompt,
+      userPrompt,
+      fallback,
+    });
+
+    let body = result.data.article.body;
+    if (!body || body.trim().length < 20) {
+      body = fallbackBody;
+    }
+    return body + flavor;
+  } catch {
+    return fallbackBody + flavor;
+  }
+}
+
+export async function generateMockContent(
   input: GenerateMockContentInput,
-): GenerateMockContentResult {
+): Promise<GenerateMockContentResult> {
   const { richness, careLevel, brandVoice } = input;
   const target = targetForRichness(richness);
-  const voice = pickVoice(brandVoice);
 
   const articles: Article[] = [];
+  const promises: Promise<void>[] = [];
+
   for (let i = 0; i < target.articles; i++) {
     const title = SEED_TITLES[i % SEED_TITLES.length];
-    const body = paragraphsFor(voice, target.paragraphsPerArticle) +
-      careLevelFlavor(careLevel);
-    articles.push({
-      id: createId(),
-      title,
-      body,
-      wordCount: wordCount(body),
-      byline: i === 0 ? "From the Executive Director" : undefined,
-      isFiller: false,
-      source: "MOCK",
-    });
+
+    const p = generateArticleBody(title, brandVoice, careLevel, target.targetWords)
+      .then(async (body) => {
+        articles.push({
+          id: createId(),
+          title,
+          body,
+          wordCount: wordCount(body),
+          byline: i === 0 ? "From the Executive Director" : undefined,
+          isFiller: false,
+          source: "MOCK",
+        });
+      });
+
+    promises.push(p);
   }
+
+  // Generate all article bodies in parallel
+  await Promise.all(promises);
 
   const images: NewsImage[] = [];
   for (let i = 0; i < target.images; i++) {

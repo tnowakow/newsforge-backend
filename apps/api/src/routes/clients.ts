@@ -52,7 +52,7 @@ clientsRouter.post("/:id/mock-content", async (req, res) => {
 
   const recurring = RecurringSectionsSchema.safeParse(client.recurringSections);
 
-  const { articles, images } = generateMockContent({
+  const { articles, images } = await generateMockContent({
     richness: client.richnessLevel,
     careLevel: client.careLevel,
     brandVoice: client.brandVoice,

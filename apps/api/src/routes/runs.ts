@@ -135,7 +135,7 @@ runsRouter.post("/", async (req, res) => {
   let articles = body.articles;
   let images = body.images;
   if (!articles || !images) {
-    const mock = generateMockContent({
+    const mock = await generateMockContent({
       richness: client.richnessLevel,
       careLevel: client.careLevel,
       brandVoice: client.brandVoice,
