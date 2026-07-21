@@ -160,17 +160,25 @@ export const api = {
     return unwrapRun(raw);
   },
 
-  /**
-   * v2 §Screen 9 — list approved (or filter by status) runs.
-   * Backend: `GET /api/runs?status=approved` → `{ runs, total, limit, offset }`
-   * (see routes/runs.ts:239).
-   */
-  listApprovedRuns: async (): Promise<RunRecord[]> => {
+  listRuns: async (opts?: {
+    status?: "pending" | "approved" | "changes_requested";
+    limit?: number;
+  }): Promise<RunRecord[]> => {
+    const params = new URLSearchParams();
+    params.set("limit", String(opts?.limit ?? 200));
+    if (opts?.status) params.set("status", opts.status);
     const raw = await request<{ runs: RunRecord[]; total: number }>(
-      "/api/runs?status=approved&limit=200",
+      `/api/runs?${params.toString()}`,
     );
     return raw.runs ?? [];
   },
+
+  /**
+   * v2 Screen 9 compatibility helper. `/approved` remains an alias, but
+   * the primary library now uses `listRuns()` so pending drafts are findable.
+   */
+  listApprovedRuns: async (): Promise<RunRecord[]> =>
+    api.listRuns({ status: "approved", limit: 200 }),
 
   editBlock: (
     runId: string,

@@ -53,6 +53,7 @@ export function renderRunHtml(input: RenderInput): string {
     const style =
       `grid-column: ${b.position.col} / span ${b.position.colSpan};` +
       `grid-row: ${b.position.row} / span ${b.position.rowSpan};`;
+    const tagClass = b.styleTag ? ` tag-${esc(b.styleTag)}` : "";
     let inner = "";
 
     if (b.kind === "article" || b.kind === "filler" || b.kind === "recurring") {
@@ -60,7 +61,7 @@ export function renderRunHtml(input: RenderInput): string {
       const section = b.sectionId ? sectionsById.get(b.sectionId) : undefined;
       if (article) {
         inner = `
-          <article class="block block-article ${b.styleTag ? "tag-" + esc(b.styleTag) : ""}">
+          <article class="block block-article${tagClass}">
             ${section ? `<div class="kicker">${esc(section.title)}</div>` : ""}
             <h2>${esc(article.title)}</h2>
             ${article.byline ? `<div class="byline">By ${esc(article.byline)}</div>` : ""}
@@ -70,23 +71,23 @@ export function renderRunHtml(input: RenderInput): string {
               .join("")}</div>
           </article>`;
       } else if (b.inlineText) {
-        inner = `<article class="block block-filler"><p>${esc(b.inlineText)}</p></article>`;
+        inner = `<article class="block block-filler${tagClass}"><p>${esc(b.inlineText)}</p></article>`;
       } else if (section) {
-        inner = `<article class="block block-section"><h2>${esc(section.title)}</h2></article>`;
+        inner = `<article class="block block-section${tagClass}"><h2>${esc(section.title)}</h2></article>`;
       }
     } else if (b.kind === "image") {
       const img = b.imageId ? imagesById.get(b.imageId) : undefined;
       if (img) {
         inner = `
-          <figure class="block block-image">
+          <figure class="block block-image${tagClass}">
             <img src="${esc(img.url)}" alt="${esc(img.alt ?? "")}" />
             ${img.caption ? `<figcaption>${esc(img.caption)}</figcaption>` : ""}
           </figure>`;
       } else {
-        inner = `<div class="block block-image placeholder"><span>Image</span></div>`;
+        inner = `<div class="block block-image placeholder${tagClass}"><span>Image</span></div>`;
       }
     } else if (b.kind === "placeholder") {
-      inner = `<div class="block block-placeholder"><span>${esc(b.inlineText ?? "Placeholder")}</span></div>`;
+      inner = `<div class="block block-placeholder${tagClass}"><span>${esc(b.inlineText ?? "Placeholder")}</span></div>`;
     } else {
       inner = `<div class="block block-empty"></div>`;
     }
@@ -200,6 +201,37 @@ export function renderRunHtml(input: RenderInput): string {
       color: #888; font-size: 10pt; padding: 8px;
     }
     .block-empty { background: #fafafa; border: 1px dashed #ddd; }
+    .tag-hero, .tag-feature, .tag-cover {
+      background: color-mix(in srgb, var(--primary) 7%, white);
+      border-left: 5px solid var(--primary);
+      padding: 10px;
+    }
+    article.tag-hero h2, article.tag-feature h2, article.tag-cover h2 {
+      font-size: 21pt;
+      line-height: 1.08;
+    }
+    .tag-banner, .tag-recap {
+      border-top: 3px solid var(--secondary);
+      border-bottom: 1px solid var(--secondary);
+      padding: 8px 0;
+    }
+    .tag-pull-quote, .tag-pullquote {
+      background: color-mix(in srgb, var(--accent) 10%, white);
+      border-radius: 4px;
+      padding: 10px;
+    }
+    article.tag-pull-quote h2, article.tag-pullquote h2 {
+      font-size: 18pt;
+      font-style: italic;
+    }
+    .tag-spotlight, .tag-staff-spot, .tag-portrait, .tag-hero-portrait {
+      border: 1px solid color-mix(in srgb, var(--secondary) 45%, white);
+      border-radius: 4px;
+      padding: 8px;
+    }
+    .tag-panorama img, .tag-hero img, .tag-cover img {
+      filter: saturate(1.04) contrast(1.03);
+    }
   `;
 
   return `<!doctype html>

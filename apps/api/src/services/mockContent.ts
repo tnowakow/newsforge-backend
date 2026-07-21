@@ -1,141 +1,174 @@
 /**
- * Mock-content generator. Volume varies by client richness:
- *   SIMPLE      ->  2-3 articles, 4 images
- *   MODERATE    ->  4-5 articles, 7 images
- *   RICH        ->  6-7 articles, 11 images
- *   EXTRA_RICH  ->  8-10 articles, 15-20 images
- *
- * Tone varies by brandVoice (passed as a hint string) and careLevel.
- *
- * Each article body is generated via Gemini to match its title and brand voice.
- * Falls back to deterministic placeholder text if Gemini is unavailable.
+ * Deterministic sample-content generator used by the demo workspace.
+ * The output is intentionally editorial rather than lorem ipsum: every
+ * article has a distinct purpose, concrete detail, and layout-friendly length.
  */
 import { createId } from "@paralleldrive/cuid2";
-import type { Article, NewsImage } from "@newsforge/shared/schemas";
 import type {
-  Richness,
+  Article,
   CareLevel,
+  NewsImage,
+  RecurringSection,
+  Richness,
 } from "@newsforge/shared/schemas";
-import {
-  GeminiMockResponseSchema,
-  type GeminiMockResponse,
-} from "@newsforge/shared/schemas";
-import { callGeminiJson } from "../gemini.js";
 
-const SEED_TITLES = [
-  "A Note From the Director",
-  "Welcome to Our Newest Neighbors",
-  "Resident Spotlight",
-  "This Month in the Garden",
-  "Birthdays & Anniversaries",
-  "Activities Calendar Preview",
-  "From the Kitchen",
-  "Wellness Corner",
-  "Volunteer of the Month",
-  "Trips & Outings",
-  "Memory Lane: A Look Back",
-  "Family Engagement",
-  "Staff Appreciation",
-  "Community Partners",
-  "Photo of the Month",
+export type MockTone = "warm" | "formal" | "playful" | "civic";
+
+interface StorySeed {
+  key: string;
+  title: (input: GenerateMockContentInput) => string;
+  body: (input: GenerateMockContentInput) => string;
+  articleType: Article["articleType"];
+  sectionMatch?: RegExp;
+}
+
+const STORY_SEEDS: StorySeed[] = [
+  {
+    key: "director",
+    title: ({ monthLabel }) => `${monthLabel ?? "This Month"}, One Moment at a Time`,
+    articleType: "executive-note",
+    sectionMatch: /director|executive|welcome/i,
+    body: (input) =>
+      paragraphs(input, [
+        `This month at ${input.clientName ?? "our community"}, the moments worth remembering have been wonderfully ordinary: coffee lingering a little longer after breakfast, a familiar song carrying down the hall, and neighbors saving one another a seat on the patio.`,
+        `Those small rituals are how a building becomes a community. Our team is making room for more of them in ${input.monthLabel ?? "the weeks ahead"}, with relaxed gatherings, family visits, and activities shaped by what residents tell us they enjoy most.`,
+        `Thank you to the residents, families, volunteers, and team members who bring warmth to each day. We are grateful you are part of this chapter with us.`,
+      ]),
+  },
+  {
+    key: "spotlight",
+    title: () => "The Table Where Stories Gather",
+    articleType: "resident-story",
+    sectionMatch: /resident|spotlight|feature/i,
+    body: (input) =>
+      paragraphs(input, [
+        `Every Thursday afternoon, a small group gathers around the long table with photo albums, recipe cards, and questions that rarely have one-word answers. A conversation about first jobs becomes a story about a neighborhood grocery; a favorite song opens the door to a wedding-day memory.`,
+        `The point is not to rush toward a finished project. It is to notice what makes each story personal: the smell of bread cooling on a windowsill, the make of a first car, or the friend who always knew how to make everyone laugh.`,
+        `Families are invited to add a copy of a favorite photo or recipe to the table. Together, those details create a living portrait of the people who make ${input.clientName ?? "this community"} feel like home.`,
+      ]),
+  },
+  {
+    key: "events",
+    title: () => "Patio Music, Lemonade, and an Encore",
+    articleType: "event-recap",
+    body: (input) =>
+      paragraphs(input, [
+        `The first notes drew people outside before the lemonade was poured. By the second song, the patio had become a front-row seat, with residents calling out requests and keeping time from the shade.`,
+        `The biggest response came from a familiar favorite. Staff paused in the doorway, visiting family members joined the chorus, and the musicians stayed for one more song after the planned set had ended.`,
+        `It was a simple afternoon with all the right ingredients: good weather, good company, and music everyone could carry home. Photos from the gathering will be shared on the community board this week.`,
+      ]),
+  },
+  {
+    key: "menu",
+    title: () => "From the Kitchen: A Taste of Home",
+    articleType: "announcement",
+    body: (input) =>
+      paragraphs(input, [
+        `This month's kitchen feature begins with a resident suggestion: a Sunday-style supper served family-style, with roast chicken, herb potatoes, green beans, and warm rolls passed around the table.`,
+        `The culinary team is also bringing back a build-your-own sundae afternoon. Residents can choose the classics or add a little crunch, fruit, or extra chocolate.`,
+        `Menu ideas are always welcome. Share a favorite dish or food memory with the dining team, and it may inspire a future tasting table.`,
+      ]),
+  },
+  {
+    key: "opEd",
+    title: () => "Why Familiar Rhythms Matter",
+    articleType: "other",
+    body: (input) =>
+      paragraphs(input, [
+        `A full calendar can be exciting, but a meaningful day is not measured by the number of activities on it. Often, the best experiences begin with familiarity: the same chair by the window, a favorite mug, or a walk taken at an unhurried pace.`,
+        `At ${input.clientName ?? "our community"}, choice comes first. Residents can join the crowd, spend time with a close friend, or enjoy a quieter routine that feels like their own.`,
+        `That balance gives every day its shape. It leaves room for celebration without losing the comfort of the rituals people know and value.`,
+      ]),
+  },
+  {
+    key: "calendar",
+    title: ({ monthLabel }) => `${monthLabel ?? "This Month"} at a Glance`,
+    articleType: "announcement",
+    sectionMatch: /calendar|activities|events/i,
+    body: (input) =>
+      paragraphs(input, [
+        `The month ahead includes a courtyard social, a live-music afternoon, a hands-on cooking demonstration, and a family game night. Smaller neighborhood gatherings will continue throughout the week.`,
+        `${careInvitation(input.careLevel)} Final dates and times belong on the posted activity calendar so families can plan visits around the events their loved ones enjoy most.`,
+      ]),
+  },
+  {
+    key: "wellness",
+    title: () => "A Gentler Way to Keep Moving",
+    articleType: "announcement",
+    body: (input) =>
+      paragraphs(input, [
+        `Movement does not have to be strenuous to make the day feel brighter. This month, wellness sessions will pair familiar music with seated stretches, balance practice, and short walks at a comfortable pace.`,
+        `Residents can participate for a full session or simply stop in for a favorite song. The emphasis is on comfort, confidence, and enjoying time together.`,
+        `${careInvitation(input.careLevel)} Families can ask the life-enrichment team which sessions may be the best fit.`,
+      ]),
+  },
+  {
+    key: "welcome",
+    title: () => "New Faces, Warm Welcomes",
+    articleType: "announcement",
+    body: (input) =>
+      paragraphs(input, [
+        `A welcoming community is built one introduction at a time. This month, residents and team members are making extra room at coffee groups, dining tables, and afternoon programs for neighbors who are still learning the rhythms of a new home.`,
+        `A hello in the hallway or an invitation to sit together can make the unfamiliar feel easier. Families can help by sharing favorite hobbies, music, and routines with the team.`,
+      ]),
+  },
+  {
+    key: "birthdays",
+    title: () => "Reasons to Celebrate",
+    articleType: "birthday",
+    sectionMatch: /birthday|anniversar|milestone/i,
+    body: (input) =>
+      paragraphs(input, [
+        `Birthday breakfasts, anniversary flowers, and a few well-timed surprises are on the calendar this month. The full celebration list will be confirmed with residents and families before publication.`,
+        `Watch the community board for gathering details, and bring your singing voice. Every milestone deserves a moment that feels personal.`,
+      ]),
+  },
 ];
 
-/**
- * Deterministic fallback bodies — one per seed title.
- * Used when Gemini is unavailable or times out.
- */
-const FALLBACK_BODIES: Record<string, string> = {
-  "A Note From the Director":
-    "It has been a wonderful month here at our community. We continue to focus on creating meaningful connections and providing the highest quality of care for every resident. Thank you to our dedicated staff and the families who trust us.",
-  "Welcome to Our Newest Neighbors":
-    "We are thrilled to welcome our newest residents to the community! Please join us in making them feel at home. Stop by the front desk to learn more about how you can help them settle in.",
-  "Resident Spotlight":
-    "This month we are shining a light on one of our cherished residents. Their story, spirit, and contributions to our community continue to inspire everyone around them.",
-  "This Month in the Garden":
-    "Our gardens are blooming beautifully this season. Residents have been tending to flower beds, harvesting vegetables, and enjoying peaceful afternoons outdoors among the greenery.",
-  "Birthdays & Anniversaries":
-    "We are celebrating several special birthdays and anniversaries this month. Please help us make these milestones extra special by sharing a card, a smile, or a song with those being honored.",
-  "Activities Calendar Preview":
-    "Mark your calendars for an exciting lineup of activities coming up this month. From social gatherings to wellness programs, there is something for everyone to enjoy.",
-  "From the Kitchen":
-    "Our culinary team has prepared a delicious menu this month featuring seasonal ingredients and resident favorites. We invite you to try something new and share your feedback with our chefs.",
-  "Wellness Corner":
-    "Staying active and well is a priority for all of us. This month we are highlighting simple wellness practices, from gentle stretches to mindfulness exercises, that residents can incorporate into their daily routine.",
-  "Volunteer of the Month":
-    "We are proud to recognize this month's volunteer of the month for their dedication and kindness. Their efforts make a real difference in the lives of our residents and staff.",
-  "Trips & Outings":
-    "Our upcoming trips and outings offer wonderful opportunities for residents to explore new places and create lasting memories. Check the schedule and sign up at the front desk.",
-  "Memory Lane: A Look Back":
-    "Take a trip down memory lane as we look back at some of the most cherished moments from our community's history. These stories remind us of the rich traditions that make our community special.",
-  "Family Engagement":
-    "Families are the heart of our community. We encourage continued involvement through visits, shared meals, and participation in community events. Your presence makes all the difference.",
-  "Staff Appreciation":
-    "Our staff members work tirelessly to ensure every resident feels valued and cared for. This month we want to take a moment to thank them for their compassion, professionalism, and dedication.",
-  "Community Partners":
-    "We are grateful for the organizations and individuals who partner with us to enhance the quality of life for our residents. Their support and collaboration make our community stronger.",
-  "Photo of the Month":
-    "This month's photo captures a beautiful moment in our community. It reminds us of the joy, connection, and warmth that fill our halls every day.",
-};
-
-const FALLBACK_BODIES_DEFAULT =
-  "We are pleased to share updates on community activities, resident wellness, and the calendar of events for the month ahead. Thank you to our dedicated team and family members for your continued partnership.";
-
-function pickVoice(brandVoice: string): string {
-  const v = brandVoice.toLowerCase();
-  if (v.includes("warm") || v.includes("home")) return "warm and homey";
-  if (v.includes("upbeat") || v.includes("lively") || v.includes("fun")) return "upbeat and lively";
-  if (v.includes("gentle") || v.includes("calm") || v.includes("memory")) return "gentle and comforting";
-  return "professional and respectful";
-}
-
-function wordCount(s: string): number {
-  return s.trim().split(/\s+/).filter(Boolean).length;
-}
-
-function targetForRichness(richness: Richness): {
-  articles: number;
-  images: number;
-  targetWords: number;
-} {
-  switch (richness) {
-    case "SIMPLE":
-      return { articles: 3, images: 4, targetWords: 100 };
-    case "MODERATE":
-      return { articles: 5, images: 7, targetWords: 140 };
-    case "RICH":
-      return { articles: 7, images: 11, targetWords: 180 };
-    case "EXTRA_RICH":
-      return { articles: 10, images: 18, targetWords: 220 };
-  }
-}
-
-function careLevelFlavor(care: CareLevel): string {
-  switch (care) {
-    case "INDEPENDENT_LIVING":
-      return " Independent living residents are invited to sign up at the front desk.";
-    case "ASSISTED_LIVING":
-      return " Care partners are happy to help with sign-ups and reminders.";
-    case "MEMORY_CARE":
-      return " Caregivers will accompany residents to ensure a comfortable experience.";
-    case "MIXED":
-      return " Activities are open across all neighborhoods in our community.";
-  }
-}
-
-const IMAGE_HOSTS = [
-  "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4",
-  "https://images.unsplash.com/photo-1519681393784-d120267933ba",
-  "https://images.unsplash.com/photo-1518770660439-4636190af475",
-  "https://images.unsplash.com/photo-1503676260728-1c00da094a0b",
-  "https://images.unsplash.com/photo-1493612276216-ee3925520721",
+const IMAGE_SEEDS = [
+  {
+    url: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4",
+    caption: "A welcoming table ready for neighbors and families",
+    alt: "Bright community dining space",
+    aspect: "landscape" as const,
+  },
+  {
+    url: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac",
+    caption: "Friends enjoying time outdoors together",
+    alt: "Friends gathered outside",
+    aspect: "landscape" as const,
+  },
+  {
+    url: "https://images.unsplash.com/photo-1416879595882-3373a0480b5b",
+    caption: "Fresh color in the community garden",
+    alt: "Hands tending a garden",
+    aspect: "landscape" as const,
+  },
+  {
+    url: "https://images.unsplash.com/photo-1498837167922-ddd27525d352",
+    caption: "A seasonal spread from the culinary team",
+    alt: "Colorful food arranged on a table",
+    aspect: "square" as const,
+  },
+  {
+    url: "https://images.unsplash.com/photo-1544717305-2782549b5136",
+    caption: "A quiet afternoon with a good book",
+    alt: "Person reading near a window",
+    aspect: "portrait" as const,
+  },
 ];
-
-const ASPECTS: NewsImage["aspect"][] = ["landscape", "portrait", "square"];
 
 export interface GenerateMockContentInput {
   richness: Richness;
   careLevel: CareLevel;
   brandVoice: string;
+  clientName?: string;
+  city?: string;
+  monthLabel?: string;
+  tone?: MockTone;
+  density?: number;
+  include?: string[];
+  recurringSections?: RecurringSection[];
 }
 
 export interface GenerateMockContentResult {
@@ -143,116 +176,91 @@ export interface GenerateMockContentResult {
   images: NewsImage[];
 }
 
-/**
- * Generate a single article body via Gemini, falling back to deterministic
- * text if Gemini is unavailable.
- */
-async function generateArticleBody(
-  title: string,
-  brandVoice: string,
-  careLevel: CareLevel,
-  targetWords: number,
-): Promise<string> {
-  const voice = pickVoice(brandVoice);
-  const flavor = careLevelFlavor(careLevel);
-
-  const fallbackBody =
-    FALLBACK_BODIES[title] ?? FALLBACK_BODIES_DEFAULT;
-
-  const fallback: GeminiMockResponse = {
-    article: {
-      title,
-      body: fallbackBody,
-      wordCount: wordCount(fallbackBody),
-    },
-  };
-
-  const systemPrompt = [
-    "You are a copywriter for a senior-living community newsletter.",
-    `Write a short, on-brand article body for the given title.`,
-    `Tone should be: ${voice}.`,
-    `Target approximately ${targetWords} words.`,
-    `Always respond with valid JSON matching the schema. No prose outside JSON.`,
-  ].join(" ");
-
-  const userPrompt = JSON.stringify(
-    {
-      schema: {
-        article: {
-          title: "string (must match input title)",
-          body: "the article body text",
-          wordCount: "integer",
-        },
-      },
-      title,
-      targetWords,
-    },
-    null,
-    2,
+export function generateMockContent(
+  input: GenerateMockContentInput,
+): GenerateMockContentResult {
+  const density = normalizeDensity(input.density, input.richness);
+  const targets = [
+    { articles: 3, images: 4 },
+    { articles: 5, images: 7 },
+    { articles: 7, images: 11 },
+    { articles: 9, images: 15 },
+  ][density - 1];
+  const requested = new Set(
+    input.include ?? ["director", "spotlight", "events", "menu"],
   );
+  const selected = [
+    ...STORY_SEEDS.filter((story) => requested.has(story.key)),
+    ...STORY_SEEDS.filter((story) => !requested.has(story.key)),
+  ].slice(0, targets.articles);
 
-  try {
-    const result = await callGeminiJson<GeminiMockResponse>({
-      schema: GeminiMockResponseSchema,
-      systemPrompt,
-      userPrompt,
-      fallback,
-    });
+  const articles = selected.map((story) => {
+    const body = story.body(input);
+    const section = input.recurringSections?.find((candidate) =>
+      story.sectionMatch?.test(candidate.title),
+    );
+    return {
+      id: createId(),
+      title: section?.title ?? story.title(input),
+      body,
+      wordCount: wordCount(body),
+      byline: story.key === "director" ? "From the Executive Director" : undefined,
+      sectionId: section?.id,
+      isFiller: false,
+      source: "MOCK" as const,
+      articleType: story.articleType,
+    };
+  });
 
-    let body = result.data.article.body;
-    if (!body || body.trim().length < 20) {
-      body = fallbackBody;
-    }
-    return body + flavor;
-  } catch {
-    return fallbackBody + flavor;
+  const images = Array.from({ length: targets.images }, (_, index) => {
+    const seed = IMAGE_SEEDS[index % IMAGE_SEEDS.length];
+    return {
+      id: createId(),
+      url: `${seed.url}?auto=format&fit=crop&w=1400&q=82&sig=${index}`,
+      caption: seed.caption,
+      alt: seed.alt,
+      aspect: seed.aspect,
+      isPlaceholder: false,
+      source: "MOCK" as const,
+    };
+  });
+
+  return { articles, images };
+}
+
+function normalizeDensity(density: number | undefined, richness: Richness): number {
+  if (Number.isInteger(density)) return Math.min(4, Math.max(1, density ?? 1));
+  return { SIMPLE: 1, MODERATE: 2, RICH: 3, EXTRA_RICH: 4 }[richness];
+}
+
+function paragraphs(input: GenerateMockContentInput, parts: string[]): string {
+  const toneLead = {
+    warm: "",
+    formal: "In this edition, ",
+    playful: "Here is something worth smiling about: ",
+    civic: "Across our community, ",
+  }[input.tone ?? "warm"];
+  const first = toneLead ? toneLead + lowerFirst(parts[0]) : parts[0];
+  return [first, ...parts.slice(1)].join("\n\n");
+}
+
+function lowerFirst(value: string): string {
+  return value.charAt(0).toLowerCase() + value.slice(1);
+}
+
+function careInvitation(careLevel: CareLevel): string {
+  switch (careLevel) {
+    case "INDEPENDENT_LIVING":
+      return "Residents can sign up at the front desk or invite a neighbor to join them.";
+    case "ASSISTED_LIVING":
+      return "Care partners can help with reminders, transportation, and comfortable participation.";
+    case "MEMORY_CARE":
+      return "Team members will adapt each activity around familiar routines and individual comfort.";
+    case "MIXED":
+      return "Programs will be adapted across neighborhoods so residents can participate comfortably.";
   }
 }
 
-export async function generateMockContent(
-  input: GenerateMockContentInput,
-): Promise<GenerateMockContentResult> {
-  const { richness, careLevel, brandVoice } = input;
-  const target = targetForRichness(richness);
-
-  const articles: Article[] = [];
-  const promises: Promise<void>[] = [];
-
-  for (let i = 0; i < target.articles; i++) {
-    const title = SEED_TITLES[i % SEED_TITLES.length];
-
-    const p = generateArticleBody(title, brandVoice, careLevel, target.targetWords)
-      .then(async (body) => {
-        articles.push({
-          id: createId(),
-          title,
-          body,
-          wordCount: wordCount(body),
-          byline: i === 0 ? "From the Executive Director" : undefined,
-          isFiller: false,
-          source: "MOCK",
-        });
-      });
-
-    promises.push(p);
-  }
-
-  // Generate all article bodies in parallel
-  await Promise.all(promises);
-
-  const images: NewsImage[] = [];
-  for (let i = 0; i < target.images; i++) {
-    const host = IMAGE_HOSTS[i % IMAGE_HOSTS.length];
-    images.push({
-      id: createId(),
-      url: `${host}?auto=format&fit=crop&w=1200&q=70&sig=${i}`,
-      caption: i === 0 ? "Residents enjoying the courtyard" : undefined,
-      alt: "Community moment",
-      aspect: ASPECTS[i % ASPECTS.length],
-      isPlaceholder: false,
-      source: "MOCK",
-    });
-  }
-
-  return { articles, images };
+function wordCount(value: string): number {
+  return value.trim().split(/\s+/).filter(Boolean).length;
 }

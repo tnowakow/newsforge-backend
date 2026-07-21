@@ -13,7 +13,8 @@ export default function App() {
           <Route path="/" element={<ClientPicker />} />
           <Route path="/workspace/:clientId" element={<Workspace />} />
           <Route path="/workspace/:clientId/preview" element={<Preview />} />
-          {/* v2 Screen 9 */}
+          <Route path="/newsletters" element={<Approved />} />
+          {/* v2 Screen 9 legacy alias */}
           <Route path="/approved" element={<Approved />} />
           {/* Convenience aliases used in the prompt */}
           <Route path="/client/:clientId" element={<Workspace />} />
@@ -36,50 +37,39 @@ function AppHeader() {
       }`}
     >
       <Link to="/" className="flex items-center gap-3 group">
-        {/* PorterMark SVG (restored from v1) */}
-        <svg
-          width="28"
-          height="28"
-          viewBox="0 0 28 28"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          aria-hidden
-          className="group-hover:opacity-90 transition-opacity"
-        >
-          <rect x="2" y="2" width="24" height="24" rx="6" fill="#1B4F8A" />
-          <path
-            d="M9 19V9h5.4c2.4 0 3.8 1.3 3.8 3.6 0 2.3-1.4 3.6-3.8 3.6H11.5v2.8H9zm2.5-4.9h2.7c1 0 1.6-.5 1.6-1.5s-.6-1.5-1.6-1.5h-2.7v3z"
-            fill="#fff"
-          />
-        </svg>
-        <span className="font-display font-semibold tracking-tight text-base text-porter group-hover:text-porter-600 transition-colors">
+        <span className="h-7 w-7 rounded-md bg-ink text-bg grid place-items-center font-display font-bold text-sm">
+          N
+        </span>
+        <span className="font-display font-semibold tracking-tight text-base">
           NewsForge
         </span>
         <span className="hidden md:inline text-2xs uppercase tracking-widest text-ink-muted ml-3 pl-3 border-l border-rule">
-          Porter <span className="text-porter">One</span> Design
+          Porter <span className="text-accent">One</span> Design
         </span>
       </Link>
       <div className="flex items-center gap-2 text-ink-muted">
         {/* v2 Screen 9 nav — hidden on /preview per v1 fullscreen pattern */}
         {!hideOnFullscreen && (
           <Link
-            to="/approved"
-            className={`h-8 px-3 rounded-md text-sm hover:text-porter hover:bg-porter-50 transition-colors grid place-items-center ${
-              loc.pathname === "/approved" ? "text-porter font-medium" : ""
+            to="/newsletters"
+            className={`h-8 px-3 rounded-md text-sm hover:text-ink hover:bg-rule/40 grid place-items-center ${
+              loc.pathname === "/newsletters" || loc.pathname === "/approved"
+                ? "text-ink"
+                : ""
             }`}
           >
-            Approved
+            Newsletters
           </Link>
         )}
         <button
-          className="h-8 w-8 rounded-md hover:bg-porter-50 hover:text-porter transition-colors grid place-items-center"
+          className="h-8 w-8 rounded-md hover:bg-rule/40 grid place-items-center"
           aria-label="Help"
           title="Help"
         >
           ?
         </button>
         <button
-          className="h-8 w-8 rounded-md hover:bg-porter-50 hover:text-porter transition-colors grid place-items-center"
+          className="h-8 w-8 rounded-md hover:bg-rule/40 grid place-items-center"
           aria-label="Settings"
           title="Settings"
         >

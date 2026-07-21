@@ -1,19 +1,27 @@
-/**
- * Approved — Sofia Screen 9. Route: `/approved`.
- *
- * Full-page list of every run with approvalStatus === 'approved'. Data
- * source: `api.listApprovedRuns()` → `GET /api/runs?status=approved`.
- * Bundle links transparently refresh signed URLs on click if expired.
- */
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { api, ApiError } from "@/lib/api";
-import type { RunRecord } from "@/lib/types";
+import type { ApprovalStatusWire, RunRecord } from "@/lib/types";
+import { normalizeApprovalStatus } from "@/lib/types";
 import { Button } from "@/components/ui/Button";
 import { Skeleton } from "@/components/ui/LoadingSkeleton";
 import { useToast } from "@/lib/toast";
 
 type SortKey = "newest" | "oldest" | "client";
+type StatusFilter = "all" | ApprovalStatusWire;
+
+const STATUS_LABEL: Record<StatusFilter, string> = {
+  all: "All",
+  pending: "Pending",
+  approved: "Approved",
+  changes_requested: "Changes requested",
+};
+
+const STATUS_BADGE: Record<ApprovalStatusWire, string> = {
+  pending: "border-warn/30 bg-warn/10 text-warn",
+  approved: "border-success/30 bg-success/10 text-success",
+  changes_requested: "border-error/30 bg-error/10 text-error",
+};
 
 export default function Approved() {
   const { toast } = useToast();
@@ -21,12 +29,13 @@ export default function Approved() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [clientFilter, setClientFilter] = useState<string>("");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [sortKey, setSortKey] = useState<SortKey>("newest");
 
   useEffect(() => {
     let cancelled = false;
     api
-      .listApprovedRuns()
+      .listRuns({ limit: 200 })
       .then((list) => {
         if (!cancelled) setRuns(list);
       })
@@ -50,11 +59,30 @@ export default function Approved() {
     return Array.from(seen.entries()).sort((a, b) => a[1].localeCompare(b[1]));
   }, [runs]);
 
+  const statusCounts = useMemo(() => {
+    const counts: Record<StatusFilter, number> = {
+      all: runs?.length ?? 0,
+      pending: 0,
+      approved: 0,
+      changes_requested: 0,
+    };
+    for (const run of runs ?? []) {
+      counts[normalizeApprovalStatus(run.approvalStatus)] += 1;
+    }
+    return counts;
+  }, [runs]);
+
   const filtered = useMemo(() => {
     const list = runs ?? [];
     const q = query.trim().toLowerCase();
     const filteredList = list.filter((r) => {
       if (clientFilter && r.clientId !== clientFilter) return false;
+      if (
+        statusFilter !== "all" &&
+        normalizeApprovalStatus(r.approvalStatus) !== statusFilter
+      ) {
+        return false;
+      }
       if (!q) return true;
       const hay = `${r.client?.name ?? ""} ${r.monthLabel ?? ""} ${r.template?.name ?? ""}`.toLowerCase();
       return hay.includes(q);
@@ -63,27 +91,49 @@ export default function Approved() {
       if (sortKey === "client") {
         return (a.client?.name ?? "").localeCompare(b.client?.name ?? "");
       }
-      const at = a.approvedAt ? Date.parse(a.approvedAt) : 0;
-      const bt = b.approvedAt ? Date.parse(b.approvedAt) : 0;
+      const at = Date.parse(a.updatedAt ?? a.createdAt ?? a.approvedAt ?? "") || 0;
+      const bt = Date.parse(b.updatedAt ?? b.createdAt ?? b.approvedAt ?? "") || 0;
       return sortKey === "oldest" ? at - bt : bt - at;
     });
     return filteredList;
-  }, [runs, query, clientFilter, sortKey]);
+  }, [runs, query, clientFilter, statusFilter, sortKey]);
 
   return (
     <div className="px-10 py-8 max-w-[1120px] mx-auto">
       <header className="mb-6">
-        <h1 className="font-display font-semibold text-2xl">Approved</h1>
+        <h1 className="font-display font-semibold text-2xl">Newsletters</h1>
         <p className="text-sm text-ink-muted mt-1">
-          All approved newsletter runs. Grab artifacts here.
+          Browse every saved newsletter run, resume in-progress editions, and grab approved artifacts.
         </p>
       </header>
+
+      <div className="mb-4 grid grid-cols-2 md:grid-cols-4 gap-3">
+        {(["all", "pending", "changes_requested", "approved"] as const).map(
+          (status) => (
+            <button
+              key={status}
+              type="button"
+              onClick={() => setStatusFilter(status)}
+              className={`text-left border rounded-md px-3 py-2 bg-surface hover:border-ink/30 ${
+                statusFilter === status ? "border-accent ring-1 ring-accent" : "border-rule"
+              }`}
+            >
+              <div className="text-2xs uppercase text-ink-muted">
+                {STATUS_LABEL[status]}
+              </div>
+              <div className="font-display font-semibold text-lg">
+                {statusCounts[status]}
+              </div>
+            </button>
+          ),
+        )}
+      </div>
 
       {/* Toolbar */}
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <div className="relative flex-1 min-w-[240px]">
           <input
-            aria-label="Search approved runs"
+            aria-label="Search newsletters"
             placeholder="🔍  Search client or month…"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
@@ -133,9 +183,9 @@ export default function Approved() {
       {runs !== null && runs.length === 0 && (
         <div className="border border-rule rounded-lg p-10 text-center bg-surface">
           <div className="text-3xl mb-2">📰</div>
-          <div className="font-medium mb-1">Nothing approved yet</div>
+          <div className="font-medium mb-1">No newsletters yet</div>
           <p className="text-sm text-ink-muted mb-5">
-            Assemble and approve a newsletter to see it here.
+            Assemble a newsletter and it will show up here, even before approval.
           </p>
           <Link
             to="/"
@@ -148,7 +198,7 @@ export default function Approved() {
 
       {runs !== null && runs.length > 0 && filtered.length === 0 && (
         <div className="text-sm text-ink-muted py-6">
-          No approved runs match “{query}”.
+          No newsletters match the current filters.
         </div>
       )}
 
@@ -180,10 +230,17 @@ function ApprovedRunCard({ run }: { run: RunRecord }) {
   const approvedAt = run.approvedAt
     ? new Date(run.approvedAt).toISOString().replace("T", " ").slice(0, 16) + " UTC"
     : "";
+  const updatedAt = run.updatedAt
+    ? new Date(run.updatedAt).toISOString().replace("T", " ").slice(0, 16) + " UTC"
+    : "";
   const approvedByLabel = run.approvedBy?.trim() || "(unspecified)";
+  const approvalStatus = normalizeApprovalStatus(run.approvalStatus);
   const previewHref = run.clientId
     ? `/workspace/${run.clientId}/preview?runId=${run.id}`
     : `/run/${run.id}/preview`;
+  const workspaceHref = run.clientId
+    ? `/workspace/${run.clientId}?runId=${run.id}`
+    : previewHref;
 
   const webPdfHref = pdfPathToDownloadUrl(run.pdfPath);
   const printPdfHref = pdfPathToDownloadUrl(run.printPdfPath);
@@ -227,10 +284,19 @@ function ApprovedRunCard({ run }: { run: RunRecord }) {
             <span className="text-sm text-ink-muted">
               · {run.monthLabel ?? "Newsletter"}
             </span>
+            <span
+              className={`text-2xs uppercase border rounded-full px-2 py-0.5 ${STATUS_BADGE[approvalStatus]}`}
+            >
+              {STATUS_LABEL[approvalStatus]}
+            </span>
           </div>
           <div className="text-2xs text-ink-muted">
-            Approved by {approvedByLabel}
-            {approvedAt ? ` · ${approvedAt}` : ""}
+            {approvalStatus === "approved"
+              ? `Approved by ${approvedByLabel}${approvedAt ? ` · ${approvedAt}` : ""}`
+              : `Last updated${updatedAt ? ` · ${updatedAt}` : ""}`}
+            {run.approvalNotes && approvalStatus === "changes_requested"
+              ? ` · Changes: ${run.approvalNotes}`
+              : ""}
           </div>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
@@ -264,10 +330,19 @@ function ApprovedRunCard({ run }: { run: RunRecord }) {
             size="sm"
             variant="secondary"
             loading={refreshing}
+            disabled={approvalStatus !== "approved"}
             onClick={downloadBundle}
           >
             📦 InDesign bundle
           </Button>
+          {approvalStatus !== "approved" && (
+            <Link
+              to={workspaceHref}
+              className="inline-flex items-center h-8 px-3 rounded-md bg-accent text-white text-sm font-medium hover:bg-accent/90"
+            >
+              Resume
+            </Link>
+          )}
           <Link
             to={previewHref}
             className="text-sm text-accent hover:underline"

@@ -82,13 +82,19 @@ export async function generateFiller(input: FillerInput): Promise<FillerOutput> 
     const recurring = input.recurringSections.find(
       (s) => s.id === b.sectionId,
     );
+    const range = wordRangeForSlot(
+      slot?.type ?? "body",
+      slot?.capacity.minWords,
+      slot?.capacity.maxWords,
+    );
     return {
       slotId: b.slotId,
       slotType: slot?.type ?? "body",
-      minWords: slot?.capacity.minWords ?? 80,
-      maxWords: slot?.capacity.maxWords ?? 220,
+      minWords: range.minWords,
+      maxWords: range.maxWords,
       sectionTitle: recurring?.title,
       sectionDescription: recurring?.description,
+      editorialGoal: editorialGoalForSlot(slot?.type ?? "body"),
     };
   });
 
@@ -102,10 +108,15 @@ export async function generateFiller(input: FillerInput): Promise<FillerOutput> 
   };
 
   const systemPrompt = [
-    `You are a copywriter for ${input.clientName}, a senior-living community.`,
+    `You are the senior editor for ${input.clientName}, a senior-living community newsletter read by residents, families, prospects, and team members.`,
     `Brand voice: ${input.brandVoice}.`,
     `Newsletter month: ${input.monthLabel}.`,
-    `For each slot, write a short, on-brand piece of copy that fits the given word range.`,
+    `Write polished community journalism with a specific lead, varied sentence rhythm, short paragraphs, and a warm human point of view.`,
+    `Give each item a concrete 3-8 word headline; avoid generic titles such as Community Update unless the requested section requires it.`,
+    `Stay inside every minWords/maxWords range because the copy is going directly into a fixed print layout.`,
+    `Do not invent resident or staff names, medical details, quotations, awards, dates, times, or promises. When source facts are missing, use evergreen language and clearly direct readers to the posted calendar or community team for details.`,
+    `Avoid cliches and marketing filler, including vibrant, nestled, something for everyone, exciting news, and read on. Do not repeat the same opening or closing across slots.`,
+    `Use respectful person-first language. Never sound clinical, childish, or patronizing.`,
     `Always respond with valid JSON matching the schema. No prose outside JSON.`,
   ].join(" ");
 
@@ -122,6 +133,7 @@ export async function generateFiller(input: FillerInput): Promise<FillerOutput> 
         ],
       },
       slots: slotPrompts,
+      existingHeadlines: input.articles.map((article) => article.title),
     },
     null,
     2,
@@ -186,4 +198,34 @@ export async function generateFiller(input: FillerInput): Promise<FillerOutput> 
     fallbackReason:
       "reason" in result ? (result as { reason: string }).reason : undefined,
   };
+}
+
+function wordRangeForSlot(
+  slotType: string,
+  configuredMin?: number,
+  configuredMax?: number,
+): { minWords: number; maxWords: number } {
+  const defaults: Record<string, { minWords: number; maxWords: number }> = {
+    headline: { minWords: 4, maxWords: 12 },
+    sidebar: { minWords: 30, maxWords: 100 },
+    calendar: { minWords: 60, maxWords: 180 },
+    spotlight: { minWords: 140, maxWords: 280 },
+    body: { minWords: 100, maxWords: 220 },
+    filler: { minWords: 40, maxWords: 120 },
+  };
+  const fallback = defaults[slotType] ?? defaults.body;
+  const maxWords = configuredMax ?? fallback.maxWords;
+  const minWords = Math.min(configuredMin ?? fallback.minWords, maxWords);
+  return { minWords, maxWords };
+}
+
+function editorialGoalForSlot(slotType: string): string {
+  return {
+    headline: "A concise headline/deck that can stand alone; no paragraph-length setup.",
+    sidebar: "A scannable service item, milestone note, callout, or practical reminder.",
+    calendar: "A compact preview grouped by theme; do not fabricate dates or times.",
+    spotlight: "A human-centered feature with a strong lead and one clear takeaway.",
+    body: "A complete short article with a concrete opening and useful closing detail.",
+    filler: "A brief evergreen community note that adds variety without invented facts.",
+  }[slotType] ?? "A concise, useful community-news item.";
 }
