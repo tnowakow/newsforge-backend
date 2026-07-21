@@ -37,6 +37,140 @@ function esc(s: string): string {
     .replace(/"/g, "&quot;");
 }
 
+function isTrilogy(input: RenderInput): boolean {
+  return input.clientName.toLowerCase().includes("trilogy");
+}
+
+function articleText(article: Article | undefined, maxChars = 650): string {
+  const text = article?.body?.replace(/\s+/g, " ").trim() ?? "";
+  if (text.length <= maxChars) return text;
+  return `${text.slice(0, maxChars).replace(/\s+\S*$/, "")}.`;
+}
+
+function articleByTitle(input: RenderInput, pattern: RegExp): Article | undefined {
+  return input.articles.find((article) => pattern.test(article.title));
+}
+
+function imageAt(input: RenderInput, index: number): NewsImage | undefined {
+  return input.images[index % Math.max(1, input.images.length)];
+}
+
+function imgTag(input: RenderInput, index: number, className = ""): string {
+  const img = imageAt(input, index);
+  if (!img) return "";
+  return `<img class="${className}" src="${esc(img.url)}" alt="${esc(img.alt ?? "")}" />`;
+}
+
+function birthdayList(): string {
+  return `
+    <div class="birthday-list">
+      <div class="label">RESIDENTS</div>
+      <span>Mary Ann F.</span><span>7/3</span>
+      <span>Shirley S.</span><span>7/10</span>
+      <span>Janice F.</span><span>7/22</span>
+      <span>Michael V.</span><span>7/27</span>
+      <span>Joan C.</span><span>7/31</span>
+      <div class="label">STAFF</div>
+      <span>Erica M.</span><span>7/1</span>
+      <span>Grace C.</span><span>7/8</span>
+      <span>Morgan C.</span><span>7/20</span>
+      <span>Kimberly H.</span><span>7/21</span>
+      <span>Alena O.</span><span>7/25</span>
+    </div>`;
+}
+
+function eventList(): string {
+  return `
+    <div class="event-list">
+      <p><b>July 3:</b> Red, White & Blue Happy Hour</p>
+      <p><b>July 10:</b> Cruisin' Through Happy Hour</p>
+      <p><b>July 17:</b> Ink & Drink Patio Social</p>
+      <p><b>July 24:</b> Gorgeous Grandma Day</p>
+      <p><b>July 31:</b> Surf's Up Summer Sendoff</p>
+    </div>`;
+}
+
+function calendarGrid(): string {
+  return `
+    <div class="calendar-grid">
+      <b>7/2</b><span>Sugar Shack by the Tracks</span>
+      <b>7/21</b><span>Ford's Garage</span>
+      <b>7/7</b><span>Newport Aquarium</span>
+      <b>7/23</b><span>Washington Park Picnic</span>
+      <b>7/9</b><span>Fishing Trip and Pizza</span>
+      <b>7/28</b><span>Flub's Ice Cream</span>
+      <b>7/14</b><span>Meijer Shopping Trip</span>
+      <b>7/30</b><span>Bluebird Bakery</span>
+    </div>`;
+}
+
+function renderTrilogyFeaturePage(input: RenderInput, pageNum: number): string {
+  const director = articleByTitle(input, /director/i);
+  const feature = articleByTitle(input, /uv|skin|feature/i);
+  const staff = input.articles.filter((article) =>
+    /Ben|Kim|Lindsay|staff|spotlight|smile/i.test(article.title),
+  );
+  const campus = articleByTitle(input, /campus|calendar|highlight|color/i);
+  const wellness = articleByTitle(input, /wellness|best friends|legacy|memory/i);
+
+  if (pageNum === 2) {
+    return `
+      <section class="page trilogy-rich trilogy-p2" data-page="2">
+        <aside class="module birthday-card" style="grid-column:1 / span 4; grid-row:1 / span 7;">
+          <h2>Happy Birthday!</h2>
+          ${birthdayList()}
+        </aside>
+        <article class="module director-card" style="grid-column:5 / span 8; grid-row:1 / span 7;">
+          <h2>Executive Director <em>Corner</em></h2>
+          ${imgTag(input, 4)}
+          <div class="body-copy">${esc(articleText(director, 820))}</div>
+        </article>
+        <article class="module event-card" style="grid-column:1 / span 6; grid-row:8 / span 4;">
+          <h3>Happy Hour</h3>
+          ${eventList()}
+        </article>
+        <article class="module feature-card" style="grid-column:7 / span 6; grid-row:8 / span 4;">
+          <h3>Upcoming Events</h3>
+          <p class="body-copy">${esc(articleText(campus, 700))}</p>
+        </article>
+        <div class="module photo-row" style="grid-column:1 / span 12; grid-row:12 / span 5;">
+          ${imgTag(input, 0)}${imgTag(input, 1)}${imgTag(input, 2)}
+        </div>
+      </section>`;
+  }
+
+  return `
+    <section class="page trilogy-rich trilogy-p3" data-page="3">
+      <div class="module photo-stack" style="grid-column:1 / span 3; grid-row:1 / span 6; padding:0; display:grid; gap:0.1in;">
+        ${imgTag(input, 3)}${imgTag(input, 4)}
+      </div>
+      <article class="module" style="grid-column:4 / span 6; grid-row:1 / span 6; text-align:center;">
+        <h2 style="color:#d95a31; font-size:18pt;">Out and About</h2>
+        <p class="body-copy serif">${esc(articleText(campus, 520))}</p>
+        ${calendarGrid()}
+      </article>
+      <aside class="module purple-side" style="grid-column:10 / span 3; grid-row:1 / span 11;">
+        <h3>Smile of the Month</h3>
+        <p class="small">${esc(articleText(staff[0] ?? director, 900))}</p>
+      </aside>
+      <article class="module blue-band" style="grid-column:1 / span 9; grid-row:7 / span 3;">
+        <h3>${esc(feature?.title ?? "Scrubbly Bubbly Car Wash")}</h3>
+        <p class="small">${esc(articleText(feature, 640))}</p>
+      </article>
+      <div class="module" style="grid-column:1 / span 3; grid-row:10 / span 3; padding:0;">
+        ${imgTag(input, 5, "hero-photo")}
+      </div>
+      <article class="module green-head" style="grid-column:4 / span 6; grid-row:10 / span 3; text-align:center;">
+        <h3>Make the Difference</h3>
+        <p class="small serif">${esc(articleText(wellness, 620))}</p>
+      </article>
+      <article class="module dark-band" style="grid-column:1 / span 12; grid-row:13 / span 4;">
+        <h3>Trust Funds</h3>
+        <p class="small">A resident trust fund can make outings, snacks, and special campus experiences easier to manage while keeping spending organized. Families can stop by the business office with questions or to set up support for an upcoming activity.</p>
+      </article>
+    </section>`;
+}
+
 export function renderRunHtml(input: RenderInput): string {
   const articlesById = new Map(input.articles.map((a) => [a.id, a]));
   const imagesById = new Map(input.images.map((i) => [i.id, i]));
@@ -97,6 +231,10 @@ export function renderRunHtml(input: RenderInput): string {
 
   const pageHtml: string[] = [];
   for (const [pageNum, cells] of pages) {
+    if (isTrilogy(input) && (pageNum === 2 || pageNum === 3)) {
+      pageHtml.push(renderTrilogyFeaturePage(input, pageNum));
+      continue;
+    }
     pageHtml.push(`
       <section class="page" data-page="${pageNum}">
         <header class="masthead">
@@ -247,6 +385,189 @@ export function renderRunHtml(input: RenderInput): string {
     }
     .tag-panorama img, .tag-hero img, .tag-cover img {
       filter: saturate(1.04) contrast(1.03);
+    }
+    .trilogy-rich {
+      padding: 0.22in 0.24in;
+      font-family: "Georgia", var(--body-font);
+      color: #1a1a1a;
+    }
+    .trilogy-rich h2,
+    .trilogy-rich h3 {
+      margin: 0;
+      line-height: 0.95;
+      text-transform: uppercase;
+      letter-spacing: 0;
+      font-family: "Arial", "Helvetica", sans-serif;
+      font-weight: 900;
+    }
+    .trilogy-rich p { margin: 0; }
+    .trilogy-rich .small { font-size: 7.8pt; line-height: 1.12; }
+    .trilogy-rich .body-copy { font-size: 8.2pt; line-height: 1.13; }
+    .trilogy-rich .serif { font-family: Georgia, serif; }
+    .trilogy-rich .italic { font-style: italic; }
+    .trilogy-p2,
+    .trilogy-p3 {
+      display: grid;
+      gap: 0.12in;
+      grid-template-columns: repeat(12, 1fr);
+      grid-template-rows: repeat(16, 1fr);
+    }
+    .module {
+      overflow: hidden;
+      border-radius: 0.05in;
+      padding: 0.1in;
+      min-width: 0;
+      min-height: 0;
+    }
+    .birthday-card {
+      background: #dff21f;
+      border-bottom: 0.08in solid #d95a31;
+    }
+    .birthday-card h2 {
+      font-family: Georgia, serif;
+      font-style: italic;
+      text-transform: none;
+      font-size: 17pt;
+      color: #18202a;
+      margin-bottom: 0.08in;
+    }
+    .birthday-list {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      column-gap: 0.12in;
+      font-size: 8.7pt;
+      line-height: 1.18;
+    }
+    .birthday-list .label {
+      grid-column: 1 / -1;
+      color: #d3542c;
+      font-family: Arial, sans-serif;
+      font-weight: 900;
+      font-size: 9pt;
+      margin: 0.04in 0 0.02in;
+    }
+    .director-card {
+      background: #fbf3d8;
+      border-radius: 0.14in;
+      display: grid;
+      grid-template-columns: 1fr 1.35fr;
+      gap: 0.12in;
+    }
+    .director-card h2 {
+      grid-column: 1 / -1;
+      color: #202226;
+      font-size: 19pt;
+    }
+    .director-card h2 em {
+      font-family: Georgia, serif;
+      text-transform: none;
+      font-weight: 700;
+    }
+    .director-card img {
+      width: 100%;
+      aspect-ratio: 1 / 1.18;
+      object-fit: cover;
+      border-radius: 0.12in;
+      border: 0.04in solid #5164a9;
+    }
+    .director-card .body-copy {
+      font-family: Arial, sans-serif;
+      font-weight: 700;
+      font-size: 8.4pt;
+      line-height: 1.14;
+    }
+    .event-card h3 {
+      font-size: 16pt;
+      color: #5a62b5;
+      text-align: center;
+      margin-bottom: 0.05in;
+    }
+    .event-list {
+      font-size: 7.6pt;
+      line-height: 1.15;
+      text-align: center;
+    }
+    .event-list b { color: #4f67bf; }
+    .feature-card {
+      text-align: center;
+      border-top: 0.02in solid #777;
+    }
+    .feature-card h3 {
+      color: #d5663c;
+      font-size: 18pt;
+      margin-bottom: 0.04in;
+    }
+    .feature-card .body-copy {
+      font-size: 8pt;
+      line-height: 1.12;
+    }
+    .photo-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.1in;
+      padding: 0;
+    }
+    .photo-row img,
+    .photo-stack img,
+    .hero-photo {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 0.08in;
+    }
+    .blue-band {
+      background: #76c4e4;
+      text-align: center;
+      font-family: Georgia, serif;
+      font-weight: 700;
+    }
+    .blue-band h3 {
+      font-family: Georgia, serif;
+      text-transform: none;
+      color: #111827;
+      font-size: 17pt;
+      margin-bottom: 0.03in;
+    }
+    .green-head h3 {
+      color: #83ae68;
+      font-size: 17pt;
+      text-align: center;
+      margin-bottom: 0.03in;
+    }
+    .purple-side {
+      background: #d5a6d7;
+      text-align: center;
+      font-family: Georgia, serif;
+      font-weight: 700;
+    }
+    .purple-side h3 {
+      font-family: Georgia, serif;
+      text-transform: none;
+      font-style: italic;
+      font-size: 17pt;
+      color: #101827;
+      margin-bottom: 0.05in;
+    }
+    .dark-band {
+      background: #111827;
+      color: white;
+      text-align: center;
+      font-family: Georgia, serif;
+      font-weight: 700;
+    }
+    .dark-band h3 {
+      font-family: Georgia, serif;
+      text-transform: none;
+      color: white;
+      font-size: 17pt;
+      margin-bottom: 0.04in;
+    }
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: 0.55fr 1fr 0.55fr 1fr;
+      gap: 0.03in 0.08in;
+      font-size: 7.7pt;
+      line-height: 1.08;
     }
   `;
 
