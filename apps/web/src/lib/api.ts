@@ -193,6 +193,21 @@ export const api = {
       { method: "POST", body: JSON.stringify(input) },
     ),
 
+  saveDocument: async (
+    runId: string,
+    input: {
+      layout: AssembledLayout;
+      articles: Article[];
+      images: NewsImage[];
+    },
+  ): Promise<RunRecord> => {
+    const raw = await request<unknown>(`/api/runs/${runId}/document`, {
+      method: "PUT",
+      body: JSON.stringify(input),
+    });
+    return unwrapRun(raw);
+  },
+
   /**
    * v2 — variant defaults to "web" for backward-compat with v1 callers.
    * Backend: `POST /api/runs/:id/pdf?variant=web|print` (routes/runs.ts:600).

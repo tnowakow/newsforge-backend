@@ -486,6 +486,58 @@ runsRouter.post("/:id/edit", async (req, res) => {
   res.json({ run: updated });
 });
 
+// ---- Full editor document save ----
+const EditorDocumentBody = z.object({
+  layout: AssembledLayoutSchema,
+  articles: ArticlesSchema,
+  images: ImagesSchema,
+});
+
+runsRouter.put("/:id/document", async (req, res) => {
+  const parsed = EditorDocumentBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: "invalid_body", details: parsed.error.flatten() });
+    return;
+  }
+
+  const run = await prisma.newsletterRun.findUnique({
+    where: { id: String(req.params.id) },
+  });
+  if (!run) {
+    res.status(404).json({ error: "run_not_found" });
+    return;
+  }
+
+  const newVersion = run.layoutVersion + 1;
+  const newLayout: AssembledLayout = {
+    ...parsed.data.layout,
+    version: newVersion,
+    stats: {
+      placedArticles: parsed.data.layout.blocks.filter((b) => b.articleId).length,
+      placedImages: parsed.data.layout.blocks.filter((b) => b.imageId).length,
+      fillerBlocks: parsed.data.layout.blocks.filter((b) => b.kind === "filler").length,
+      emptySlots: parsed.data.layout.blocks.filter(
+        (b) => b.kind === "empty" || b.kind === "placeholder",
+      ).length,
+    },
+  };
+
+  const updated = await prisma.newsletterRun.update({
+    where: { id: run.id },
+    data: {
+      articles: parsed.data.articles as unknown as object,
+      images: parsed.data.images as unknown as object,
+      assembledLayout: newLayout as unknown as object,
+      layoutVersion: newVersion,
+    },
+  });
+
+  await refreshCompliance(run.id, parsed.data.articles, parsed.data.images);
+  await invalidatePdfCache(run.id);
+
+  res.json({ run: updated });
+});
+
 // ---- Public preview HTML ----
 runsRouter.get("/:id/preview-html", async (req, res) => {
   const result = await buildRunHtml(String(req.params.id));

@@ -7,8 +7,10 @@ import {
 } from "react-router-dom";
 import { api, ApiError } from "@/lib/api";
 import type {
+  Article,
   AssembledLayout,
   LayoutBlock,
+  NewsImage,
   RunRecord,
 } from "@/lib/types";
 import { normalizeApprovalStatus } from "@/lib/types";
@@ -59,6 +61,8 @@ export default function Preview() {
 
   // Edit-mode local state
   const [pendingLayout, setPendingLayout] = useState<AssembledLayout | null>(null);
+  const [pendingArticles, setPendingArticles] = useState<Article[]>([]);
+  const [pendingImages, setPendingImages] = useState<NewsImage[]>([]);
   const [savingEdits, setSavingEdits] = useState(false);
 
   const pageRefs = useRef<Map<number, HTMLDivElement>>(new Map());
@@ -149,7 +153,9 @@ export default function Preview() {
 
   // ---- Edit mode helpers ----
   const enterEdit = () => {
-    setPendingLayout(layout ? { ...layout, blocks: [...layout.blocks] } : null);
+    setPendingLayout(cloneLayout(layout));
+    setPendingArticles(cloneList(run?.articles ?? []));
+    setPendingImages(cloneList(run?.images ?? []));
     setSearch((cur) => {
       cur.set("edit", "1");
       return cur;
@@ -169,7 +175,14 @@ export default function Preview() {
     if (
       pendingLayout &&
       layout &&
-      JSON.stringify(pendingLayout.blocks) !== JSON.stringify(layout.blocks)
+      isDocumentDirty(
+        layout,
+        run?.articles ?? [],
+        run?.images ?? [],
+        pendingLayout,
+        pendingArticles,
+        pendingImages,
+      )
     ) {
       if (!confirm("Discard edits?")) return;
     }
@@ -179,22 +192,15 @@ export default function Preview() {
   const saveEdits = async () => {
     if (!pendingLayout || !run) return;
     setSavingEdits(true);
-    // We send a single "swap" semantically; in practice we re-apply each move.
-    // The backend currently accepts {blockId, action, payload} per call —
-    // for the demo we just notify success and persist the local layout via
-    // a "noop" move on the first changed block; in a future iteration loop
-    // through diffs.
     try {
-      const changed = findFirstChangedBlock(layout, pendingLayout);
-      if (changed) {
-        await api.editBlock(run.id, {
-          blockId: changed.blockId,
-          action: "move",
-          payload: { position: changed.position, page: changed.page },
-        });
-      }
+      const updated = await api.saveDocument(run.id, {
+        layout: pendingLayout,
+        articles: pendingArticles,
+        images: pendingImages,
+      });
       toast("Layout saved.", { tone: "success" });
-      exitEdit(pendingLayout);
+      setRun(updated);
+      exitEdit(updated.assembledLayout);
     } catch (err) {
       const msg = err instanceof ApiError ? err.message : "Couldn't save.";
       toast(`${msg} Your edits are still here — try again.`, { tone: "error" });
@@ -306,7 +312,14 @@ export default function Preview() {
             !!(
               pendingLayout &&
               layout &&
-              JSON.stringify(pendingLayout.blocks) !== JSON.stringify(layout.blocks)
+              isDocumentDirty(
+                layout,
+                run?.articles ?? [],
+                run?.images ?? [],
+                pendingLayout,
+                pendingArticles,
+                pendingImages,
+              )
             )
           }
           saving={savingEdits}
@@ -372,10 +385,10 @@ export default function Preview() {
             />
           )}
           {renderLayout && run?.client && editMode && pendingLayout && (
-            <EditableCanvas
-              layout={pendingLayout}
-              articles={run.articles ?? []}
-              images={run.images ?? []}
+          <EditableCanvas
+            layout={pendingLayout}
+              articles={pendingArticles}
+              images={pendingImages}
               client={run.client}
               monthLabel={run.monthLabel ?? undefined}
               selectedBlockId={selectedBlockId}
@@ -393,8 +406,14 @@ export default function Preview() {
           <Inspector
             run={run}
             layout={pendingLayout}
+            articles={pendingArticles}
+            images={pendingImages}
+            activePage={activePage}
             selectedBlockId={selectedBlockId}
             onChange={(updated) => setPendingLayout(updated)}
+            onArticlesChange={setPendingArticles}
+            onImagesChange={setPendingImages}
+            onSelectBlock={setSelectedBlockId}
             onDelete={(blockId) => {
               if (!pendingLayout) return;
               setPendingLayout({
@@ -670,14 +689,26 @@ function ThumbSidebar({
 function Inspector({
   run,
   layout,
+  articles,
+  images,
+  activePage,
   selectedBlockId,
   onChange,
+  onArticlesChange,
+  onImagesChange,
+  onSelectBlock,
   onDelete,
 }: {
   run: RunRecord | null;
   layout: AssembledLayout | null;
+  articles: Article[];
+  images: NewsImage[];
+  activePage: number;
   selectedBlockId: string | null;
   onChange: (updated: AssembledLayout) => void;
+  onArticlesChange: (updated: Article[]) => void;
+  onImagesChange: (updated: NewsImage[]) => void;
+  onSelectBlock: (id: string) => void;
   onDelete: (id: string) => void;
 }) {
   const block = useMemo(
@@ -686,25 +717,59 @@ function Inspector({
   );
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [swapOpen, setSwapOpen] = useState(false);
+  const [assetUrl, setAssetUrl] = useState("");
 
   if (!block) {
     return (
-      <aside className="w-[300px] border-l border-rule bg-surface p-5">
+      <aside className="w-[340px] border-l border-rule bg-surface p-5 overflow-y-auto">
         <div className="text-2xs uppercase tracking-widest text-ink-muted mb-3">
-          Inspector
+          Create
         </div>
-        <div className="text-center text-sm text-ink-muted mt-12">
-          <div className="text-2xl mb-2">👆</div>
-          Click a block to edit it.
-          <div className="text-xs mt-4">
-            Tip: drag the ⋮⋮ handle to move.
-          </div>
+        <p className="text-sm text-ink-muted mb-4">
+          Add a new editable section to page {activePage}, then move and resize
+          it from the inspector.
+        </p>
+        <div className="space-y-2">
+          <Button
+            variant="secondary"
+            className="w-full"
+            onClick={() => {
+              if (!layout) return;
+              const article = makeArticle();
+              const block = makeBlock("article", activePage, {
+                articleId: article.id,
+                styleTag: "feature",
+              });
+              onArticlesChange([...articles, article]);
+              onChange({ ...layout, blocks: [...layout.blocks, block] });
+              onSelectBlock(block.blockId);
+            }}
+          >
+            Add text section
+          </Button>
+          <Button
+            variant="secondary"
+            className="w-full"
+            onClick={() => {
+              if (!layout) return;
+              const image = makeImage();
+              const block = makeBlock("image", activePage, {
+                imageId: image.id,
+                styleTag: "photo",
+              });
+              onImagesChange([...images, image]);
+              onChange({ ...layout, blocks: [...layout.blocks, block] });
+              onSelectBlock(block.blockId);
+            }}
+          >
+            Add image frame
+          </Button>
         </div>
       </aside>
     );
   }
 
-  const update = (patch: Partial<LayoutBlock["position"]>) => {
+  const updatePosition = (patch: Partial<LayoutBlock["position"]>) => {
     if (!layout) return;
     onChange({
       ...layout,
@@ -715,17 +780,51 @@ function Inspector({
       ),
     });
   };
+  const updateBlock = (patch: Partial<LayoutBlock>) => {
+    if (!layout) return;
+    onChange({
+      ...layout,
+      blocks: layout.blocks.map((b) =>
+        b.blockId === block.blockId ? { ...b, ...patch } : b,
+      ),
+    });
+  };
+  const article = block.articleId
+    ? articles.find((a) => a.id === block.articleId)
+    : null;
+  const image = block.imageId ? images.find((i) => i.id === block.imageId) : null;
+  const updateArticle = (patch: Partial<Article>) => {
+    if (!article) return;
+    onArticlesChange(
+      articles.map((a) =>
+        a.id === article.id
+          ? {
+              ...a,
+              ...patch,
+              wordCount:
+                patch.body !== undefined
+                  ? countWords(patch.body)
+                  : patch.wordCount ?? a.wordCount,
+            }
+          : a,
+      ),
+    );
+  };
+  const updateImage = (patch: Partial<NewsImage>) => {
+    if (!image) return;
+    onImagesChange(images.map((i) => (i.id === image.id ? { ...i, ...patch } : i)));
+  };
 
   // Build swap candidates: other articles / images of the same kind.
   const candidates =
     block.kind === "image"
-      ? run?.images ?? []
+      ? images
       : block.kind === "article" || block.kind === "filler"
-        ? run?.articles ?? []
+        ? articles
         : [];
 
   return (
-    <aside className="w-[300px] border-l border-rule bg-surface p-5 overflow-y-auto">
+    <aside className="w-[340px] border-l border-rule bg-surface p-5 overflow-y-auto">
       <div className="text-2xs uppercase tracking-widest text-ink-muted mb-3">
         Inspector
       </div>
@@ -747,12 +846,15 @@ function Inspector({
           <NumberField
             label="Col"
             value={block.position.col}
-            onChange={(n) => update({ col: n })}
+            min={1}
+            max={12}
+            onChange={(n) => updatePosition({ col: clamp(n, 1, 12) })}
           />
           <NumberField
             label="Row"
             value={block.position.row}
-            onChange={(n) => update({ row: n })}
+            min={1}
+            onChange={(n) => updatePosition({ row: Math.max(1, n) })}
           />
         </div>
         <div className="text-2xs uppercase tracking-widest text-ink-muted mt-3 mb-1.5">
@@ -762,15 +864,110 @@ function Inspector({
           <NumberField
             label="W"
             value={block.position.colSpan}
-            onChange={(n) => update({ colSpan: Math.max(1, n) })}
+            min={1}
+            max={12}
+            onChange={(n) => updatePosition({ colSpan: clamp(n, 1, 12) })}
           />
           <NumberField
             label="H"
             value={block.position.rowSpan}
-            onChange={(n) => update({ rowSpan: Math.max(1, n) })}
+            min={1}
+            onChange={(n) => updatePosition({ rowSpan: Math.max(1, n) })}
           />
         </div>
+        <div className="grid grid-cols-2 gap-2 text-sm mt-3">
+          <NumberField
+            label="Page"
+            value={block.page}
+            min={1}
+            max={layout?.pageCount ?? 4}
+            onChange={(n) => updateBlock({ page: clamp(n, 1, layout?.pageCount ?? 4) })}
+          />
+          <label className="block">
+            <span className="block text-2xs text-ink-muted mb-0.5">Style</span>
+            <select
+              value={block.styleTag ?? ""}
+              onChange={(e) => updateBlock({ styleTag: e.target.value || undefined })}
+              className="w-full h-8 px-2 bg-surface border border-rule rounded text-sm"
+            >
+              <option value="">Plain</option>
+              <option value="hero">Hero</option>
+              <option value="feature">Feature</option>
+              <option value="banner">Banner</option>
+              <option value="spotlight">Spotlight</option>
+              <option value="pull-quote">Pull quote</option>
+              <option value="photo">Photo</option>
+            </select>
+          </label>
+        </div>
       </div>
+
+      {article && (
+        <div className="mt-5 space-y-2">
+          <div className="text-2xs uppercase tracking-widest text-ink-muted">
+            Text
+          </div>
+          <TextField
+            label="Title"
+            value={article.title}
+            onChange={(title) => updateArticle({ title })}
+          />
+          <TextField
+            label="Byline"
+            value={article.byline ?? ""}
+            onChange={(byline) => updateArticle({ byline: byline || undefined })}
+          />
+          <label className="block">
+            <span className="block text-2xs text-ink-muted mb-0.5">Body</span>
+            <textarea
+              value={article.body}
+              onChange={(e) => updateArticle({ body: e.target.value })}
+              rows={8}
+              className="w-full px-2 py-2 bg-surface border border-rule rounded text-sm leading-snug"
+            />
+          </label>
+          <div className="text-2xs text-ink-muted">
+            {countWords(article.body)} words
+          </div>
+        </div>
+      )}
+
+      {image && (
+        <div className="mt-5 space-y-2">
+          <div className="text-2xs uppercase tracking-widest text-ink-muted">
+            Image
+          </div>
+          <TextField
+            label="Image URL"
+            value={image.url}
+            onChange={(url) => updateImage({ url })}
+          />
+          <TextField
+            label="Caption"
+            value={image.caption ?? ""}
+            onChange={(caption) => updateImage({ caption: caption || undefined })}
+          />
+          <TextField
+            label="Alt text"
+            value={image.alt ?? ""}
+            onChange={(alt) => updateImage({ alt: alt || undefined })}
+          />
+          <label className="block">
+            <span className="block text-2xs text-ink-muted mb-0.5">Aspect</span>
+            <select
+              value={image.aspect ?? "landscape"}
+              onChange={(e) =>
+                updateImage({ aspect: e.target.value as NewsImage["aspect"] })
+              }
+              className="w-full h-8 px-2 bg-surface border border-rule rounded text-sm"
+            >
+              <option value="landscape">Landscape</option>
+              <option value="portrait">Portrait</option>
+              <option value="square">Square</option>
+            </select>
+          </label>
+        </div>
+      )}
 
       <div className="mt-5 space-y-2">
         <Button
@@ -814,6 +1011,30 @@ function Inspector({
           </div>
         )}
 
+        {block.kind === "image" && (
+          <div className="border border-rule rounded-md p-2 space-y-2">
+            <TextField
+              label="Replace with URL"
+              value={assetUrl}
+              onChange={setAssetUrl}
+            />
+            <Button
+              variant="secondary"
+              className="w-full"
+              disabled={!assetUrl.trim()}
+              onClick={() => {
+                if (!layout || !assetUrl.trim()) return;
+                const next = makeImage(assetUrl.trim());
+                onImagesChange([...images, next]);
+                updateBlock({ imageId: next.id });
+                setAssetUrl("");
+              }}
+            >
+              Use this image
+            </Button>
+          </div>
+        )}
+
         {!confirmDelete ? (
           <Button
             variant="danger"
@@ -851,10 +1072,14 @@ function Inspector({
 function NumberField({
   label,
   value,
+  min,
+  max,
   onChange,
 }: {
   label: string;
   value: number;
+  min?: number;
+  max?: number;
   onChange: (n: number) => void;
 }) {
   return (
@@ -862,6 +1087,8 @@ function NumberField({
       <span className="block text-2xs text-ink-muted mb-0.5">{label}</span>
       <input
         type="number"
+        min={min}
+        max={max}
         value={value}
         onChange={(e) => onChange(Number(e.target.value) || 0)}
         className="w-full h-8 px-2 bg-surface border border-rule rounded text-sm"
@@ -870,19 +1097,101 @@ function NumberField({
   );
 }
 
-function findFirstChangedBlock(
-  before: AssembledLayout | null,
-  after: AssembledLayout | null,
-): LayoutBlock | null {
-  if (!before || !after) return null;
-  const map = new Map(before.blocks.map((b) => [b.blockId, b]));
-  for (const b of after.blocks) {
-    const prev = map.get(b.blockId);
-    if (!prev) return b;
-    if (JSON.stringify(prev.position) !== JSON.stringify(b.position)) return b;
-    if (prev.articleId !== b.articleId || prev.imageId !== b.imageId) return b;
-  }
-  return null;
+function TextField({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <label className="block">
+      <span className="block text-2xs text-ink-muted mb-0.5">{label}</span>
+      <input
+        type="text"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full h-8 px-2 bg-surface border border-rule rounded text-sm"
+      />
+    </label>
+  );
+}
+
+function cloneLayout(layout: AssembledLayout | null): AssembledLayout | null {
+  return layout ? JSON.parse(JSON.stringify(layout)) : null;
+}
+
+function cloneList<T>(items: T[]): T[] {
+  return JSON.parse(JSON.stringify(items));
+}
+
+function isDocumentDirty(
+  layout: AssembledLayout,
+  articles: Article[],
+  images: NewsImage[],
+  pendingLayout: AssembledLayout,
+  pendingArticles: Article[],
+  pendingImages: NewsImage[],
+): boolean {
+  return (
+    JSON.stringify(layout.blocks) !== JSON.stringify(pendingLayout.blocks) ||
+    JSON.stringify(articles) !== JSON.stringify(pendingArticles) ||
+    JSON.stringify(images) !== JSON.stringify(pendingImages)
+  );
+}
+
+function makeArticle(): Article {
+  const body =
+    "Add the newsletter copy here. This section can be moved, resized, styled, and exported with the finished PDF.";
+  return {
+    id: `article-${Date.now()}`,
+    title: "New Section",
+    body,
+    wordCount: countWords(body),
+    isFiller: false,
+    source: "GENERATED",
+    articleType: "announcement",
+  };
+}
+
+function makeImage(url?: string): NewsImage {
+  return {
+    id: `image-${Date.now()}`,
+    url:
+      url ??
+      "https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?auto=format&fit=crop&w=1200&q=80",
+    caption: "New image",
+    alt: "Newsletter image",
+    aspect: "landscape",
+    isPlaceholder: false,
+    source: url ? "UPLOAD" : "GENERATED",
+  };
+}
+
+function makeBlock(
+  kind: LayoutBlock["kind"],
+  page: number,
+  patch: Partial<LayoutBlock>,
+): LayoutBlock {
+  return {
+    blockId: `block-${Date.now()}`,
+    slotId: `custom-${Date.now()}`,
+    page,
+    position: { col: 1, row: 14, colSpan: kind === "image" ? 5 : 7, rowSpan: 4 },
+    kind,
+    needsFiller: false,
+    ...patch,
+  };
+}
+
+function countWords(s: string): number {
+  return s.trim().split(/\s+/).filter(Boolean).length;
+}
+
+function clamp(n: number, min: number, max: number): number {
+  return Math.max(min, Math.min(max, n));
 }
 
 function slug(s: string) {
