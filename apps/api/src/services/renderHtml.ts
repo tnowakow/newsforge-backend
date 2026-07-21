@@ -127,16 +127,18 @@ export function renderRunHtml(input: RenderInput): string {
       background: #fff;
       color: #111;
       font-family: var(--body-font);
-      font-size: 12pt;
-      line-height: 1.45;
+      font-size: 10.5pt;
+      line-height: 1.32;
     }
+    @page { size: Letter; margin: 0; }
     .page {
       width: 8.5in;
-      min-height: 11in;
-      padding: 0.6in 0.55in;
+      height: 11in;
+      padding: 0.45in 0.42in;
       page-break-after: always;
       display: flex;
       flex-direction: column;
+      overflow: hidden;
     }
     .page:last-child { page-break-after: auto; }
     .masthead {
@@ -168,11 +170,12 @@ export function renderRunHtml(input: RenderInput): string {
     .grid {
       flex: 1;
       display: grid;
-      grid-auto-rows: minmax(0.55in, auto);
-      gap: 12px;
+      grid-template-rows: repeat(10, minmax(0, 1fr));
+      gap: 10px;
+      min-height: 0;
     }
-    .cell { overflow: hidden; }
-    .block { height: 100%; }
+    .cell { overflow: hidden; min-width: 0; min-height: 0; }
+    .block { height: 100%; overflow: hidden; }
     h2 {
       font-family: var(--heading-font);
       color: var(--primary);
@@ -228,6 +231,19 @@ export function renderRunHtml(input: RenderInput): string {
       border: 1px solid color-mix(in srgb, var(--secondary) 45%, white);
       border-radius: 4px;
       padding: 8px;
+    }
+    article.tag-staff-spot h2 {
+      font-size: 12pt;
+      line-height: 1.05;
+      margin-bottom: 4px;
+    }
+    article.tag-staff-spot .body {
+      font-size: 8.8pt;
+      line-height: 1.18;
+    }
+    article.tag-director-corner .body {
+      font-size: 10pt;
+      line-height: 1.25;
     }
     .tag-panorama img, .tag-hero img, .tag-cover img {
       filter: saturate(1.04) contrast(1.03);
