@@ -181,7 +181,7 @@ function renderTrilogyFeaturePage(input: RenderInput, pageNum: number): string {
       </article>
       <article class="module dark-band" style="grid-column:1 / span 12; grid-row:13 / span 4;">
         <h3>Trust Funds</h3>
-        <p class="small fill-md">A resident trust fund can make outings, snacks, and special campus experiences easier to manage while keeping spending organized. Families can stop by the business office with questions or to set up support for an upcoming activity. This is especially helpful for ice cream trips, community outings, craft supplies, and small purchases that help residents participate without extra coordination on event day.</p>
+        <p class="small fill-lg">A resident trust fund can make outings, snacks, and special campus experiences easier to manage while keeping spending organized. Families can stop by the business office with questions or to set up support for an upcoming activity. This is especially helpful for ice cream trips, community outings, craft supplies, and small purchases that help residents participate without extra coordination on event day.</p>
       </article>
     </section>`;
 }
@@ -418,16 +418,16 @@ export function renderRunHtml(input: RenderInput): string {
     .trilogy-rich p { margin: 0; }
     .trilogy-rich .small { font-size: 7.8pt; line-height: 1.12; }
     .trilogy-rich .body-copy { font-size: 8.2pt; line-height: 1.13; }
-    .trilogy-rich .fill-xl { font-size: 10pt; line-height: 1.22; }
-    .trilogy-rich .fill-lg { font-size: 9.3pt; line-height: 1.2; }
-    .trilogy-rich .fill-md { font-size: 8.7pt; line-height: 1.17; }
+    .trilogy-rich .fill-xl { font-size: 12pt; line-height: 1.24; }
+    .trilogy-rich .fill-lg { font-size: 10.6pt; line-height: 1.22; }
+    .trilogy-rich .fill-md { font-size: 9.4pt; line-height: 1.19; }
     .trilogy-rich .fill-tight { font-size: 7.8pt; line-height: 1.12; }
-    .trilogy-rich .body-copy.fill-xl { font-size: 10.4pt; line-height: 1.22; }
-    .trilogy-rich .body-copy.fill-lg { font-size: 9.7pt; line-height: 1.2; }
-    .trilogy-rich .body-copy.fill-md { font-size: 9pt; line-height: 1.17; }
-    .trilogy-rich .small.fill-xl { font-size: 9.4pt; line-height: 1.2; }
-    .trilogy-rich .small.fill-lg { font-size: 8.8pt; line-height: 1.18; }
-    .trilogy-rich .small.fill-md { font-size: 8.3pt; line-height: 1.15; }
+    .trilogy-rich .body-copy.fill-xl { font-size: 12.2pt; line-height: 1.24; }
+    .trilogy-rich .body-copy.fill-lg { font-size: 10.8pt; line-height: 1.22; }
+    .trilogy-rich .body-copy.fill-md { font-size: 9.6pt; line-height: 1.19; }
+    .trilogy-rich .small.fill-xl { font-size: 10.6pt; line-height: 1.22; }
+    .trilogy-rich .small.fill-lg { font-size: 9.8pt; line-height: 1.2; }
+    .trilogy-rich .small.fill-md { font-size: 9pt; line-height: 1.17; }
     .trilogy-rich .serif { font-family: Georgia, serif; }
     .trilogy-rich .italic { font-style: italic; }
     .trilogy-p2,
@@ -477,6 +477,7 @@ export function renderRunHtml(input: RenderInput): string {
       display: grid;
       grid-template-columns: 1fr 1.35fr;
       gap: 0.12in;
+      align-items: center;
     }
     .director-card h2 {
       grid-column: 1 / -1;
@@ -502,24 +503,27 @@ export function renderRunHtml(input: RenderInput): string {
       line-height: 1.17;
     }
     .event-card h3 {
-      font-size: 16pt;
+      font-size: 18pt;
       color: #5a62b5;
       text-align: center;
       margin-bottom: 0.05in;
     }
     .event-list {
-      font-size: 9.2pt;
-      line-height: 1.23;
+      font-size: 10.6pt;
+      line-height: 1.28;
       text-align: center;
     }
     .event-list b { color: #4f67bf; }
     .feature-card {
       text-align: center;
       border-top: 0.02in solid #777;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
     }
     .feature-card h3 {
       color: #d5663c;
-      font-size: 18pt;
+      font-size: 20pt;
       margin-bottom: 0.04in;
     }
     .feature-card .body-copy {
@@ -545,6 +549,9 @@ export function renderRunHtml(input: RenderInput): string {
       text-align: center;
       font-family: Georgia, serif;
       font-weight: 700;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
     }
     .blue-band h3 {
       font-family: Georgia, serif;
@@ -555,9 +562,14 @@ export function renderRunHtml(input: RenderInput): string {
     }
     .green-head h3 {
       color: #83ae68;
-      font-size: 17pt;
+      font-size: 19pt;
       text-align: center;
       margin-bottom: 0.03in;
+    }
+    .green-head {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
     }
     .purple-side {
       background: #d5a6d7;
@@ -579,6 +591,9 @@ export function renderRunHtml(input: RenderInput): string {
       text-align: center;
       font-family: Georgia, serif;
       font-weight: 700;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
     }
     .dark-band h3 {
       font-family: Georgia, serif;
