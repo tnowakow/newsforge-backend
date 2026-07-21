@@ -293,12 +293,7 @@ function fallbackCopy(input: {
       `Thank you to the residents, families, and team members who make this community feel warm in ordinary ways. A kind greeting, a saved seat, or a shared story can change the whole tone of a day.`,
   }[input.slotType] ?? `There is always something meaningful happening at ${input.clientName}, from familiar routines to new memories made with neighbors, families, and team members.`;
 
-  const sentences = base.match(/[^.!?]+[.!?]+/g) ?? [base];
-  let copy = base;
-  while (wordCount(copy) < input.minWords && wordCount(copy) < input.maxWords) {
-    copy = `${copy} ${sentences[wordCount(copy) % sentences.length].trim()}`;
-  }
-  return copy;
+  return base;
 }
 
 function wordCount(value: string): number {
