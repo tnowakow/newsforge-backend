@@ -47,6 +47,18 @@ function articleText(article: Article | undefined, maxChars = 650): string {
   return `${text.slice(0, maxChars).replace(/\s+\S*$/, "")}.`;
 }
 
+function fillClass(text: string): string {
+  const words = text.split(/\s+/).filter(Boolean).length;
+  if (words <= 35) return "fill-xl";
+  if (words <= 70) return "fill-lg";
+  if (words <= 115) return "fill-md";
+  return "fill-tight";
+}
+
+function articleTextClass(article: Article | undefined, maxChars: number): string {
+  return fillClass(articleText(article, maxChars));
+}
+
 function articleByTitle(input: RenderInput, pattern: RegExp): Article | undefined {
   return input.articles.find((article) => pattern.test(article.title));
 }
@@ -123,7 +135,7 @@ function renderTrilogyFeaturePage(input: RenderInput, pageNum: number): string {
         <article class="module director-card" style="grid-column:5 / span 8; grid-row:1 / span 7;">
           <h2>Executive Director <em>Corner</em></h2>
           ${imgTag(input, 4)}
-          <div class="body-copy">${esc(articleText(director, 820))}</div>
+          <div class="body-copy ${articleTextClass(director, 820)}">${esc(articleText(director, 820))}</div>
         </article>
         <article class="module event-card" style="grid-column:1 / span 6; grid-row:8 / span 4;">
           <h3>Happy Hour</h3>
@@ -131,7 +143,7 @@ function renderTrilogyFeaturePage(input: RenderInput, pageNum: number): string {
         </article>
         <article class="module feature-card" style="grid-column:7 / span 6; grid-row:8 / span 4;">
           <h3>Upcoming Events</h3>
-          <p class="body-copy">${esc(articleText(campus, 700))}</p>
+          <p class="body-copy ${articleTextClass(campus, 700)}">${esc(articleText(campus, 700))}</p>
         </article>
         <div class="module photo-row" style="grid-column:1 / span 12; grid-row:12 / span 5;">
           ${imgTag(input, 0)}${imgTag(input, 1)}${imgTag(input, 2)}
@@ -146,30 +158,30 @@ function renderTrilogyFeaturePage(input: RenderInput, pageNum: number): string {
       </div>
       <article class="module" style="grid-column:4 / span 6; grid-row:1 / span 6; text-align:center;">
         <h2 style="color:#d95a31; font-size:18pt;">Out and About</h2>
-        <p class="body-copy serif">${esc(articleText(campus, 520))}</p>
+        <p class="body-copy serif ${articleTextClass(campus, 520)}">${esc(articleText(campus, 520))}</p>
         ${calendarGrid()}
       </article>
       <aside class="module purple-side" style="grid-column:10 / span 3; grid-row:1 / span 11;">
         <h3>Smile of the Month</h3>
-        <p class="small">${esc(articleText(staff[0] ?? director, 520))}</p>
-        <p class="small" style="margin-top:0.08in;">${esc(articleText(staff[1], 420))}</p>
-        <p class="small" style="margin-top:0.08in;">${esc(articleText(staff[2], 420))}</p>
+        <p class="small ${articleTextClass(staff[0] ?? director, 520)}">${esc(articleText(staff[0] ?? director, 520))}</p>
+        <p class="small ${articleTextClass(staff[1], 420)}" style="margin-top:0.08in;">${esc(articleText(staff[1], 420))}</p>
+        <p class="small ${articleTextClass(staff[2], 420)}" style="margin-top:0.08in;">${esc(articleText(staff[2], 420))}</p>
       </aside>
       <article class="module blue-band" style="grid-column:1 / span 9; grid-row:7 / span 3;">
         <h3>${esc(feature?.title ?? "Scrubbly Bubbly Car Wash")}</h3>
-        <p class="small">${esc(articleText(feature, 760))}</p>
-        <p class="small" style="margin-top:0.05in;">Use sunscreen daily, seek shade during peak afternoon hours, keep water nearby, and check the forecast before longer outdoor visits.</p>
+        <p class="small ${articleTextClass(feature, 760)}">${esc(articleText(feature, 760))}</p>
+        <p class="small fill-lg" style="margin-top:0.05in;">Use sunscreen daily, seek shade during peak afternoon hours, keep water nearby, and check the forecast before longer outdoor visits.</p>
       </article>
       <div class="module" style="grid-column:1 / span 3; grid-row:10 / span 3; padding:0;">
         ${imgTag(input, 5, "hero-photo")}
       </div>
       <article class="module green-head" style="grid-column:4 / span 6; grid-row:10 / span 3; text-align:center;">
         <h3>Make the Difference</h3>
-        <p class="small serif">${esc(articleText(wellness, 620))}</p>
+        <p class="small serif ${articleTextClass(wellness, 620)}">${esc(articleText(wellness, 620))}</p>
       </article>
       <article class="module dark-band" style="grid-column:1 / span 12; grid-row:13 / span 4;">
         <h3>Trust Funds</h3>
-        <p class="small">A resident trust fund can make outings, snacks, and special campus experiences easier to manage while keeping spending organized. Families can stop by the business office with questions or to set up support for an upcoming activity. This is especially helpful for ice cream trips, community outings, craft supplies, and small purchases that help residents participate without extra coordination on event day.</p>
+        <p class="small fill-md">A resident trust fund can make outings, snacks, and special campus experiences easier to manage while keeping spending organized. Families can stop by the business office with questions or to set up support for an upcoming activity. This is especially helpful for ice cream trips, community outings, craft supplies, and small purchases that help residents participate without extra coordination on event day.</p>
       </article>
     </section>`;
 }
@@ -406,6 +418,16 @@ export function renderRunHtml(input: RenderInput): string {
     .trilogy-rich p { margin: 0; }
     .trilogy-rich .small { font-size: 7.8pt; line-height: 1.12; }
     .trilogy-rich .body-copy { font-size: 8.2pt; line-height: 1.13; }
+    .trilogy-rich .fill-xl { font-size: 10pt; line-height: 1.22; }
+    .trilogy-rich .fill-lg { font-size: 9.3pt; line-height: 1.2; }
+    .trilogy-rich .fill-md { font-size: 8.7pt; line-height: 1.17; }
+    .trilogy-rich .fill-tight { font-size: 7.8pt; line-height: 1.12; }
+    .trilogy-rich .body-copy.fill-xl { font-size: 10.4pt; line-height: 1.22; }
+    .trilogy-rich .body-copy.fill-lg { font-size: 9.7pt; line-height: 1.2; }
+    .trilogy-rich .body-copy.fill-md { font-size: 9pt; line-height: 1.17; }
+    .trilogy-rich .small.fill-xl { font-size: 9.4pt; line-height: 1.2; }
+    .trilogy-rich .small.fill-lg { font-size: 8.8pt; line-height: 1.18; }
+    .trilogy-rich .small.fill-md { font-size: 8.3pt; line-height: 1.15; }
     .trilogy-rich .serif { font-family: Georgia, serif; }
     .trilogy-rich .italic { font-style: italic; }
     .trilogy-p2,
@@ -438,8 +460,8 @@ export function renderRunHtml(input: RenderInput): string {
       display: grid;
       grid-template-columns: 1fr auto;
       column-gap: 0.12in;
-      font-size: 8.7pt;
-      line-height: 1.18;
+      font-size: 9.8pt;
+      line-height: 1.24;
     }
     .birthday-list .label {
       grid-column: 1 / -1;
@@ -476,8 +498,8 @@ export function renderRunHtml(input: RenderInput): string {
     .director-card .body-copy {
       font-family: Arial, sans-serif;
       font-weight: 700;
-      font-size: 8.4pt;
-      line-height: 1.14;
+      font-size: 9pt;
+      line-height: 1.17;
     }
     .event-card h3 {
       font-size: 16pt;
@@ -486,8 +508,8 @@ export function renderRunHtml(input: RenderInput): string {
       margin-bottom: 0.05in;
     }
     .event-list {
-      font-size: 7.6pt;
-      line-height: 1.15;
+      font-size: 9.2pt;
+      line-height: 1.23;
       text-align: center;
     }
     .event-list b { color: #4f67bf; }
@@ -501,8 +523,8 @@ export function renderRunHtml(input: RenderInput): string {
       margin-bottom: 0.04in;
     }
     .feature-card .body-copy {
-      font-size: 8pt;
-      line-height: 1.12;
+      font-size: 8.8pt;
+      line-height: 1.17;
     }
     .photo-row {
       display: grid;
@@ -569,8 +591,8 @@ export function renderRunHtml(input: RenderInput): string {
       display: grid;
       grid-template-columns: 0.55fr 1fr 0.55fr 1fr;
       gap: 0.03in 0.08in;
-      font-size: 7.7pt;
-      line-height: 1.08;
+      font-size: 8.6pt;
+      line-height: 1.15;
     }
   `;
 
