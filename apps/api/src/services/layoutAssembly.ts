@@ -74,9 +74,9 @@ export function assembleLayout(input: AssembleInput): AssembledLayout {
     });
     if (idx === -1) continue;
     const slot = slots[idx];
-    const matchingArticle = articlePool.find(
-      (a) => !a.sectionId || a.sectionId === section.id,
-    );
+    const matchingArticle =
+      articlePool.find((a) => a.sectionId === section.id) ??
+      articlePool.find((a) => !a.sectionId);
     if (matchingArticle) {
       const i = articlePool.indexOf(matchingArticle);
       articlePool.splice(i, 1);

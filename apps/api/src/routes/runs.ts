@@ -189,13 +189,6 @@ runsRouter.post("/", async (req, res) => {
   articles = fitResult.articles;
   images = fitResult.keptImages;
 
-  // Tag first articles to recurring sections
-  for (let i = 0; i < Math.min(recurringSections.length, articles.length); i++) {
-    if (!articles[i].sectionId) {
-      articles[i] = { ...articles[i], sectionId: recurringSections[i].id };
-    }
-  }
-
   let layout = assembleLayout({
     templateId: template.id,
     pageCount: template.pageCount,

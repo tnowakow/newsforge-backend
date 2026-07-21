@@ -72,14 +72,6 @@ clientsRouter.post("/:id/mock-content", async (req, res) => {
     recurringSections: recurring.success ? recurring.data : [],
   });
 
-  // Tag the first N articles to recurring section ids so the fitter can place them.
-  if (recurring.success) {
-    for (let i = 0; i < Math.min(recurring.data.length, articles.length); i++) {
-      articles[i].sectionId = recurring.data[i].id;
-      articles[i].title = recurring.data[i].title;
-    }
-  }
-
   res.json({
     clientId: client.id,
     richnessLevel: client.richnessLevel,
