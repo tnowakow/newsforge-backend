@@ -1,4 +1,4 @@
-import { forwardRef, type CSSProperties } from "react";
+import { forwardRef, type CSSProperties, type ReactNode } from "react";
 import { cn } from "@/lib/cn";
 import type {
   Article,
@@ -16,6 +16,10 @@ interface NewsletterRenderProps {
   monthLabel?: string;
   /** Optional click handler for a block (used in Edit Mode). */
   onSelectBlock?: (blockId: string) => void;
+  onMoveBlock?: (blockId: string, dCol: number, dRow: number) => void;
+  onResizeBlock?: (blockId: string, dColSpan: number, dRowSpan: number) => void;
+  onDuplicateBlock?: (blockId: string) => void;
+  onDeleteBlock?: (blockId: string) => void;
   selectedBlockId?: string | null;
   editable?: boolean;
   /** Page filter — if set, only renders that page. */
@@ -50,6 +54,10 @@ export function NewsletterRender({
   client,
   monthLabel,
   onSelectBlock,
+  onMoveBlock,
+  onResizeBlock,
+  onDuplicateBlock,
+  onDeleteBlock,
   selectedBlockId,
   editable,
   filterPage,
@@ -115,6 +123,10 @@ export function NewsletterRender({
                   selected={selectedBlockId === b.blockId}
                   editable={editable}
                   onSelect={onSelectBlock}
+                  onMove={onMoveBlock}
+                  onResize={onResizeBlock}
+                  onDuplicate={onDuplicateBlock}
+                  onDelete={onDeleteBlock}
                 />
               ))}
             </div>
@@ -214,6 +226,10 @@ function BlockView({
   selected,
   editable,
   onSelect,
+  onMove,
+  onResize,
+  onDuplicate,
+  onDelete,
 }: {
   block: LayoutBlock;
   article?: Article;
@@ -221,6 +237,10 @@ function BlockView({
   selected?: boolean;
   editable?: boolean;
   onSelect?: (id: string) => void;
+  onMove?: (id: string, dCol: number, dRow: number) => void;
+  onResize?: (id: string, dColSpan: number, dRowSpan: number) => void;
+  onDuplicate?: (id: string) => void;
+  onDelete?: (id: string) => void;
 }) {
   const { col, row, colSpan, rowSpan } = block.position;
   const style: CSSProperties = {
@@ -245,6 +265,17 @@ function BlockView({
       }
     : undefined;
 
+  const editChrome =
+    editable && selected ? (
+      <EditChrome
+        blockId={block.blockId}
+        onMove={onMove}
+        onResize={onResize}
+        onDuplicate={onDuplicate}
+        onDelete={onDelete}
+      />
+    ) : null;
+
   if (block.kind === "image") {
     return (
       <div
@@ -266,6 +297,7 @@ function BlockView({
             {image?.caption ?? "Image"}
           </div>
         )}
+        {editChrome}
       </div>
     );
   }
@@ -275,7 +307,7 @@ function BlockView({
       <div
         style={style}
         className={cn(
-          "rounded border border-dashed text-2xs grid place-items-center text-center px-2 py-2",
+          "relative rounded border border-dashed text-2xs grid place-items-center text-center px-2 py-2",
           tagClass,
           interactiveClasses,
         )}
@@ -287,6 +319,7 @@ function BlockView({
             <div className="opacity-60 mt-1">[{block.styleTag}]</div>
           )}
         </div>
+        {editChrome}
       </div>
     );
   }
@@ -297,7 +330,7 @@ function BlockView({
     return (
       <article
         style={style}
-        className={cn("rounded overflow-hidden", tagClass, interactiveClasses)}
+        className={cn("relative rounded overflow-hidden", tagClass, interactiveClasses)}
         onClick={handleClick}
       >
         <h3
@@ -325,11 +358,96 @@ function BlockView({
             AI-assisted filler
           </div>
         )}
+        {editChrome}
       </article>
     );
   }
 
   return null;
+}
+
+function EditChrome({
+  blockId,
+  onMove,
+  onResize,
+  onDuplicate,
+  onDelete,
+}: {
+  blockId: string;
+  onMove?: (id: string, dCol: number, dRow: number) => void;
+  onResize?: (id: string, dColSpan: number, dRowSpan: number) => void;
+  onDuplicate?: (id: string) => void;
+  onDelete?: (id: string) => void;
+}) {
+  const click =
+    (fn?: () => void) =>
+    (e: React.MouseEvent<HTMLButtonElement>) => {
+      e.preventDefault();
+      e.stopPropagation();
+      fn?.();
+    };
+
+  return (
+    <>
+      <div className="absolute left-1 top-1 z-10 flex items-center gap-1 rounded bg-ink/90 px-1 py-1 text-white shadow-card">
+        <MiniButton title="Move left" onClick={click(() => onMove?.(blockId, -1, 0))}>
+          ←
+        </MiniButton>
+        <MiniButton title="Move up" onClick={click(() => onMove?.(blockId, 0, -1))}>
+          ↑
+        </MiniButton>
+        <MiniButton title="Move down" onClick={click(() => onMove?.(blockId, 0, 1))}>
+          ↓
+        </MiniButton>
+        <MiniButton title="Move right" onClick={click(() => onMove?.(blockId, 1, 0))}>
+          →
+        </MiniButton>
+      </div>
+      <div className="absolute right-1 top-1 z-10 flex items-center gap-1 rounded bg-surface/95 px-1 py-1 text-ink shadow-card">
+        <MiniButton title="Duplicate" onClick={click(() => onDuplicate?.(blockId))}>
+          Copy
+        </MiniButton>
+        <MiniButton title="Delete" onClick={click(() => onDelete?.(blockId))}>
+          Del
+        </MiniButton>
+      </div>
+      <div className="absolute bottom-1 right-1 z-10 grid grid-cols-2 gap-1 rounded bg-surface/95 px-1 py-1 text-ink shadow-card">
+        <MiniButton title="Narrower" onClick={click(() => onResize?.(blockId, -1, 0))}>
+          W-
+        </MiniButton>
+        <MiniButton title="Wider" onClick={click(() => onResize?.(blockId, 1, 0))}>
+          W+
+        </MiniButton>
+        <MiniButton title="Shorter" onClick={click(() => onResize?.(blockId, 0, -1))}>
+          H-
+        </MiniButton>
+        <MiniButton title="Taller" onClick={click(() => onResize?.(blockId, 0, 1))}>
+          H+
+        </MiniButton>
+      </div>
+    </>
+  );
+}
+
+function MiniButton({
+  children,
+  title,
+  onClick,
+}: {
+  children: ReactNode;
+  title: string;
+  onClick: (e: React.MouseEvent<HTMLButtonElement>) => void;
+}) {
+  return (
+    <button
+      type="button"
+      title={title}
+      onClick={onClick}
+      className="h-6 min-w-6 rounded px-1 text-[10px] font-semibold leading-6 hover:bg-accent-soft hover:text-accent"
+    >
+      {children}
+    </button>
+  );
 }
 
 function truncate(s: string, n: number) {

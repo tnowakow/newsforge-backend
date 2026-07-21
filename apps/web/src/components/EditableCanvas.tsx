@@ -1,13 +1,4 @@
-import { useRef } from "react";
-import {
-  DndContext,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  useDraggable,
-  useDroppable,
-  type DragEndEvent,
-} from "@dnd-kit/core";
+import { useEffect } from "react";
 import type {
   AssembledLayout,
   ClientFull,
@@ -30,56 +21,144 @@ interface EditableCanvasProps {
 }
 
 const COL_COUNT = 12;
-const ROW_PX = 32; // approx row height for grid math (matches gridAutoRows minmax)
 
-/**
- * Wraps NewsletterRender with drag-and-drop:
- * - Each block is a draggable.
- * - Each page surface is a droppable; on drop we recompute col/row from delta.
- *
- * NOTE: We render NewsletterRender as-is and overlay a transparent draggable
- * layer per block using absolute positioning matched to grid cells. This keeps
- * the renderer simple and lets us iterate later.
- */
 export function EditableCanvas(props: EditableCanvasProps) {
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: { distance: 6 },
-    }),
+  const selectedBlock = props.layout.blocks.find(
+    (b) => b.blockId === props.selectedBlockId,
   );
 
-  function handleDragEnd(e: DragEndEvent) {
-    const blockId = String(e.active.id);
-    const block = props.layout.blocks.find((b) => b.blockId === blockId);
-    if (!block) return;
-    const dx = e.delta.x;
-    const dy = e.delta.y;
-
-    // Approximate column width: 816px page minus 96px gutters = 720, / 12 = 60.
-    const colWidth = 60;
-    const dCol = Math.round(dx / colWidth);
-    const dRow = Math.round(dy / ROW_PX);
-    if (dCol === 0 && dRow === 0) return;
-
-    const newCol = clamp(
-      block.position.col + dCol,
-      1,
-      COL_COUNT - block.position.colSpan + 1,
-    );
-    const newRow = Math.max(1, block.position.row + dRow);
-    const next: AssembledLayout = {
+  const updateBlock = (
+    blockId: string,
+    updater: (block: LayoutBlock) => LayoutBlock,
+  ) => {
+    props.onLayoutChange({
       ...props.layout,
       blocks: props.layout.blocks.map((b) =>
-        b.blockId === blockId
-          ? { ...b, position: { ...b.position, col: newCol, row: newRow } }
-          : b,
+        b.blockId === blockId ? updater(b) : b,
       ),
+    });
+  };
+
+  const moveBlock = (blockId: string, dCol: number, dRow: number) => {
+    updateBlock(blockId, (block) => {
+      const maxCol = COL_COUNT - block.position.colSpan + 1;
+      return {
+        ...block,
+        position: {
+          ...block.position,
+          col: clamp(block.position.col + dCol, 1, maxCol),
+          row: Math.max(1, block.position.row + dRow),
+        },
+      };
+    });
+  };
+
+  const resizeBlock = (
+    blockId: string,
+    dColSpan: number,
+    dRowSpan: number,
+  ) => {
+    updateBlock(blockId, (block) => {
+      const maxSpan = COL_COUNT - block.position.col + 1;
+      return {
+        ...block,
+        position: {
+          ...block.position,
+          colSpan: clamp(block.position.colSpan + dColSpan, 1, maxSpan),
+          rowSpan: Math.max(1, block.position.rowSpan + dRowSpan),
+        },
+      };
+    });
+  };
+
+  const duplicateBlock = (blockId: string) => {
+    const block = props.layout.blocks.find((b) => b.blockId === blockId);
+    if (!block) return;
+    const duplicate: LayoutBlock = {
+      ...block,
+      blockId: `block-${Date.now()}`,
+      slotId: `custom-${Date.now()}`,
+      position: {
+        ...block.position,
+        row: block.position.row + block.position.rowSpan + 1,
+      },
     };
-    props.onLayoutChange(next);
-  }
+    props.onLayoutChange({
+      ...props.layout,
+      blocks: [...props.layout.blocks, duplicate],
+    });
+    props.onSelectBlock(duplicate.blockId);
+  };
+
+  const deleteBlock = (blockId: string) => {
+    props.onLayoutChange({
+      ...props.layout,
+      blocks: props.layout.blocks.filter((b) => b.blockId !== blockId),
+    });
+  };
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      const active = e.target as HTMLElement | null;
+      if (
+        active?.tagName === "INPUT" ||
+        active?.tagName === "TEXTAREA" ||
+        active?.tagName === "SELECT"
+      ) {
+        return;
+      }
+      if (!props.selectedBlockId) return;
+      const step = e.shiftKey ? 2 : 1;
+      if (e.key === "Delete" || e.key === "Backspace") {
+        e.preventDefault();
+        deleteBlock(props.selectedBlockId);
+        return;
+      }
+      if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        e.altKey
+          ? resizeBlock(props.selectedBlockId, -step, 0)
+          : moveBlock(props.selectedBlockId, -step, 0);
+      }
+      if (e.key === "ArrowRight") {
+        e.preventDefault();
+        e.altKey
+          ? resizeBlock(props.selectedBlockId, step, 0)
+          : moveBlock(props.selectedBlockId, step, 0);
+      }
+      if (e.key === "ArrowUp") {
+        e.preventDefault();
+        e.altKey
+          ? resizeBlock(props.selectedBlockId, 0, -step)
+          : moveBlock(props.selectedBlockId, 0, -step);
+      }
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        e.altKey
+          ? resizeBlock(props.selectedBlockId, 0, step)
+          : moveBlock(props.selectedBlockId, 0, step);
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [props.layout, props.selectedBlockId]);
 
   return (
-    <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
+    <div className="relative">
+      <div className="sticky top-3 z-20 mx-auto mb-4 w-fit rounded-md border border-rule bg-surface/95 px-3 py-2 text-xs shadow-card backdrop-blur">
+        {selectedBlock ? (
+          <span>
+            Selected p{selectedBlock.page} · {selectedBlock.kind} · col{" "}
+            {selectedBlock.position.col}, row {selectedBlock.position.row}, size{" "}
+            {selectedBlock.position.colSpan}x{selectedBlock.position.rowSpan}
+          </span>
+        ) : (
+          <span>Click a block, then use the on-page controls or arrow keys.</span>
+        )}
+        <span className="ml-3 text-ink-muted">
+          Alt+arrows resize · Shift moves faster · Delete removes
+        </span>
+      </div>
       <NewsletterRender
         layout={props.layout}
         articles={props.articles}
@@ -89,86 +168,13 @@ export function EditableCanvas(props: EditableCanvasProps) {
         editable
         selectedBlockId={props.selectedBlockId}
         onSelectBlock={props.onSelectBlock}
+        onMoveBlock={moveBlock}
+        onResizeBlock={resizeBlock}
+        onDuplicateBlock={duplicateBlock}
+        onDeleteBlock={deleteBlock}
         registerPage={props.registerPage}
       />
-      <PerBlockDraggables
-        layout={props.layout}
-        onSelect={props.onSelectBlock}
-      />
-    </DndContext>
-  );
-}
-
-/**
- * Drag-overlay layer: invisible draggable markers placed atop each block so
- * the user can grab any block. Because they sit fixed-relative to the page,
- * we render them after the actual NewsletterRender via portal-less absolute
- * positioning anchored to the page-surface elements.
- *
- * For the demo we surface only the drag handle (top-left corner) and rely on
- * @dnd-kit's pointer sensor for the actual move math.
- */
-function PerBlockDraggables({
-  layout,
-  onSelect,
-}: {
-  layout: AssembledLayout;
-  onSelect: (id: string) => void;
-}) {
-  // We can't easily compute absolute screen positions here without measuring;
-  // instead we expose a global "Drag handles" floating tray summarising blocks.
-  // (Demo-grade — better than nothing, real implementation would integrate
-  // the handles inside BlockView.)
-  const containerRef = useRef<HTMLDivElement>(null);
-  return (
-    <div
-      ref={containerRef}
-      className="fixed top-24 right-[320px] z-20 bg-surface border border-rule rounded-md shadow-card px-3 py-2 max-h-72 overflow-auto pointer-events-auto text-2xs"
-      style={{ width: 220 }}
-    >
-      <div className="font-semibold text-ink mb-1">Drag handles</div>
-      <ul>
-        {layout.blocks.slice(0, 24).map((b) => (
-          <DragHandle key={b.blockId} block={b} onSelect={onSelect} />
-        ))}
-      </ul>
-      {layout.blocks.length > 24 && (
-        <div className="text-ink-muted mt-1">
-          +{layout.blocks.length - 24} more
-        </div>
-      )}
     </div>
-  );
-}
-
-function DragHandle({
-  block,
-  onSelect,
-}: {
-  block: LayoutBlock;
-  onSelect: (id: string) => void;
-}) {
-  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
-    id: block.blockId,
-  });
-  return (
-    <li
-      ref={setNodeRef}
-      {...attributes}
-      {...listeners}
-      onClick={() => onSelect(block.blockId)}
-      className={`flex items-center gap-1.5 px-1.5 py-1 rounded cursor-grab ${
-        isDragging ? "bg-accent-soft" : "hover:bg-bg"
-      }`}
-    >
-      <span className="text-ink-muted">⋮⋮</span>
-      <span className="flex-1 truncate">
-        p{block.page} · {block.kind}
-      </span>
-      <span className="text-ink-muted">
-        {block.position.col},{block.position.row}
-      </span>
-    </li>
   );
 }
 
