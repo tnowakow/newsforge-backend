@@ -151,11 +151,14 @@ function renderTrilogyFeaturePage(input: RenderInput, pageNum: number): string {
       </article>
       <aside class="module purple-side" style="grid-column:10 / span 3; grid-row:1 / span 11;">
         <h3>Smile of the Month</h3>
-        <p class="small">${esc(articleText(staff[0] ?? director, 900))}</p>
+        <p class="small">${esc(articleText(staff[0] ?? director, 520))}</p>
+        <p class="small" style="margin-top:0.08in;">${esc(articleText(staff[1], 420))}</p>
+        <p class="small" style="margin-top:0.08in;">${esc(articleText(staff[2], 420))}</p>
       </aside>
       <article class="module blue-band" style="grid-column:1 / span 9; grid-row:7 / span 3;">
         <h3>${esc(feature?.title ?? "Scrubbly Bubbly Car Wash")}</h3>
-        <p class="small">${esc(articleText(feature, 640))}</p>
+        <p class="small">${esc(articleText(feature, 760))}</p>
+        <p class="small" style="margin-top:0.05in;">Use sunscreen daily, seek shade during peak afternoon hours, keep water nearby, and check the forecast before longer outdoor visits.</p>
       </article>
       <div class="module" style="grid-column:1 / span 3; grid-row:10 / span 3; padding:0;">
         ${imgTag(input, 5, "hero-photo")}
@@ -166,7 +169,7 @@ function renderTrilogyFeaturePage(input: RenderInput, pageNum: number): string {
       </article>
       <article class="module dark-band" style="grid-column:1 / span 12; grid-row:13 / span 4;">
         <h3>Trust Funds</h3>
-        <p class="small">A resident trust fund can make outings, snacks, and special campus experiences easier to manage while keeping spending organized. Families can stop by the business office with questions or to set up support for an upcoming activity.</p>
+        <p class="small">A resident trust fund can make outings, snacks, and special campus experiences easier to manage while keeping spending organized. Families can stop by the business office with questions or to set up support for an upcoming activity. This is especially helpful for ice cream trips, community outings, craft supplies, and small purchases that help residents participate without extra coordination on event day.</p>
       </article>
     </section>`;
 }
