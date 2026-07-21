@@ -36,11 +36,18 @@ clientsRouter.get("/:id", async (req, res) => {
   res.json({ client });
 });
 
-const MockContentBody = z.object({}).optional();
+const MockContentBody = z
+  .object({
+    month: z.string().min(1).optional(),
+    tone: z.enum(["warm", "formal", "playful", "civic"]).optional(),
+    density: z.number().int().min(1).max(4).optional(),
+    include: z.array(z.string()).optional(),
+  })
+  .optional();
 
 clientsRouter.post("/:id/mock-content", async (req, res) => {
-  const _body = MockContentBody.safeParse(req.body);
-  void _body;
+  const parsed = MockContentBody.safeParse(req.body);
+  const body = parsed.success ? parsed.data : undefined;
 
   const client = await prisma.client.findUnique({
     where: { id: req.params.id },
@@ -56,6 +63,13 @@ clientsRouter.post("/:id/mock-content", async (req, res) => {
     richness: client.richnessLevel,
     careLevel: client.careLevel,
     brandVoice: client.brandVoice,
+    clientName: client.name,
+    city: client.city,
+    monthLabel: body?.month,
+    tone: body?.tone,
+    density: body?.density,
+    include: body?.include,
+    recurringSections: recurring.success ? recurring.data : [],
   });
 
   // Tag the first N articles to recurring section ids so the fitter can place them.

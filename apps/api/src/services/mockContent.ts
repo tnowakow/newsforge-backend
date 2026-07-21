@@ -181,11 +181,15 @@ export function generateMockContent(
 ): GenerateMockContentResult {
   const density = normalizeDensity(input.density, input.richness);
   const targets = [
-    { articles: 3, images: 4 },
-    { articles: 5, images: 7 },
-    { articles: 7, images: 11 },
-    { articles: 9, images: 15 },
+    { articles: 5, images: 4 },
+    { articles: 8, images: 6 },
+    { articles: 12, images: 8 },
+    { articles: 16, images: 12 },
   ][density - 1];
+
+  if ((input.clientName ?? "").toLowerCase().includes("trilogy")) {
+    return generateTrilogyMockContent(input, targets);
+  }
   const requested = new Set(
     input.include ?? ["director", "spotlight", "events", "menu"],
   );
@@ -217,6 +221,142 @@ export function generateMockContent(
     return {
       id: createId(),
       url: `${seed.url}?auto=format&fit=crop&w=1400&q=82&sig=${index}`,
+      caption: seed.caption,
+      alt: seed.alt,
+      aspect: seed.aspect,
+      isPlaceholder: false,
+      source: "MOCK" as const,
+    };
+  });
+
+  return { articles, images };
+}
+
+function generateTrilogyMockContent(
+  input: GenerateMockContentInput,
+  targets: { articles: number; images: number },
+): GenerateMockContentResult {
+  const monthName = (input.monthLabel ?? "July").split(/\s+/)[0] || "July";
+  const seeds: StorySeed[] = [
+    {
+      key: "birthdays",
+      title: () => "Happy Birthday!",
+      articleType: "birthday",
+      sectionMatch: /birthday|anniversar|milestone/i,
+      body: () =>
+        "Staff birthdays this month include Taylor B. on 7/29 and Allison W. on 7/29. We will celebrate with cards, hallway hellos, and a few extra reasons to smile.",
+    },
+    {
+      key: "holiday",
+      title: () => "Happy 4th of July",
+      articleType: "announcement",
+      body: () =>
+        "Celebrating red, white, and blue with music, cookout favorites, porch visits, and a campus full of summer color.",
+    },
+    {
+      key: "director",
+      title: () => "Executive Director Corner",
+      articleType: "executive-note",
+      sectionMatch: /director|executive|welcome/i,
+      body: () =>
+        paragraphs(input, [
+          `Happy ${monthName}, everyone! It has been an amazing summer so far of cookouts, evenings with friends, and refreshing happy hours to help us cool down.`,
+          `Around this time of year, many of us remember looking toward the return to school, but here on campus the middle of summer means the fun is just getting started. Live entertainment, themed events, and afternoons outside have brought residents, families, and team members together in the best way.`,
+          `Thank you for continuing to join us for the laughter, visits, and small daily rhythms that make this community feel like home. Have a wonderful month.`,
+          `Yours in service,\nThe Executive Director`,
+        ]),
+    },
+    {
+      key: "uv-safety",
+      title: () => "Protecting Your Skin During UV Safety Month",
+      articleType: "announcement",
+      sectionMatch: /feature|spotlight/i,
+      body: () =>
+        paragraphs(input, [
+          `${monthName} is UV Safety Month, a good time to enjoy the sunshine while keeping skin protected. As we get older, skin can become more delicate and more sensitive to ultraviolet rays, so a few simple habits make a real difference.`,
+          `Use a broad-spectrum sunscreen with an SPF of at least 30, and reapply it every two hours when spending time outside. Light long sleeves, wide-brimmed hats, and sunglasses with UV protection are smart choices for patio visits, walks, and family outings.`,
+          `Plan outdoor time for the morning or late afternoon when possible, and look for shade during the strongest midday sun. Keep water nearby, check the forecast, and ask your doctor if you have questions about medications, skin history, or safe sun exposure.`,
+          `Small choices add up. A hat by the door, sunscreen in a tote bag, and a glass of water before heading outside can help make this season both joyful and safe.`,
+        ]),
+    },
+    {
+      key: "staff-spot-ben",
+      title: () => "Ben Gibbs",
+      articleType: "announcement",
+      body: () =>
+        "Ben Gibbs, our Director of Food Services, brings 20 years of professional kitchen experience to campus. He studied culinary arts, loves the outdoors, and is happiest when a meal brings people together.",
+    },
+    {
+      key: "staff-spot-kim",
+      title: () => "Kim Messinger",
+      articleType: "announcement",
+      body: () =>
+        "Kim Messinger, our Director of Assisted Living, has spent 35 years in nursing. Her career began as a CNA, and she continues to grow through healthcare administration, resident advocacy, and team mentoring.",
+    },
+    {
+      key: "staff-spot-lindsay",
+      title: () => "Lindsay Morse",
+      articleType: "announcement",
+      body: () =>
+        "Lindsay Morse, our Executive Director, is passionate about person-centered care, resident advocacy, and staff development. She loves seeing families, neighbors, and team members make campus life feel connected.",
+    },
+    {
+      key: "calendar",
+      title: () => `${monthName} Campus Highlights`,
+      articleType: "event-recap",
+      sectionMatch: /calendar|activities|events/i,
+      body: () =>
+        paragraphs(input, [
+          `This month's calendar brings together the best parts of summer: live music, cookouts, creative afternoons, devotional gatherings, and family-friendly time outside.`,
+          `Residents can watch the posted activity calendar for final dates and times. Families are always welcome to plan visits around favorite programs or ask the life-enrichment team which events may be the best fit.`,
+        ]),
+    },
+    {
+      key: "best-friends",
+      title: () => "The Best Friends Approach in Action",
+      articleType: "resident-story",
+      body: () =>
+        paragraphs(input, [
+          `The Best Friends Approach shows up in the little details: remembering a favorite song, saving a seat near a familiar neighbor, or knowing when a quiet walk is better than a busy room.`,
+          `Those details help every resident feel known. They also give families more ways to share stories, routines, recipes, and memories that make each day more personal.`,
+        ]),
+    },
+    {
+      key: "summer-food",
+      title: () => "Summer Flavors From the Kitchen",
+      articleType: "announcement",
+      body: () =>
+        paragraphs(input, [
+          `The kitchen is leaning into summer with crisp salads, grilled favorites, chilled desserts, and the kind of familiar dishes that bring people back for seconds.`,
+          `Residents are encouraged to share favorite recipes or food memories with the dining team. A good menu starts with good stories.`,
+        ]),
+    },
+  ];
+
+  const articles = Array.from({ length: targets.articles }, (_, index) => {
+    const story = seeds[index % seeds.length];
+    const section = input.recurringSections?.find((candidate) =>
+      story.sectionMatch?.test(candidate.title),
+    );
+    const body = story.body(input);
+    return {
+      id: createId(),
+      title: section?.title ?? story.title(input),
+      body,
+      wordCount: wordCount(body),
+      byline: story.key === "director" ? "From the Executive Director" : undefined,
+      sectionId: section?.id,
+      isFiller: false,
+      source: "MOCK" as const,
+      articleType: story.articleType,
+    };
+  });
+
+  const images = Array.from({ length: targets.images }, (_, index) => {
+    const seed = IMAGE_SEEDS[index % IMAGE_SEEDS.length];
+    return {
+      id: createId(),
+      url: `${seed.url}?auto=format&fit=crop&w=1600&q=86&sig=trilogy-${index}`,
       caption: seed.caption,
       alt: seed.alt,
       aspect: seed.aspect,

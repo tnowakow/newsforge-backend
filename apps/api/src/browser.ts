@@ -8,23 +8,40 @@
  */
 import puppeteer, { Browser, Page } from "puppeteer-core";
 import chromium from "@sparticuz/chromium";
+import { existsSync } from "node:fs";
 
 let browser: Browser | null = null;
 let page: Page | null = null;
 let bootPromise: Promise<void> | null = null;
 
 async function bootInner(): Promise<void> {
+  const systemChromium = ["/usr/bin/chromium-browser", "/usr/bin/chromium"].find(
+    (candidate) => existsSync(candidate),
+  );
   const executablePath =
     process.env.PUPPETEER_EXECUTABLE_PATH ||
     process.env.CHROMIUM_PATH ||
+    systemChromium ||
     (await chromium.executablePath());
 
-  const args = [
-    ...chromium.args,
-    "--no-sandbox",
-    "--disable-setuid-sandbox",
-    "--disable-dev-shm-usage",
-  ];
+  const usingSystemChromium =
+    executablePath.includes("chromium-browser") ||
+    executablePath.includes("/usr/bin/chromium");
+
+  const args = usingSystemChromium
+    ? [
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-dev-shm-usage",
+        "--disable-gpu",
+        "--font-render-hinting=none",
+      ]
+    : [
+        ...chromium.args,
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-dev-shm-usage",
+      ];
 
   browser = await puppeteer.launch({
     args,

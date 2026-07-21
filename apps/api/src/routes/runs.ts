@@ -139,6 +139,9 @@ runsRouter.post("/", async (req, res) => {
       richness: client.richnessLevel,
       careLevel: client.careLevel,
       brandVoice: client.brandVoice,
+      clientName: client.name,
+      city: client.city,
+      monthLabel: body.monthLabel,
     });
     articles = articles ?? mock.articles;
     images = images ?? mock.images;
@@ -193,7 +196,7 @@ runsRouter.post("/", async (req, res) => {
     }
   }
 
-  const layout = assembleLayout({
+  let layout = assembleLayout({
     templateId: template.id,
     pageCount: template.pageCount,
     gridSpec: gridSpecParsed.data,
@@ -205,6 +208,22 @@ runsRouter.post("/", async (req, res) => {
   const monthLabel =
     body.monthLabel ??
     new Date().toLocaleString("en-US", { month: "long", year: "numeric" });
+
+  const fillerMode = body.fillerMode ?? "GENERATE";
+  if (fillerMode === "GENERATE" && layout.blocks.some((b) => b.needsFiller)) {
+    const filled = await generateFiller({
+      layout,
+      gridSpec: gridSpecParsed.data,
+      recurringSections,
+      articles,
+      brandVoice: client.brandVoice,
+      clientName: client.name,
+      monthLabel,
+      mode: fillerMode,
+    });
+    layout = filled.layout;
+    articles = filled.articles;
+  }
 
   // Build the fit report for persistence.
   const layoutFitReport = buildLayoutFitReport({
@@ -225,7 +244,7 @@ runsRouter.post("/", async (req, res) => {
       clientId: client.id,
       templateId: template.id,
       monthLabel,
-      fillerMode: body.fillerMode ?? "PLACEHOLDER",
+      fillerMode,
       articles: articles as unknown as object,
       images: images as unknown as object,
       assembledLayout: layout as unknown as object,
