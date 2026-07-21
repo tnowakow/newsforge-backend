@@ -101,11 +101,22 @@ export async function generateFiller(input: FillerInput): Promise<FillerOutput> 
   const fallback: GeminiFillerResponse = {
     articles: slotPrompts.map((sp) => ({
       slotId: sp.slotId,
-      title: sp.sectionTitle ?? "Community Update",
-      body: placeholderText(sp.slotType, input.clientName),
-      wordCount: 12,
+      title: sp.sectionTitle ?? fallbackTitle(sp.slotType),
+      body: fallbackCopy({
+        slotType: sp.slotType,
+        clientName: input.clientName,
+        monthLabel: input.monthLabel,
+        minWords: sp.minWords,
+        maxWords: sp.maxWords,
+        sectionTitle: sp.sectionTitle,
+      }),
+      wordCount: 0,
     })),
   };
+  fallback.articles = fallback.articles.map((article) => ({
+    ...article,
+    wordCount: wordCount(article.body),
+  }));
 
   const systemPrompt = [
     `You are the senior editor for ${input.clientName}, a senior-living community newsletter read by residents, families, prospects, and team members.`,
@@ -228,4 +239,50 @@ function editorialGoalForSlot(slotType: string): string {
     body: "A complete short article with a concrete opening and useful closing detail.",
     filler: "A brief evergreen community note that adds variety without invented facts.",
   }[slotType] ?? "A concise, useful community-news item.";
+}
+
+function fallbackTitle(slotType: string): string {
+  return {
+    headline: "Around Campus",
+    sidebar: "Worth Noting",
+    calendar: "This Month at a Glance",
+    spotlight: "Community Spotlight",
+    body: "Campus Life This Month",
+    filler: "A Good Month Ahead",
+  }[slotType] ?? "Community Note";
+}
+
+function fallbackCopy(input: {
+  slotType: string;
+  clientName: string;
+  monthLabel: string;
+  minWords: number;
+  maxWords: number;
+  sectionTitle?: string;
+}): string {
+  const base = {
+    headline:
+      "A month of familiar rhythms, shared meals, family visits, and small celebrations across campus.",
+    sidebar:
+      "Keep an eye on the posted calendar and community boards for final times, sign-ups, and gathering locations. Families are welcome to check with the life-enrichment team before planning a visit around a favorite activity.",
+    calendar:
+      `The ${input.monthLabel} calendar includes music, creative programs, wellness time, outdoor visits when weather allows, and relaxed neighborhood gatherings. Final dates and room locations will stay on the posted activity calendar so residents and families can plan around the events they enjoy most.`,
+    spotlight:
+      `At ${input.clientName}, the best moments often begin with something simple: a familiar song, a favorite dessert, a porch conversation, or a neighbor pulling up an extra chair. Those daily rhythms help residents feel known, and they give families more ways to stay connected throughout the month.`,
+    body:
+      `This month brings a steady mix of community favorites: live music, seasonal meals, wellness activities, family visits, and quiet moments for conversation. The goal is not to keep every hour busy. It is to make each day feel personal, familiar, and worth looking forward to. Residents can join a group program, spend time outside, or enjoy a slower routine with support from the team.`,
+    filler:
+      `Thank you to the residents, families, and team members who make this community feel warm in ordinary ways. A kind greeting, a saved seat, or a shared story can change the whole tone of a day.`,
+  }[input.slotType] ?? `There is always something meaningful happening at ${input.clientName}, from familiar routines to new memories made with neighbors, families, and team members.`;
+
+  const sentences = base.match(/[^.!?]+[.!?]+/g) ?? [base];
+  let copy = base;
+  while (wordCount(copy) < input.minWords && wordCount(copy) < input.maxWords) {
+    copy = `${copy} ${sentences[wordCount(copy) % sentences.length].trim()}`;
+  }
+  return copy;
+}
+
+function wordCount(value: string): number {
+  return value.trim().split(/\s+/).filter(Boolean).length;
 }

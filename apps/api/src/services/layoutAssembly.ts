@@ -127,7 +127,12 @@ export function assembleLayout(input: AssembleInput): AssembledLayout {
       let pickIdx = articlePool.findIndex(
         (a) => a.wordCount >= min && a.wordCount <= max,
       );
-      if (pickIdx === -1 && articlePool.length > 0) pickIdx = 0;
+      if (pickIdx === -1 && articlePool.length > 0) {
+        const fallbackIdx = articlePool.findIndex(
+          (a) => min === 0 || a.wordCount >= Math.floor(min * 0.6),
+        );
+        pickIdx = fallbackIdx;
+      }
       if (pickIdx !== -1) {
         const article = articlePool.splice(pickIdx, 1)[0];
         blocks[i] = { ...blocks[i], kind: "article", articleId: article.id };
