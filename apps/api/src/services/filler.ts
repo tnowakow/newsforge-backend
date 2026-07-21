@@ -101,8 +101,9 @@ export async function generateFiller(input: FillerInput): Promise<FillerOutput> 
   const fallback: GeminiFillerResponse = {
     articles: slotPrompts.map((sp) => ({
       slotId: sp.slotId,
-      title: sp.sectionTitle ?? fallbackTitle(sp.slotType),
+      title: sp.sectionTitle ?? fallbackTitle(sp.slotType, sp.slotId),
       body: fallbackCopy({
+        slotId: sp.slotId,
         slotType: sp.slotType,
         clientName: input.clientName,
         monthLabel: input.monthLabel,
@@ -241,18 +242,28 @@ function editorialGoalForSlot(slotType: string): string {
   }[slotType] ?? "A concise, useful community-news item.";
 }
 
-function fallbackTitle(slotType: string): string {
-  return {
-    headline: "Around Campus",
-    sidebar: "Worth Noting",
-    calendar: "This Month at a Glance",
-    spotlight: "Community Spotlight",
-    body: "Campus Life This Month",
-    filler: "A Good Month Ahead",
-  }[slotType] ?? "Community Note";
+function fallbackTitle(slotType: string, slotId: string): string {
+  const titles = {
+    headline: ["Around Campus", "Worth a Look", "Good Things Ahead"],
+    sidebar: ["Worth Noting", "Family Reminders", "Around the Halls"],
+    calendar: ["This Month at a Glance", "Upcoming Campus Favorites", "Mark the Calendar"],
+    spotlight: ["Community Spotlight", "Daily Rhythms in Action", "A Moment Worth Sharing"],
+    body: [
+      "Live Music and Porch Visits",
+      "Summer Days Around Campus",
+      "Small Rituals, Big Smiles",
+      "Family Time This Month",
+      "Wellness in the Sunshine",
+      "Kitchen Notes and Favorites",
+    ],
+    filler: ["A Good Month Ahead", "Simple Joys This Month", "Thank You, Families"],
+  } as Record<string, string[]>;
+  const options = titles[slotType] ?? ["Community Note"];
+  return options[hashIndex(slotId, options.length)];
 }
 
 function fallbackCopy(input: {
+  slotId: string;
   slotType: string;
   clientName: string;
   monthLabel: string;
@@ -260,6 +271,14 @@ function fallbackCopy(input: {
   maxWords: number;
   sectionTitle?: string;
 }): string {
+  const bodyVariants = [
+    `The best summer days on campus often start without much fanfare. Someone pauses after breakfast for another cup of coffee, a neighbor waves family members over to join a table, and the sound of music carries into the hallway before the program officially begins. Those small invitations are the heart of community life at ${input.clientName}. They make the day feel familiar, personal, and easy to enjoy.`,
+    `Family visits have a way of changing the whole rhythm of a day. A quick stop after lunch can turn into a story about childhood summers, favorite holiday meals, or the music that used to play in the kitchen. This month, we are making space for more of those easy moments with relaxed gatherings, comfortable places to sit, and programs that welcome residents and loved ones together.`,
+    `Wellness this month is about comfort, confidence, and consistency. Residents can join gentle movement, spend a little time outdoors when the weather cooperates, or choose a quieter routine with support from the team. A good wellness habit does not have to be complicated. Sometimes it is water nearby, a shaded seat, a short walk, and someone to enjoy it with.`,
+    `The kitchen continues to be one of the busiest gathering places on campus. Familiar meals, cool summer treats, and resident suggestions all help shape the menu. Food carries memory with it, so the dining team loves hearing about recipes, family traditions, and flavors that bring people back to a favorite table.`,
+    `Music remains one of the easiest ways to bring people together. A familiar chorus can reach across neighborhoods, start a conversation, or turn a quiet afternoon into something everyone remembers. Watch the posted calendar for upcoming performers, sing-alongs, and smaller music moments throughout the month.`,
+    `The team is always looking for the details that make each resident feel known: a favorite chair, a preferred activity, a familiar snack, or a story worth hearing again. Those details are part of the Best Friends Approach, and they help turn everyday care into genuine companionship.`,
+  ];
   const base = {
     headline:
       "A month of familiar rhythms, shared meals, family visits, and small celebrations across campus.",
@@ -269,8 +288,7 @@ function fallbackCopy(input: {
       `The ${input.monthLabel} calendar includes music, creative programs, wellness time, outdoor visits when weather allows, and relaxed neighborhood gatherings. Final dates and room locations will stay on the posted activity calendar so residents and families can plan around the events they enjoy most.`,
     spotlight:
       `At ${input.clientName}, the best moments often begin with something simple: a familiar song, a favorite dessert, a porch conversation, or a neighbor pulling up an extra chair. Those daily rhythms help residents feel known, and they give families more ways to stay connected throughout the month.`,
-    body:
-      `This month brings a steady mix of community favorites: live music, seasonal meals, wellness activities, family visits, and quiet moments for conversation. The goal is not to keep every hour busy. It is to make each day feel personal, familiar, and worth looking forward to. Residents can join a group program, spend time outside, or enjoy a slower routine with support from the team.`,
+    body: bodyVariants[hashIndex(input.slotId, bodyVariants.length)],
     filler:
       `Thank you to the residents, families, and team members who make this community feel warm in ordinary ways. A kind greeting, a saved seat, or a shared story can change the whole tone of a day.`,
   }[input.slotType] ?? `There is always something meaningful happening at ${input.clientName}, from familiar routines to new memories made with neighbors, families, and team members.`;
@@ -285,4 +303,10 @@ function fallbackCopy(input: {
 
 function wordCount(value: string): number {
   return value.trim().split(/\s+/).filter(Boolean).length;
+}
+
+function hashIndex(value: string, modulo: number): number {
+  let hash = 0;
+  for (const char of value) hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
+  return hash % Math.max(1, modulo);
 }
