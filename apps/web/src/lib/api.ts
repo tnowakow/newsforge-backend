@@ -201,6 +201,9 @@ export const api = {
     return unwrapRun(raw);
   },
 
+  deleteRun: (runId: string): Promise<{ deleted: true; runId: string }> =>
+    request(`/api/runs/${runId}`, { method: "DELETE" }),
+
   listRuns: async (opts?: {
     status?: "pending" | "approved" | "changes_requested";
     limit?: number;

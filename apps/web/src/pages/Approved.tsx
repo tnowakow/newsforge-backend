@@ -31,6 +31,7 @@ export default function Approved() {
   const [clientFilter, setClientFilter] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [sortKey, setSortKey] = useState<SortKey>("newest");
+  const [deletingRunId, setDeletingRunId] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -97,6 +98,26 @@ export default function Approved() {
     });
     return filteredList;
   }, [runs, query, clientFilter, statusFilter, sortKey]);
+
+  const deleteRun = async (run: RunRecord) => {
+    const label = `${run.client?.name ?? "this newsletter"} · ${run.monthLabel ?? "Newsletter"}`;
+    const ok = window.confirm(
+      `Delete ${label}?\n\nThis removes it from the newsletter library and cannot be undone.`,
+    );
+    if (!ok) return;
+
+    setDeletingRunId(run.id);
+    try {
+      await api.deleteRun(run.id);
+      setRuns((cur) => (cur ?? []).filter((item) => item.id !== run.id));
+      toast("Newsletter deleted.", { tone: "success" });
+    } catch (err) {
+      const msg = err instanceof ApiError ? err.message : "Couldn't delete newsletter.";
+      toast(msg, { tone: "error" });
+    } finally {
+      setDeletingRunId(null);
+    }
+  };
 
   return (
     <div className="px-10 py-8 max-w-[1120px] mx-auto">
@@ -205,7 +226,12 @@ export default function Approved() {
       {filtered.length > 0 && (
         <ul className="space-y-3">
           {filtered.map((r) => (
-            <ApprovedRunCard key={r.id} run={r} />
+            <ApprovedRunCard
+              key={r.id}
+              run={r}
+              deleting={deletingRunId === r.id}
+              onDelete={() => deleteRun(r)}
+            />
           ))}
         </ul>
       )}
@@ -219,7 +245,15 @@ export default function Approved() {
   );
 }
 
-function ApprovedRunCard({ run }: { run: RunRecord }) {
+function ApprovedRunCard({
+  run,
+  deleting,
+  onDelete,
+}: {
+  run: RunRecord;
+  deleting: boolean;
+  onDelete: () => void;
+}) {
   const { toast } = useToast();
   const [bundleUrl, setBundleUrl] = useState<string | null>(
     // Backend `run.bundleZipPath` is a filesystem path, not a signed URL.
@@ -349,6 +383,14 @@ function ApprovedRunCard({ run }: { run: RunRecord }) {
           >
             Open preview →
           </Link>
+          <Button
+            size="sm"
+            variant="danger"
+            loading={deleting}
+            onClick={onDelete}
+          >
+            Delete
+          </Button>
         </div>
       </div>
     </li>

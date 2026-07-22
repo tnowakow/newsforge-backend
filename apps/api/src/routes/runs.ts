@@ -289,6 +289,26 @@ runsRouter.get("/:id", async (req, res) => {
   res.json({ run });
 });
 
+runsRouter.delete("/:id", async (req, res) => {
+  const runId = String(req.params.id);
+  const run = await prisma.newsletterRun.findUnique({
+    where: { id: runId },
+    select: { id: true },
+  });
+  if (!run) {
+    res.status(404).json({ error: "run_not_found" });
+    return;
+  }
+
+  await invalidatePdfCache(runId);
+  await prisma.$transaction([
+    prisma.aiEdit.deleteMany({ where: { runId } }),
+    prisma.newsletterRun.delete({ where: { id: runId } }),
+  ]);
+
+  res.json({ deleted: true, runId });
+});
+
 // ---- Filler ----
 runsRouter.post("/:id/filler", aiRateLimit, async (req, res) => {
   const run = await prisma.newsletterRun.findUnique({
