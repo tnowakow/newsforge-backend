@@ -129,14 +129,55 @@ export const api = {
   },
 
   // ---- Uploads ----
-  upload: (files: File[], clientId?: string) => {
+  upload: async (files: File[], clientId?: string): Promise<UploadResult> => {
     const fd = new FormData();
     for (const f of files) fd.append("files", f);
     if (clientId) fd.append("clientId", clientId);
-    return request<UploadResult>("/api/uploads", {
+    const raw = await request<
+      | UploadResult
+      | {
+          created?: Array<{
+            id: string;
+            type?: "IMAGE" | "ARTICLE";
+            contentOrUrl?: string;
+            meta?: {
+              originalFilename?: string;
+              size?: number;
+              wordCount?: number;
+            };
+          }>;
+          skipped?: Array<{ filename: string; reason: string }>;
+        }
+    >("/api/uploads", {
       method: "POST",
       body: fd,
     });
+    if (raw && typeof raw === "object" && "files" in raw) {
+      return raw as UploadResult;
+    }
+    const created = "created" in (raw as any) ? ((raw as any).created ?? []) : [];
+    return {
+      files: created.map((asset: any) => {
+        const originalName = asset.meta?.originalFilename;
+        if (asset.type === "IMAGE") {
+          return {
+            id: asset.id,
+            kind: "image",
+            url: asset.contentOrUrl,
+            bytes: asset.meta?.size,
+            originalName,
+          };
+        }
+        return {
+          id: asset.id,
+          kind: "article",
+          title: originalName ?? "Uploaded text",
+          body: asset.contentOrUrl ?? "",
+          bytes: asset.meta?.size,
+          originalName,
+        };
+      }),
+    };
   },
 
   // ---- Runs ----

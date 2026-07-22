@@ -70,7 +70,14 @@ function imageAt(input: RenderInput, index: number): NewsImage | undefined {
 function imgTag(input: RenderInput, index: number, className = ""): string {
   const img = imageAt(input, index);
   if (!img) return "";
-  return `<img class="${className}" src="${esc(img.url)}" alt="${esc(img.alt ?? "")}" />`;
+  return `<img class="${className}" src="${esc(img.url)}" alt="${esc(img.alt ?? "")}" style="${imageInlineStyle(img)}" />`;
+}
+
+function imageInlineStyle(img: NewsImage): string {
+  const focalX = img.focalX ?? 50;
+  const focalY = img.focalY ?? 50;
+  const zoom = img.zoom ?? 1;
+  return `object-position:${focalX}% ${focalY}%;transform:scale(${zoom});transform-origin:${focalX}% ${focalY}%;`;
 }
 
 function birthdayList(): string {
@@ -229,7 +236,7 @@ export function renderRunHtml(input: RenderInput): string {
       if (img) {
         inner = `
           <figure class="block block-image${tagClass}">
-            <img src="${esc(img.url)}" alt="${esc(img.alt ?? "")}" />
+            <img src="${esc(img.url)}" alt="${esc(img.alt ?? "")}" style="${imageInlineStyle(img)}" />
             ${img.caption ? `<figcaption>${esc(img.caption)}</figcaption>` : ""}
           </figure>`;
       } else {
@@ -346,7 +353,7 @@ export function renderRunHtml(input: RenderInput): string {
       font-size: 9pt; color: #666; margin-bottom: 6px; font-style: italic;
     }
     .body p { margin: 0 0 8px; }
-    figure.block-image { margin: 0; }
+    figure.block-image { margin: 0; overflow: hidden; }
     figure.block-image img {
       width: 100%; height: 100%; object-fit: cover; display: block;
     }

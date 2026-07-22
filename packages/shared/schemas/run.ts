@@ -34,6 +34,11 @@ export const ImageSchema = z.object({
   caption: z.string().optional(),
   alt: z.string().optional(),
   aspect: z.enum(["square", "portrait", "landscape"]).default("landscape"),
+  /** Editor image crop/focal-point controls. Percent values, 0..100. */
+  focalX: z.number().min(0).max(100).default(50).optional(),
+  focalY: z.number().min(0).max(100).default(50).optional(),
+  /** Editor zoom for cover-fit images. 1 = normal. */
+  zoom: z.number().min(1).max(3).default(1).optional(),
   /** True if this image is a placeholder rather than real content. */
   isPlaceholder: z.boolean().default(false),
   source: z.enum(["MOCK", "UPLOAD", "GENERATED"]).default("MOCK"),

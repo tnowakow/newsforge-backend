@@ -30,6 +30,12 @@ import {
 } from "@/components/PdfVariantToggle";
 import { ApprovalStrip } from "@/components/ApprovalStrip";
 
+interface EditorSnapshot {
+  layout: AssembledLayout;
+  articles: Article[];
+  images: NewsImage[];
+}
+
 export default function Preview() {
   const params = useParams();
   const [search, setSearch] = useSearchParams();
@@ -63,6 +69,8 @@ export default function Preview() {
   const [pendingLayout, setPendingLayout] = useState<AssembledLayout | null>(null);
   const [pendingArticles, setPendingArticles] = useState<Article[]>([]);
   const [pendingImages, setPendingImages] = useState<NewsImage[]>([]);
+  const [undoStack, setUndoStack] = useState<EditorSnapshot[]>([]);
+  const [redoStack, setRedoStack] = useState<EditorSnapshot[]>([]);
   const [savingEdits, setSavingEdits] = useState(false);
 
   const pageRefs = useRef<Map<number, HTMLDivElement>>(new Map());
@@ -124,9 +132,10 @@ export default function Preview() {
     function onKey(e: KeyboardEvent) {
       if (!layout) return;
       if (e.key === "Escape" && editMode) setSelectedBlockId(null);
+      if (editMode) return;
       if (e.target instanceof HTMLElement) {
         const tag = e.target.tagName;
-        if (tag === "INPUT" || tag === "TEXTAREA") return;
+        if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
       }
       if (e.key === "ArrowDown" || e.key === "ArrowRight") {
         e.preventDefault();
@@ -156,6 +165,8 @@ export default function Preview() {
     setPendingLayout(cloneLayout(layout));
     setPendingArticles(cloneList(run?.articles ?? []));
     setPendingImages(cloneList(run?.images ?? []));
+    setUndoStack([]);
+    setRedoStack([]);
     setSearch((cur) => {
       cur.set("edit", "1");
       return cur;
@@ -165,6 +176,8 @@ export default function Preview() {
     setSelectedBlockId(null);
     if (savedLayout) setLayout(savedLayout);
     setPendingLayout(null);
+    setUndoStack([]);
+    setRedoStack([]);
     setSearch((cur) => {
       cur.delete("edit");
       return cur;
@@ -207,6 +220,61 @@ export default function Preview() {
     } finally {
       setSavingEdits(false);
     }
+  };
+
+  const currentEditorSnapshot = (): EditorSnapshot | null =>
+    pendingLayout
+      ? {
+          layout: cloneLayout(pendingLayout)!,
+          articles: cloneList(pendingArticles),
+          images: cloneList(pendingImages),
+        }
+      : null;
+
+  const applyEditorSnapshot = (snapshot: EditorSnapshot) => {
+    setPendingLayout(cloneLayout(snapshot.layout));
+    setPendingArticles(cloneList(snapshot.articles));
+    setPendingImages(cloneList(snapshot.images));
+  };
+
+  const recordEditorHistory = () => {
+    const snapshot = currentEditorSnapshot();
+    if (!snapshot) return;
+    setUndoStack((cur) => [...cur.slice(-24), snapshot]);
+    setRedoStack([]);
+  };
+
+  const changePendingLayout = (next: AssembledLayout) => {
+    recordEditorHistory();
+    setPendingLayout(next);
+  };
+
+  const changePendingArticles = (next: Article[]) => {
+    recordEditorHistory();
+    setPendingArticles(next);
+  };
+
+  const changePendingImages = (next: NewsImage[]) => {
+    recordEditorHistory();
+    setPendingImages(next);
+  };
+
+  const undoEdit = () => {
+    const previous = undoStack[undoStack.length - 1];
+    const current = currentEditorSnapshot();
+    if (!previous || !current) return;
+    setUndoStack((cur) => cur.slice(0, -1));
+    setRedoStack((cur) => [...cur.slice(-24), current]);
+    applyEditorSnapshot(previous);
+  };
+
+  const redoEdit = () => {
+    const next = redoStack[redoStack.length - 1];
+    const current = currentEditorSnapshot();
+    if (!next || !current) return;
+    setRedoStack((cur) => cur.slice(0, -1));
+    setUndoStack((cur) => [...cur.slice(-24), current]);
+    applyEditorSnapshot(next);
   };
 
   // ---- Download PDF (variant-aware, v2 Screen 7) ----
@@ -323,6 +391,10 @@ export default function Preview() {
             )
           }
           saving={savingEdits}
+          canUndo={undoStack.length > 0}
+          canRedo={redoStack.length > 0}
+          onUndo={undoEdit}
+          onRedo={redoEdit}
           onCancel={cancelEdit}
           onSave={saveEdits}
         />
@@ -393,7 +465,7 @@ export default function Preview() {
               monthLabel={run.monthLabel ?? undefined}
               selectedBlockId={selectedBlockId}
               onSelectBlock={(id) => setSelectedBlockId(id)}
-              onLayoutChange={(next) => setPendingLayout(next)}
+              onLayoutChange={changePendingLayout}
               registerPage={(page, el) => {
                 if (el) pageRefs.current.set(page, el);
                 else pageRefs.current.delete(page);
@@ -410,13 +482,13 @@ export default function Preview() {
             images={pendingImages}
             activePage={activePage}
             selectedBlockId={selectedBlockId}
-            onChange={(updated) => setPendingLayout(updated)}
-            onArticlesChange={setPendingArticles}
-            onImagesChange={setPendingImages}
+            onChange={changePendingLayout}
+            onArticlesChange={changePendingArticles}
+            onImagesChange={changePendingImages}
             onSelectBlock={setSelectedBlockId}
             onDelete={(blockId) => {
               if (!pendingLayout) return;
-              setPendingLayout({
+              changePendingLayout({
                 ...pendingLayout,
                 blocks: pendingLayout.blocks.filter(
                   (b) => b.blockId !== blockId,
@@ -598,11 +670,19 @@ function pdfPathToDownloadUrl(p: string): string | null {
 function EditTopBar({
   dirty,
   saving,
+  canUndo,
+  canRedo,
+  onUndo,
+  onRedo,
   onCancel,
   onSave,
 }: {
   dirty: boolean;
   saving: boolean;
+  canUndo: boolean;
+  canRedo: boolean;
+  onUndo: () => void;
+  onRedo: () => void;
   onCancel: () => void;
   onSave: () => void;
 }) {
@@ -615,6 +695,12 @@ function EditTopBar({
         </span>
       </span>
       <div className="ml-auto flex items-center gap-2">
+        <Button variant="secondary" onClick={onUndo} disabled={!canUndo || saving}>
+          Undo
+        </Button>
+        <Button variant="secondary" onClick={onRedo} disabled={!canRedo || saving}>
+          Redo
+        </Button>
         <Button variant="ghost" onClick={onCancel} disabled={saving}>
           Cancel
         </Button>
@@ -718,6 +804,8 @@ function Inspector({
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [swapOpen, setSwapOpen] = useState(false);
   const [assetUrl, setAssetUrl] = useState("");
+  const [uploadingAsset, setUploadingAsset] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   if (!block) {
     return (
@@ -937,6 +1025,84 @@ function Inspector({
           <div className="text-2xs uppercase tracking-widest text-ink-muted">
             Image
           </div>
+          {images.length > 0 && (
+            <div className="grid grid-cols-3 gap-2">
+              {images.slice(0, 12).map((candidate) => (
+                <button
+                  key={candidate.id}
+                  type="button"
+                  title={candidate.alt ?? candidate.caption ?? candidate.id}
+                  onClick={() => updateBlock({ imageId: candidate.id })}
+                  className={`h-16 overflow-hidden rounded border ${
+                    candidate.id === image.id
+                      ? "border-accent ring-2 ring-accent/30"
+                      : "border-rule hover:border-ink/30"
+                  }`}
+                >
+                  <img
+                    src={candidate.url}
+                    alt={candidate.alt ?? ""}
+                    className="h-full w-full object-cover"
+                    style={{
+                      objectPosition: `${candidate.focalX ?? 50}% ${
+                        candidate.focalY ?? 50
+                      }%`,
+                    }}
+                  />
+                </button>
+              ))}
+            </div>
+          )}
+          <label className="block">
+            <span className="block text-2xs text-ink-muted mb-0.5">
+              Upload replacement
+            </span>
+            <input
+              type="file"
+              accept="image/png,image/jpeg,image/webp"
+              disabled={uploadingAsset}
+              onChange={async (e) => {
+                const files = Array.from(e.target.files ?? []);
+                e.target.value = "";
+                if (files.length === 0) return;
+                setUploadingAsset(true);
+                setUploadError(null);
+                try {
+                  const result = await api.upload(files, run?.clientId ?? undefined);
+                  const uploaded = (result.files ?? [])
+                    .filter((f) => f.kind === "image" && f.url)
+                    .map(
+                      (f): NewsImage => ({
+                        id: f.id,
+                        url: f.url ?? "",
+                        alt: f.originalName,
+                        caption: f.originalName,
+                        aspect: "landscape",
+                        focalX: 50,
+                        focalY: 50,
+                        zoom: 1,
+                        isPlaceholder: false,
+                        source: "UPLOAD",
+                      }),
+                    );
+                  if (uploaded.length === 0) {
+                    setUploadError("No usable image returned.");
+                    return;
+                  }
+                  onImagesChange([...images, ...uploaded]);
+                  updateBlock({ imageId: uploaded[0].id });
+                } catch (err) {
+                  setUploadError(
+                    err instanceof ApiError ? err.message : "Upload failed.",
+                  );
+                } finally {
+                  setUploadingAsset(false);
+                }
+              }}
+              className="block w-full text-xs text-ink-muted file:mr-2 file:h-8 file:rounded file:border-0 file:bg-accent-soft file:px-2 file:text-accent"
+            />
+          </label>
+          {uploadError && <div className="text-xs text-error">{uploadError}</div>}
           <TextField
             label="Image URL"
             value={image.url}
@@ -966,6 +1132,28 @@ function Inspector({
               <option value="square">Square</option>
             </select>
           </label>
+          <RangeField
+            label="Crop X"
+            value={image.focalX ?? 50}
+            min={0}
+            max={100}
+            onChange={(focalX) => updateImage({ focalX })}
+          />
+          <RangeField
+            label="Crop Y"
+            value={image.focalY ?? 50}
+            min={0}
+            max={100}
+            onChange={(focalY) => updateImage({ focalY })}
+          />
+          <RangeField
+            label="Zoom"
+            value={image.zoom ?? 1}
+            min={1}
+            max={3}
+            step={0.05}
+            onChange={(zoom) => updateImage({ zoom })}
+          />
         </div>
       )}
 
@@ -1097,6 +1285,40 @@ function NumberField({
   );
 }
 
+function RangeField({
+  label,
+  value,
+  min,
+  max,
+  step = 1,
+  onChange,
+}: {
+  label: string;
+  value: number;
+  min: number;
+  max: number;
+  step?: number;
+  onChange: (n: number) => void;
+}) {
+  return (
+    <label className="block">
+      <span className="mb-0.5 flex items-center justify-between text-2xs text-ink-muted">
+        <span>{label}</span>
+        <span>{Number.isInteger(step) ? value : value.toFixed(2)}</span>
+      </span>
+      <input
+        type="range"
+        value={value}
+        min={min}
+        max={max}
+        step={step}
+        onChange={(e) => onChange(Number(e.target.value))}
+        className="w-full accent-[rgb(var(--accent))]"
+      />
+    </label>
+  );
+}
+
 function TextField({
   label,
   value,
@@ -1165,6 +1387,9 @@ function makeImage(url?: string): NewsImage {
     caption: "New image",
     alt: "Newsletter image",
     aspect: "landscape",
+    focalX: 50,
+    focalY: 50,
+    zoom: 1,
     isPlaceholder: false,
     source: url ? "UPLOAD" : "GENERATED",
   };

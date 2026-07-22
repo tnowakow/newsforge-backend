@@ -284,11 +284,18 @@ function BlockView({
         onClick={handleClick}
       >
         {image?.url ? (
-          <img
-            src={image.url}
-            alt={image.alt ?? ""}
-            className="w-full h-full object-cover"
-          />
+          <div className="h-full w-full overflow-hidden">
+            <img
+              src={image.url}
+              alt={image.alt ?? ""}
+              className="h-full w-full object-cover"
+              style={{
+                objectPosition: `${image.focalX ?? 50}% ${image.focalY ?? 50}%`,
+                transform: `scale(${image.zoom ?? 1})`,
+                transformOrigin: `${image.focalX ?? 50}% ${image.focalY ?? 50}%`,
+              }}
+            />
+          </div>
         ) : (
           <div
             className="w-full h-full grid place-items-center text-white/85 text-xs"
