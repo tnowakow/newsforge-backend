@@ -76,6 +76,8 @@ export const LayoutBlockSchema = z.object({
   sectionId: z.string().optional(),
   needsFiller: z.boolean().default(false),
   styleTag: z.string().optional(),
+  /** Editor layer ordering for overlapping blocks. */
+  zIndex: z.number().int().default(0).optional(),
 });
 export type LayoutBlock = z.infer<typeof LayoutBlockSchema>;
 

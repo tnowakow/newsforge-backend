@@ -121,6 +121,7 @@ export interface LayoutBlock {
   sectionId?: string;
   needsFiller?: boolean;
   styleTag?: string;
+  zIndex?: number;
 }
 
 export interface AssembledLayout {

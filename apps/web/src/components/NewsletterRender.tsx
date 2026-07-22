@@ -20,6 +20,7 @@ interface NewsletterRenderProps {
   onResizeBlock?: (blockId: string, dColSpan: number, dRowSpan: number) => void;
   onDuplicateBlock?: (blockId: string) => void;
   onDeleteBlock?: (blockId: string) => void;
+  onLayerBlock?: (blockId: string, direction: "forward" | "backward") => void;
   selectedBlockId?: string | null;
   editable?: boolean;
   /** Page filter — if set, only renders that page. */
@@ -58,6 +59,7 @@ export function NewsletterRender({
   onResizeBlock,
   onDuplicateBlock,
   onDeleteBlock,
+  onLayerBlock,
   selectedBlockId,
   editable,
   filterPage,
@@ -127,6 +129,7 @@ export function NewsletterRender({
                   onResize={onResizeBlock}
                   onDuplicate={onDuplicateBlock}
                   onDelete={onDeleteBlock}
+                  onLayer={onLayerBlock}
                 />
               ))}
             </div>
@@ -230,6 +233,7 @@ function BlockView({
   onResize,
   onDuplicate,
   onDelete,
+  onLayer,
 }: {
   block: LayoutBlock;
   article?: Article;
@@ -241,11 +245,13 @@ function BlockView({
   onResize?: (id: string, dColSpan: number, dRowSpan: number) => void;
   onDuplicate?: (id: string) => void;
   onDelete?: (id: string) => void;
+  onLayer?: (id: string, direction: "forward" | "backward") => void;
 }) {
   const { col, row, colSpan, rowSpan } = block.position;
   const style: CSSProperties = {
     gridColumn: `${Math.max(1, col)} / span ${Math.max(1, colSpan)}`,
     gridRow: `${Math.max(1, row)} / span ${Math.max(1, rowSpan)}`,
+    zIndex: block.zIndex ?? 0,
   };
 
   const tagClass = block.styleTag ? `tag-${block.styleTag}` : "";
@@ -273,6 +279,7 @@ function BlockView({
         onResize={onResize}
         onDuplicate={onDuplicate}
         onDelete={onDelete}
+        onLayer={onLayer}
       />
     ) : null;
 
@@ -379,12 +386,14 @@ function EditChrome({
   onResize,
   onDuplicate,
   onDelete,
+  onLayer,
 }: {
   blockId: string;
   onMove?: (id: string, dCol: number, dRow: number) => void;
   onResize?: (id: string, dColSpan: number, dRowSpan: number) => void;
   onDuplicate?: (id: string) => void;
   onDelete?: (id: string) => void;
+  onLayer?: (id: string, direction: "forward" | "backward") => void;
 }) {
   const click =
     (fn?: () => void) =>
@@ -411,6 +420,12 @@ function EditChrome({
         </MiniButton>
       </div>
       <div className="absolute right-1 top-1 z-10 flex items-center gap-1 rounded bg-surface/95 px-1 py-1 text-ink shadow-card">
+        <MiniButton title="Send backward" onClick={click(() => onLayer?.(blockId, "backward"))}>
+          Back
+        </MiniButton>
+        <MiniButton title="Bring forward" onClick={click(() => onLayer?.(blockId, "forward"))}>
+          Front
+        </MiniButton>
         <MiniButton title="Duplicate" onClick={click(() => onDuplicate?.(blockId))}>
           Copy
         </MiniButton>
@@ -432,6 +447,12 @@ function EditChrome({
           H+
         </MiniButton>
       </div>
+      <button
+        type="button"
+        title="Grow block"
+        onClick={click(() => onResize?.(blockId, 1, 1))}
+        className="absolute bottom-0 right-0 z-20 h-4 w-4 translate-x-1/2 translate-y-1/2 rounded-sm border border-accent bg-surface shadow-card hover:bg-accent-soft"
+      />
     </>
   );
 }

@@ -90,6 +90,19 @@ export function EditableCanvas(props: EditableCanvasProps) {
     props.onSelectBlock(duplicate.blockId);
   };
 
+  const layerBlock = (blockId: string, direction: "forward" | "backward") => {
+    const values = props.layout.blocks.map((b) => b.zIndex ?? 0);
+    const max = Math.max(0, ...values);
+    const min = Math.min(0, ...values);
+    updateBlock(blockId, (block) => ({
+      ...block,
+      zIndex:
+        direction === "forward"
+          ? Math.max(block.zIndex ?? 0, max) + 1
+          : Math.min(block.zIndex ?? 0, min) - 1,
+    }));
+  };
+
   const deleteBlock = (blockId: string) => {
     props.onLayoutChange({
       ...props.layout,
@@ -172,6 +185,7 @@ export function EditableCanvas(props: EditableCanvasProps) {
         onResizeBlock={resizeBlock}
         onDuplicateBlock={duplicateBlock}
         onDeleteBlock={deleteBlock}
+        onLayerBlock={layerBlock}
         registerPage={props.registerPage}
       />
     </div>

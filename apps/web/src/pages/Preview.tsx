@@ -852,6 +852,39 @@ function Inspector({
           >
             Add image frame
           </Button>
+          <div className="pt-3">
+            <div className="mb-2 text-2xs uppercase tracking-widest text-ink-muted">
+              Section templates
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              {SECTION_TEMPLATES.map((template) => (
+                <button
+                  key={template.id}
+                  type="button"
+                  onClick={() => {
+                    if (!layout) return;
+                    const inserted = insertSectionTemplate(
+                      template,
+                      layout,
+                      articles,
+                      images,
+                      activePage,
+                    );
+                    onArticlesChange(inserted.articles);
+                    onImagesChange(inserted.images);
+                    onChange(inserted.layout);
+                    onSelectBlock(inserted.selectedBlockId);
+                  }}
+                  className="rounded border border-rule bg-bg px-2 py-2 text-left text-xs hover:border-accent hover:bg-accent-soft"
+                >
+                  <div className="font-medium text-ink">{template.label}</div>
+                  <div className="mt-0.5 text-2xs text-ink-muted">
+                    {template.help}
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       </aside>
     );
@@ -971,6 +1004,13 @@ function Inspector({
             max={layout?.pageCount ?? 4}
             onChange={(n) => updateBlock({ page: clamp(n, 1, layout?.pageCount ?? 4) })}
           />
+          <NumberField
+            label="Layer"
+            value={block.zIndex ?? 0}
+            onChange={(zIndex) => updateBlock({ zIndex })}
+          />
+        </div>
+        <div className="grid grid-cols-2 gap-2 text-sm mt-3">
           <label className="block">
             <span className="block text-2xs text-ink-muted mb-0.5">Style</span>
             <select
@@ -1407,7 +1447,128 @@ function makeBlock(
     position: { col: 1, row: 14, colSpan: kind === "image" ? 5 : 7, rowSpan: 4 },
     kind,
     needsFiller: false,
+    zIndex: 0,
     ...patch,
+  };
+}
+
+interface SectionTemplate {
+  id: string;
+  label: string;
+  help: string;
+  styleTag: string;
+  title: string;
+  body: string;
+  position: LayoutBlock["position"];
+  withImage?: boolean;
+}
+
+const SECTION_TEMPLATES: SectionTemplate[] = [
+  {
+    id: "director-note",
+    label: "Director Note",
+    help: "Letter-style feature",
+    styleTag: "feature",
+    title: "A Note From the Director",
+    body:
+      "This month, our community is making room for the simple moments that bring people together: familiar songs, favorite meals, visiting families, and neighbors saving one another a seat. Thank you for being part of the warmth that makes this campus feel like home.",
+    position: { col: 1, row: 11, colSpan: 6, rowSpan: 5 },
+  },
+  {
+    id: "event-schedule",
+    label: "Event Schedule",
+    help: "Dated activity list",
+    styleTag: "banner",
+    title: "Upcoming Events",
+    body:
+      "7/3 Red, White & Blue Happy Hour\n7/10 Patio Social\n7/17 Ice Cream Afternoon\n7/24 Family Brunch\n7/31 Summer Sendoff",
+    position: { col: 7, row: 11, colSpan: 6, rowSpan: 4 },
+  },
+  {
+    id: "birthday-list",
+    label: "Birthdays",
+    help: "Resident/staff list",
+    styleTag: "spotlight",
+    title: "Happy Birthday!",
+    body:
+      "Residents\nMary Ann F. 7/3\nShirley S. 7/10\nJanice F. 7/22\n\nStaff\nErica M. 7/1\nGrace C. 7/8\nMorgan C. 7/20",
+    position: { col: 1, row: 16, colSpan: 4, rowSpan: 5 },
+  },
+  {
+    id: "photo-story",
+    label: "Photo Story",
+    help: "Image + caption copy",
+    styleTag: "photo",
+    title: "Out and About",
+    body:
+      "Residents enjoyed a sunny afternoon outing filled with conversation, laughter, and a few favorite stops along the way.",
+    position: { col: 5, row: 16, colSpan: 8, rowSpan: 5 },
+    withImage: true,
+  },
+  {
+    id: "callout",
+    label: "Callout",
+    help: "Short announcement",
+    styleTag: "pull-quote",
+    title: "Family Reminder",
+    body:
+      "Families are invited to check the community calendar for upcoming gatherings, RSVP dates, and opportunities to join residents for special summer events.",
+    position: { col: 1, row: 21, colSpan: 12, rowSpan: 3 },
+  },
+];
+
+function insertSectionTemplate(
+  template: SectionTemplate,
+  layout: AssembledLayout,
+  articles: Article[],
+  images: NewsImage[],
+  page: number,
+): {
+  layout: AssembledLayout;
+  articles: Article[];
+  images: NewsImage[];
+  selectedBlockId: string;
+} {
+  const article: Article = {
+    id: `article-${template.id}-${Date.now()}`,
+    title: template.title,
+    body: template.body,
+    wordCount: countWords(template.body),
+    isFiller: false,
+    source: "GENERATED",
+    articleType: template.id === "director-note" ? "executive-note" : "announcement",
+  };
+  const block = makeBlock("article", page, {
+    articleId: article.id,
+    styleTag: template.styleTag,
+    position: template.position,
+    slotId: `custom-${template.id}-${Date.now()}`,
+  });
+  const nextBlocks = [...layout.blocks, block];
+  let nextImages = images;
+
+  if (template.withImage) {
+    const image = makeImage();
+    const imageBlock = makeBlock("image", page, {
+      imageId: image.id,
+      styleTag: "photo",
+      position: {
+        col: template.position.col,
+        row: Math.max(1, template.position.row - 5),
+        colSpan: Math.min(5, template.position.colSpan),
+        rowSpan: 4,
+      },
+      slotId: `custom-${template.id}-image-${Date.now()}`,
+    });
+    nextImages = [...images, image];
+    nextBlocks.push(imageBlock);
+  }
+
+  return {
+    layout: { ...layout, blocks: nextBlocks },
+    articles: [...articles, article],
+    images: nextImages,
+    selectedBlockId: block.blockId,
   };
 }
 

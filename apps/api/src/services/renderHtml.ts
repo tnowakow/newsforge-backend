@@ -208,7 +208,8 @@ export function renderRunHtml(input: RenderInput): string {
   for (const b of input.layout.blocks) {
     const style =
       `grid-column: ${b.position.col} / span ${b.position.colSpan};` +
-      `grid-row: ${b.position.row} / span ${b.position.rowSpan};`;
+      `grid-row: ${b.position.row} / span ${b.position.rowSpan};` +
+      `z-index:${b.zIndex ?? 0};`;
     const tagClass = b.styleTag ? ` tag-${esc(b.styleTag)}` : "";
     let inner = "";
 
