@@ -1,4 +1,12 @@
-import { useEffect } from "react";
+/**
+ * v3 EditableCanvas — thin editing shell over NewsletterRender.
+ *
+ * v2 was button/keyboard nudging only. v3's direct manipulation (pointer
+ * drag + resize handle) lives inside NewsletterRender's block chrome; this
+ * component keeps the keyboard layer, selection state plumbing, a zoom
+ * control, and the status bar. Prop-compatible with v2.
+ */
+import { useEffect, useState } from "react";
 import type {
   AssembledLayout,
   ClientFull,
@@ -6,6 +14,7 @@ import type {
   NewsImage,
   LayoutBlock,
 } from "@/lib/types";
+import { inferColumns } from "@/lib/v3";
 import { NewsletterRender } from "./NewsletterRender";
 
 interface EditableCanvasProps {
@@ -20,9 +29,9 @@ interface EditableCanvasProps {
   registerPage: (page: number, el: HTMLDivElement | null) => void;
 }
 
-const COL_COUNT = 12;
-
 export function EditableCanvas(props: EditableCanvasProps) {
+  const [zoom, setZoom] = useState(1);
+  const cols = inferColumns(props.layout.blocks);
   const selectedBlock = props.layout.blocks.find(
     (b) => b.blockId === props.selectedBlockId,
   );
@@ -41,7 +50,7 @@ export function EditableCanvas(props: EditableCanvasProps) {
 
   const moveBlock = (blockId: string, dCol: number, dRow: number) => {
     updateBlock(blockId, (block) => {
-      const maxCol = COL_COUNT - block.position.colSpan + 1;
+      const maxCol = cols - block.position.colSpan + 1;
       return {
         ...block,
         position: {
@@ -53,13 +62,9 @@ export function EditableCanvas(props: EditableCanvasProps) {
     });
   };
 
-  const resizeBlock = (
-    blockId: string,
-    dColSpan: number,
-    dRowSpan: number,
-  ) => {
+  const resizeBlock = (blockId: string, dColSpan: number, dRowSpan: number) => {
     updateBlock(blockId, (block) => {
-      const maxSpan = COL_COUNT - block.position.col + 1;
+      const maxSpan = cols - block.position.col + 1;
       return {
         ...block,
         position: {
@@ -116,7 +121,8 @@ export function EditableCanvas(props: EditableCanvasProps) {
       if (
         active?.tagName === "INPUT" ||
         active?.tagName === "TEXTAREA" ||
-        active?.tagName === "SELECT"
+        active?.tagName === "SELECT" ||
+        active?.isContentEditable
       ) {
         return;
       }
@@ -158,19 +164,28 @@ export function EditableCanvas(props: EditableCanvasProps) {
 
   return (
     <div className="relative">
-      <div className="sticky top-3 z-20 mx-auto mb-4 w-fit rounded-md border border-rule bg-surface/95 px-3 py-2 text-xs shadow-card backdrop-blur">
+      <div className="sticky top-3 z-40 mx-auto mb-4 flex w-fit items-center gap-3 rounded-md border border-rule bg-surface/95 px-3 py-2 text-xs shadow-card backdrop-blur">
         {selectedBlock ? (
           <span>
-            Selected p{selectedBlock.page} · {selectedBlock.kind} · col{" "}
-            {selectedBlock.position.col}, row {selectedBlock.position.row}, size{" "}
-            {selectedBlock.position.colSpan}x{selectedBlock.position.rowSpan}
+            p{selectedBlock.page} · {selectedBlock.kind} · col{" "}
+            {selectedBlock.position.col}, row {selectedBlock.position.row} ·{" "}
+            {selectedBlock.position.colSpan}×{selectedBlock.position.rowSpan}
           </span>
         ) : (
-          <span>Click a block, then use the on-page controls or arrow keys.</span>
+          <span>Drag blocks to move · corner handle resizes · arrows nudge</span>
         )}
-        <span className="ml-3 text-ink-muted">
-          Alt+arrows resize · Shift moves faster · Delete removes
-        </span>
+        <label className="ml-2 flex items-center gap-1 text-ink-muted">
+          Zoom
+          <select
+            className="rounded border border-rule bg-transparent px-1 py-0.5"
+            value={zoom}
+            onChange={(e) => setZoom(Number(e.target.value))}
+          >
+            <option value={0.6}>60%</option>
+            <option value={0.8}>80%</option>
+            <option value={1}>100%</option>
+          </select>
+        </label>
       </div>
       <NewsletterRender
         layout={props.layout}
@@ -179,6 +194,7 @@ export function EditableCanvas(props: EditableCanvasProps) {
         client={props.client}
         monthLabel={props.monthLabel}
         editable
+        scale={zoom}
         selectedBlockId={props.selectedBlockId}
         onSelectBlock={props.onSelectBlock}
         onMoveBlock={moveBlock}

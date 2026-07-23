@@ -1,4 +1,16 @@
-import { forwardRef, type CSSProperties, type ReactNode } from "react";
+/**
+ * v3 NewsletterRender — the shared page renderer for preview AND editing.
+ *
+ * Prop-compatible with v2 (Workspace/Preview compile untouched), but:
+ *   - renders the v3 visual vocabulary: colored panels, script/section
+ *     headings, birthday & schedule list blocks, photo captions
+ *   - direct manipulation: pointer-drag to move, corner handle to resize
+ *     (converted to grid steps via the existing onMoveBlock/onResizeBlock
+ *     callbacks — no parent changes needed)
+ *   - supports both 12-col legacy templates and 24-col v3 spreads
+ *     (grid inferred from block extents; see lib/v3.ts)
+ */
+import { useRef, type CSSProperties, type PointerEvent } from "react";
 import { cn } from "@/lib/cn";
 import type {
   Article,
@@ -7,6 +19,7 @@ import type {
   LayoutBlock,
   NewsImage,
 } from "@/lib/types";
+import { DARK_TOKENS, inferColumns, inferRows, resolveToken } from "@/lib/v3";
 
 interface NewsletterRenderProps {
   layout: AssembledLayout;
@@ -31,7 +44,6 @@ interface NewsletterRenderProps {
   registerPage?: (page: number, el: HTMLDivElement | null) => void;
 }
 
-/** Group blocks into a per-page bucket sorted by row then col. */
 function blocksByPage(layout: AssembledLayout): Map<number, LayoutBlock[]> {
   const map = new Map<number, LayoutBlock[]>();
   for (const b of layout.blocks) {
@@ -69,11 +81,13 @@ export function NewsletterRender({
   const articleById = new Map(articles.map((a) => [a.id, a]));
   const imageById = new Map(images.map((i) => [i.id, i]));
   const grouped = blocksByPage(layout);
+  const cols = inferColumns(layout.blocks);
+  const rows = inferRows(layout.blocks);
+  const gridRefs = useRef(new Map<number, HTMLDivElement>());
   const pages = Array.from({ length: layout.pageCount }, (_, i) => i + 1).filter(
     (p) => (filterPage ? p === filterPage : true),
   );
 
-  // Brand-kit-driven CSS variables on each page surface.
   const brandStyle: CSSProperties = {
     // @ts-expect-error custom CSS vars
     "--brand-primary": client.primaryColor,
@@ -101,26 +115,28 @@ export function NewsletterRender({
               marginBottom: scale !== 1 ? -((1 - scale) * 1056) : undefined,
             }}
           >
-            <PageMasthead
-              client={client}
-              page={page}
-              total={layout.pageCount}
-              monthLabel={monthLabel}
-            />
+            <Masthead client={client} page={page} monthLabel={monthLabel} />
             <div
-              className="absolute left-12 right-12 top-[140px] bottom-[80px] grid gap-3"
+              ref={(el) => {
+                if (el) gridRefs.current.set(page, el);
+                else gridRefs.current.delete(page);
+              }}
+              className="absolute left-10 right-10 top-[118px] bottom-[64px] grid"
               style={{
-                gridTemplateColumns: "repeat(12, minmax(0, 1fr))",
-                gridAutoRows: "minmax(28px, auto)",
+                gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
+                gridTemplateRows: `repeat(${rows}, minmax(0, 1fr))`,
+                gap: 6,
               }}
             >
               {pageBlocks.map((b) => (
                 <BlockView
                   key={b.blockId}
                   block={b}
-                  article={
-                    b.articleId ? articleById.get(b.articleId) : undefined
-                  }
+                  client={client}
+                  cols={cols}
+                  rows={rows}
+                  gridEl={() => gridRefs.current.get(page) ?? null}
+                  article={b.articleId ? articleById.get(b.articleId) : undefined}
                   image={b.imageId ? imageById.get(b.imageId) : undefined}
                   selected={selectedBlockId === b.blockId}
                   editable={editable}
@@ -133,7 +149,7 @@ export function NewsletterRender({
                 />
               ))}
             </div>
-            <PageFooter client={client} page={page} total={layout.pageCount} />
+            <PageFooter client={client} page={page} monthLabel={monthLabel} />
           </div>
         );
       })}
@@ -141,59 +157,40 @@ export function NewsletterRender({
   );
 }
 
-function PageMasthead({
+function Masthead({
   client,
   page,
-  total,
   monthLabel,
 }: {
   client: ClientFull;
   page: number;
-  total: number;
   monthLabel?: string;
 }) {
-  if (page === 1) {
+  if (page > 1) {
     return (
-      <header
-        className="absolute left-12 right-12 top-12"
-        style={{ fontFamily: `${client.headingFont}, Georgia, serif` }}
-      >
-        <div
-          className="text-2xs uppercase tracking-[0.18em]"
-          style={{ color: client.accentColor }}
-        >
-          {monthLabel ?? "This Month"} · Newsletter
-        </div>
-        <h1
-          className="font-bold text-[44px] leading-[1.05] mt-2"
-          style={{ color: client.primaryColor }}
-        >
-          {client.name}
-        </h1>
-        {client.tagline && (
-          <div className="text-sm mt-1.5" style={{ color: "#555" }}>
-            {client.tagline}
-          </div>
-        )}
-        <div
-          className="h-px mt-6"
-          style={{ background: client.secondaryColor }}
-        />
+      <header className="absolute left-10 right-10 top-8 flex items-baseline justify-between text-[10px] uppercase tracking-[0.16em] text-neutral-500">
+        <span style={{ color: client.accentColor }}>{client.name}</span>
+        <span>{monthLabel ?? "This Month"}</span>
       </header>
     );
   }
   return (
     <header
-      className="absolute left-12 right-12 top-12 flex items-center justify-between text-2xs uppercase tracking-widest"
-      style={{
-        fontFamily: `${client.headingFont}, serif`,
-        color: client.primaryColor,
-      }}
+      className="absolute left-10 right-10 top-8"
+      style={{ fontFamily: `${client.headingFont}, Georgia, serif` }}
     >
-      <span>{client.name}</span>
-      <span>
-        {monthLabel ?? "Newsletter"} · {page} / {total}
-      </span>
+      <div
+        className="text-[10px] uppercase tracking-[0.18em]"
+        style={{ color: client.accentColor }}
+      >
+        {monthLabel ?? "This Month"} · Community Newsletter
+      </div>
+      <h1
+        className="mt-1 text-[34px] font-bold leading-[1.02]"
+        style={{ color: client.primaryColor }}
+      >
+        {client.name}
+      </h1>
     </header>
   );
 }
@@ -201,29 +198,51 @@ function PageMasthead({
 function PageFooter({
   client,
   page,
-  total,
+  monthLabel,
 }: {
   client: ClientFull;
   page: number;
-  total: number;
+  monthLabel?: string;
 }) {
   return (
     <footer
-      className="absolute left-12 right-12 bottom-8 flex items-center justify-between text-2xs"
-      style={{ color: "#888" }}
+      className="absolute bottom-6 left-10 right-10 flex justify-between border-t-2 pt-1.5 text-[9px] uppercase tracking-[0.12em] text-neutral-500"
+      style={{ borderColor: client.accentColor }}
     >
-      <span style={{ fontFamily: `${client.headingFont}, serif` }}>
-        {client.name}
-      </span>
+      <span>{client.name}</span>
       <span>
-        Page {page} of {total}
+        {monthLabel ?? ""} · Page {page}
       </span>
     </footer>
   );
 }
 
+// ---------------------------------------------------------------- BlockView
+
+interface BlockViewProps {
+  block: LayoutBlock;
+  client: ClientFull;
+  cols: number;
+  rows: number;
+  gridEl: () => HTMLDivElement | null;
+  article?: Article;
+  image?: NewsImage;
+  selected: boolean;
+  editable?: boolean;
+  onSelect?: (id: string) => void;
+  onMove?: (id: string, dCol: number, dRow: number) => void;
+  onResize?: (id: string, dColSpan: number, dRowSpan: number) => void;
+  onDuplicate?: (id: string) => void;
+  onDelete?: (id: string) => void;
+  onLayer?: (id: string, direction: "forward" | "backward") => void;
+}
+
 function BlockView({
   block,
+  client,
+  cols,
+  rows,
+  gridEl,
   article,
   image,
   selected,
@@ -234,279 +253,255 @@ function BlockView({
   onDuplicate,
   onDelete,
   onLayer,
-}: {
-  block: LayoutBlock;
-  article?: Article;
-  image?: NewsImage;
-  selected?: boolean;
-  editable?: boolean;
-  onSelect?: (id: string) => void;
-  onMove?: (id: string, dCol: number, dRow: number) => void;
-  onResize?: (id: string, dColSpan: number, dRowSpan: number) => void;
-  onDuplicate?: (id: string) => void;
-  onDelete?: (id: string) => void;
-  onLayer?: (id: string, direction: "forward" | "backward") => void;
-}) {
-  const { col, row, colSpan, rowSpan } = block.position;
-  const style: CSSProperties = {
-    gridColumn: `${Math.max(1, col)} / span ${Math.max(1, colSpan)}`,
-    gridRow: `${Math.max(1, row)} / span ${Math.max(1, rowSpan)}`,
-    zIndex: block.zIndex ?? 0,
+}: BlockViewProps) {
+  const drag = useRef<{ x: number; y: number; emittedC: number; emittedR: number } | null>(null);
+
+  const bg = resolveToken(block.style?.bg, client);
+  const invert =
+    block.style?.invertText ||
+    (block.style?.bg ? DARK_TOKENS.has(block.style.bg) : false);
+  const headerColor =
+    resolveToken(block.style?.headerColor, client) ?? client.primaryColor;
+  const radius = block.style?.cornerRadius ?? (bg ? 10 : 0);
+
+  const cellSize = () => {
+    const el = gridEl();
+    if (!el) return null;
+    const r = el.getBoundingClientRect();
+    return { w: r.width / cols, h: r.height / rows };
   };
 
-  const tagClass = block.styleTag ? `tag-${block.styleTag}` : "";
-  const interactiveClasses = editable
-    ? cn(
-        "cursor-pointer transition-shadow rounded",
-        selected
-          ? "outline outline-2 outline-[rgb(var(--accent))]"
-          : "hover:outline hover:outline-1 hover:outline-dashed hover:outline-[rgb(var(--accent))]",
-      )
-    : "";
+  function beginGesture(
+    e: PointerEvent<HTMLDivElement>,
+    emit: (dc: number, dr: number) => void,
+  ) {
+    if (!editable) return;
+    e.preventDefault();
+    e.stopPropagation();
+    onSelect?.(block.blockId);
+    const cell = cellSize();
+    if (!cell) return;
+    drag.current = { x: e.clientX, y: e.clientY, emittedC: 0, emittedR: 0 };
+    const target = e.currentTarget;
+    target.setPointerCapture(e.pointerId);
 
-  const handleClick = editable
-    ? (e: React.MouseEvent) => {
-        e.stopPropagation();
-        onSelect?.(block.blockId);
+    const move = (ev: globalThis.PointerEvent) => {
+      if (!drag.current) return;
+      const wantC = Math.round((ev.clientX - drag.current.x) / cell.w);
+      const wantR = Math.round((ev.clientY - drag.current.y) / cell.h);
+      const dc = wantC - drag.current.emittedC;
+      const dr = wantR - drag.current.emittedR;
+      if (dc !== 0 || dr !== 0) {
+        emit(dc, dr);
+        drag.current.emittedC = wantC;
+        drag.current.emittedR = wantR;
       }
-    : undefined;
-
-  const editChrome =
-    editable && selected ? (
-      <EditChrome
-        blockId={block.blockId}
-        onMove={onMove}
-        onResize={onResize}
-        onDuplicate={onDuplicate}
-        onDelete={onDelete}
-        onLayer={onLayer}
-      />
-    ) : null;
-
-  if (block.kind === "image") {
-    return (
-      <div
-        style={style}
-        className={cn("relative overflow-hidden rounded", tagClass, interactiveClasses)}
-        onClick={handleClick}
-      >
-        {image?.url ? (
-          <div className="h-full w-full overflow-hidden">
-            <img
-              src={image.url}
-              alt={image.alt ?? ""}
-              className="h-full w-full object-cover"
-              style={{
-                objectPosition: `${image.focalX ?? 50}% ${image.focalY ?? 50}%`,
-                transform: `scale(${image.zoom ?? 1})`,
-                transformOrigin: `${image.focalX ?? 50}% ${image.focalY ?? 50}%`,
-              }}
-            />
-          </div>
-        ) : (
-          <div
-            className="w-full h-full grid place-items-center text-white/85 text-xs"
-            style={{ background: "var(--brand-secondary,#888)" }}
-          >
-            {image?.caption ?? "Image"}
-          </div>
-        )}
-        {editChrome}
-      </div>
-    );
-  }
-
-  if (block.kind === "placeholder" || block.kind === "empty") {
-    return (
-      <div
-        style={style}
-        className={cn(
-          "relative rounded border border-dashed text-2xs grid place-items-center text-center px-2 py-2",
-          tagClass,
-          interactiveClasses,
-        )}
-        onClick={handleClick}
-      >
-        <div style={{ color: "#aaa" }}>
-          Placeholder — content TBD
-          {block.styleTag && (
-            <div className="opacity-60 mt-1">[{block.styleTag}]</div>
-          )}
-        </div>
-        {editChrome}
-      </div>
-    );
-  }
-
-  if (block.kind === "filler" || block.kind === "recurring" || block.kind === "article") {
-    const title = article?.title ?? block.sectionId ?? "Untitled";
-    const body = article?.body ?? block.inlineText ?? "";
-    return (
-      <article
-        style={style}
-        className={cn("relative rounded overflow-hidden", tagClass, interactiveClasses)}
-        onClick={handleClick}
-      >
-        <h3
-          className="font-semibold text-base leading-snug"
-          style={{
-            fontFamily: "var(--brand-heading-font, serif)",
-            color: "var(--brand-primary)",
-          }}
-        >
-          {title}
-        </h3>
-        {article?.byline && (
-          <div className="text-2xs uppercase tracking-widest mt-0.5" style={{ color: "#888" }}>
-            By {article.byline}
-          </div>
-        )}
-        <p
-          className="text-[12.5px] leading-[1.45] mt-2 whitespace-pre-line"
-          style={{ color: "#333" }}
-        >
-          {truncate(body, 600)}
-        </p>
-        {block.kind === "filler" && (
-          <div className="mt-2 text-2xs italic" style={{ color: "#aaa" }}>
-            AI-assisted filler
-          </div>
-        )}
-        {editChrome}
-      </article>
-    );
-  }
-
-  return null;
-}
-
-function EditChrome({
-  blockId,
-  onMove,
-  onResize,
-  onDuplicate,
-  onDelete,
-  onLayer,
-}: {
-  blockId: string;
-  onMove?: (id: string, dCol: number, dRow: number) => void;
-  onResize?: (id: string, dColSpan: number, dRowSpan: number) => void;
-  onDuplicate?: (id: string) => void;
-  onDelete?: (id: string) => void;
-  onLayer?: (id: string, direction: "forward" | "backward") => void;
-}) {
-  const click =
-    (fn?: () => void) =>
-    (e: React.MouseEvent<HTMLButtonElement>) => {
-      e.preventDefault();
-      e.stopPropagation();
-      fn?.();
     };
+    const up = () => {
+      drag.current = null;
+      target.releasePointerCapture(e.pointerId);
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+  }
 
-  return (
-    <>
-      <div className="absolute left-1 top-1 z-10 flex items-center gap-1 rounded bg-ink/90 px-1 py-1 text-white shadow-card">
-        <MiniButton title="Move left" onClick={click(() => onMove?.(blockId, -1, 0))}>
-          ←
-        </MiniButton>
-        <MiniButton title="Move up" onClick={click(() => onMove?.(blockId, 0, -1))}>
-          ↑
-        </MiniButton>
-        <MiniButton title="Move down" onClick={click(() => onMove?.(blockId, 0, 1))}>
-          ↓
-        </MiniButton>
-        <MiniButton title="Move right" onClick={click(() => onMove?.(blockId, 1, 0))}>
-          →
-        </MiniButton>
+  const heading = block.heading ?? article?.title;
+  const headingEl = heading ? (
+    block.style?.scriptHeading ? (
+      <h2
+        className="mb-1 text-[15px] font-bold italic leading-tight"
+        style={{
+          color: invert ? "#F7F5EF" : headerColor,
+          fontFamily: `${client.headingFont}, Georgia, serif`,
+        }}
+      >
+        {heading}
+      </h2>
+    ) : (
+      <h2
+        className="mb-1 text-[13px] font-extrabold uppercase leading-tight tracking-wide"
+        style={{
+          color: invert ? "#F7F5EF" : headerColor,
+          fontFamily: `${client.headingFont}, Georgia, serif`,
+        }}
+      >
+        {heading}
+      </h2>
+    )
+  ) : null;
+
+  let content: React.ReactNode = null;
+  if (block.kind === "image" && image) {
+    content = (
+      <figure className="flex min-h-0 flex-1 flex-col">
+        <div className="min-h-0 flex-1 overflow-hidden rounded-lg">
+          <img
+            src={image.url}
+            alt={image.alt ?? ""}
+            className="h-full w-full object-cover"
+            style={{
+              objectPosition: `${image.focalX ?? 50}% ${image.focalY ?? 50}%`,
+              transform: `scale(${image.zoom ?? 1})`,
+              transformOrigin: `${image.focalX ?? 50}% ${image.focalY ?? 50}%`,
+            }}
+            draggable={false}
+          />
+        </div>
+        {block.caption && (
+          <figcaption className="pt-0.5 text-center text-[8.5px] italic text-neutral-500">
+            {block.caption}
+          </figcaption>
+        )}
+      </figure>
+    );
+  } else if (block.kind === "list") {
+    content = (
+      <div className="text-[9px] leading-[1.55]">
+        {headingEl}
+        {(block.listItems ?? []).map((item, i) =>
+          item.isGroupHeader ? (
+            <div
+              key={i}
+              className="mt-1 text-[8px] font-extrabold tracking-[0.12em] opacity-80"
+            >
+              {item.label}
+            </div>
+          ) : (
+            <div
+              key={i}
+              className="flex justify-between gap-2 border-b border-dotted border-black/10 py-px"
+              style={invert ? { borderColor: "rgba(255,255,255,0.25)" } : undefined}
+            >
+              <span className="font-semibold">{item.label}</span>
+              <span>{item.value}</span>
+            </div>
+          ),
+        )}
       </div>
-      <div className="absolute right-1 top-1 z-10 flex items-center gap-1 rounded bg-surface/95 px-1 py-1 text-ink shadow-card">
-        <MiniButton title="Send backward" onClick={click(() => onLayer?.(blockId, "backward"))}>
-          Back
-        </MiniButton>
-        <MiniButton title="Bring forward" onClick={click(() => onLayer?.(blockId, "forward"))}>
-          Front
-        </MiniButton>
-        <MiniButton title="Duplicate" onClick={click(() => onDuplicate?.(blockId))}>
-          Copy
-        </MiniButton>
-        <MiniButton title="Delete" onClick={click(() => onDelete?.(blockId))}>
-          Del
-        </MiniButton>
+    );
+  } else if (article || block.inlineText) {
+    const body = article?.body ?? block.inlineText ?? "";
+    content = (
+      <div className={cn("min-h-0 flex-1 overflow-hidden", block.style?.centered && "text-center")}>
+        {headingEl}
+        {article?.byline && (
+          <div className="mb-0.5 text-[8px] opacity-70">By {article.byline}</div>
+        )}
+        <div className="whitespace-pre-line text-[9px] leading-[1.4]">{body}</div>
       </div>
-      <div className="absolute bottom-1 right-1 z-10 grid grid-cols-2 gap-1 rounded bg-surface/95 px-1 py-1 text-ink shadow-card">
-        <MiniButton title="Narrower" onClick={click(() => onResize?.(blockId, -1, 0))}>
-          W-
-        </MiniButton>
-        <MiniButton title="Wider" onClick={click(() => onResize?.(blockId, 1, 0))}>
-          W+
-        </MiniButton>
-        <MiniButton title="Shorter" onClick={click(() => onResize?.(blockId, 0, -1))}>
-          H-
-        </MiniButton>
-        <MiniButton title="Taller" onClick={click(() => onResize?.(blockId, 0, 1))}>
-          H+
-        </MiniButton>
+    );
+  } else {
+    content = editable ? (
+      <div className="flex h-full items-center justify-center rounded border border-dashed border-neutral-300 text-[9px] text-neutral-400">
+        {block.needsFiller ? "needs filler" : "empty"}
       </div>
-      <button
-        type="button"
-        title="Grow block"
-        onClick={click(() => onResize?.(blockId, 1, 1))}
-        className="absolute bottom-0 right-0 z-20 h-4 w-4 translate-x-1/2 translate-y-1/2 rounded-sm border border-accent bg-surface shadow-card hover:bg-accent-soft"
-      />
-    </>
-  );
-}
+    ) : null;
+  }
 
-function MiniButton({
-  children,
-  title,
-  onClick,
-}: {
-  children: ReactNode;
-  title: string;
-  onClick: (e: React.MouseEvent<HTMLButtonElement>) => void;
-}) {
-  return (
-    <button
-      type="button"
-      title={title}
-      onClick={onClick}
-      className="h-6 min-w-6 rounded px-1 text-[10px] font-semibold leading-6 hover:bg-accent-soft hover:text-accent"
-    >
-      {children}
-    </button>
-  );
-}
-
-function truncate(s: string, n: number) {
-  if (s.length <= n) return s;
-  return s.slice(0, n).replace(/\s+\S*$/, "") + "…";
-}
-
-/** Mini-thumbnail variant: zooms down + ignores clicks. */
-export const NewsletterThumbnail = forwardRef<
-  HTMLDivElement,
-  Omit<NewsletterRenderProps, "scale" | "registerPage"> & { scale: number }
->(function Thumb(props, ref) {
   return (
     <div
-      ref={ref}
-      className="overflow-hidden bg-white border border-rule rounded"
+      data-block-id={block.blockId}
+      className={cn(
+        "relative flex min-h-0 min-w-0",
+        editable && "cursor-grab active:cursor-grabbing",
+        selected && "z-30",
+      )}
       style={{
-        width: 816 * props.scale,
-        height: 1056 * props.scale,
+        gridColumn: `${block.position.col} / span ${block.position.colSpan}`,
+        gridRow: `${block.position.row} / span ${block.position.rowSpan}`,
+        zIndex: selected ? 30 : block.zIndex ?? 0,
+      }}
+      onPointerDown={(e) => {
+        if (!editable || !onMove) return;
+        beginGesture(e, (dc, dr) => onMove(block.blockId, dc, dr));
+      }}
+      onClick={(e) => {
+        if (!editable) return;
+        e.stopPropagation();
+        onSelect?.(block.blockId);
       }}
     >
       <div
+        className={cn(
+          "flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden",
+          bg && "px-2.5 py-2",
+          editable && "ring-1 ring-transparent hover:ring-sky-300",
+          selected && "ring-2 !ring-sky-500",
+        )}
         style={{
-          transform: `scale(${props.scale})`,
-          transformOrigin: "top left",
-          width: 816,
-          height: 1056,
+          background: bg ?? undefined,
+          borderRadius: radius || undefined,
+          color: invert ? "#F7F5EF" : undefined,
         }}
       >
-        <NewsletterRender {...props} scale={1} />
+        {content}
       </div>
+
+      {editable && selected && (
+        <>
+          <div className="absolute -top-7 left-0 z-40 flex gap-1 rounded-md border border-neutral-200 bg-white/95 px-1.5 py-0.5 text-[10px] shadow">
+            <button
+              type="button"
+              title="Duplicate"
+              className="px-1 hover:text-sky-600"
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.stopPropagation();
+                onDuplicate?.(block.blockId);
+              }}
+            >
+              ⧉
+            </button>
+            <button
+              type="button"
+              title="Bring forward"
+              className="px-1 hover:text-sky-600"
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.stopPropagation();
+                onLayer?.(block.blockId, "forward");
+              }}
+            >
+              ▲
+            </button>
+            <button
+              type="button"
+              title="Send backward"
+              className="px-1 hover:text-sky-600"
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.stopPropagation();
+                onLayer?.(block.blockId, "backward");
+              }}
+            >
+              ▼
+            </button>
+            <button
+              type="button"
+              title="Delete"
+              className="px-1 text-red-500 hover:text-red-700"
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete?.(block.blockId);
+              }}
+            >
+              ✕
+            </button>
+          </div>
+          {onResize && (
+            <div
+              title="Drag to resize"
+              className="absolute -bottom-1.5 -right-1.5 z-40 h-3.5 w-3.5 cursor-nwse-resize rounded-sm border border-white bg-sky-500 shadow"
+              onPointerDown={(e) =>
+                beginGesture(e, (dc, dr) => onResize(block.blockId, dc, dr))
+              }
+            />
+          )}
+        </>
+      )}
     </div>
   );
-});
+}

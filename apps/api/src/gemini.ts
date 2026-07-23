@@ -51,6 +51,8 @@ export interface GeminiCallOptions<T> {
   userPrompt: string;
   /** Deterministic value to return if Gemini fails or isn't configured. */
   fallback: T;
+  /** v3 — per-call timeout override (layout design needs more than 7s). */
+  timeoutMs?: number;
 }
 
 /**
@@ -84,7 +86,7 @@ export async function callGeminiJson<T>(
     try {
       const result = await withTimeout(
         model.generateContent(opts.userPrompt),
-        TIMEOUT_MS,
+        opts.timeoutMs ?? TIMEOUT_MS,
       );
       const text = result.response.text();
       const json = extractJson(text);

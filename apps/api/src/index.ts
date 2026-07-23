@@ -9,6 +9,7 @@ import { templatesRouter } from "./routes/templates.js";
 import { runsRouter } from "./routes/runs.js";
 import { uploadsRouter } from "./routes/uploads.js";
 import { renderRouter } from "./routes/render.js";
+import { exportsV3Router } from "./routes/exportsV3.js";
 import { bootBrowser, shutdownBrowser } from "./browser.js";
 import { prisma } from "./db.js";
 import { verifyBundleSignature } from "./services/bundleExportService.js";
@@ -75,6 +76,7 @@ app.get("/api/health", async (_req, res) => {
 app.use("/api/clients", clientsRouter);
 app.use("/api/templates", templatesRouter);
 app.use("/api/runs", runsRouter);
+app.use("/api/runs", exportsV3Router); // v3: IDML export
 app.use("/api/uploads", uploadsRouter);
 app.use("/render", renderRouter);
 

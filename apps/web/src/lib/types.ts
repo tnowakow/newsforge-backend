@@ -109,12 +109,31 @@ export interface MockContentResult {
   counts: { articles: number; images: number };
 }
 
+export type PanelToken =
+  | "primary" | "secondary" | "accent" | "sun" | "navy" | "coral"
+  | "sky" | "berry" | "leaf" | "blush" | "cream" | "paper";
+
+export interface BlockStyle {
+  bg?: PanelToken;
+  headerColor?: PanelToken;
+  invertText?: boolean;
+  cornerRadius?: number;
+  scriptHeading?: boolean;
+  centered?: boolean;
+}
+
+export interface ListItem {
+  label: string;
+  value?: string;
+  isGroupHeader?: boolean;
+}
+
 export interface LayoutBlock {
   blockId: string;
   slotId: string;
   page: number;
   position: { col: number; row: number; colSpan: number; rowSpan: number };
-  kind: "article" | "image" | "filler" | "placeholder" | "recurring" | "empty";
+  kind: "article" | "image" | "filler" | "placeholder" | "recurring" | "empty" | "list";
   articleId?: string;
   imageId?: string;
   inlineText?: string;
@@ -122,6 +141,11 @@ export interface LayoutBlock {
   needsFiller?: boolean;
   styleTag?: string;
   zIndex?: number;
+  /** v3 — visual styling (mirrors @newsforge/shared blockStyle.ts). */
+  style?: BlockStyle;
+  heading?: string;
+  caption?: string;
+  listItems?: ListItem[];
 }
 
 export interface AssembledLayout {

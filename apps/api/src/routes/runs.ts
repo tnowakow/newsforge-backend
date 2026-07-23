@@ -17,6 +17,7 @@ import {
   type NewsImage,
 } from "@newsforge/shared/schemas";
 import { assembleLayout } from "../services/layoutAssembly.js";
+import { designLayout } from "../services/aiLayoutDesigner.js";
 import { generateMockContent } from "../services/mockContent.js";
 import { generateFiller } from "../services/filler.js";
 import { runAiEdit } from "../services/aiEdit.js";
@@ -189,14 +190,21 @@ runsRouter.post("/", async (req, res) => {
   articles = fitResult.articles;
   images = fitResult.keptImages;
 
-  let layout = assembleLayout({
+  // v3: the AI layout designer produces the styled layout (panels, colored
+  // headers, list blocks, captions). Falls back to the deterministic fitter
+  // + vibrancy pass internally, so this never throws and is always styled.
+  const designed = await designLayout({
     templateId: template.id,
     pageCount: template.pageCount,
     gridSpec: gridSpecParsed.data,
     articles,
     images,
     recurringSections,
+    brandVoice: client.brandVoice,
+    clientName: client.name,
+    monthLabel: body.monthLabel,
   });
+  let layout = designed.layout;
 
   const monthLabel =
     body.monthLabel ??

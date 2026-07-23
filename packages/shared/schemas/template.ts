@@ -15,11 +15,13 @@ export const TemplateSlotSchema = z.object({
     "calendar",
     "spotlight",
     "filler",
+    /** v3 — structured label/value list slot (birthdays, schedules). */
+    "list",
   ]),
   /** Grid placement in 12-col system. */
-  col: z.number().int().min(1).max(12),
+  col: z.number().int().min(1).max(24),
   row: z.number().int().min(1),
-  colSpan: z.number().int().min(1).max(12),
+  colSpan: z.number().int().min(1).max(24),
   rowSpan: z.number().int().min(1),
   /** Soft capacity hint — word count for text, aspect for images. */
   capacity: z.object({
@@ -35,7 +37,7 @@ export type TemplateSlot = z.infer<typeof TemplateSlotSchema>;
 export const GridSpecSchema = z.object({
   /** Human label, e.g. "magazine-3col-photo-heavy". */
   label: z.string(),
-  columns: z.number().int().min(1).max(12),
+  columns: z.number().int().min(1).max(24),
   rowsPerPage: z.number().int().min(1),
   slots: z.array(TemplateSlotSchema),
 });
@@ -53,6 +55,7 @@ export const SlotTypesSchema = z.object({
   calendar: z.number().int().nonnegative().default(0),
   spotlight: z.number().int().nonnegative().default(0),
   filler: z.number().int().nonnegative().default(0),
+  list: z.number().int().nonnegative().default(0).optional(),
 });
 export type SlotTypes = z.infer<typeof SlotTypesSchema>;
 

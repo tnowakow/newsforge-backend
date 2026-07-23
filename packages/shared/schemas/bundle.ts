@@ -10,6 +10,7 @@ export const BundleBlockKindSchema = z.enum([
   "placeholder",
   "recurring",
   "empty",
+  "list",
 ]);
 export type BundleBlockKind = z.infer<typeof BundleBlockKindSchema>;
 

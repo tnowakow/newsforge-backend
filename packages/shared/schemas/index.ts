@@ -1,6 +1,7 @@
 export * from "./client.js";
 export * from "./template.js";
 export * from "./run.js";
+export * from "./blockStyle.js";
 export * from "./aiEdit.js";
 export * from "./enums.js";
 export * from "./layoutFit.js";

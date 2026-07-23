@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { ArticleTypeSchema } from "./layoutFit.js";
+import { BlockStyleSchema, ListItemsSchema } from "./blockStyle.js";
 
 /**
  * One article in a newsletter run.
@@ -67,6 +68,8 @@ export const LayoutBlockSchema = z.object({
     "placeholder",
     "recurring",
     "empty",
+    /** v3 — structured label/value list (birthdays, event schedules). */
+    "list",
   ]),
   articleId: z.string().optional(),
   imageId: z.string().optional(),
@@ -78,6 +81,14 @@ export const LayoutBlockSchema = z.object({
   styleTag: z.string().optional(),
   /** Editor layer ordering for overlapping blocks. */
   zIndex: z.number().int().default(0).optional(),
+  /** v3 — visual styling (panel color, header color, etc.). */
+  style: BlockStyleSchema.optional(),
+  /** v3 — display heading for the block (colored ALL-CAPS section header). */
+  heading: z.string().optional(),
+  /** v3 — caption rendered under image blocks (italic, centered). */
+  caption: z.string().optional(),
+  /** v3 — rows for kind:"list" blocks (birthdays, schedules). */
+  listItems: ListItemsSchema.optional(),
 });
 export type LayoutBlock = z.infer<typeof LayoutBlockSchema>;
 
