@@ -2,18 +2,18 @@
  * Gemini 2.5 Flash wrapper.
  *
  * Rules from Vitaly:
- *   - 7s timeout, 2 retries
+ *   - abortable timeout, bounded retry
  *   - Zod-validated response
  *   - Deterministic fallback when Gemini fails or is not configured
  *   - Called from backend ONLY (key from env)
  */
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenerativeAI, type GenerativeModel } from "@google/generative-ai";
 import { z } from "zod";
 import { env } from "./env.js";
 
 const MODEL = "gemini-2.5-flash";
-const TIMEOUT_MS = 7_000;
-const MAX_RETRIES = 2;
+const TIMEOUT_MS = 20_000;
+const MAX_RETRIES = 1;
 
 let client: GoogleGenerativeAI | null = null;
 function getClient(): GoogleGenerativeAI | null {
@@ -22,20 +22,25 @@ function getClient(): GoogleGenerativeAI | null {
   return client;
 }
 
-function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
-  return new Promise<T>((resolve, reject) => {
-    const t = setTimeout(() => reject(new Error("Gemini timeout")), ms);
-    p.then(
-      (v) => {
-        clearTimeout(t);
-        resolve(v);
-      },
-      (e) => {
-        clearTimeout(t);
-        reject(e);
-      },
-    );
-  });
+async function generateContentWithTimeout(
+  model: GenerativeModel,
+  userPrompt: string,
+  ms: number,
+) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), ms);
+  try {
+    return await model.generateContent(userPrompt, {
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (controller.signal.aborted) {
+      throw new Error("Gemini timeout");
+    }
+    throw err;
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 function extractJson(text: string): unknown {
@@ -84,8 +89,9 @@ export async function callGeminiJson<T>(
   let lastErr: unknown = null;
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     try {
-      const result = await withTimeout(
-        model.generateContent(opts.userPrompt),
+      const result = await generateContentWithTimeout(
+        model,
+        opts.userPrompt,
         opts.timeoutMs ?? TIMEOUT_MS,
       );
       const text = result.response.text();

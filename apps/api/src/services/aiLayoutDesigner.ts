@@ -28,8 +28,8 @@ import { assembleLayout } from "./layoutAssembly.js";
 import { applyVibrancyPass } from "./vibrancyPass.js";
 import { DESIGN_LANGUAGE_PROMPT } from "./designLanguage.js";
 
-/** Layout design is heavier than a template pick — allow a real budget. */
-const DESIGN_TIMEOUT_MS = 25_000;
+/** Layout design returns full spread JSON; production smokes can take 30-75s. */
+const DESIGN_TIMEOUT_MS = 90_000;
 
 const AiDesignResponseSchema = z.object({
   blocks: z.array(LayoutBlockSchema).min(1),
