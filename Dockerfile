@@ -48,6 +48,5 @@ ENV NODE_ENV=production
 
 EXPOSE 3001
 
-# Run migrations + seed at startup, then start the API
-CMD ["sh", "-c", "npx prisma migrate deploy --schema prisma/schema.prisma && npx tsx prisma/seed.ts && node apps/api/dist/index.js"]
-
+# Run migrations + base/V3 seeds at startup, then start the API
+CMD ["sh", "-c", "npx prisma migrate deploy --schema prisma/schema.prisma && npx tsx prisma/seed.ts && npx tsx prisma/seedV3.ts && node apps/api/dist/index.js"]
