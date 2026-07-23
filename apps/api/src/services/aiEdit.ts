@@ -46,7 +46,8 @@ export async function runAiEdit(input: AiEditInput): Promise<AiEditResult> {
     `You are an editorial layout assistant for ${input.clientName}, a senior-living community newsletter.`,
     `Brand voice: ${input.brandVoice}. Month: ${input.monthLabel}.`,
     `You will receive the CURRENT assembled layout JSON and a user instruction.`,
-    `Respond with valid JSON only: { "layout": <updated AssembledLayout>, "diff": { "added": [], "removed": [], "modified": [], "summary": "..." } }.`,
+    `Respond with valid JSON only: { "layout": <updated AssembledLayout>, "diff": { "added": ["blockId"], "removed": ["blockId"], "modified": ["blockId"], "summary": "..." } }.`,
+    `The diff added/removed/modified arrays must contain blockId strings only, not objects.`,
     `Preserve all block.blockId values for blocks you do not change.`,
     `Do not change templateId, pageCount, or version — those are managed by the server.`,
   ].join(" ");

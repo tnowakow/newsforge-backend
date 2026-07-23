@@ -1,13 +1,29 @@
 import { z } from "zod";
 import { AssembledLayoutSchema } from "./run.js";
 
+const DiffItemSchema = z
+  .union([
+    z.string(),
+    z
+      .object({
+        blockId: z.string().optional(),
+        id: z.string().optional(),
+        summary: z.string().optional(),
+      })
+      .passthrough(),
+  ])
+  .transform((value) => {
+    if (typeof value === "string") return value;
+    return value.blockId ?? value.id ?? value.summary ?? JSON.stringify(value);
+  });
+
 export const AiEditDiffSchema = z.object({
   /** Block ids that were added by the AI edit. */
-  added: z.array(z.string()).default([]),
+  added: z.array(DiffItemSchema).default([]),
   /** Block ids that were removed. */
-  removed: z.array(z.string()).default([]),
+  removed: z.array(DiffItemSchema).default([]),
   /** Block ids that were modified. */
-  modified: z.array(z.string()).default([]),
+  modified: z.array(DiffItemSchema).default([]),
   /** Human-readable summary the AI returned. */
   summary: z.string().optional(),
 });
