@@ -302,7 +302,7 @@ export default function Workspace() {
     }
   };
 
-  const assemble = async () => {
+  const assemble = async (password?: string) => {
     if (!client) return;
     setAssembling(true);
     setAssembleStage("working");
@@ -325,6 +325,7 @@ export default function Workspace() {
         templateId: client.defaultTemplate?.id ?? undefined,
         monthLabel: month,
         fillerMode: filler,
+        ...(password ? { password } : {}),
         articles,
         images,
       });
@@ -339,6 +340,16 @@ export default function Workspace() {
       navigate(`/workspace/${client.id}/preview?runId=${newRun.id}`);
     } catch (err) {
       if (token !== cancelToken) return;
+      if (
+        filler === "GENERATE" &&
+        err instanceof ApiError &&
+        err.status === 401 &&
+        err.message === "ai_locked"
+      ) {
+        setAssembling(false);
+        setAssembleUnlockOpen(true);
+        return;
+      }
       const msg = err instanceof ApiError ? err.message : "Assembly failed.";
       setAssembleError(msg);
       setAssembleStage("error");
@@ -346,7 +357,7 @@ export default function Workspace() {
   };
 
   const handleAssembleClick = () => {
-    if (filler === "GENERATE" && sessionStorage.getItem(AI_UNLOCK_KEY) !== "1") {
+    if (filler === "GENERATE") {
       setAssembleUnlockOpen(true);
       return;
     }
@@ -569,15 +580,15 @@ export default function Workspace() {
         stage={assembleStage}
         errorBody={assembleError ?? undefined}
         onCancel={cancelAssemble}
-        onTryAgain={assemble}
+        onTryAgain={() => void assemble()}
         onBack={() => setAssembling(false)}
       />
       <AssembleUnlockModal
         open={assembleUnlockOpen}
         onClose={() => setAssembleUnlockOpen(false)}
-        onUnlocked={() => {
+        onUnlocked={(password) => {
           setAssembleUnlockOpen(false);
-          void assemble();
+          void assemble(password);
         }}
       />
 
@@ -646,7 +657,7 @@ function AssembleUnlockModal({
 }: {
   open: boolean;
   onClose: () => void;
-  onUnlocked: () => void;
+  onUnlocked: (password: string) => void;
 }) {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -668,7 +679,7 @@ function AssembleUnlockModal({
     try {
       await api.unlock(password);
       sessionStorage.setItem(AI_UNLOCK_KEY, "1");
-      onUnlocked();
+      onUnlocked(password);
     } catch (err) {
       const msg =
         err instanceof ApiError && err.status === 401
