@@ -13,6 +13,9 @@ import {
 } from "@newsforge/shared/schemas";
 import { callGeminiJson } from "../gemini.js";
 
+/** AI edits send the full current layout plus instructions; real runs can exceed the default Gemini budget. */
+const AI_EDIT_TIMEOUT_MS = 90_000;
+
 export interface AiEditInput {
   layout: AssembledLayout;
   prompt: string;
@@ -59,6 +62,7 @@ export async function runAiEdit(input: AiEditInput): Promise<AiEditResult> {
     systemPrompt,
     userPrompt,
     fallback,
+    timeoutMs: AI_EDIT_TIMEOUT_MS,
   });
 
   if ("usedFallback" in result && result.usedFallback) {
