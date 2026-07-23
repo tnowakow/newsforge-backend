@@ -67,6 +67,19 @@ export function AutoArrangeBanner({
   const total = Math.max(submittedArticleCount, placed);
   const unusedPhotos = report.photoFit.filter((p) => p.dropped).length;
   const warnings = report.warnings ?? [];
+  const designMode = report.designMode;
+  const designLabel =
+    designMode === "ai"
+      ? "AI-designed"
+      : designMode === "deterministic"
+      ? "V3 fallback"
+      : null;
+  const designTitle =
+    designMode === "ai"
+      ? report.designNotes ?? "Gemini returned the styled V3 layout."
+      : designMode === "deterministic"
+      ? report.fallbackReason ?? "Gemini was unavailable, so V3 used its deterministic styled fallback."
+      : undefined;
 
   const approved = approvalStatus === "approved";
   const disabledReason = approved
@@ -93,6 +106,7 @@ export function AutoArrangeBanner({
         <span aria-hidden>✨</span>
         <span className="font-medium truncate">
           {chosenName} · {placed}/{total} · {unusedPhotos} unused
+          {designLabel ? ` · ${designLabel}` : ""}
         </span>
         <div className="ml-auto flex items-center gap-2">
           <button
@@ -153,6 +167,18 @@ export function AutoArrangeBanner({
                 </span>
               ) : (
                 <span className="text-ink-muted"> · all photos placed</span>
+              )}
+              {designLabel && (
+                <span
+                  className={`ml-2 inline-flex items-center rounded-full px-2 py-0.5 text-2xs font-semibold ${
+                    designMode === "ai"
+                      ? "bg-success/15 text-success"
+                      : "bg-warn/15 text-warn"
+                  }`}
+                  title={designTitle}
+                >
+                  {designLabel}
+                </span>
               )}
               {aiFellBack && (
                 <span className="text-warn"> · AI fell back to deterministic pick.</span>

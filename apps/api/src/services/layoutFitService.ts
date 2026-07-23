@@ -348,6 +348,11 @@ export function buildLayoutFitReport(input: {
   chosen: ScoreableTemplate;
   pickResult?: PickBestTemplateResult;
   fitResult: FitContentResult;
+  design?: {
+    mode: "ai" | "deterministic";
+    designNotes?: string;
+    fallbackReason?: string;
+  };
 }): LayoutFitReport {
   const pick =
     input.pickResult ??
@@ -358,6 +363,9 @@ export function buildLayoutFitReport(input: {
     score:
       pick.candidates.find((c) => c.templateId === input.chosen.id)?.score ??
       pick.chosenScore,
+    designMode: input.design?.mode,
+    designNotes: input.design?.designNotes,
+    fallbackReason: input.design?.fallbackReason,
     candidates: pick.candidates,
     articleFit: input.fitResult.articleFit,
     photoFit: input.fitResult.photoFit,

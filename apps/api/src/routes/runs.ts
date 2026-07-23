@@ -234,6 +234,11 @@ runsRouter.post("/", async (req, res) => {
     chosen: scoreableChosen,
     pickResult: pickResult ?? undefined,
     fitResult,
+    design: {
+      mode: designed.mode,
+      designNotes: designed.designNotes,
+      fallbackReason: designed.fallbackReason,
+    },
   });
 
   // Run compliance sync detectors (Vitaly rule 18 seeded on create).

@@ -52,6 +52,10 @@ export type LayoutFitPhotoFit = z.infer<typeof LayoutFitPhotoFitSchema>;
 export const LayoutFitReportSchema = z.object({
   chosenTemplateId: z.string(),
   score: z.number(),
+  /** v3 — whether the layout was Gemini-designed or styled by fallback. */
+  designMode: z.enum(["ai", "deterministic"]).optional(),
+  designNotes: z.string().optional(),
+  fallbackReason: z.string().optional(),
   candidates: z.array(LayoutFitCandidateSchema),
   articleFit: z.array(LayoutFitArticleFitSchema),
   photoFit: z.array(LayoutFitPhotoFitSchema),

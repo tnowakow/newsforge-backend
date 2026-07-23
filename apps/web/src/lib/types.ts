@@ -194,6 +194,9 @@ export interface LayoutFitPhotoFit {
 export interface LayoutFitReport {
   chosenTemplateId: string;
   score: number;
+  designMode?: "ai" | "deterministic";
+  designNotes?: string;
+  fallbackReason?: string;
   candidates: LayoutFitCandidate[];
   articleFit: LayoutFitArticleFit[];
   photoFit: LayoutFitPhotoFit[];
