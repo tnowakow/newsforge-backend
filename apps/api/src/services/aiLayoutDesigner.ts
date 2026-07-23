@@ -32,7 +32,9 @@ import { DESIGN_LANGUAGE_PROMPT } from "./designLanguage.js";
 const DESIGN_TIMEOUT_MS = 90_000;
 
 const AiDesignResponseSchema = z.object({
-  blocks: z.array(LayoutBlockSchema).min(1),
+  // Parse Gemini's layout response loosely first. We normalize/validate every
+  // block below so one omitted audit-ish field does not reject the whole layout.
+  blocks: z.array(z.unknown()).min(1),
   designNotes: z.string().optional(),
 });
 
@@ -68,6 +70,31 @@ function excerpt(body: string, max = 220): string {
 }
 
 /** Drop blocks whose content references don't exist; clamp geometry. */
+export function normalizeAiLayoutBlocks(
+  rawBlocks: unknown[],
+  skeleton: AssembledLayout,
+): LayoutBlock[] {
+  return rawBlocks.flatMap((raw, index) => {
+    if (!raw || typeof raw !== "object" || Array.isArray(raw)) return [];
+    const block = raw as Record<string, unknown>;
+    const blockId =
+      typeof block.blockId === "string" && block.blockId.trim()
+        ? block.blockId
+        : `ai-block-${index + 1}`;
+    const skeletonBlock = skeleton.blocks.find((b) => b.blockId === blockId);
+    const candidate = {
+      ...block,
+      blockId,
+      slotId:
+        typeof block.slotId === "string" && block.slotId.trim()
+          ? block.slotId
+          : skeletonBlock?.slotId ?? blockId,
+    };
+    const parsed = LayoutBlockSchema.safeParse(candidate);
+    return parsed.success ? [parsed.data] : [];
+  });
+}
+
 function sanitizeBlocks(
   blocks: LayoutBlock[],
   input: DesignLayoutInput,
@@ -199,7 +226,7 @@ export async function designLayout(
     })),
     startingBlocks: skeleton.blocks,
     respondWith:
-      '{ "blocks": [ ...full AssembledLayout blocks with style/heading/caption/listItems... ], "designNotes": "one sentence" }',
+      '{ "blocks": [ ...full AssembledLayout blocks; every block must keep blockId and slotId... ], "designNotes": "one sentence" }',
   });
 
   const fallbackLayout = deterministic();
@@ -220,10 +247,10 @@ export async function designLayout(
     };
   }
 
-  // Cast once: AiDesignResponseSchema is built with this file's zod instance
-  // while LayoutBlockSchema comes from the shared package build — structurally
-  // identical, nominally distinct under workspace hoisting.
-  let blocks = sanitizeBlocks(result.data.blocks as unknown as LayoutBlock[], input);
+  let blocks = sanitizeBlocks(
+    normalizeAiLayoutBlocks(result.data.blocks, skeleton),
+    input,
+  );
   if (blocks.length === 0) {
     return {
       layout: fallbackLayout,

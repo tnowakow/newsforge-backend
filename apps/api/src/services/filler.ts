@@ -18,6 +18,9 @@ import type {
 } from "@newsforge/shared/schemas";
 import { callGeminiJson } from "../gemini.js";
 
+/** Filler can trail layout generation, so production payloads need more than the shared default. */
+const FILLER_TIMEOUT_MS = 90_000;
+
 interface FillerInput {
   layout: AssembledLayout;
   gridSpec: GridSpec;
@@ -159,6 +162,7 @@ export async function generateFiller(input: FillerInput): Promise<FillerOutput> 
     schema: GeminiFillerResponseSchema,
     systemPrompt,
     userPrompt,
+    timeoutMs: FILLER_TIMEOUT_MS,
     fallback,
   });
 
