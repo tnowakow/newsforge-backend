@@ -112,6 +112,7 @@ const CreateRunBody = z.object({
   templateId: z.string().min(1).optional(),
   monthLabel: z.string().min(1).optional(),
   fillerMode: FillerModeSchema.optional(),
+  password: z.string().optional(),
   articles: ArticlesSchema.optional(),
   images: ImagesSchema.optional(),
 });
@@ -123,6 +124,15 @@ runsRouter.post("/", async (req, res) => {
     return;
   }
   const body = parsed.data;
+  const fillerMode = body.fillerMode ?? "GENERATE";
+
+  if (fillerMode === "GENERATE" && !hasAiUnlockCookie(req)) {
+    if (!body.password || !checkAiPassword(body.password)) {
+      res.status(401).json({ error: "ai_locked" });
+      return;
+    }
+    setAiUnlockedCookie(res);
+  }
 
   const client = await prisma.client.findUnique({
     where: { id: body.clientId },
@@ -210,7 +220,14 @@ runsRouter.post("/", async (req, res) => {
     body.monthLabel ??
     new Date().toLocaleString("en-US", { month: "long", year: "numeric" });
 
-  const fillerMode = body.fillerMode ?? "GENERATE";
+  let fillerPromptAudit:
+    | {
+        systemPrompt: string;
+        userPrompt: string;
+        usedFallback?: boolean;
+        fallbackReason?: string;
+      }
+    | undefined;
   if (fillerMode === "GENERATE" && layout.blocks.some((b) => b.needsFiller)) {
     const filled = await generateFiller({
       layout,
@@ -224,6 +241,13 @@ runsRouter.post("/", async (req, res) => {
     });
     layout = filled.layout;
     articles = filled.articles;
+    if (filled.promptAudit) {
+      fillerPromptAudit = {
+        ...filled.promptAudit,
+        usedFallback: filled.usedFallback,
+        fallbackReason: filled.fallbackReason,
+      };
+    }
   }
 
   // Build the fit report for persistence.
@@ -261,6 +285,57 @@ runsRouter.post("/", async (req, res) => {
     },
   });
 
+  await prisma.aiEdit.create({
+    data: {
+      id: createId(),
+      runId: run.id,
+      prompt: [
+        "[V3 layout design system prompt]",
+        designed.promptAudit.systemPrompt,
+        "",
+        "[V3 layout design user prompt]",
+        designed.promptAudit.userPrompt,
+      ].join("\n"),
+      resultStatus:
+        designed.mode === "ai" ? "generation-ai" : "generation-fallback",
+      diffSummary: {
+        kind: "generation-design",
+        mode: designed.mode,
+        designNotes: designed.designNotes,
+        fallbackReason: designed.fallbackReason,
+        templateId: template.id,
+      } as unknown as object,
+      layoutBefore: layout as unknown as object,
+      layoutAfter: layout as unknown as object,
+    },
+  });
+
+  if (fillerPromptAudit) {
+    await prisma.aiEdit.create({
+      data: {
+        id: createId(),
+        runId: run.id,
+        prompt: [
+          "[AI filler system prompt]",
+          fillerPromptAudit.systemPrompt,
+          "",
+          "[AI filler user prompt]",
+          fillerPromptAudit.userPrompt,
+        ].join("\n"),
+        resultStatus: fillerPromptAudit.usedFallback
+          ? "generation-filler-fallback"
+          : "generation-filler-ai",
+        diffSummary: {
+          kind: "generation-filler",
+          usedFallback: fillerPromptAudit.usedFallback ?? false,
+          fallbackReason: fillerPromptAudit.fallbackReason,
+        } as unknown as object,
+        layoutBefore: layout as unknown as object,
+        layoutAfter: layout as unknown as object,
+      },
+    });
+  }
+
   res.status(201).json({ run });
 });
 
@@ -288,6 +363,33 @@ runsRouter.get("/", async (req, res) => {
     prisma.newsletterRun.count({ where }),
   ]);
   res.json({ runs, total, limit, offset });
+});
+
+runsRouter.get("/:id/ai-edits", async (req, res) => {
+  const runId = String(req.params.id);
+  const run = await prisma.newsletterRun.findUnique({
+    where: { id: runId },
+    select: { id: true },
+  });
+  if (!run) {
+    res.status(404).json({ error: "run_not_found" });
+    return;
+  }
+
+  const edits = await prisma.aiEdit.findMany({
+    where: { runId },
+    orderBy: { createdAt: "desc" },
+    take: 50,
+    select: {
+      id: true,
+      prompt: true,
+      resultStatus: true,
+      diffSummary: true,
+      createdAt: true,
+    },
+  });
+
+  res.json({ edits });
 });
 
 runsRouter.get("/:id", async (req, res) => {

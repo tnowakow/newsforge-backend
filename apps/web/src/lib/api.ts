@@ -8,6 +8,7 @@ import type {
   Article,
   NewsImage,
   AssembledLayout,
+  AiPromptAudit,
 } from "./types";
 
 const BASE = ""; // Vite proxy handles /api → :3001
@@ -186,6 +187,7 @@ export const api = {
     templateId?: string;
     monthLabel?: string;
     fillerMode?: FillerMode;
+    password?: string;
     articles?: Article[];
     images?: NewsImage[];
   }): Promise<RunRecord> => {
@@ -271,6 +273,13 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ password }),
     }),
+
+  listAiPrompts: async (runId: string): Promise<AiPromptAudit[]> => {
+    const raw = await request<{ edits: AiPromptAudit[] }>(
+      `/api/runs/${runId}/ai-edits`,
+    );
+    return raw.edits ?? [];
+  },
 
   aiEdit: (
     runId: string,

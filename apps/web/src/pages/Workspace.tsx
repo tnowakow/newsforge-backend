@@ -11,6 +11,7 @@ import type {
 } from "@/lib/types";
 import { normalizeApprovalStatus } from "@/lib/types";
 import { Button } from "@/components/ui/Button";
+import { Modal, ModalHeader } from "@/components/ui/Modal";
 import { Tabs } from "@/components/ui/Tabs";
 import { Tag } from "@/components/ui/Tag";
 import { Skeleton } from "@/components/ui/LoadingSkeleton";
@@ -25,6 +26,8 @@ import { ChangeTemplateModal } from "@/components/ChangeTemplateModal";
 import { AiRearrangeModal } from "@/components/AiRearrangeModal";
 
 type Tone = "warm" | "formal" | "playful" | "civic";
+
+const AI_UNLOCK_KEY = "newsforge.aiUnlocked";
 
 interface UploadItem {
   id: string;
@@ -75,6 +78,7 @@ export default function Workspace() {
     useState<"working" | "error" | "done">("working");
   const [assembleError, setAssembleError] = useState<string | null>(null);
   const [cancelToken, setCancelToken] = useState(0);
+  const [assembleUnlockOpen, setAssembleUnlockOpen] = useState(false);
 
   // v2 additions ---------------------------------------------------------
   const runIdFromQuery = search.get("runId") ?? "";
@@ -341,6 +345,14 @@ export default function Workspace() {
     }
   };
 
+  const handleAssembleClick = () => {
+    if (filler === "GENERATE" && sessionStorage.getItem(AI_UNLOCK_KEY) !== "1") {
+      setAssembleUnlockOpen(true);
+      return;
+    }
+    void assemble();
+  };
+
   const cancelAssemble = () => {
     setCancelToken((c) => c + 1);
     setAssembling(false);
@@ -472,7 +484,7 @@ export default function Workspace() {
                   ? "Add content or generate a mock first."
                   : undefined
               }
-              onClick={assemble}
+              onClick={handleAssembleClick}
             >
               Assemble Newsletter →
             </Button>
@@ -560,6 +572,14 @@ export default function Workspace() {
         onTryAgain={assemble}
         onBack={() => setAssembling(false)}
       />
+      <AssembleUnlockModal
+        open={assembleUnlockOpen}
+        onClose={() => setAssembleUnlockOpen(false)}
+        onUnlocked={() => {
+          setAssembleUnlockOpen(false);
+          void assemble();
+        }}
+      />
 
       {/* v2 Screen 3 — compliance drawer */}
       {run && (
@@ -616,6 +636,98 @@ export default function Workspace() {
         />
       )}
     </div>
+  );
+}
+
+function AssembleUnlockModal({
+  open,
+  onClose,
+  onUnlocked,
+}: {
+  open: boolean;
+  onClose: () => void;
+  onUnlocked: () => void;
+}) {
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [unlocking, setUnlocking] = useState(false);
+
+  useEffect(() => {
+    if (!open) {
+      setPassword("");
+      setError(null);
+      setUnlocking(false);
+    }
+  }, [open]);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!password) return;
+    setUnlocking(true);
+    setError(null);
+    try {
+      await api.unlock(password);
+      sessionStorage.setItem(AI_UNLOCK_KEY, "1");
+      onUnlocked();
+    } catch (err) {
+      const msg =
+        err instanceof ApiError && err.status === 401
+          ? "That's not it. Try again."
+          : err instanceof ApiError
+            ? err.message
+            : "Couldn't unlock.";
+      setError(msg);
+    } finally {
+      setUnlocking(false);
+    }
+  }
+
+  return (
+    <Modal
+      open={open}
+      onClose={onClose}
+      widthClass="w-[480px]"
+      labelledBy="assemble-unlock-title"
+    >
+      <ModalHeader
+        title={<span id="assemble-unlock-title">AI filler access</span>}
+        subtitle="Generate AI filler uses the shared demo password."
+        onClose={onClose}
+      />
+      <form onSubmit={handleSubmit} className="p-5 space-y-4">
+        <div>
+          <label className="block text-sm font-medium mb-1.5">
+            Enter demo password
+          </label>
+          <input
+            type="password"
+            autoFocus
+            value={password}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              setError(null);
+            }}
+            className={`w-full h-10 px-3 bg-surface border rounded-md text-sm focus:outline-none ${
+              error ? "border-error" : "border-rule focus:border-accent"
+            }`}
+          />
+          {error && <div className="mt-1.5 text-2xs text-error">{error}</div>}
+        </div>
+        <div className="flex items-center justify-between gap-3">
+          <Button variant="ghost" type="button" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            variant="primary"
+            disabled={!password}
+            loading={unlocking}
+          >
+            Unlock and assemble →
+          </Button>
+        </div>
+      </form>
+    </Modal>
   );
 }
 

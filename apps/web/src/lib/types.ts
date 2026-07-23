@@ -162,6 +162,14 @@ export interface AssembledLayout {
   version: number;
 }
 
+export interface AiPromptAudit {
+  id: string;
+  prompt: string;
+  resultStatus: string;
+  diffSummary?: unknown;
+  createdAt: string;
+}
+
 // ---------------- v2 additions ----------------
 
 /** Vitaly §3.1 — persisted on run.layoutFitReport (JSONB) */

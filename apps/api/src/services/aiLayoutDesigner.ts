@@ -54,6 +54,10 @@ export interface DesignLayoutResult {
   mode: "ai" | "deterministic";
   designNotes?: string;
   fallbackReason?: string;
+  promptAudit: {
+    systemPrompt: string;
+    userPrompt: string;
+  };
 }
 
 function excerpt(body: string, max = 220): string {
@@ -212,6 +216,7 @@ export async function designLayout(
       layout: fallbackLayout,
       mode: "deterministic",
       fallbackReason: "reason" in result ? result.reason : "fallback",
+      promptAudit: { systemPrompt, userPrompt },
     };
   }
 
@@ -220,7 +225,12 @@ export async function designLayout(
   // identical, nominally distinct under workspace hoisting.
   let blocks = sanitizeBlocks(result.data.blocks as unknown as LayoutBlock[], input);
   if (blocks.length === 0) {
-    return { layout: fallbackLayout, mode: "deterministic", fallbackReason: "ai_returned_no_valid_blocks" };
+    return {
+      layout: fallbackLayout,
+      mode: "deterministic",
+      fallbackReason: "ai_returned_no_valid_blocks",
+      promptAudit: { systemPrompt, userPrompt },
+    };
   }
   blocks = reattachMissingImages(blocks, input);
 
@@ -240,5 +250,10 @@ export async function designLayout(
     images: input.images,
   });
 
-  return { layout, mode: "ai", designNotes: result.data.designNotes };
+  return {
+    layout,
+    mode: "ai",
+    designNotes: result.data.designNotes,
+    promptAudit: { systemPrompt, userPrompt },
+  };
 }

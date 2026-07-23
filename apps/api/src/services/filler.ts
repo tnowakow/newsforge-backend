@@ -34,6 +34,10 @@ interface FillerOutput {
   articles: Article[];
   usedFallback?: boolean;
   fallbackReason?: string;
+  promptAudit?: {
+    systemPrompt: string;
+    userPrompt: string;
+  };
 }
 
 function placeholderText(slotType: string, clientName: string): string {
@@ -209,6 +213,7 @@ export async function generateFiller(input: FillerInput): Promise<FillerOutput> 
     usedFallback: "usedFallback" in result ? result.usedFallback : undefined,
     fallbackReason:
       "reason" in result ? (result as { reason: string }).reason : undefined,
+    promptAudit: { systemPrompt, userPrompt },
   };
 }
 
