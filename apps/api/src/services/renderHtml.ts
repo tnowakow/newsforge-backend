@@ -218,7 +218,7 @@ export function renderRunHtml(input: RenderInput): string {
     .masthead .kicker { font-size: 8pt; letter-spacing: 0.18em; text-transform: uppercase; }
   .masthead h1 { font-size: 26pt; line-height: 1.05; margin-top: 2pt; }
   .masthead.slim { display:flex; justify-content:space-between; font-size:8pt; letter-spacing:0.14em; text-transform:uppercase; color:#777; margin-bottom:0.12in; }
-  .content { flex:1; display:grid; gap: 6px; }
+  .content { flex:1; min-height:0; display:grid; gap: 6px; }
   .block { min-height: 0; min-width: 0; display:flex; }
   .block-inner { flex:1; min-width:0; overflow:hidden; display:flex; flex-direction:column; }
     .block-inner.panel { padding: 9px 11px; }
