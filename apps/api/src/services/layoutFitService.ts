@@ -36,7 +36,14 @@ function safeGridSlots(gridSpec: unknown): TemplateSlot[] {
 }
 
 function isArticleSlot(t: TemplateSlot["type"]): boolean {
-  return t === "headline" || t === "body" || t === "spotlight";
+  return (
+    t === "headline" ||
+    t === "body" ||
+    t === "spotlight" ||
+    t === "sidebar" ||
+    t === "calendar" ||
+    t === "list"
+  );
 }
 
 const HERO_STYLE_TAGS = new Set([

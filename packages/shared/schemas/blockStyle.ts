@@ -35,6 +35,29 @@ export const PanelTokenSchema = z.enum([
 ]);
 export type PanelToken = z.infer<typeof PanelTokenSchema>;
 
+export const PanelRoleSchema = z.enum([
+  "birthday",
+  "directorCorner",
+  "happyHour",
+  "upcomingEvents",
+  "outingList",
+  "spotlightRail",
+  "featureBand",
+  "volunteerCallout",
+  "infoFooter",
+  "photoCluster",
+]);
+export type PanelRole = z.infer<typeof PanelRoleSchema>;
+
+export const PhotoTreatmentSchema = z.enum([
+  "rounded",
+  "collage",
+  "stacked",
+  "wide",
+  "portrait",
+]);
+export type PhotoTreatment = z.infer<typeof PhotoTreatmentSchema>;
+
 export const BlockStyleSchema = z.object({
   /** Panel background token. "paper" (or absent) = no panel. */
   bg: PanelTokenSchema.optional(),
@@ -48,6 +71,12 @@ export const BlockStyleSchema = z.object({
   scriptHeading: z.boolean().optional(),
   /** Center-align block text (used for event rails, panel callouts). */
   centered: z.boolean().optional(),
+  /** Semantic visual role, used by renderers for reference-style treatments. */
+  panelRole: PanelRoleSchema.optional(),
+  /** Image crop/frame treatment. */
+  photoTreatment: PhotoTreatmentSchema.optional(),
+  /** Compact dense editorial text for inner-spread feature blocks. */
+  compact: z.boolean().optional(),
 });
 export type BlockStyle = z.infer<typeof BlockStyleSchema>;
 

@@ -244,7 +244,7 @@ function generateTrilogyMockContent(
       articleType: "birthday",
       sectionMatch: /birthday|anniversar|milestone/i,
       body: () =>
-        "Staff birthdays this month include Taylor B. on 7/29 and Allison W. on 7/29. We will celebrate with cards, hallway hellos, and a few extra reasons to smile.",
+        "RESIDENTS\nMary Ann F. 7/3\nShirley S. 7/10\nJanice F. 7/22\nMichael V. 7/27\nJoan C. 7/31\n\nSTAFF\nErica M. 7/1\nShristy P. 7/3\nJed N. 7/3\nAdam J. 7/4\nGracey C. 7/8\nDeborah R. 7/11\nMorgan C. 7/20\nKimberly H. 7/21\nDivya K. 7/24\nAlena O. 7/25\nAsenath A. 7/28",
     },
     {
       key: "holiday",
@@ -264,6 +264,77 @@ function generateTrilogyMockContent(
           `Around this time of year, many of us remember looking toward the return to school, but here on campus the middle of summer means the fun is just getting started. Live entertainment, themed events, and afternoons outside have brought residents, families, and team members together in the best way.`,
           `Thank you for continuing to join us for the laughter, visits, and small daily rhythms that make this community feel like home. Have a wonderful month.`,
           `Yours in service,\nThe Executive Director`,
+        ]),
+    },
+    {
+      key: "scrubbly",
+      title: () => "Scrubbly Bubbly Car Wash",
+      articleType: "event-recap",
+      sectionMatch: /feature|spotlight/i,
+      body: () =>
+        paragraphs(input, [
+          `Residents recently rolled into our Scrubbly Bubbly Car Wash, a special event dedicated to giving wheelchairs, walkers, and mobility devices a fresh shine.`,
+          `While waiting for their vehicle to receive the VIP treatment, residents gathered for an ice cream social, shared stories, and spent time visiting with one another throughout the afternoon.`,
+          `Thank you to everyone who helped make this event possible. Whether you came for the car wash, the ice cream, or the good company, we hope you had a wheel-y great time!`,
+        ]),
+    },
+    {
+      key: "happy-hour",
+      title: () => "Happy Hour",
+      articleType: "announcement",
+      body: () =>
+        "Our weekly Happy Hour celebrations from 3:00-5:00 p.m. are the perfect way to gather with friends, enjoy delicious treats, and create meaningful moments together.\n\n7/3 Red, White, and BOOZE\n7/10 Cruisin' Through Happy Hour\n7/17 Ink & Drink Happy Hour\n7/24 Gorgeous Grandma Day Happy Hour\n7/31 Surf's Up & Bottoms Up Happy Hour",
+    },
+    {
+      key: "upcoming-events",
+      title: () => "Upcoming Events",
+      articleType: "announcement",
+      sectionMatch: /calendar|activities|events/i,
+      body: () =>
+        paragraphs(input, [
+          `Residents, families, and guests are invited to join us for Cruise Day: Setting Sail at the Springs. The day will include themed activities, refreshing stations, and a few lighthearted surprises around campus.`,
+          `Join us for Break for Brunch, an elevated summertime Sunday Brunch celebration followed by our annual car show. Brunch will be served from 11:00 a.m. to 1:00 p.m., with classic cars and vintage favorites on display afterward.`,
+          `Please RSVP so our team can prepare comfortably and make the day special for everyone who joins us.`,
+        ]),
+    },
+    {
+      key: "out-and-about",
+      title: () => "Out and About",
+      articleType: "announcement",
+      body: () =>
+        "From local attractions and community events to relaxing drives, shopping trips, sweet treats, and summer fun, our residents are ready to make the most of every sunny day ahead.\n\n7/2 Sugar Shack by the Tracks\n7/7 Newport Aquarium\n7/9 Sharon Park Fishing Trip\n7/14 Meijer Shopping Trip\n7/16 Butterfly Show at Krohn Conservatory\n7/21 Ford's Garage\n7/23 Washington Park Picnic\n7/28 Flub's Ice Cream\n7/30 Bluebird Bakery",
+    },
+    {
+      key: "smile-of-the-month",
+      title: () => "Smile of the Month",
+      articleType: "resident-story",
+      body: () =>
+        paragraphs(input, [
+          `Meet Robyn J. and learn a little more about her. Since joining our campus team, Robyn has created so many friendships during our monthly employee recognition celebrations.`,
+          `Robyn's reliability, experience, and genuine kindness are integral pieces of our team. Her team-player spirit and warm personality make her an excellent addition to the family, and we are lucky to work with her.`,
+          `In her free time, Robyn enjoys vacations, local restaurants, and shopping throughout the city. This summer we hope she joins our outings and declares a new favorite restaurant.`,
+          `We are thankful for her continued patience, her nursing skills, and the way she brings care to every shift.`,
+        ]),
+    },
+    {
+      key: "make-the-difference",
+      title: () => "Make the Difference",
+      articleType: "announcement",
+      body: () =>
+        paragraphs(input, [
+          `Becoming a volunteer is easy. Your skills, passions, and kindness can bring joy and comfort to residents all month long.`,
+          `Whether you can volunteer once a week or once a month, your time and effort are greatly appreciated. Please contact the Life Enrichment Director to learn more about current opportunities.`,
+          `Let us know if you have a favorite restaurant, local business, or park ready to serve us!`,
+        ]),
+    },
+    {
+      key: "trust-funds",
+      title: () => "Trust Funds",
+      articleType: "announcement",
+      body: () =>
+        paragraphs(input, [
+          `At ${input.clientName ?? "our community"}, we are dedicated to supporting residents and loved ones in finding the best living solutions while maintaining independence and financial stability.`,
+          `A Trust Fund is a secure arrangement that allows residents to manage assets while ensuring access to funds for daily living expenses and scheduled outings. Please visit the business office with questions or to establish a fund.`,
         ]),
     },
     {
@@ -341,7 +412,7 @@ function generateTrilogyMockContent(
     const body = story.body(input);
     return {
       id: createId(),
-      title: section?.title ?? story.title(input),
+      title: story.title(input),
       body,
       wordCount: wordCount(body),
       byline: story.key === "director" ? "From the Executive Director" : undefined,

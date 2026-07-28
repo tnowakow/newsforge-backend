@@ -120,6 +120,19 @@ export interface BlockStyle {
   cornerRadius?: number;
   scriptHeading?: boolean;
   centered?: boolean;
+  panelRole?:
+    | "birthday"
+    | "directorCorner"
+    | "happyHour"
+    | "upcomingEvents"
+    | "outingList"
+    | "spotlightRail"
+    | "featureBand"
+    | "volunteerCallout"
+    | "infoFooter"
+    | "photoCluster";
+  photoTreatment?: "rounded" | "collage" | "stacked" | "wide" | "portrait";
+  compact?: boolean;
 }
 
 export interface ListItem {

@@ -59,27 +59,29 @@ const TEMPLATES: V3Template[] = [
   {
     id: "v3-spread-classic",
     name: "Spread — Community Classic",
-    notes: "[v3-spread] Dense community issue: birthdays + happy hour + outings lists, ED corner, feature trio, spotlight rail.",
+    notes: "[v3-spread] Gateway Springs inner-spread target: page 1 mirrors newsletter page 2, page 2 mirrors newsletter page 3.",
     richness: ["MODERATE", "RICH", "EXTRA_RICH"],
     slots: [
-      // Left page
-      s("cl-p1-bday", 1, "list", 1, 1, 6, 8, {}, "birthdays panel:sun"),
-      s("cl-p1-hh", 1, "list", 1, 9, 6, 8, {}, "schedule panel:navy"),
-      s("cl-p1-exec", 1, "spotlight", 7, 1, 9, 8, { maxWords: 260 }, "exec-corner panel:cream"),
-      s("cl-p1-feat1", 1, "body", 16, 1, 9, 8, { minWords: 120, maxWords: 320 }),
-      s("cl-p1-img1", 1, "image", 7, 9, 5, 5, { aspect: "landscape" }, "caption"),
-      s("cl-p1-img2", 1, "image", 12, 9, 5, 5, { aspect: "landscape" }, "caption"),
-      s("cl-p1-feat2", 1, "body", 17, 9, 8, 8, { minWords: 100, maxWords: 260 }),
-      s("cl-p1-img3", 1, "image", 7, 14, 10, 3, { aspect: "landscape" }, "caption"),
-      // Right page
-      s("cl-p2-feat3", 2, "headline", 1, 1, 12, 6, { minWords: 80, maxWords: 240 }, "hero"),
-      s("cl-p2-img4", 2, "image", 1, 7, 6, 5, { aspect: "portrait" }, "caption"),
-      s("cl-p2-img5", 2, "image", 7, 7, 6, 5, { aspect: "portrait" }, "caption"),
-      s("cl-p2-feat4", 2, "body", 1, 12, 12, 5, { minWords: 80, maxWords: 220 }),
-      s("cl-p2-events", 2, "list", 13, 1, 6, 8, {}, "events panel:coral"),
-      s("cl-p2-spot", 2, "spotlight", 19, 1, 6, 12, { maxWords: 320 }, "panel:blush"),
-      s("cl-p2-side", 2, "sidebar", 13, 9, 6, 8, { maxWords: 140 }, "panel:sky"),
-      s("cl-p2-img6", 2, "image", 19, 13, 6, 4, { aspect: "landscape" }, "caption"),
+      // Inner page 1 = Gateway reference page 2.
+      s("cl-p1-bday", 1, "list", 1, 1, 8, 7, {}, "birthdays panel:sun"),
+      s("cl-p1-exec", 1, "spotlight", 9, 1, 16, 7, { minWords: 180, maxWords: 360 }, "exec-corner panel:cream"),
+      s("cl-p1-happy-hour", 1, "list", 1, 8, 12, 6, {}, "happy-hour schedule"),
+      s("cl-p1-upcoming-events", 1, "calendar", 13, 8, 12, 6, { minWords: 160, maxWords: 360 }, "upcoming-events"),
+      s("cl-p1-hh-img-a", 1, "image", 1, 14, 4, 3, { aspect: "landscape" }, "photo-cluster collage"),
+      s("cl-p1-hh-img-b", 1, "image", 5, 14, 4, 3, { aspect: "portrait" }, "photo-cluster collage"),
+      s("cl-p1-hh-img-c", 1, "image", 9, 14, 4, 3, { aspect: "portrait" }, "photo-cluster collage"),
+      s("cl-p1-event-img-a", 1, "image", 13, 14, 6, 3, { aspect: "landscape" }, "photo-cluster collage"),
+      s("cl-p1-event-img-b", 1, "image", 19, 14, 6, 3, { aspect: "landscape" }, "photo-cluster collage"),
+
+      // Inner page 2 = Gateway reference page 3.
+      s("cl-p2-photo-a", 2, "image", 1, 1, 5, 4, { aspect: "portrait" }, "photo-stack portrait"),
+      s("cl-p2-photo-b", 2, "image", 1, 5, 5, 4, { aspect: "portrait" }, "photo-stack portrait"),
+      s("cl-p2-outings", 2, "list", 6, 1, 11, 6, {}, "out-and-about outings"),
+      s("cl-p2-smile", 2, "spotlight", 17, 1, 8, 12, { minWords: 220, maxWords: 520 }, "smile-of-the-month panel:berry"),
+      s("cl-p2-feature-band", 2, "body", 1, 7, 16, 4, { minWords: 80, maxWords: 220 }, "scrubbly car-wash feature-band panel:sky"),
+      s("cl-p2-volunteer-img", 2, "image", 1, 11, 5, 4, { aspect: "portrait" }, "photo-stack portrait"),
+      s("cl-p2-volunteer", 2, "body", 6, 11, 11, 4, { minWords: 80, maxWords: 220 }, "make-the-difference volunteer"),
+      s("cl-p2-trust-funds", 2, "body", 1, 15, 24, 2, { minWords: 70, maxWords: 180 }, "trust-funds info-footer panel:navy"),
     ],
   },
   // ------------------------------------------------------------------

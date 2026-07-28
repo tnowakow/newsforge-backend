@@ -36,6 +36,34 @@ function compareSlots(a: TemplateSlot, b: TemplateSlot): number {
   return a.col - b.col;
 }
 
+function slotMatchesSection(slot: TemplateSlot, section: RecurringSection): boolean {
+  if (slot.type === section.slotHint) return true;
+  const tag = slot.styleTag ?? "";
+  if (slot.type === "list" && /birthday|anniversar|milestone/i.test(section.title)) {
+    return /birthday/i.test(tag);
+  }
+  if (slot.type === "calendar" && /calendar|activit|event/i.test(section.title)) {
+    return true;
+  }
+  return false;
+}
+
+function articleMatchesSlot(article: Article, slot: TemplateSlot): boolean {
+  const tag = slot.styleTag ?? "";
+  const title = article.title;
+  if (/birthday/i.test(tag)) {
+    return article.articleType === "birthday" || /birthday|anniversar/i.test(title);
+  }
+  if (/happy-hour|schedule/i.test(tag)) return /happy hour/i.test(title);
+  if (/upcoming-events/i.test(tag)) return /upcoming events|calendar|activities/i.test(title);
+  if (/out-and-about|outing/i.test(tag)) return /out and about|outing|trip/i.test(title);
+  if (/smile-of-the-month|spotlight/i.test(tag)) return /smile of the month|spotlight|meet/i.test(title);
+  if (/feature-band|scrubbly|car-wash/i.test(tag)) return /scrubbly|car wash|feature/i.test(title);
+  if (/make-the-difference|volunteer/i.test(tag)) return /make the difference|volunteer/i.test(title);
+  if (/trust-funds|info-footer/i.test(tag)) return /trust funds|business office|compliance/i.test(title);
+  return false;
+}
+
 function newBlockFor(slot: TemplateSlot): LayoutBlock {
   return {
     blockId: createId(),
@@ -70,7 +98,7 @@ export function assembleLayout(input: AssembleInput): AssembledLayout {
   for (const section of recurringPool) {
     const idx = blocks.findIndex((b, i) => {
       const s = slots[i];
-      return b.kind === "empty" && s.type === section.slotHint;
+      return b.kind === "empty" && slotMatchesSection(s, section);
     });
     if (idx === -1) continue;
     const slot = slots[idx];
@@ -119,12 +147,14 @@ export function assembleLayout(input: AssembleInput): AssembledLayout {
       slot.type === "body" ||
       slot.type === "sidebar" ||
       slot.type === "spotlight" ||
-      slot.type === "calendar"
+      slot.type === "calendar" ||
+      slot.type === "list"
     ) {
       // Choose article best matching capacity.
       const max = slot.capacity.maxWords ?? Number.MAX_SAFE_INTEGER;
       const min = slot.capacity.minWords ?? 0;
-      let pickIdx = articlePool.findIndex(
+      let pickIdx = articlePool.findIndex((a) => articleMatchesSlot(a, slot));
+      if (pickIdx === -1) pickIdx = articlePool.findIndex(
         (a) => a.wordCount >= min && a.wordCount <= max,
       );
       if (pickIdx === -1 && articlePool.length > 0) {

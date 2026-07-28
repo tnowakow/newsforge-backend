@@ -257,6 +257,7 @@ function BlockView({
   const drag = useRef<{ x: number; y: number; emittedC: number; emittedR: number } | null>(null);
 
   const bg = resolveToken(block.style?.bg, client);
+  const role = block.style?.panelRole;
   const invert =
     block.style?.invertText ||
     (block.style?.bg ? DARK_TOKENS.has(block.style.bg) : false);
@@ -311,7 +312,12 @@ function BlockView({
   const headingEl = heading ? (
     block.style?.scriptHeading ? (
       <h2
-        className="mb-1 text-[15px] font-bold italic leading-tight"
+        className={cn(
+          "mb-1 font-bold italic leading-tight",
+          role === "birthday" && "text-[25px]",
+          role === "directorCorner" && "text-[24px] not-italic uppercase tracking-wide",
+          role !== "birthday" && role !== "directorCorner" && "text-[15px]",
+        )}
         style={{
           color: invert ? "#F7F5EF" : headerColor,
           fontFamily: `${client.headingFont}, Georgia, serif`,
@@ -321,7 +327,18 @@ function BlockView({
       </h2>
     ) : (
       <h2
-        className="mb-1 text-[13px] font-extrabold uppercase leading-tight tracking-wide"
+        className={cn(
+          "mb-1 font-extrabold uppercase leading-tight tracking-wide",
+          (role === "happyHour" ||
+            role === "upcomingEvents" ||
+            role === "outingList" ||
+            role === "volunteerCallout") &&
+            "text-[22px]",
+          role === "featureBand" && "text-[22px] normal-case tracking-normal",
+          role === "spotlightRail" && "text-[20px] normal-case tracking-normal",
+          role === "infoFooter" && "text-[20px] normal-case tracking-normal",
+          !role && "text-[13px]",
+        )}
         style={{
           color: invert ? "#F7F5EF" : headerColor,
           fontFamily: `${client.headingFont}, Georgia, serif`,
@@ -336,7 +353,14 @@ function BlockView({
   if (block.kind === "image" && image) {
     content = (
       <figure className="flex min-h-0 flex-1 flex-col">
-        <div className="min-h-0 flex-1 overflow-hidden rounded-lg">
+        <div
+          className={cn(
+            "min-h-0 flex-1 overflow-hidden rounded-lg",
+            block.style?.photoTreatment === "wide" && "rounded-xl",
+            block.style?.photoTreatment === "portrait" && "rounded-xl",
+            block.style?.photoTreatment === "collage" && "rounded-[10px]",
+          )}
+        >
           <img
             src={image.url}
             alt={image.alt ?? ""}
@@ -349,7 +373,7 @@ function BlockView({
             draggable={false}
           />
         </div>
-        {block.caption && (
+        {block.caption && block.style?.photoTreatment !== "collage" && (
           <figcaption className="pt-0.5 text-center text-[8.5px] italic text-neutral-500">
             {block.caption}
           </figcaption>
@@ -358,20 +382,33 @@ function BlockView({
     );
   } else if (block.kind === "list") {
     content = (
-      <div className="text-[9px] leading-[1.55]">
+      <div
+        className={cn(
+          "leading-[1.55]",
+          role === "birthday" ? "text-[12px]" : "text-[9px]",
+          (role === "happyHour" || role === "upcomingEvents" || role === "outingList") &&
+            "text-center text-[11px] leading-[1.35]",
+        )}
+      >
         {headingEl}
         {(block.listItems ?? []).map((item, i) =>
           item.isGroupHeader ? (
             <div
               key={i}
-              className="mt-1 text-[8px] font-extrabold tracking-[0.12em] opacity-80"
+                className={cn(
+                  "mt-1 font-extrabold tracking-[0.12em] opacity-80",
+                  role === "birthday" ? "text-[11px] text-[#D85C2A]" : "text-[8px]",
+                )}
             >
               {item.label}
             </div>
           ) : (
             <div
               key={i}
-              className="flex justify-between gap-2 border-b border-dotted border-black/10 py-px"
+              className={cn(
+                "flex justify-between gap-2 border-b border-dotted border-black/10 py-px",
+                role === "birthday" && "border-b-0",
+              )}
               style={invert ? { borderColor: "rgba(255,255,255,0.25)" } : undefined}
             >
               <span className="font-semibold">{item.label}</span>
@@ -389,7 +426,18 @@ function BlockView({
         {article?.byline && (
           <div className="mb-0.5 text-[8px] opacity-70">By {article.byline}</div>
         )}
-        <div className="whitespace-pre-line text-[9px] leading-[1.4]">{body}</div>
+        <div
+          className={cn(
+            "whitespace-pre-line",
+            block.style?.compact ? "text-[9px] leading-[1.28]" : "text-[9px] leading-[1.4]",
+            role === "directorCorner" && "text-[11px] font-bold leading-[1.25]",
+            role === "featureBand" && "text-[11px] font-bold leading-[1.25]",
+            role === "spotlightRail" && "text-[11px] font-bold leading-[1.25]",
+            role === "infoFooter" && "text-[9.5px] font-bold leading-[1.25]",
+          )}
+        >
+          {body}
+        </div>
       </div>
     );
   } else {
@@ -427,11 +475,21 @@ function BlockView({
         className={cn(
           "flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden",
           bg && "px-2.5 py-2",
+          role === "birthday" && "border-b-[8px] border-[#D85C2A] px-4 py-3",
+          role === "directorCorner" && "px-4 py-3",
+          role === "featureBand" && "px-5 py-3",
+          role === "spotlightRail" && "px-4 py-3",
+          role === "infoFooter" && "px-5 py-3",
           editable && "ring-1 ring-transparent hover:ring-sky-300",
           selected && "ring-2 !ring-sky-500",
         )}
         style={{
           background: bg ?? undefined,
+          backgroundImage:
+            role === "birthday"
+              ? "radial-gradient(circle, rgba(21,27,43,0.22) 0 2px, transparent 2.4px)"
+              : undefined,
+          backgroundSize: role === "birthday" ? "18px 18px" : undefined,
           borderRadius: radius || undefined,
           color: invert ? "#F7F5EF" : undefined,
         }}

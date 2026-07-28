@@ -20,6 +20,7 @@ import type {
   LayoutBlock,
   ListItem,
   NewsImage,
+  PanelRole,
   PanelToken,
 } from "@newsforge/shared/schemas";
 import {
@@ -30,8 +31,14 @@ import {
 
 const BIRTHDAY_RE = /birthday/i;
 const SCHEDULE_RE = /happy hour|event|calendar|schedule|brunch|save the date/i;
+const OUTING_RE = /out and about|outing|destination|trip/i;
+const SPOTLIGHT_RE = /smile of the month|spotlight|meet\s+/i;
+const FEATURE_BAND_RE = /scrubbly|car wash|recap|feature band/i;
+const VOLUNTEER_RE = /make the difference|volunteer/i;
+const INFO_FOOTER_RE = /trust funds|business office|compliance|hotline/i;
 const DATE_LINE_RE = /^\s*(\d{1,2}\/\d{1,2})\s*[:\-–—]?\s*(.+)$/;
 const NAME_DATE_RE = /^\s*([A-Z][\w'.-]+(?:\s+[A-Z][\w'.]*\.?)?)\s+(\d{1,2}\/\d{1,2})\s*$/;
+const INLINE_NAME_DATE_RE = /([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?\s+[A-Z]\.)\s+(?:on\s+)?(\d{1,2}\/\d{1,2})/g;
 
 function panelFromStyleTag(tag: string | undefined): PanelToken | null {
   const m = tag?.match(/^panel:([a-z]+)$/);
@@ -64,6 +71,11 @@ export function parseListItems(body: string): ListItem[] {
       items.push({ label: dl[1], value: dl[2] });
     }
   }
+  if (items.length === 0) {
+    for (const match of body.matchAll(INLINE_NAME_DATE_RE)) {
+      items.push({ label: match[1], value: match[2] });
+    }
+  }
   return items;
 }
 
@@ -72,6 +84,96 @@ function firstSentence(text: string, max = 90): string {
   const stop = clean.search(/[.!?]/);
   const s = stop > 0 ? clean.slice(0, stop + 1) : clean;
   return s.length <= max ? s : `${s.slice(0, max).replace(/\s+\S*$/, "")}…`;
+}
+
+function roleFor(block: LayoutBlock, title = "", body = ""): PanelRole | null {
+  const haystack = `${block.styleTag ?? ""} ${title} ${body.slice(0, 240)}`;
+  if (BIRTHDAY_RE.test(haystack)) return "birthday";
+  if (/exec|director|letter|corner/i.test(haystack)) return "directorCorner";
+  if (/happy hour/i.test(haystack)) return "happyHour";
+  if (/upcoming[- ]events|events panel/i.test(haystack)) return "upcomingEvents";
+  if (SPOTLIGHT_RE.test(haystack)) return "spotlightRail";
+  if (FEATURE_BAND_RE.test(haystack)) return "featureBand";
+  if (VOLUNTEER_RE.test(haystack)) return "volunteerCallout";
+  if (INFO_FOOTER_RE.test(haystack)) return "infoFooter";
+  if (OUTING_RE.test(haystack)) return "outingList";
+  if (/collage|photoCluster|photo-cluster/i.test(haystack)) return "photoCluster";
+  return null;
+}
+
+function applyRoleDefaults(block: LayoutBlock, role: PanelRole): void {
+  block.style ??= {};
+  block.style.panelRole = block.style.panelRole ?? role;
+  switch (role) {
+    case "birthday":
+      block.style.bg = "sun";
+      block.style.headerColor = "navy";
+      block.style.scriptHeading = true;
+      block.style.cornerRadius = 0;
+      block.heading = block.heading ?? "Happy Birthday!";
+      break;
+    case "directorCorner":
+      block.style.bg = "cream";
+      block.style.headerColor = "navy";
+      block.style.scriptHeading = true;
+      block.style.cornerRadius = 18;
+      block.heading = block.heading ?? "Executive Director Corner";
+      break;
+    case "happyHour":
+      delete block.style.bg;
+      block.style.headerColor = "primary";
+      block.style.centered = true;
+      block.style.compact = true;
+      block.heading = "Happy Hour";
+      break;
+    case "upcomingEvents":
+      delete block.style.bg;
+      block.style.headerColor = "berry";
+      block.style.centered = true;
+      block.style.compact = true;
+      block.heading = "Upcoming Events";
+      break;
+    case "outingList":
+      delete block.style.bg;
+      block.style.headerColor = "coral";
+      block.style.centered = true;
+      block.style.compact = true;
+      block.heading = "Out and About";
+      break;
+    case "spotlightRail":
+      block.style.bg = "berry";
+      block.style.headerColor = "navy";
+      block.style.centered = true;
+      block.style.compact = true;
+      block.style.cornerRadius = 0;
+      break;
+    case "featureBand":
+      block.style.bg = "sky";
+      block.style.headerColor = "navy";
+      block.style.centered = true;
+      block.style.compact = true;
+      block.style.cornerRadius = 0;
+      break;
+    case "volunteerCallout":
+      delete block.style.bg;
+      block.style.headerColor = "leaf";
+      block.style.centered = true;
+      block.style.compact = true;
+      block.heading = "Make the Difference";
+      break;
+    case "infoFooter":
+      block.style.bg = "navy";
+      block.style.headerColor = "paper";
+      block.style.invertText = true;
+      block.style.centered = true;
+      block.style.compact = true;
+      block.style.cornerRadius = 0;
+      block.heading = block.heading ?? "Trust Funds";
+      break;
+    case "photoCluster":
+      block.style.photoTreatment = block.style.photoTreatment ?? "collage";
+      break;
+  }
 }
 
 export interface VibrancyInput {
@@ -93,9 +195,14 @@ export function applyVibrancyPass(input: VibrancyInput): AssembledLayout {
     if (tagPanel && !next.style!.bg) next.style!.bg = tagPanel;
 
     const looksBirthday =
-      BIRTHDAY_RE.test(article?.title ?? "") || /birthday/i.test(next.styleTag ?? "");
+      BIRTHDAY_RE.test(article?.title ?? "") ||
+      article?.articleType === "birthday" ||
+      /birthday/i.test(next.styleTag ?? "");
     const looksSchedule =
-      SCHEDULE_RE.test(article?.title ?? "") || /schedule|events/i.test(next.styleTag ?? "");
+      SCHEDULE_RE.test(article?.title ?? "") ||
+      OUTING_RE.test(article?.title ?? "") ||
+      /schedule|events|outing|out-and-about/i.test(next.styleTag ?? "");
+    const role = next.style?.panelRole ?? roleFor(next, article?.title, article?.body);
 
     // --- Structured list conversion (birthdays / schedules) ---
     if (
@@ -113,6 +220,7 @@ export function applyVibrancyPass(input: VibrancyInput): AssembledLayout {
         if (looksBirthday) {
           next.style!.bg = next.style!.bg ?? "sun";
           next.style!.scriptHeading = next.style!.scriptHeading ?? true;
+          next.style!.panelRole = next.style!.panelRole ?? "birthday";
         } else {
           next.style!.bg =
             next.style!.bg ?? PANEL_ROTATION[panelIdx++ % PANEL_ROTATION.length];
@@ -132,7 +240,12 @@ export function applyVibrancyPass(input: VibrancyInput): AssembledLayout {
     if (/exec|director|letter|corner/i.test(next.styleTag ?? "") || /director/i.test(article?.title ?? "")) {
       next.style!.bg = next.style!.bg ?? "cream";
       next.style!.scriptHeading = next.style!.scriptHeading ?? true;
+      next.style!.panelRole = next.style!.panelRole ?? "directorCorner";
       next.heading = next.heading ?? "Executive Director Corner";
+    }
+
+    if (role) {
+      applyRoleDefaults(next, role);
     }
 
     // --- Feature headers get rotating colors ---
@@ -154,6 +267,17 @@ export function applyVibrancyPass(input: VibrancyInput): AssembledLayout {
           img?.caption ??
           (img?.alt ? firstSentence(img.alt) : undefined) ??
           "A wonderful moment around campus!";
+      }
+      if (/collage|photo[- ]?cluster/i.test(next.styleTag ?? "")) {
+        next.style!.panelRole = next.style!.panelRole ?? "photoCluster";
+        next.style!.photoTreatment = next.style!.photoTreatment ?? "collage";
+        next.caption = undefined;
+      } else if (/portrait/i.test(next.styleTag ?? "")) {
+        next.style!.photoTreatment = next.style!.photoTreatment ?? "portrait";
+      } else if (/wide|hero/i.test(next.styleTag ?? "")) {
+        next.style!.photoTreatment = next.style!.photoTreatment ?? "wide";
+      } else {
+        next.style!.photoTreatment = next.style!.photoTreatment ?? "rounded";
       }
     }
 

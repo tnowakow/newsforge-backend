@@ -6,11 +6,11 @@
 import type { ClientFull, PanelToken } from "@/lib/types";
 
 export const FIXED_PALETTE: Record<string, string> = {
-  sun: "#F2E76B",
-  navy: "#1F2A44",
+  sun: "#E7F22F",
+  navy: "#151B2B",
   coral: "#E8762C",
-  sky: "#7FB6D9",
-  berry: "#B183C4",
+  sky: "#78C2E6",
+  berry: "#D4A4D2",
   leaf: "#6FAE6B",
   blush: "#E9A0B4",
   cream: "#FAF3E2",

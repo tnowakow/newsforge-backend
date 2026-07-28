@@ -75,8 +75,9 @@ async function candidateTemplatesForClient(
   clientRichness: string,
   clientId: string,
 ): Promise<ScoreableTemplate[]> {
-  // Trilogy → 5 Trilogy templates only (ids prefixed with "t-trilogy-" via
-  // stableId hash, tagged in compatibilityHints.notes for lookup safety).
+  // Trilogy → the newer v3 inner-spread templates plus legacy Trilogy
+  // templates. The demo target is pages 2/3 of the full newsletter, and those
+  // are represented by the [v3-spread] templates.
   // Others → templates whose compatibilityHints.richness includes the
   // client's richnessLevel.
   const rows = await prisma.template.findMany();
@@ -92,7 +93,8 @@ async function candidateTemplatesForClient(
       const notes = hints.notes ?? "";
       const isTrilogyTemplate =
         notes.includes("[trilogy]") || t.name.startsWith("Trilogy ");
-      if (isTrilogy) return isTrilogyTemplate;
+      const isV3SpreadTemplate = notes.includes("[v3-spread]");
+      if (isTrilogy) return isV3SpreadTemplate || isTrilogyTemplate;
       if (isTrilogyTemplate) return false;
       return (hints.richness ?? []).includes(clientRichness);
     })

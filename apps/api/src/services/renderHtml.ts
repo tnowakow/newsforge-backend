@@ -85,6 +85,14 @@ function renderList(block: LayoutBlock): string {
   return `<div class="list-body">${rows}</div>`;
 }
 
+function roleClass(b: LayoutBlock): string {
+  return b.style?.panelRole ? ` role-${b.style.panelRole}` : "";
+}
+
+function photoClass(b: LayoutBlock): string {
+  return b.style?.photoTreatment ? ` photo-${b.style.photoTreatment}` : "";
+}
+
 function renderBlock(input: RenderInput, b: LayoutBlock): string {
   const articlesById = new Map(input.articles.map((a) => [a.id, a]));
   const imagesById = new Map(input.images.map((i) => [i.id, i]));
@@ -118,7 +126,7 @@ function renderBlock(input: RenderInput, b: LayoutBlock): string {
     const img = imagesById.get(b.imageId);
     if (img) {
       inner = `
-        <figure class="photo">
+        <figure class="photo${photoClass(b)}">
           <div class="photo-frame"><img src="${esc(img.url)}" alt="${esc(img.alt ?? "")}" style="${imageInlineStyle(img)}"/></div>
           ${b.caption ? `<figcaption>${esc(b.caption)}</figcaption>` : ""}
         </figure>`;
@@ -135,23 +143,29 @@ function renderBlock(input: RenderInput, b: LayoutBlock): string {
     inner = `
       ${title ? headingHtml(title) : ""}
       ${article?.byline ? `<div class="byline">By ${esc(article.byline)}</div>` : ""}
-      <div class="body${b.style?.centered ? " centered" : ""}">${bodyHtml}</div>`;
+      <div class="body${b.style?.centered ? " centered" : ""}${b.style?.compact ? " compact" : ""}">${bodyHtml}</div>`;
   } else {
     // empty / placeholder — render nothing in print output.
     return "";
   }
 
-  return `<div class="block" style="${outerStyle}"><div class="block-inner${bg ? " panel" : ""}" style="${panelStyle}">${inner}</div></div>`;
+  return `<div class="block${roleClass(b)}" style="${outerStyle}"><div class="block-inner${bg ? " panel" : ""}${roleClass(b)}" style="${panelStyle}">${inner}</div></div>`;
 }
 
 function masthead(input: RenderInput, page: number): string {
   if (page !== 1) {
     return `<header class="masthead slim"><span style="color:${input.brandKit.accentColor}">${esc(input.clientName)}</span><span>${esc(input.monthLabel)}</span></header>`;
   }
+  const logo = input.brandKit.logoUrl
+    ? `<img class="logo" src="${esc(input.brandKit.logoUrl)}" alt="${esc(input.clientName)} logo"/>`
+    : "";
   return `
     <header class="masthead">
-      <div class="kicker" style="color:${input.brandKit.accentColor}">${esc(input.monthLabel)} · Community Newsletter</div>
-      <h1 style="color:${input.brandKit.primaryColor}">${esc(input.clientName)}</h1>
+      ${logo}
+      <div>
+        <div class="kicker" style="color:${input.brandKit.accentColor}">${esc(input.monthLabel)} · Community Newsletter</div>
+        <h1 style="color:${input.brandKit.primaryColor}">${esc(input.clientName)}</h1>
+      </div>
     </header>`;
 }
 
@@ -199,30 +213,70 @@ export function renderRunHtml(input: RenderInput): string {
     page-break-after: always; overflow: hidden;
     display: flex; flex-direction: column;
   }
-  .masthead { margin-bottom: 0.12in; font-family: var(--heading-font); }
-  .masthead .kicker { font-size: 8pt; letter-spacing: 0.18em; text-transform: uppercase; }
+    .masthead { margin-bottom: 0.12in; font-family: var(--heading-font); display:flex; align-items:center; gap:12px; min-height:44px; }
+    .masthead .logo { max-height:40px; max-width:118px; object-fit:contain; }
+    .masthead .kicker { font-size: 8pt; letter-spacing: 0.18em; text-transform: uppercase; }
   .masthead h1 { font-size: 26pt; line-height: 1.05; margin-top: 2pt; }
   .masthead.slim { display:flex; justify-content:space-between; font-size:8pt; letter-spacing:0.14em; text-transform:uppercase; color:#777; margin-bottom:0.12in; }
   .content { flex:1; display:grid; gap: 6px; }
   .block { min-height: 0; min-width: 0; display:flex; }
   .block-inner { flex:1; min-width:0; overflow:hidden; display:flex; flex-direction:column; }
-  .block-inner.panel { padding: 9px 11px; }
-  .section-heading { font-family: var(--heading-font); font-weight: 800; text-transform: uppercase; letter-spacing: 0.03em; font-size: 12.5pt; line-height:1.1; margin-bottom: 4pt; }
-  .script-heading { font-family: var(--heading-font); font-style: italic; font-weight: 700; font-size: 14pt; margin-bottom: 4pt; }
-  .byline { font-size: 7.5pt; color: inherit; opacity:0.7; margin-bottom: 3pt; }
-  .body { font-size: 8.6pt; line-height: 1.38; }
-  .body p + p { margin-top: 4pt; }
-  .body.centered { text-align:center; }
+    .block-inner.panel { padding: 9px 11px; }
+    .section-heading { font-family: var(--heading-font); font-weight: 900; text-transform: uppercase; letter-spacing: 0.04em; font-size: 15pt; line-height:1.02; margin-bottom: 4pt; text-align:center; }
+    .script-heading { font-family: var(--heading-font); font-style: italic; font-weight: 800; font-size: 16pt; line-height:1.05; margin-bottom: 5pt; }
+    .byline { font-size: 7.5pt; color: inherit; opacity:0.7; margin-bottom: 3pt; }
+    .body { font-size: 8.6pt; line-height: 1.38; }
+    .body.compact { font-size: 8pt; line-height: 1.28; }
+    .body p + p { margin-top: 4pt; }
+    .body.centered { text-align:center; }
   .list-body { font-size: 8.4pt; line-height: 1.5; }
   .list-group { font-weight: 800; letter-spacing: 0.12em; font-size: 7.6pt; margin: 5pt 0 2pt; opacity: 0.85; }
   .list-row { display:flex; justify-content:space-between; gap: 8px; border-bottom: 1px dotted rgba(0,0,0,0.12); padding: 1pt 0; }
   .block-inner[style*="color:#F7F5EF"] .list-row { border-bottom-color: rgba(255,255,255,0.25); }
   .list-label { font-weight: 600; }
   .photo { flex:1; display:flex; flex-direction:column; min-height:0; }
-  .photo-frame { flex:1; min-height:0; overflow:hidden; border-radius: 8px; }
-  .photo-frame img { width:100%; height:100%; object-fit:cover; display:block; }
-  .photo figcaption { font-size: 7.4pt; font-style: italic; text-align:center; padding-top: 3pt; color:#555; }
-  .pagefoot { margin-top: 0.08in; padding-top: 4pt; border-top: 2px solid; display:flex; justify-content:space-between; font-size: 7.4pt; letter-spacing: 0.1em; text-transform: uppercase; color:#666; }
+    .photo-frame { flex:1; min-height:0; overflow:hidden; border-radius: 8px; }
+    .photo-frame img { width:100%; height:100%; object-fit:cover; display:block; }
+    .photo figcaption { font-size: 7.4pt; font-style: italic; text-align:center; padding-top: 3pt; color:#555; }
+    .photo-collage .photo-frame { border-radius: 10px; }
+    .photo-wide .photo-frame { border-radius: 12px; }
+    .photo-portrait .photo-frame { border-radius: 12px; }
+    .role-birthday {
+      background-image: radial-gradient(circle, rgba(21,27,43,0.22) 0 2px, transparent 2.4px);
+      background-size: 18px 18px;
+    }
+    .role-birthday.panel { padding: 17px 19px 10px; border-bottom: 8px solid #D85C2A; }
+    .role-birthday .script-heading { font-size: 20pt; text-align:left; }
+    .role-birthday .list-body { font-size: 10.5pt; line-height: 1.35; }
+    .role-birthday .list-group { color:#D85C2A; font-size: 10pt; margin-top: 8pt; }
+    .role-birthday .list-row { border-bottom: 0; }
+    .role-directorCorner.panel { padding: 17px 20px; }
+    .role-directorCorner .script-heading { font-size: 23pt; font-style: normal; text-transform: uppercase; letter-spacing:0.02em; }
+    .role-directorCorner .body { font-weight: 700; font-size: 10pt; line-height:1.24; }
+    .role-happyHour .section-heading,
+    .role-upcomingEvents .section-heading,
+    .role-outingList .section-heading,
+    .role-volunteerCallout .section-heading { font-size: 19pt; }
+    .role-happyHour .body,
+    .role-upcomingEvents .body,
+    .role-outingList .body,
+    .role-volunteerCallout .body { font-size: 9.1pt; line-height:1.23; }
+    .role-happyHour .list-body,
+    .role-upcomingEvents .list-body,
+    .role-outingList .list-body { font-size: 10pt; line-height:1.32; }
+    .role-featureBand.panel { padding: 16px 22px; }
+    .role-featureBand .script-heading,
+    .role-featureBand .section-heading { font-size: 20pt; text-transform:none; letter-spacing:0; }
+    .role-featureBand .body { font-size: 10pt; font-weight: 700; line-height:1.25; }
+    .role-spotlightRail.panel { padding: 17px 20px; }
+    .role-spotlightRail .script-heading,
+    .role-spotlightRail .section-heading { font-size: 18pt; text-transform:none; letter-spacing:0; }
+    .role-spotlightRail .body { font-size: 10pt; font-weight: 700; line-height:1.26; }
+    .role-infoFooter.panel { padding: 14px 22px; }
+    .role-infoFooter .script-heading,
+    .role-infoFooter .section-heading { font-size: 18pt; text-transform:none; letter-spacing:0; margin-bottom:5pt; }
+    .role-infoFooter .body { font-size: 8.6pt; font-weight: 700; line-height:1.22; }
+    .pagefoot { margin-top: 0.08in; padding-top: 4pt; border-top: 2px solid; display:flex; justify-content:space-between; font-size: 7.4pt; letter-spacing: 0.1em; text-transform: uppercase; color:#666; }
 </style>
 </head>
 <body>

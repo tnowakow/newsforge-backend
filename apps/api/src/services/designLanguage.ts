@@ -23,11 +23,11 @@ export const FIXED_PALETTE: Record<
   Exclude<PanelToken, "primary" | "secondary" | "accent">,
   string
 > = {
-  sun: "#F2E76B", // warm yellow — birthday card
-  navy: "#1F2A44", // deep navy — schedule panels (light text)
+  sun: "#E7F22F", // vivid yellow-green — birthday card
+  navy: "#151B2B", // deep navy — footer/info panels (light text)
   coral: "#E8762C", // warm orange — events, section headers
-  sky: "#7FB6D9", // light blue — info/anniversary panels
-  berry: "#B183C4", // muted purple — legacy/memory-care panels
+  sky: "#78C2E6", // light blue — feature bands
+  berry: "#D4A4D2", // lavender — spotlight rails
   leaf: "#6FAE6B", // green — campus/outdoors headers
   blush: "#E9A0B4", // soft pink — spotlight panels
   cream: "#FAF3E2", // warm off-white — executive director corner
@@ -77,19 +77,21 @@ export const PANEL_ROTATION: PanelToken[] = [
  * ai-edits audit log records exactly what specification the model received
  * (FR-5 in the v1 requirements doc).
  */
-export const DESIGN_LANGUAGE_PROMPT = `You are the layout designer for a senior-living community's monthly print newsletter — the inner spread of an 11x17 fold: two facing letter-size pages (page 1 = left, page 2 = right).
+export const DESIGN_LANGUAGE_PROMPT = `You are the layout designer for a senior-living community's monthly print newsletter — the inner spread of an 11x17 fold: two facing letter-size pages. In the final folded newsletter, these are usually pages 2 and 3; page 1 and page 4 are the reusable client wrapper.
 
 You receive: the client brand kit, a template's slot grid (a starting skeleton — you may adjust positions and spans), the month's articles (with excerpts), and the month's photos. You return a complete AssembledLayout blocks array as strict JSON.
 
-DESIGN LANGUAGE (follow closely — this is the house style):
-1. Panels, not plain columns. Side-rail content lives in rounded colored panels: birthdays on a "sun" (yellow) panel; recurring schedules (happy hour, brunch, events) on "navy" or "coral" panels with invertText for dark ones; anniversaries/announcements on "sky", "berry", or "blush"; the Executive Director letter always on a "cream" panel with a scriptHeading.
-2. Colored ALL-CAPS section headers. Every feature article gets a "heading" (short, punchy, ALL CAPS in spirit) with a headerColor drawn from coral/sky/leaf/berry/accent. Vary colors across the spread; never two adjacent features with the same headerColor.
-3. Birthdays are a list block. If an article or its excerpt contains birthday names/dates, convert it to kind "list" with listItems: group headers ("RESIDENTS", "STAFF") as isGroupHeader rows, then {label: "First L.", value: "M/D"} rows. Style: bg "sun", scriptHeading, heading "Happy Birthday!".
-4. Event schedules are list blocks too. Dated schedules become kind "list" with {label: "7/03", value: "Event name"} rows on a navy or coral panel (invertText on navy).
-5. Every photo gets a caption. Write a warm one-line caption from the photo's existing caption/alt or the article it accompanies. Captions are italic and short.
-6. No white space, no overflow. Every slot filled; if content is sparse, grow photo spans and article spans to fill the page. If content overflows, prefer trimming the longest article over dropping content.
-7. Photos cluster near their stories. Multi-photo groups may sit in adjacent slots as a collage; keep at least one large photo per page.
-8. Keep the left page anchored: birthdays panel top-left, Executive Director cream panel beside it. The right page is the feature side: one dominant feature with photos plus a colored right rail.
+GATEWAY SPRINGS REFERENCE TARGET (follow closely for demo-quality output):
+1. Page 1 of this inner spread should feel like Gateway page 2: a vivid birthday card at top-left, a cream Executive Director Corner across the top, then HAPPY HOUR and UPCOMING EVENTS as two dense lower editorial columns with blue/purple all-caps headers and small photo clusters along the bottom.
+2. Page 2 of this inner spread should feel like Gateway page 3: stacked photos on the left, OUT AND ABOUT as a centered outing list near the top, a tall lavender Smile-of-the-Month style right rail, a sky-blue feature band across the middle, a green volunteer callout, and a dark navy Trust Funds / info footer spanning the bottom.
+3. Panels are purposeful, not everywhere. Use "sun" for birthdays, "cream" for Executive Director, "berry" for the tall profile rail, "sky" for feature bands, "navy" with invertText for footer/info bars, and mostly plain paper for Happy Hour / Upcoming Events text columns.
+4. Set style.panelRole whenever a block fits: birthday, directorCorner, happyHour, upcomingEvents, outingList, spotlightRail, featureBand, volunteerCallout, infoFooter, photoCluster.
+5. Colored ALL-CAPS section headers. Every feature article gets a short heading with headerColor drawn from coral/sky/leaf/berry/accent. Vary colors across the spread; never two adjacent features with the same headerColor.
+6. Birthdays are a list block. If an article or its excerpt contains birthday names/dates, convert it to kind "list" with listItems: group headers ("RESIDENTS", "STAFF") as isGroupHeader rows, then {label: "First L.", value: "M/D"} rows. Style: bg "sun", panelRole "birthday", scriptHeading, heading "Happy Birthday!".
+7. Dated schedules and outings are list blocks too. Happy Hour uses panelRole "happyHour" on paper with blue headerColor. Upcoming Events uses panelRole "upcomingEvents" on paper with berry headerColor. Outings use panelRole "outingList" with compact two-column rows when possible.
+8. Every photo gets a caption unless it is part of a tight collage/photoCluster. Captions are italic and short.
+9. No white space, no overflow. Every slot filled; if content is sparse, grow photo spans and article spans to fill the page. If content overflows, prefer trimming the longest article over dropping content.
+10. Photos cluster near their stories. Multi-photo groups may sit in adjacent slots as a collage; keep several small real-life photos across pages 1 and 2.
 
 STRICT OUTPUT RULES:
 - JSON only, matching the provided schema. Preserve every blockId you were given for blocks you keep; new blocks get blockId "new-1", "new-2", ...
