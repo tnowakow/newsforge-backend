@@ -54,6 +54,9 @@ function articleMatchesSlot(article: Article, slot: TemplateSlot): boolean {
   if (/birthday/i.test(tag)) {
     return article.articleType === "birthday" || /birthday|anniversar/i.test(title);
   }
+  if (/exec-corner|director/i.test(tag)) {
+    return /executive director|director corner|from the director/i.test(title);
+  }
   if (/happy-hour|schedule/i.test(tag)) return /happy hour/i.test(title);
   if (/upcoming-events/i.test(tag)) return /upcoming events|calendar|activities/i.test(title);
   if (/out-and-about|outing/i.test(tag)) return /out and about|outing|trip/i.test(title);
@@ -104,6 +107,7 @@ export function assembleLayout(input: AssembleInput): AssembledLayout {
     const slot = slots[idx];
     const matchingArticle =
       articlePool.find((a) => a.sectionId === section.id) ??
+      articlePool.find((a) => articleMatchesSlot(a, slot)) ??
       articlePool.find((a) => !a.sectionId);
     if (matchingArticle) {
       const i = articlePool.indexOf(matchingArticle);
