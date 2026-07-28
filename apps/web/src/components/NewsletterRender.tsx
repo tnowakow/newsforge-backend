@@ -385,7 +385,7 @@ function BlockView({
       <div
         className={cn(
           "leading-[1.55]",
-          role === "birthday" ? "text-[12px]" : "text-[9px]",
+          role === "birthday" ? "text-[10.5px] leading-[1.28]" : "text-[9px]",
           (role === "happyHour" || role === "upcomingEvents" || role === "outingList") &&
             "text-center text-[11px] leading-[1.35]",
         )}
@@ -397,7 +397,7 @@ function BlockView({
               key={i}
                 className={cn(
                   "mt-1 font-extrabold tracking-[0.12em] opacity-80",
-                  role === "birthday" ? "text-[11px] text-[#D85C2A]" : "text-[8px]",
+                  role === "birthday" ? "text-[10px] text-[#D85C2A]" : "text-[8px]",
                 )}
             >
               {item.label}

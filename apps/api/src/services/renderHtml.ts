@@ -247,8 +247,8 @@ export function renderRunHtml(input: RenderInput): string {
     }
     .role-birthday.panel { padding: 17px 19px 10px; border-bottom: 8px solid #D85C2A; }
     .role-birthday .script-heading { font-size: 20pt; text-align:left; }
-    .role-birthday .list-body { font-size: 10.5pt; line-height: 1.35; }
-    .role-birthday .list-group { color:#D85C2A; font-size: 10pt; margin-top: 8pt; }
+    .role-birthday .list-body { font-size: 9.6pt; line-height: 1.23; }
+    .role-birthday .list-group { color:#D85C2A; font-size: 9.2pt; margin-top: 6pt; }
     .role-birthday .list-row { border-bottom: 0; }
     .role-directorCorner.panel { padding: 17px 20px; }
     .role-directorCorner .script-heading { font-size: 23pt; font-style: normal; text-transform: uppercase; letter-spacing:0.02em; }
