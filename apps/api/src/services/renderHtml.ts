@@ -257,6 +257,7 @@ export function renderRunHtml(input: RenderInput): string {
     .role-upcomingEvents .section-heading,
     .role-outingList .section-heading,
     .role-volunteerCallout .section-heading { font-size: 19pt; }
+    .role-happyHour .section-heading { margin-top: 7pt; }
     .role-happyHour .body,
     .role-upcomingEvents .body,
     .role-outingList .body,
