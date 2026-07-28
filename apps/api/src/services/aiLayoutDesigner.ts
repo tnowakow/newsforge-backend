@@ -230,6 +230,16 @@ export async function designLayout(
   });
 
   const fallbackLayout = deterministic();
+  if (input.templateId === "v3-spread-classic") {
+    return {
+      layout: fallbackLayout,
+      mode: "deterministic",
+      designNotes:
+        "Gateway inner-spread archetype uses the deterministic reference layout for demo stability.",
+      promptAudit: { systemPrompt, userPrompt },
+    };
+  }
+
   const result = await callGeminiJson({
     schema: AiDesignResponseSchema,
     systemPrompt,
