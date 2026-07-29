@@ -79,6 +79,31 @@ export function parseListItems(body: string): ListItem[] {
   return items;
 }
 
+function compactBirthdayItems(items: ListItem[], block: LayoutBlock): ListItem[] {
+  const area = block.position.colSpan * block.position.rowSpan;
+  if (area > 32 || items.length <= 12) return items;
+
+  const compact: ListItem[] = [];
+  let rows = 0;
+  let activeGroup = "";
+  const maxRowsByGroup: Record<string, number> = { RESIDENTS: 4, STAFF: 4 };
+  for (const item of items) {
+    if (item.isGroupHeader) {
+      activeGroup = item.label.toUpperCase();
+      if (!compact.some((existing) => existing.isGroupHeader && existing.label === item.label)) {
+        compact.push(item);
+      }
+      rows = 0;
+      continue;
+    }
+    const maxRows = maxRowsByGroup[activeGroup] ?? 8;
+    if (rows >= maxRows) continue;
+    compact.push(item);
+    rows += 1;
+  }
+  return compact;
+}
+
 function firstSentence(text: string, max = 90): string {
   const clean = text.replace(/\s+/g, " ").trim();
   const stop = clean.search(/[.!?]/);
@@ -215,7 +240,7 @@ export function applyVibrancyPass(input: VibrancyInput): AssembledLayout {
         : parseListItems(article.body);
       if (items.length >= 2) {
         next.kind = "list";
-        next.listItems = items;
+        next.listItems = looksBirthday ? compactBirthdayItems(items, next) : items;
         next.heading = next.heading ?? article.title;
         if (looksBirthday) {
           next.style!.bg = next.style!.bg ?? "sun";

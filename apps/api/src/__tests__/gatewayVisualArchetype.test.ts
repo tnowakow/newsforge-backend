@@ -161,6 +161,15 @@ test("generic slots do not steal articles needed by later semantic slots", () =>
       isFiller: false,
       source: "MOCK",
     },
+    {
+      id: "a-long",
+      title: "Protecting Your Skin During UV Safety Month",
+      body: "A useful wellness story can still be too long for a tiny recurring fallback slot.",
+      wordCount: 95,
+      articleType: "announcement",
+      isFiller: false,
+      source: "MOCK",
+    },
   ];
 
   const layout = assembleLayout({
@@ -220,7 +229,7 @@ test("generic recurring fallbacks do not steal semantic articles", () => {
     rowsPerPage: 10,
     slots: [
       slot("birthdays", 1, "list", 1, 1, 6, 5, "birthdays panel:sun"),
-      slot("spotlight", 1, "body", 7, 1, 6, 5),
+      { ...slot("spotlight", 1, "body", 7, 1, 6, 5), capacity: { maxWords: 28 } },
     ],
   };
   const articles: Article[] = [
@@ -250,6 +259,61 @@ test("generic recurring fallbacks do not steal semantic articles", () => {
   assert.equal(bySlot.get("birthdays")?.articleId, "a-birthday");
   assert.equal(bySlot.get("spotlight")?.articleId, undefined);
   assert.equal(bySlot.get("spotlight")?.needsFiller, true);
+});
+
+test("compact birthday modules limit rows before render measurement", () => {
+  const body = [
+    "RESIDENTS",
+    "Mary A. 7/3",
+    "Shirley S. 7/10",
+    "Janice F. 7/22",
+    "Michael V. 7/27",
+    "Joan C. 7/31",
+    "STAFF",
+    "Erica M. 7/1",
+    "Shristy P. 7/3",
+    "Jed N. 7/3",
+    "Adam J. 7/4",
+    "Gracey C. 7/8",
+    "Deborah R. 7/11",
+  ].join("\n");
+  const articles: Article[] = [
+    {
+      id: "a-birthday",
+      title: "Happy Birthday!",
+      body,
+      wordCount: 26,
+      articleType: "birthday",
+      isFiller: false,
+      source: "MOCK",
+    },
+  ];
+  const layout = applyVibrancyPass({
+    layout: {
+      templateId: "v3-editorial-light",
+      pageCount: 1,
+      version: 1,
+      blocks: [
+        {
+          blockId: "b1",
+          slotId: "birthdays",
+          page: 1,
+          position: { col: 1, row: 1, colSpan: 6, rowSpan: 5 },
+          kind: "article",
+          articleId: "a-birthday",
+          styleTag: "birthdays panel:sun",
+          needsFiller: false,
+        },
+      ],
+      unfilledSlotIds: [],
+      stats: { placedArticles: 1, placedImages: 0, fillerBlocks: 0, emptySlots: 0 },
+    },
+    articles,
+    images: [],
+  });
+
+  assert.equal(layout.blocks[0]?.kind, "list");
+  assert.ok((layout.blocks[0]?.listItems?.length ?? 0) <= 10);
 });
 
 
