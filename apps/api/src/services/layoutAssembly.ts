@@ -36,6 +36,10 @@ function compareSlots(a: TemplateSlot, b: TemplateSlot): number {
   return a.col - b.col;
 }
 
+function slotArea(slot: TemplateSlot): number {
+  return slot.colSpan * slot.rowSpan;
+}
+
 function slotMatchesSection(slot: TemplateSlot, section: RecurringSection): boolean {
   if (slot.type === section.slotHint) return true;
   const tag = slot.styleTag ?? "";
@@ -46,6 +50,24 @@ function slotMatchesSection(slot: TemplateSlot, section: RecurringSection): bool
     return true;
   }
   return false;
+}
+
+function isArticleLikeSlot(slot: TemplateSlot): boolean {
+  return (
+    slot.type === "headline" ||
+    slot.type === "body" ||
+    slot.type === "sidebar" ||
+    slot.type === "spotlight"
+  );
+}
+
+function isArticleLikeSection(section: RecurringSection): boolean {
+  return (
+    section.slotHint === "headline" ||
+    section.slotHint === "body" ||
+    section.slotHint === "sidebar" ||
+    section.slotHint === "spotlight"
+  );
 }
 
 function articleMatchesSlot(article: Article, slot: TemplateSlot): boolean {
@@ -85,6 +107,36 @@ function fitsSlotMaximum(article: Article, slot: TemplateSlot): boolean {
   return article.wordCount <= Math.ceil(max * 1.15);
 }
 
+function sectionSlotScore(
+  slot: TemplateSlot,
+  section: RecurringSection,
+  article: Article | undefined,
+): number {
+  const directMatch = slotMatchesSection(slot, section);
+  const compatibleArticleSlot =
+    article &&
+    isArticleLikeSection(section) &&
+    isArticleLikeSlot(slot) &&
+    !requiresSemanticArticle(slot);
+  if (!directMatch && !compatibleArticleSlot) return Number.NEGATIVE_INFINITY;
+  if (article && requiresSemanticArticle(slot) && !articleMatchesSlot(article, slot)) {
+    return Number.NEGATIVE_INFINITY;
+  }
+
+  let score = directMatch ? 60 : 35;
+  if (article) {
+    score += fitsSlotMaximum(article, slot) ? 40 : -35;
+    const min = slot.capacity.minWords ?? 0;
+    const max = slot.capacity.maxWords ?? Number.MAX_SAFE_INTEGER;
+    if (article.wordCount >= min && article.wordCount <= max) score += 15;
+    score += Math.min(slotArea(slot), 96) / 8;
+  }
+  if (articleMatchesSlot(article ?? ({ title: section.title, body: "", wordCount: 0 } as Article), slot)) {
+    score += 25;
+  }
+  return score;
+}
+
 function newBlockFor(slot: TemplateSlot): LayoutBlock {
   return {
     blockId: createId(),
@@ -117,10 +169,17 @@ export function assembleLayout(input: AssembleInput): AssembledLayout {
 
   // Pass 1 — place required recurring sections into matching slot types.
   for (const section of recurringPool) {
-    const idx = blocks.findIndex((b, i) => {
-      const s = slots[i];
-      return b.kind === "empty" && slotMatchesSection(s, section);
-    });
+    const sectionArticle = articlePool.find((a) => a.sectionId === section.id);
+    const idx = blocks
+      .map((block, i) => ({
+        i,
+        score:
+          block.kind === "empty"
+            ? sectionSlotScore(slots[i], section, sectionArticle)
+            : Number.NEGATIVE_INFINITY,
+      }))
+      .filter((candidate) => Number.isFinite(candidate.score))
+      .sort((a, b) => b.score - a.score || compareSlots(slots[a.i], slots[b.i]))[0]?.i ?? -1;
     if (idx === -1) continue;
     const slot = slots[idx];
     const matchingArticle =

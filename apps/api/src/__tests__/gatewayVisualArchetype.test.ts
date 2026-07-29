@@ -250,3 +250,56 @@ test("tiny general slots do not accept oversized fallback articles", () => {
   assert.equal(layout.blocks[0]?.articleId, undefined);
   assert.equal(layout.blocks[0]?.needsFiller, true);
 });
+
+test("recurring body articles expand into compatible feature slots before tiny body slots", () => {
+  const gridSpec: GridSpec = {
+    label: "recurring-feature-expansion",
+    columns: 12,
+    rowsPerPage: 10,
+    slots: [
+      {
+        ...slot("feature", 1, "headline", 1, 1, 8, 6),
+        capacity: { minWords: 80, maxWords: 220 },
+      },
+      {
+        ...slot("brief", 1, "body", 9, 1, 4, 2),
+        capacity: { maxWords: 55 },
+      },
+    ],
+  };
+  const sections: RecurringSection[] = [
+    {
+      id: "wellness",
+      title: "Wellness Feature",
+      slotHint: "body",
+      wordTarget: 140,
+      required: true,
+    },
+  ];
+  const articles: Article[] = [
+    {
+      id: "a-wellness",
+      sectionId: "wellness",
+      title: "Protecting Your Skin During UV Safety Month",
+      body: "A medium recurring story should claim the compatible feature region instead of being clipped in a tiny body slot.",
+      wordCount: 130,
+      articleType: "announcement",
+      isFiller: false,
+      source: "MOCK",
+    },
+  ];
+
+  const layout = assembleLayout({
+    templateId: "v3-editorial-light",
+    pageCount: 1,
+    gridSpec,
+    articles,
+    images: [],
+    recurringSections: sections,
+  });
+  const bySlot = new Map(layout.blocks.map((block) => [block.slotId, block]));
+
+  assert.equal(bySlot.get("feature")?.articleId, "a-wellness");
+  assert.equal(bySlot.get("feature")?.kind, "recurring");
+  assert.equal(bySlot.get("brief")?.articleId, undefined);
+});
