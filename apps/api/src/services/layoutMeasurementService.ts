@@ -29,6 +29,8 @@ interface DomMeasurement {
   missingImages: number;
   renderedImages: number;
   totalImages: number;
+  usefulOccupancy: number;
+  lowUtilityBlocks: number;
 }
 
 async function measureCandidate(input: Omit<MeasureInput, "candidates"> & {
@@ -51,12 +53,13 @@ async function measureCandidate(input: Omit<MeasureInput, "candidates"> & {
   });
   const measured = await page.evaluate((): DomMeasurement => {
     const doc = (globalThis as any).document;
-    const blocks = Array.from(doc.querySelectorAll(".block-inner")) as any[];
-    const clippedBlocks = blocks.filter((block) =>
+    const inners = Array.from(doc.querySelectorAll(".block-inner")) as any[];
+    const clippedBlocks = inners.filter((block) =>
       block.scrollHeight > block.clientHeight + 1 ||
       block.scrollWidth > block.clientWidth + 1,
     ).length;
-    const overflowBlocks = (Array.from(doc.querySelectorAll(".block")) as any[]).filter((block) => {
+    const blocks = Array.from(doc.querySelectorAll(".block")) as any[];
+    const overflowBlocks = blocks.filter((block) => {
       const rect = block.getBoundingClientRect();
       const pageRect = block.closest(".page")?.getBoundingClientRect();
       if (!pageRect) return false;
@@ -69,12 +72,46 @@ async function measureCandidate(input: Omit<MeasureInput, "candidates"> & {
     }).length;
     const images = Array.from(doc.querySelectorAll(".photo img")) as any[];
     const renderedImages = images.filter((image) => image.complete && image.naturalWidth > 0).length;
+    let weightedUtility = 0;
+    let totalBlockArea = 0;
+    let lowUtilityBlocks = 0;
+    for (const block of blocks) {
+      const rect = block.getBoundingClientRect();
+      const area = Math.max(0, rect.width * rect.height);
+      if (area <= 0) continue;
+      const image = block.querySelector(".photo img") as any;
+      let utility = 0;
+      if (image) {
+        utility = image.complete && image.naturalWidth > 0 ? 1 : 0;
+      } else {
+        const contentNodes = Array.from(block.querySelectorAll(
+          ".section-heading,.script-heading,.byline,.body p,.list-row,.list-group,figcaption",
+        )) as any[];
+        const contentRects = contentNodes
+          .map((node) => node.getBoundingClientRect())
+          .filter((r) => r.width > 1 && r.height > 1);
+        if (contentRects.length > 0) {
+          const top = Math.min(...contentRects.map((r) => r.top));
+          const bottom = Math.max(...contentRects.map((r) => r.bottom));
+          const left = Math.min(...contentRects.map((r) => r.left));
+          const right = Math.max(...contentRects.map((r) => r.right));
+          const verticalFill = Math.max(0, Math.min(1, (bottom - top) / Math.max(rect.height, 1)));
+          const horizontalFill = Math.max(0.25, Math.min(1, (right - left) / Math.max(rect.width, 1)));
+          utility = Math.max(0, Math.min(1, verticalFill * (0.75 + horizontalFill * 0.25) * 1.35));
+        }
+      }
+      weightedUtility += area * utility;
+      totalBlockArea += area;
+      if (utility < 0.32 && area > 45_000) lowUtilityBlocks += 1;
+    }
     return {
       clippedBlocks,
       overflowBlocks,
       missingImages: images.length - renderedImages,
       renderedImages,
       totalImages: images.length,
+      usefulOccupancy: totalBlockArea > 0 ? weightedUtility / totalBlockArea : 0,
+      lowUtilityBlocks,
     };
   });
   return {

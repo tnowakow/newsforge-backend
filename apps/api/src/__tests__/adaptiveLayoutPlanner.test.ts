@@ -196,6 +196,8 @@ describe("adaptiveLayoutPlanner.buildAdaptiveLayout", () => {
         missingImages: 1,
         renderedImages: 0,
         totalImages: 1,
+        usefulOccupancy: 0.9,
+        lowUtilityBlocks: 0,
       },
       {
         candidateId: second.id,
@@ -204,12 +206,58 @@ describe("adaptiveLayoutPlanner.buildAdaptiveLayout", () => {
         missingImages: 0,
         renderedImages: 1,
         totalImages: 1,
+        usefulOccupancy: 0.9,
+        lowUtilityBlocks: 0,
       },
     ]);
 
     assert.equal(reranked[0].id, second.id);
     assert.equal(reranked[0].subscores.renderFit, 1);
     assert.ok(reranked.at(-1)?.warnings.some((warning) => warning.startsWith("render-clipped-blocks")));
+  });
+
+  it("reranks visually useful candidates above clean but underfilled candidates", () => {
+    const result = buildAdaptiveLayout({
+      templateId: "v3-test",
+      pageCount: 2,
+      gridSpec,
+      recurringSections: [],
+      articles: [
+        article("lead", "Meet Dorothy", 220, "resident-story"),
+        article("event", "Summer Concert Recap", 125, "event-recap"),
+      ],
+      images: [image("upload-photo", "portrait", "UPLOAD")],
+    });
+    const [first, second] = result.candidates;
+    const reranked = applyCandidateMeasurements([
+      { ...first, score: 0.9 },
+      { ...second, score: 0.88 },
+    ], [
+      {
+        candidateId: first.id,
+        clippedBlocks: 0,
+        overflowBlocks: 0,
+        missingImages: 0,
+        renderedImages: 1,
+        totalImages: 1,
+        usefulOccupancy: 0.2,
+        lowUtilityBlocks: 2,
+      },
+      {
+        candidateId: second.id,
+        clippedBlocks: 0,
+        overflowBlocks: 0,
+        missingImages: 0,
+        renderedImages: 1,
+        totalImages: 1,
+        usefulOccupancy: 0.9,
+        lowUtilityBlocks: 0,
+      },
+    ]);
+
+    assert.equal(reranked[0].id, second.id);
+    assert.equal(reranked[0].subscores.usefulOccupancy, 0.9);
+    assert.ok(reranked[1].warnings.includes("low-utility-blocks:2"));
   });
 
   it("uses variation seeds only among near-best candidates", () => {

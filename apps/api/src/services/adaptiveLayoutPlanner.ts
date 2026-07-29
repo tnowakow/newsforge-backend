@@ -48,6 +48,7 @@ export interface AdaptiveCandidateScore {
   clippingRisk: number;
   geometryValidity: number;
   photoImpact: number;
+  usefulOccupancy?: number;
   renderFit?: number;
 }
 
@@ -58,6 +59,8 @@ export interface CandidateMeasurement {
   missingImages: number;
   renderedImages: number;
   totalImages: number;
+  usefulOccupancy: number;
+  lowUtilityBlocks: number;
 }
 
 export interface AdaptiveLayoutCandidate {
@@ -319,9 +322,11 @@ function scoreWithMeasurement(
     ...(measurement.clippedBlocks > 0 ? [`render-clipped-blocks:${measurement.clippedBlocks}`] : []),
     ...(measurement.overflowBlocks > 0 ? [`render-overflow-blocks:${measurement.overflowBlocks}`] : []),
     ...(measurement.missingImages > 0 ? [`render-missing-images:${measurement.missingImages}`] : []),
+    ...(measurement.lowUtilityBlocks > 0 ? [`low-utility-blocks:${measurement.lowUtilityBlocks}`] : []),
   ];
-  const subscores = { ...candidate.subscores, renderFit };
-  const score = candidate.score * 0.75 + renderFit * 0.25;
+  const usefulOccupancy = Math.max(0, Math.min(1, measurement.usefulOccupancy));
+  const subscores = { ...candidate.subscores, renderFit, usefulOccupancy };
+  const score = candidate.score * 0.66 + renderFit * 0.20 + usefulOccupancy * 0.14;
   return {
     ...candidate,
     score,

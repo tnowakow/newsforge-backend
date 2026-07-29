@@ -185,6 +185,10 @@ export function AutoArrangeBanner({
                           adaptiveWinner.subscores.renderFit != null
                             ? `, render fit ${(adaptiveWinner.subscores.renderFit * 100).toFixed(0)}%`
                             : ""
+                        }${
+                          adaptiveWinner.subscores.usefulOccupancy != null
+                            ? `, useful occupancy ${(adaptiveWinner.subscores.usefulOccupancy * 100).toFixed(0)}%`
+                            : ""
                         }`
                       : undefined
                   }

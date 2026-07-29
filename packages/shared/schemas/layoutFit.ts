@@ -51,6 +51,7 @@ export const AdaptiveLayoutCandidateReportSchema = z.object({
     clippingRisk: z.number(),
     geometryValidity: z.number(),
     photoImpact: z.number(),
+    usefulOccupancy: z.number().optional(),
     renderFit: z.number().optional(),
   }),
   warnings: z.array(z.string()),
@@ -61,6 +62,8 @@ export const AdaptiveLayoutCandidateReportSchema = z.object({
     missingImages: z.number().int().nonnegative(),
     renderedImages: z.number().int().nonnegative(),
     totalImages: z.number().int().nonnegative(),
+    usefulOccupancy: z.number(),
+    lowUtilityBlocks: z.number().int().nonnegative(),
   }).optional(),
 });
 export type AdaptiveLayoutCandidateReport = z.infer<

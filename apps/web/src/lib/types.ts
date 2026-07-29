@@ -218,6 +218,7 @@ export interface AdaptiveLayoutCandidateReport {
     clippingRisk: number;
     geometryValidity: number;
     photoImpact: number;
+    usefulOccupancy?: number;
     renderFit?: number;
   };
   warnings: string[];
@@ -228,6 +229,8 @@ export interface AdaptiveLayoutCandidateReport {
     missingImages: number;
     renderedImages: number;
     totalImages: number;
+    usefulOccupancy: number;
+    lowUtilityBlocks: number;
   };
 }
 
