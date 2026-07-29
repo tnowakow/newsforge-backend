@@ -358,6 +358,8 @@ function seedNumber(seed: string): number {
   return hash;
 }
 
+const MAX_VARIATION_USEFUL_OCCUPANCY_DROP = 0.05;
+
 export function chooseAdaptiveCandidate(
   candidates: AdaptiveLayoutCandidate[],
   variationSeed?: string,
@@ -374,7 +376,7 @@ export function chooseAdaptiveCandidate(
     if (
       bestUsefulOccupancy != null &&
       candidate.subscores.usefulOccupancy != null &&
-      bestUsefulOccupancy - candidate.subscores.usefulOccupancy > 0.08
+      bestUsefulOccupancy - candidate.subscores.usefulOccupancy > MAX_VARIATION_USEFUL_OCCUPANCY_DROP
     ) {
       return false;
     }
