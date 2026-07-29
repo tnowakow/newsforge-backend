@@ -216,6 +216,50 @@ describe("adaptiveLayoutPlanner.buildAdaptiveLayout", () => {
     assert.ok(reranked.at(-1)?.warnings.some((warning) => warning.startsWith("render-clipped-blocks")));
   });
 
+  it("prefers a clean measured candidate over a higher static score with clipping", () => {
+    const result = buildAdaptiveLayout({
+      templateId: "v3-test",
+      pageCount: 2,
+      gridSpec,
+      recurringSections: [],
+      articles: [
+        article("lead", "Meet Dorothy", 220, "resident-story"),
+        article("event", "Summer Concert Recap", 125, "event-recap"),
+      ],
+      images: [image("upload-photo", "portrait", "UPLOAD")],
+    });
+    const [first, second] = result.candidates;
+    const reranked = applyCandidateMeasurements([
+      { ...first, score: 0.96 },
+      { ...second, score: 0.9 },
+    ], [
+      {
+        candidateId: first.id,
+        clippedBlocks: 1,
+        overflowBlocks: 0,
+        missingImages: 0,
+        renderedImages: 1,
+        totalImages: 1,
+        usefulOccupancy: 0.9,
+        lowUtilityBlocks: 0,
+      },
+      {
+        candidateId: second.id,
+        clippedBlocks: 0,
+        overflowBlocks: 0,
+        missingImages: 0,
+        renderedImages: 1,
+        totalImages: 1,
+        usefulOccupancy: 0.84,
+        lowUtilityBlocks: 0,
+      },
+    ]);
+
+    assert.equal(reranked[0].id, second.id);
+    assert.equal(reranked[0].subscores.renderFit, 1);
+  });
+
+
   it("reranks visually useful candidates above clean but underfilled candidates", () => {
     const result = buildAdaptiveLayout({
       templateId: "v3-test",
@@ -372,6 +416,38 @@ describe("adaptiveLayoutPlanner.buildAdaptiveLayout", () => {
         usefulOccupancy: index === 0 ? 0.82 : 0.8,
       },
       warnings: index === 0 ? ["low-utility-blocks:1"] : ["low-utility-blocks:2"],
+    }));
+
+    const chosenIds = new Set(
+      Array.from({ length: 20 }, (_, index) =>
+        chooseAdaptiveCandidate(candidates, `seed-${index}`).id,
+      ),
+    );
+
+    assert.deepEqual(chosenIds, new Set([candidates[0].id]));
+  });
+
+  it("does not vary into candidates with worse render fit than the best option", () => {
+    const result = buildAdaptiveLayout({
+      templateId: "v3-test",
+      pageCount: 2,
+      gridSpec,
+      recurringSections: [],
+      articles: [
+        article("lead", "Meet Dorothy", 220, "resident-story"),
+        article("event", "Summer Concert Recap", 125, "event-recap"),
+      ],
+      images: [image("upload-photo", "portrait", "UPLOAD")],
+    });
+    const candidates = result.candidates.slice(0, 2).map((candidate, index) => ({
+      ...candidate,
+      score: index === 0 ? 1 : 0.99,
+      subscores: {
+        ...candidate.subscores,
+        renderFit: index === 0 ? 1 : 0.94,
+        usefulOccupancy: 0.9,
+      },
+      warnings: index === 0 ? [] : ["render-clipped-blocks:1"],
     }));
 
     const chosenIds = new Set(

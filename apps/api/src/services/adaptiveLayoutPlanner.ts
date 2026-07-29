@@ -328,7 +328,14 @@ function scoreWithMeasurement(
   ];
   const usefulOccupancy = Math.max(0, Math.min(1, measurement.usefulOccupancy));
   const subscores = { ...candidate.subscores, renderFit, usefulOccupancy };
-  const score = candidate.score * 0.66 + renderFit * 0.20 + usefulOccupancy * 0.14;
+  const renderPenalty = (1 - renderFit) * 0.35;
+  const lowUtilityPenalty = measurement.lowUtilityBlocks * 0.025;
+  const score = Math.max(
+    0,
+    candidate.score * 0.66 + renderFit * 0.20 + usefulOccupancy * 0.14 -
+      renderPenalty -
+      lowUtilityPenalty,
+  );
   return {
     ...candidate,
     score,
@@ -376,9 +383,17 @@ export function chooseAdaptiveCandidate(
   const best = sorted[0];
   if (!best || !variationSeed) return best;
   const bestUsefulOccupancy = best.subscores.usefulOccupancy;
+  const bestRenderFit = best.subscores.renderFit;
   const bestLowUtilityWarnings = lowUtilityWarningCount(best);
   const nearBest = sorted.filter((candidate) => {
     if (best.score - candidate.score > 0.04) return false;
+    if (
+      bestRenderFit != null &&
+      candidate.subscores.renderFit != null &&
+      bestRenderFit - candidate.subscores.renderFit > 0.01
+    ) {
+      return false;
+    }
     if (
       bestUsefulOccupancy != null &&
       candidate.subscores.usefulOccupancy != null &&
