@@ -146,8 +146,7 @@ const PHOTO_TOPICS = [
 function photoUrl(topic: string, aspect: StockAspect, index: number): string {
   const size =
     aspect === "portrait" ? "1100x1600" : aspect === "square" ? "1400x1400" : "1600x1100";
-  const terms = encodeURIComponent(`senior,living,${topic.replace(/-/g, ",")}`);
-  return `https://loremflickr.com/${size}/${terms}/all?lock=${7300 + index}`;
+  return `https://picsum.photos/seed/newsforge-${topic}-${index}/${size}`;
 }
 
 const STOCK_PHOTOS: StockPhoto[] = PHOTO_TOPICS.flatMap((topic, topicIndex) =>
