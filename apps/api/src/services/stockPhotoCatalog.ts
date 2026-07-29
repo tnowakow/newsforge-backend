@@ -20,10 +20,17 @@ interface StockPhoto {
   slotRoles: string[];
 }
 
+const CATALOG_VARIANTS_PER_TOPIC = 10;
+
 const PHOTO_TOPICS = [
   {
     key: "happy-hour",
-    caption: "Residents gathering for refreshments and conversation",
+    captions: [
+      "Neighbors gathered for refreshments and conversation",
+      "A relaxed happy hour table ready for friends",
+      "Residents enjoying snacks, drinks, and easy conversation",
+      "A bright social hour with familiar faces",
+    ],
     alt: "Residents enjoying refreshments together",
     description: "A warm social gathering with drinks, snacks, and relaxed conversation, useful for happy hour and community social stories.",
     tags: ["happy hour", "social", "refreshments", "friends", "community", "celebration"],
@@ -33,7 +40,12 @@ const PHOTO_TOPICS = [
   },
   {
     key: "outings",
-    caption: "Residents heading out for a community trip",
+    captions: [
+      "Residents heading out for a community trip",
+      "A group outing with plans for the day ahead",
+      "Neighbors enjoying an off-campus adventure",
+      "A sunny trip day with residents and team members",
+    ],
     alt: "Group outing with residents and team members",
     description: "A senior living outing scene with residents preparing for or enjoying an off-campus activity, suited for trip calendars and out-and-about sections.",
     tags: ["outing", "trip", "travel", "community", "outside", "activity"],
@@ -43,7 +55,12 @@ const PHOTO_TOPICS = [
   },
   {
     key: "birthdays",
-    caption: "A birthday celebration with cake and cheerful decorations",
+    captions: [
+      "A birthday table ready for this month's celebrations",
+      "Cake and cheerful details for milestone moments",
+      "A festive setup for resident and team birthdays",
+      "Simple celebration touches for a special day",
+    ],
     alt: "Birthday cake and celebration table",
     description: "A festive birthday setup with cake, candles, and colorful decorations for resident and staff birthday panels.",
     tags: ["birthday", "celebration", "cake", "party", "milestone", "family"],
@@ -53,7 +70,12 @@ const PHOTO_TOPICS = [
   },
   {
     key: "dining",
-    caption: "A seasonal meal prepared by the culinary team",
+    captions: [
+      "A seasonal meal prepared by the culinary team",
+      "Fresh flavors arranged for a community table",
+      "A welcoming plate from the kitchen",
+      "Dining details that make the meal feel special",
+    ],
     alt: "Fresh plated meal on a dining table",
     description: "A bright dining or culinary scene with fresh food, good table presentation, and a welcoming mealtime feel.",
     tags: ["dining", "food", "culinary", "brunch", "meal", "kitchen"],
@@ -63,7 +85,12 @@ const PHOTO_TOPICS = [
   },
   {
     key: "wellness",
-    caption: "Gentle wellness and movement activities",
+    captions: [
+      "Gentle wellness and movement activities",
+      "A calm moment from the wellness calendar",
+      "Light movement routines in a comfortable setting",
+      "Healthy habits shaped around comfort and confidence",
+    ],
     alt: "Senior wellness activity in a bright room",
     description: "A calm wellness image showing light movement, stretching, therapy, or healthy routines for older adults.",
     tags: ["wellness", "fitness", "movement", "health", "therapy", "exercise"],
@@ -73,7 +100,12 @@ const PHOTO_TOPICS = [
   },
   {
     key: "garden",
-    caption: "Residents enjoying flowers and garden color",
+    captions: [
+      "Fresh color from the community garden",
+      "Hands-on time with flowers and greenery",
+      "A sunny garden moment on campus",
+      "Seasonal blooms bringing color to the day",
+    ],
     alt: "Hands tending plants in a sunny garden",
     description: "A garden or outdoor patio scene with flowers, greenery, and hands-on seasonal activity.",
     tags: ["garden", "flowers", "outdoor", "patio", "spring", "summer"],
@@ -83,7 +115,12 @@ const PHOTO_TOPICS = [
   },
   {
     key: "music",
-    caption: "Live music bringing residents together",
+    captions: [
+      "Live music bringing residents together",
+      "A familiar song filling the room",
+      "Entertainment that turned into an afternoon singalong",
+      "A music program with plenty of requests",
+    ],
     alt: "Musical performance for a community audience",
     description: "A lively music or entertainment scene appropriate for recaps about concerts, singalongs, patio music, and celebrations.",
     tags: ["music", "concert", "entertainment", "singalong", "performance", "event"],
@@ -93,7 +130,12 @@ const PHOTO_TOPICS = [
   },
   {
     key: "resident-story",
-    caption: "A quiet portrait moment with a resident",
+    captions: [
+      "A warm portrait moment for a resident story",
+      "A comfortable spotlight photo with a personal feel",
+      "A quiet smile suited for a featured profile",
+      "A welcoming portrait for a story worth sharing",
+    ],
     alt: "Older adult smiling in a comfortable setting",
     description: "A warm portrait-style image for resident spotlights, smile-of-the-month features, personal stories, and staff recognition.",
     tags: ["resident", "portrait", "smile", "story", "spotlight", "profile"],
@@ -103,7 +145,12 @@ const PHOTO_TOPICS = [
   },
   {
     key: "volunteer",
-    caption: "Helping hands making a difference on campus",
+    captions: [
+      "Helping hands making a difference on campus",
+      "Everyday kindness shared between neighbors",
+      "A volunteer moment built around connection",
+      "Support and encouragement in the rhythm of the day",
+    ],
     alt: "Volunteer and resident sharing a friendly moment",
     description: "A caring support image showing connection, helping hands, volunteering, and everyday kindness.",
     tags: ["volunteer", "helping", "kindness", "care", "support", "connection"],
@@ -113,7 +160,12 @@ const PHOTO_TOPICS = [
   },
   {
     key: "reading",
-    caption: "A peaceful afternoon with a good book",
+    captions: [
+      "A peaceful afternoon with a good book",
+      "Quiet reading time in a comfortable corner",
+      "A slower moment for reflection and routine",
+      "A calm editorial image for a lighter story",
+    ],
     alt: "Person reading by a window",
     description: "A quiet lifestyle image for reflective stories, library groups, personal routines, and calmer editorial layouts.",
     tags: ["reading", "quiet", "library", "routine", "peaceful", "home"],
@@ -123,7 +175,12 @@ const PHOTO_TOPICS = [
   },
   {
     key: "family",
-    caption: "Family and neighbors sharing time together",
+    captions: [
+      "Family and neighbors sharing time together",
+      "A friendly visit in a familiar community space",
+      "Connection across the table during a campus visit",
+      "A warm welcome for families and guests",
+    ],
     alt: "Family visit in a comfortable community space",
     description: "A family visit or neighbor connection scene for welcome notes, community stories, and family event invitations.",
     tags: ["family", "visit", "neighbors", "connection", "community", "welcome"],
@@ -133,13 +190,93 @@ const PHOTO_TOPICS = [
   },
   {
     key: "crafts",
-    caption: "Creative activities and hands-on projects",
+    captions: [
+      "Creative activities and hands-on projects",
+      "Colorful supplies ready for an afternoon program",
+      "A hands-on craft moment with plenty of personality",
+      "Art table details from a community activity",
+    ],
     alt: "Hands working on a colorful craft project",
     description: "A creative activity image with hands-on crafts, art supplies, and group participation for activity calendars and recaps.",
     tags: ["craft", "art", "activity", "creative", "hands", "program"],
     articleTypes: ["event-recap", "announcement"],
     slotRoles: ["events", "collage", "caption", "photo-cluster"],
     aspects: ["landscape", "square", "portrait"] as StockAspect[],
+  },
+  {
+    key: "games",
+    captions: [
+      "Game table energy from an afternoon program",
+      "A friendly round of cards and conversation",
+      "Residents gathered around a favorite activity",
+      "A playful moment from the life-enrichment calendar",
+    ],
+    alt: "Table game activity in a community room",
+    description: "A social game or cards image for activity recaps, life-enrichment blurbs, and lighter photo collages.",
+    tags: ["games", "cards", "activity", "social", "conversation", "life enrichment"],
+    articleTypes: ["event-recap", "announcement"],
+    slotRoles: ["events", "calendar", "photo-cluster", "collage", "happy-hour"],
+    aspects: ["landscape", "square"] as StockAspect[],
+  },
+  {
+    key: "holiday",
+    captions: [
+      "Seasonal decorations bringing color to the community",
+      "A holiday setup ready for residents and families",
+      "Festive details for a special campus gathering",
+      "Celebration decor that marks the season",
+    ],
+    alt: "Seasonal holiday decorations in a community space",
+    description: "A festive seasonal image for holiday panels, themed event recaps, brunch invitations, and colorful callouts.",
+    tags: ["holiday", "seasonal", "celebration", "decorations", "family", "event"],
+    articleTypes: ["announcement", "event-recap"],
+    slotRoles: ["holiday", "events", "panel:navy", "panel:coral", "caption"],
+    aspects: ["landscape", "square", "portrait"] as StockAspect[],
+  },
+  {
+    key: "staff",
+    captions: [
+      "Team members helping the day run smoothly",
+      "A staff spotlight moment with a welcoming feel",
+      "Care team connection at the center of campus life",
+      "A friendly team moment for recognition stories",
+    ],
+    alt: "Senior living staff member in a welcoming setting",
+    description: "A staff recognition or team-service image for director notes, employee spotlights, and appreciation stories.",
+    tags: ["staff", "team", "recognition", "service", "care", "spotlight"],
+    articleTypes: ["announcement", "executive-note", "resident-story"],
+    slotRoles: ["spotlight", "staff", "hero-portrait", "portrait", "exec-corner"],
+    aspects: ["portrait", "landscape", "square"] as StockAspect[],
+  },
+  {
+    key: "campus",
+    captions: [
+      "A welcoming corner of the community",
+      "Campus spaces prepared for the day ahead",
+      "A quiet setting that feels familiar and bright",
+      "A comfortable community space between activities",
+    ],
+    alt: "Bright senior living community space",
+    description: "A campus environment image for welcome notes, editorial layouts, calm filler slots, and brand-forward section breaks.",
+    tags: ["campus", "community", "welcome", "home", "interior", "comfort"],
+    articleTypes: ["executive-note", "other", "announcement"],
+    slotRoles: ["editorial", "exec-corner", "quiet-space", "hero", "caption"],
+    aspects: ["landscape", "portrait"] as StockAspect[],
+  },
+  {
+    key: "technology",
+    captions: [
+      "A simple tech moment that keeps families connected",
+      "Residents exploring digital connection at a comfortable pace",
+      "Helpful technology woven into the everyday routine",
+      "A connected moment for families near and far",
+    ],
+    alt: "Older adult using technology in a comfortable space",
+    description: "A technology and connection image for family updates, digital programs, remote visits, and modern community services.",
+    tags: ["technology", "connection", "family", "digital", "communication", "support"],
+    articleTypes: ["announcement", "executive-note", "other"],
+    slotRoles: ["feature-band", "editorial", "caption", "hero"],
+    aspects: ["landscape", "portrait", "square"] as StockAspect[],
   },
 ];
 
@@ -158,14 +295,15 @@ function photoUrl(topic: string, aspect: StockAspect, index: number): string {
 }
 
 const STOCK_PHOTOS: StockPhoto[] = PHOTO_TOPICS.flatMap((topic, topicIndex) =>
-  Array.from({ length: 8 }, (_, variant) => {
+  Array.from({ length: CATALOG_VARIANTS_PER_TOPIC }, (_, variant) => {
     const aspect = topic.aspects[variant % topic.aspects.length];
+    const caption = topic.captions[variant % topic.captions.length];
     return {
       id: `stock-${topic.key}-${variant + 1}`,
       url: photoUrl(topic.key, aspect, topicIndex * 10 + variant),
-      caption: topic.caption,
+      caption,
       alt: topic.alt,
-      description: topic.description,
+      description: `${topic.description} Variant ${variant + 1} is best for ${aspect} slots and ${caption.toLowerCase()}.`,
       aspect,
       tags: [...topic.tags, topic.key],
       articleTypes: topic.articleTypes,
@@ -225,11 +363,36 @@ function scorePhoto(photo: StockPhoto, article: Article | undefined, slot: Templ
     if (hay.has(tag) || hay.has(tag.replace(/-/g, " "))) score += 3;
   }
   const slotHay = roleTokens(slot);
+  for (const tag of photo.tags) {
+    const normalized = tag.replace(/\s+/g, "-");
+    if (slotHay.has(tag) || slotHay.has(normalized)) score += 5;
+  }
   for (const role of photo.slotRoles) {
     const rt = tokens(role);
     for (const token of rt) if (slotHay.has(token)) score += 4;
   }
   return score;
+}
+
+function captionFor(photo: StockPhoto, article: Article | undefined, slot: TemplateSlot): string {
+  const title = article?.title?.trim();
+  const role = `${slot.id} ${slot.styleTag ?? ""}`.toLowerCase();
+  if (title && /birthday|anniversar|milestone/.test(role)) {
+    return `${title} celebrated with a little extra color`;
+  }
+  if (title && /outing|out-and-about|trip/.test(role)) {
+    return `${title} moments from a day out together`;
+  }
+  if (title && /happy-hour|schedule/.test(role)) {
+    return `${title} brought neighbors together`;
+  }
+  if (title && /smile|spotlight|portrait/.test(role)) {
+    return `${title} with a warm community feel`;
+  }
+  if (title && /event|calendar|collage|photo-cluster/.test(role)) {
+    return `${title} captured in the life of the community`;
+  }
+  return photo.caption;
 }
 
 interface SelectStockPhotosInput {
@@ -267,7 +430,7 @@ export function selectStockPhotosForRun(input: SelectStockPhotosInput): NewsImag
     picked.push({
       id: best.photo.id || createId(),
       url: best.photo.url,
-      caption: best.photo.caption,
+      caption: captionFor(best.photo, article, slot),
       alt: best.photo.alt,
       description: best.photo.description,
       tags: best.photo.tags,

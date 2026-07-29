@@ -275,6 +275,7 @@ function ApprovedRunCard({
   const workspaceHref = run.clientId
     ? `/workspace/${run.clientId}?runId=${run.id}`
     : previewHref;
+  const promptHref = `${previewHref}${previewHref.includes("?") ? "&" : "?"}promptLog=1`;
 
   const webPdfHref = pdfPathToDownloadUrl(run.pdfPath);
   const printPdfHref = pdfPathToDownloadUrl(run.printPdfPath);
@@ -382,6 +383,12 @@ function ApprovedRunCard({
             className="text-sm text-accent hover:underline"
           >
             Open preview →
+          </Link>
+          <Link
+            to={promptHref}
+            className="text-sm text-accent hover:underline"
+          >
+            View prompt
           </Link>
           <Button
             size="sm"

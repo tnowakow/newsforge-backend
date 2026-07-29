@@ -75,12 +75,12 @@ const TEMPLATES: V3Template[] = [
 
       // Inner page 2 = Gateway reference page 3.
       s("cl-p2-photo-a", 2, "image", 1, 1, 5, 4, { aspect: "portrait" }, "photo-stack portrait"),
-      s("cl-p2-photo-b", 2, "image", 1, 5, 5, 4, { aspect: "portrait" }, "photo-stack portrait"),
-      s("cl-p2-outings", 2, "list", 6, 1, 11, 6, {}, "out-and-about outings"),
-      s("cl-p2-smile", 2, "spotlight", 17, 1, 8, 12, { minWords: 220, maxWords: 520 }, "smile-of-the-month panel:berry"),
-      s("cl-p2-feature-band", 2, "body", 1, 7, 16, 4, { minWords: 80, maxWords: 220 }, "scrubbly car-wash feature-band panel:sky"),
-      s("cl-p2-volunteer-img", 2, "image", 1, 11, 5, 4, { aspect: "portrait" }, "photo-stack portrait"),
-      s("cl-p2-volunteer", 2, "body", 6, 11, 11, 4, { minWords: 80, maxWords: 220 }, "make-the-difference volunteer"),
+      s("cl-p2-photo-b", 2, "image", 1, 5, 5, 5, { aspect: "portrait" }, "photo-stack portrait"),
+      s("cl-p2-outings", 2, "list", 6, 1, 11, 7, {}, "out-and-about outings"),
+      s("cl-p2-smile", 2, "spotlight", 17, 1, 8, 13, { minWords: 220, maxWords: 520 }, "smile-of-the-month panel:berry"),
+      s("cl-p2-feature-band", 2, "body", 6, 8, 11, 4, { minWords: 80, maxWords: 220 }, "scrubbly car-wash feature-band panel:sky"),
+      s("cl-p2-volunteer-img", 2, "image", 1, 10, 5, 5, { aspect: "portrait" }, "photo-stack portrait"),
+      s("cl-p2-volunteer", 2, "body", 6, 12, 11, 3, { minWords: 70, maxWords: 170 }, "make-the-difference volunteer"),
       s("cl-p2-trust-funds", 2, "body", 1, 15, 24, 2, { minWords: 70, maxWords: 180 }, "trust-funds info-footer panel:navy"),
     ],
   },

@@ -48,6 +48,7 @@ export default function Preview() {
   const runId = (params.runId ?? runIdFromQuery) || "";
   const clientId = params.clientId;
   const editMode = search.get("edit") === "1";
+  const promptLogRequested = search.get("promptLog") === "1";
 
   const [run, setRun] = useState<RunRecord | null>(null);
   const [layout, setLayout] = useState<AssembledLayout | null>(null);
@@ -103,6 +104,10 @@ export default function Preview() {
       cancelled = true;
     };
   }, [runId, toast]);
+
+  useEffect(() => {
+    if (promptLogRequested) setPromptLogOpen(true);
+  }, [promptLogRequested]);
 
   // ---- Page scroll → activePage ----
   useEffect(() => {
@@ -568,7 +573,16 @@ export default function Preview() {
       <AiPromptLogModal
         open={promptLogOpen}
         runId={runId}
-        onClose={() => setPromptLogOpen(false)}
+        onClose={() => {
+          setPromptLogOpen(false);
+          setSearch(
+            (cur) => {
+              cur.delete("promptLog");
+              return cur;
+            },
+            { replace: true },
+          );
+        }}
       />
       <ProcessingOverlay
         open={aiRunning}

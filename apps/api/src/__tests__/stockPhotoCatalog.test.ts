@@ -73,7 +73,7 @@ const articles: Article[] = [
 
 describe("stockPhotoCatalog", () => {
   it("contains a large enough curated demo catalog", () => {
-    assert.ok(stockCatalogSize() >= 80);
+    assert.ok(stockCatalogSize() >= 150);
   });
 
   it("replaces generated demo placeholders with described stock images", () => {
@@ -97,6 +97,8 @@ describe("stockPhotoCatalog", () => {
     assert.ok(selected.every((img) => (img.tags ?? []).length >= 4));
     assert.ok(selected.some((img) => (img.tags ?? []).includes("happy hour")));
     assert.ok(selected.some((img) => (img.tags ?? []).includes("resident")));
+    assert.ok(selected.some((img) => img.caption?.includes("Happy Hour")));
+    assert.ok(selected.some((img) => img.caption?.includes("Out and About")));
   });
 
   it("preserves uploaded images and only fills the remaining slots", () => {

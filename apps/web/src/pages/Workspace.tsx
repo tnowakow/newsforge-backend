@@ -26,8 +26,61 @@ import { ChangeTemplateModal } from "@/components/ChangeTemplateModal";
 import { AiRearrangeModal } from "@/components/AiRearrangeModal";
 
 type Tone = "warm" | "formal" | "playful" | "civic";
+type IncludeKey = "director" | "spotlight" | "events" | "menu" | "opEd";
+
+interface DemoPreset {
+  id: "classic" | "panel" | "photo" | "resident" | "editorial";
+  label: string;
+  templateId: string;
+  density: number;
+  include: IncludeKey[];
+  tone: Tone;
+}
 
 const AI_UNLOCK_KEY = "newsforge.aiUnlocked";
+
+const DEMO_PRESETS: DemoPreset[] = [
+  {
+    id: "classic",
+    label: "Community Classic",
+    templateId: "v3-spread-classic",
+    density: 3,
+    include: ["director", "spotlight", "events", "menu", "opEd"],
+    tone: "warm" as Tone,
+  },
+  {
+    id: "panel",
+    label: "Panel Garden",
+    templateId: "v3-panel-garden",
+    density: 3,
+    include: ["director", "spotlight", "events", "menu"],
+    tone: "warm" as Tone,
+  },
+  {
+    id: "photo",
+    label: "Photo Festival",
+    templateId: "v3-photo-festival",
+    density: 4,
+    include: ["director", "events", "menu", "opEd"],
+    tone: "playful" as Tone,
+  },
+  {
+    id: "resident",
+    label: "Resident Feature",
+    templateId: "v3-resident-feature",
+    density: 3,
+    include: ["director", "spotlight", "events"],
+    tone: "warm" as Tone,
+  },
+  {
+    id: "editorial",
+    label: "Editorial Light",
+    templateId: "v3-editorial-light",
+    density: 1,
+    include: ["director", "spotlight", "opEd"],
+    tone: "formal" as Tone,
+  },
+];
 
 interface UploadItem {
   id: string;
@@ -61,6 +114,7 @@ export default function Workspace() {
     menu: true,
     opEd: false,
   });
+  const [demoTemplateId, setDemoTemplateId] = useState<string | undefined>();
 
   const [generatedArticles, setGeneratedArticles] = useState<Article[]>([]);
   const [generatedImages, setGeneratedImages] = useState<NewsImage[]>([]);
@@ -208,6 +262,23 @@ export default function Workspace() {
     }
   };
 
+  const applyDemoPreset = (presetId: DemoPreset["id"]) => {
+    const preset = DEMO_PRESETS.find((p) => p.id === presetId);
+    if (!preset) return;
+    setTone(preset.tone);
+    setDensity(preset.density);
+    setDemoTemplateId(preset.templateId);
+    setInclude({
+      director: preset.include.includes("director"),
+      spotlight: preset.include.includes("spotlight"),
+      events: preset.include.includes("events"),
+      menu: preset.include.includes("menu"),
+      opEd: preset.include.includes("opEd"),
+    });
+    setTab("mock");
+    toast(`${preset.label} preset selected.`, { tone: "success" });
+  };
+
   const handleFiles = useCallback(
     async (fileList: FileList | File[]) => {
       const files = Array.from(fileList);
@@ -323,9 +394,10 @@ export default function Workspace() {
       const newRun = await api.createRun({
         clientId: client.id,
         templateId:
-          client.name === "Trilogy Health Services"
+          demoTemplateId ??
+          (client.name === "Trilogy Health Services"
             ? undefined
-            : client.defaultTemplate?.id ?? undefined,
+            : client.defaultTemplate?.id ?? undefined),
         monthLabel: month,
         fillerMode: filler,
         ...(password ? { password } : {}),
@@ -559,6 +631,9 @@ export default function Workspace() {
                   setGeneratedImages([]);
                 }}
                 error={generateError}
+                presets={DEMO_PRESETS}
+                activePresetTemplateId={demoTemplateId}
+                onPreset={applyDemoPreset}
               />
             ) : (
               <UploadTab
@@ -804,6 +879,9 @@ function MockTab({
   images,
   onClear,
   error,
+  presets,
+  activePresetTemplateId,
+  onPreset,
 }: {
   month: string;
   setMonth: (s: string) => void;
@@ -819,6 +897,9 @@ function MockTab({
   images: NewsImage[];
   onClear: () => void;
   error: string | null;
+  presets: typeof DEMO_PRESETS;
+  activePresetTemplateId?: string;
+  onPreset: (id: DemoPreset["id"]) => void;
 }) {
   const densityLabel = ["Simple", "Moderate", "Rich", "Extra-Rich"][density - 1];
   return (
@@ -827,6 +908,31 @@ function MockTab({
         Generate a month of mock content for this community. Adjust knobs, click
         Generate.
       </p>
+
+      <div className="rounded-md border border-rule bg-bg p-3">
+        <div className="text-xs font-medium uppercase text-ink-muted mb-2">
+          Demo presets
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {presets.map((preset) => {
+            const active = activePresetTemplateId === preset.templateId;
+            return (
+              <button
+                key={preset.id}
+                type="button"
+                onClick={() => onPreset(preset.id)}
+                className={`h-8 px-3 rounded-md border text-sm ${
+                  active
+                    ? "border-accent bg-accent text-white"
+                    : "border-rule bg-surface text-ink hover:border-accent/50"
+                }`}
+              >
+                {preset.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Field label="Month">
