@@ -21,6 +21,11 @@ interface StockPhoto {
 }
 
 const CATALOG_VARIANTS_PER_TOPIC = 10;
+const CAPTION_VARIANT_ENDINGS = [
+  "",
+  "for the month ahead",
+  "during a favorite campus routine",
+];
 
 const PHOTO_TOPICS = [
   {
@@ -294,10 +299,16 @@ function photoUrl(topic: string, aspect: StockAspect, index: number): string {
   return `https://images.pexels.com/photos/${id}/pexels-photo-${id}.jpeg?auto=compress&cs=tinysrgb&w=${width}`;
 }
 
+function variantCaption(captions: string[], variant: number): string {
+  const base = captions[variant % captions.length];
+  const ending = CAPTION_VARIANT_ENDINGS[Math.floor(variant / captions.length)] ?? "";
+  return ending ? `${base} ${ending}` : base;
+}
+
 const STOCK_PHOTOS: StockPhoto[] = PHOTO_TOPICS.flatMap((topic, topicIndex) =>
   Array.from({ length: CATALOG_VARIANTS_PER_TOPIC }, (_, variant) => {
     const aspect = topic.aspects[variant % topic.aspects.length];
-    const caption = topic.captions[variant % topic.captions.length];
+    const caption = variantCaption(topic.captions, variant);
     return {
       id: `stock-${topic.key}-${variant + 1}`,
       url: photoUrl(topic.key, aspect, topicIndex * 10 + variant),
