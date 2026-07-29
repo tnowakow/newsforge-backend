@@ -93,6 +93,14 @@ function photoClass(b: LayoutBlock): string {
   return b.style?.photoTreatment ? ` photo-${b.style.photoTreatment}` : "";
 }
 
+function personalityClass(templateId: string): string {
+  if (templateId.includes("panel-garden")) return "personality-panel-garden";
+  if (templateId.includes("photo-festival")) return "personality-photo-festival";
+  if (templateId.includes("resident-feature")) return "personality-resident-feature";
+  if (templateId.includes("editorial-light")) return "personality-editorial-light";
+  return "personality-classic";
+}
+
 function renderBlock(input: RenderInput, b: LayoutBlock): string {
   const articlesById = new Map(input.articles.map((a) => [a.id, a]));
   const imagesById = new Map(input.images.map((i) => [i.id, i]));
@@ -173,6 +181,7 @@ export function renderRunHtml(input: RenderInput): string {
   const cols = input.gridSpec.columns;
   const rows = input.gridSpec.rowsPerPage;
   const pages = new Map<number, string[]>();
+  const personality = personalityClass(input.layout.templateId);
   for (let p = 1; p <= input.layout.pageCount; p++) pages.set(p, []);
   for (const b of input.layout.blocks) {
     if (!pages.has(b.page)) pages.set(b.page, []);
@@ -183,7 +192,7 @@ export function renderRunHtml(input: RenderInput): string {
     .sort(([a], [b]) => a - b)
     .map(
       ([page, blocks]) => `
-    <section class="page" data-page="${page}">
+    <section class="page ${personality}" data-page="${page}">
       ${masthead(input, page)}
       <div class="content" style="grid-template-columns:repeat(${cols},minmax(0,1fr));grid-template-rows:repeat(${rows},minmax(0,1fr));">
         ${blocks.join("\n")}
@@ -241,6 +250,37 @@ export function renderRunHtml(input: RenderInput): string {
     .photo-collage .photo-frame { border-radius: 10px; }
     .photo-wide .photo-frame { border-radius: 12px; }
     .photo-portrait .photo-frame { border-radius: 12px; }
+    .personality-panel-garden .masthead { min-height:34px; padding-bottom:5pt; border-bottom:2px solid ${input.brandKit.secondaryColor}; }
+    .personality-panel-garden .masthead h1 { font-size:20pt; letter-spacing:0.03em; text-transform:uppercase; }
+    .personality-panel-garden .content { gap:8px; }
+    .personality-panel-garden .block-inner.panel { padding:11px 12px; border-radius:4px !important; }
+    .personality-panel-garden .photo-frame { border-radius:4px; outline:2px solid rgba(21,27,43,0.12); outline-offset:-2px; }
+    .personality-panel-garden .section-heading { font-size:clamp(10pt,1.9vw,13pt); letter-spacing:0.08em; }
+    .personality-photo-festival .masthead { min-height:36px; padding:7pt 9pt; border-radius:0; background:${input.brandKit.primaryColor}; color:#F7F5EF; }
+    .personality-photo-festival .masthead .kicker,
+    .personality-photo-festival .masthead h1 { color:#F7F5EF !important; }
+    .personality-photo-festival .masthead h1 { font-size:21pt; text-transform:uppercase; letter-spacing:0.04em; }
+    .personality-photo-festival .content { gap:4px; }
+    .personality-photo-festival .photo-frame { border-radius:2px; }
+    .personality-photo-festival .photo-frame img { filter:saturate(1.12) contrast(1.04); }
+    .personality-photo-festival .photo figcaption { font-style:normal; text-transform:uppercase; letter-spacing:0.08em; font-size:5.9pt; color:#333; }
+    .personality-photo-festival .block-inner.panel { padding:8px 10px; border-radius:2px !important; }
+    .personality-resident-feature .masthead { min-height:50px; border-left:9px solid ${input.brandKit.accentColor}; padding-left:10pt; }
+    .personality-resident-feature .masthead h1 { font-size:24pt; }
+    .personality-resident-feature .content { gap:7px; }
+    .personality-resident-feature .photo-portrait .photo-frame,
+    .personality-resident-feature .photo-wide .photo-frame { border-radius:16px; }
+    .personality-resident-feature .role-spotlightRail.panel,
+    .personality-resident-feature .role-directorCorner.panel { border-radius:16px !important; }
+    .personality-resident-feature .section-heading { text-transform:none; letter-spacing:0.01em; }
+    .personality-editorial-light .masthead { min-height:32px; border-bottom:1px solid rgba(21,27,43,0.18); }
+    .personality-editorial-light .masthead h1 { font-size:19pt; font-weight:700; letter-spacing:0; }
+    .personality-editorial-light .masthead .kicker { letter-spacing:0.12em; }
+    .personality-editorial-light .content { gap:9px; }
+    .personality-editorial-light .block-inner.panel { padding:12px 14px; border-radius:0 !important; }
+    .personality-editorial-light .section-heading { font-size:clamp(10pt,1.8vw,13pt); letter-spacing:0.02em; }
+    .personality-editorial-light .body { font-size:9pt; line-height:1.38; }
+    .personality-editorial-light .photo-frame { border-radius:0; }
     .role-birthday {
       background-image: radial-gradient(circle, rgba(21,27,43,0.22) 0 2px, transparent 2.4px);
       background-size: 18px 18px;

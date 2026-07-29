@@ -130,4 +130,103 @@
   .page-surface .tag-cover img {
     filter: saturate(1.04) contrast(1.03);
   }
+
+  .page-surface.personality-panel-garden .newsletter-masthead {
+    min-height: 34px;
+    padding-bottom: 7px;
+    border-bottom: 2px solid var(--brand-secondary);
+  }
+  .page-surface.personality-panel-garden .newsletter-title {
+    font-size: 27px;
+    letter-spacing: .03em;
+    text-transform: uppercase;
+  }
+  .page-surface.personality-panel-garden .grid { gap: 8px !important; }
+  .page-surface.personality-panel-garden .role-birthday,
+  .page-surface.personality-panel-garden .role-directorCorner,
+  .page-surface.personality-panel-garden .role-featureBand,
+  .page-surface.personality-panel-garden .role-spotlightRail,
+  .page-surface.personality-panel-garden .role-infoFooter {
+    border-radius: 4px !important;
+  }
+  .page-surface.personality-panel-garden .photo-rounded,
+  .page-surface.personality-panel-garden .photo-wide,
+  .page-surface.personality-panel-garden .photo-portrait {
+    outline: 2px solid rgba(21,27,43,.12);
+    outline-offset: -2px;
+    border-radius: 4px !important;
+  }
+
+  .page-surface.personality-photo-festival .newsletter-masthead {
+    min-height: 36px;
+    padding: 9px 12px;
+    background: var(--brand-primary);
+    color: #F7F5EF;
+  }
+  .page-surface.personality-photo-festival .newsletter-kicker,
+  .page-surface.personality-photo-festival .newsletter-title {
+    color: #F7F5EF !important;
+  }
+  .page-surface.personality-photo-festival .newsletter-title {
+    font-size: 28px;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+  }
+  .page-surface.personality-photo-festival .grid { gap: 4px !important; }
+  .page-surface.personality-photo-festival .photo-rounded,
+  .page-surface.personality-photo-festival .photo-wide,
+  .page-surface.personality-photo-festival .photo-portrait,
+  .page-surface.personality-photo-festival .photo-collage {
+    border-radius: 2px !important;
+  }
+  .page-surface.personality-photo-festival img {
+    filter: saturate(1.12) contrast(1.04);
+  }
+  .page-surface.personality-photo-festival figcaption {
+    font-style: normal;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    font-size: 7px;
+    color: #333;
+  }
+
+  .page-surface.personality-resident-feature .newsletter-masthead {
+    min-height: 50px;
+    border-left: 9px solid var(--brand-accent);
+    padding-left: 13px;
+  }
+  .page-surface.personality-resident-feature .newsletter-title { font-size: 32px; }
+  .page-surface.personality-resident-feature .grid { gap: 7px !important; }
+  .page-surface.personality-resident-feature .photo-portrait,
+  .page-surface.personality-resident-feature .photo-wide,
+  .page-surface.personality-resident-feature .role-spotlightRail,
+  .page-surface.personality-resident-feature .role-directorCorner {
+    border-radius: 16px !important;
+  }
+  .page-surface.personality-resident-feature h2 {
+    text-transform: none;
+    letter-spacing: .01em;
+  }
+
+  .page-surface.personality-editorial-light .newsletter-masthead {
+    min-height: 32px;
+    border-bottom: 1px solid rgba(21,27,43,.18);
+  }
+  .page-surface.personality-editorial-light .newsletter-title {
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: 0;
+  }
+  .page-surface.personality-editorial-light .newsletter-kicker { letter-spacing: .12em; }
+  .page-surface.personality-editorial-light .grid { gap: 9px !important; }
+  .page-surface.personality-editorial-light .role-birthday,
+  .page-surface.personality-editorial-light .role-directorCorner,
+  .page-surface.personality-editorial-light .role-featureBand,
+  .page-surface.personality-editorial-light .role-spotlightRail,
+  .page-surface.personality-editorial-light .role-infoFooter,
+  .page-surface.personality-editorial-light .photo-rounded,
+  .page-surface.personality-editorial-light .photo-wide,
+  .page-surface.personality-editorial-light .photo-portrait {
+    border-radius: 0 !important;
+  }
 }

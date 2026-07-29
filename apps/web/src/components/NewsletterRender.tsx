@@ -60,6 +60,14 @@ function blocksByPage(layout: AssembledLayout): Map<number, LayoutBlock[]> {
   return map;
 }
 
+function personalityClass(templateId: string): string {
+  if (templateId.includes("panel-garden")) return "personality-panel-garden";
+  if (templateId.includes("photo-festival")) return "personality-photo-festival";
+  if (templateId.includes("resident-feature")) return "personality-resident-feature";
+  if (templateId.includes("editorial-light")) return "personality-editorial-light";
+  return "personality-classic";
+}
+
 export function NewsletterRender({
   layout,
   articles,
@@ -83,6 +91,7 @@ export function NewsletterRender({
   const grouped = blocksByPage(layout);
   const cols = inferColumns(layout.blocks);
   const rows = inferRows(layout.blocks);
+  const personality = personalityClass(layout.templateId);
   const gridRefs = useRef(new Map<number, HTMLDivElement>());
   const pages = Array.from({ length: layout.pageCount }, (_, i) => i + 1).filter(
     (p) => (filterPage ? p === filterPage : true),
@@ -107,7 +116,7 @@ export function NewsletterRender({
             key={page}
             data-page={page}
             ref={(el) => registerPage?.(page, el)}
-            className="page-surface relative"
+            className={cn("page-surface relative", personality)}
             style={{
               ...brandStyle,
               transform: scale !== 1 ? `scale(${scale})` : undefined,
@@ -176,17 +185,17 @@ function Masthead({
   }
   return (
     <header
-      className="absolute left-10 right-10 top-8"
+      className="newsletter-masthead absolute left-10 right-10 top-8"
       style={{ fontFamily: `${client.headingFont}, Georgia, serif` }}
     >
       <div
-        className="text-[10px] uppercase tracking-[0.18em]"
+        className="newsletter-kicker text-[10px] uppercase tracking-[0.18em]"
         style={{ color: client.accentColor }}
       >
         {monthLabel ?? "This Month"} · Community Newsletter
       </div>
       <h1
-        className="mt-1 text-[34px] font-bold leading-[1.02]"
+        className="newsletter-title mt-1 text-[34px] font-bold leading-[1.02]"
         style={{ color: client.primaryColor }}
       >
         {client.name}
@@ -206,7 +215,7 @@ function PageFooter({
 }) {
   return (
     <footer
-      className="absolute bottom-6 left-10 right-10 flex justify-between border-t-2 pt-1.5 text-[9px] uppercase tracking-[0.12em] text-neutral-500"
+      className="newsletter-footer absolute bottom-6 left-10 right-10 flex justify-between border-t-2 pt-1.5 text-[9px] uppercase tracking-[0.12em] text-neutral-500"
       style={{ borderColor: client.accentColor }}
     >
       <span>{client.name}</span>
@@ -352,7 +361,12 @@ function BlockView({
   let content: React.ReactNode = null;
   if (block.kind === "image" && image) {
     content = (
-      <figure className="flex min-h-0 flex-1 flex-col">
+      <figure
+        className={cn(
+          "flex min-h-0 flex-1 flex-col",
+          block.style?.photoTreatment && `photo-${block.style.photoTreatment}`,
+        )}
+      >
         <div
           className={cn(
             "min-h-0 flex-1 overflow-hidden rounded-lg",
@@ -474,6 +488,8 @@ function BlockView({
       <div
         className={cn(
           "flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden",
+          role && `role-${role}`,
+          block.style?.photoTreatment && `photo-${block.style.photoTreatment}`,
           bg && "px-2.5 py-2",
           role === "birthday" && "border-b-[8px] border-[#D85C2A] px-4 py-3",
           role === "directorCorner" && "px-4 py-3",
