@@ -42,6 +42,7 @@ export const AdaptiveLayoutCandidateReportSchema = z.object({
     "photo-lead-swap",
     "brief-rail-swap",
     "text-photo-rebalance",
+    "photo-band-expand",
   ]),
   score: z.number(),
   subscores: z.object({

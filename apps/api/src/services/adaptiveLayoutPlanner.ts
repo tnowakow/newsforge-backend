@@ -22,7 +22,8 @@ type GeometryVariant =
   | "lead-photo-swap"
   | "photo-lead-swap"
   | "brief-rail-swap"
-  | "text-photo-rebalance";
+  | "text-photo-rebalance"
+  | "photo-band-expand";
 
 export interface EditorialPlanItem {
   articleId: string;
@@ -606,6 +607,71 @@ function rebalanceTextPhoto(layout: AssembledLayout, plan: EditorialPlan): Assem
   return resizePair(layout, pair, rebalanceTarget(plan));
 }
 
+function expandPhotoBand(layout: AssembledLayout): AssembledLayout {
+  const imageBands = new Map<string, LayoutBlock[]>();
+  for (const block of layout.blocks) {
+    if (!block.imageId) continue;
+    const key = `${block.page}:${block.position.row}`;
+    imageBands.set(key, [...(imageBands.get(key) ?? []), block]);
+  }
+  const band = [...imageBands.values()]
+    .filter((blocks) => blocks.length >= 2)
+    .sort((a, b) => {
+      const widthA = a.reduce((sum, block) => sum + block.position.colSpan, 0);
+      const widthB = b.reduce((sum, block) => sum + block.position.colSpan, 0);
+      return widthB - widthA || b.length - a.length;
+    })[0];
+  if (!band) return layout;
+
+  const bandTop = band[0].position.row;
+  const bandPage = band[0].page;
+  const blockers = layout.blocks.filter((block) => {
+    if (block.page !== bandPage || block.imageId) return false;
+    if (block.position.row + block.position.rowSpan !== bandTop) return false;
+    return band.some((image) =>
+      overlapLength(
+        block.position.col,
+        block.position.colSpan,
+        image.position.col,
+        image.position.colSpan,
+      ) > 0
+    );
+  });
+  if (blockers.length === 0) return layout;
+
+  const blockerRoom = Math.min(...blockers.map((block) => block.position.rowSpan - 3));
+  const delta = Math.min(2, Math.max(0, blockerRoom), bandTop - 1);
+  if (delta <= 0) return layout;
+
+  const bandIds = new Set(band.map((block) => block.blockId));
+  const blockerIds = new Set(blockers.map((block) => block.blockId));
+  return {
+    ...layout,
+    blocks: layout.blocks.map((block) => {
+      if (bandIds.has(block.blockId)) {
+        return {
+          ...block,
+          position: {
+            ...block.position,
+            row: block.position.row - delta,
+            rowSpan: block.position.rowSpan + delta,
+          },
+        };
+      }
+      if (blockerIds.has(block.blockId)) {
+        return {
+          ...block,
+          position: {
+            ...block.position,
+            rowSpan: block.position.rowSpan - delta,
+          },
+        };
+      }
+      return block;
+    }),
+  };
+}
+
 function applyGeometryVariant(
   layout: AssembledLayout,
   variant: GeometryVariant,
@@ -621,6 +687,9 @@ function applyGeometryVariant(
   if (variant === "text-photo-rebalance") {
     return rebalanceTextPhoto(layout, plan);
   }
+  if (variant === "photo-band-expand") {
+    return expandPhotoBand(layout);
+  }
   return swapBlockPositions(layout, firstListOrBriefBlock(layout), firstImageBlock(layout));
 }
 
@@ -632,6 +701,7 @@ export function buildAdaptiveLayout(input: AdaptiveLayoutInput): AdaptiveLayoutR
     makeCandidate("photo-impact", "Photo impact", input, plan, "editorial", "landscapeFirst", "photo-lead-swap"),
     makeCandidate("briefs-first", "Briefs and recurring modules first", input, plan, "briefsFirst", "uploadedFirst", "brief-rail-swap"),
     makeCandidate("text-photo-rebalance", "Text/photo rebalance", input, plan, "editorial", "uploadedFirst", "text-photo-rebalance"),
+    makeCandidate("photo-band-expand", "Photo band expansion", input, plan, "source", "landscapeFirst", "photo-band-expand"),
   ].sort((a, b) => b.score - a.score || a.id.localeCompare(b.id));
   return { plan, candidates, chosen: chooseAdaptiveCandidate(candidates, input.variationSeed) };
 }

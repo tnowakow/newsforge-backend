@@ -146,7 +146,7 @@ describe("adaptiveLayoutPlanner.buildAdaptiveLayout", () => {
       ],
     });
 
-    assert.equal(result.candidates.length, 5);
+    assert.equal(result.candidates.length, 6);
     assert.ok(result.candidates.some((candidate) => candidate.geometryVariant !== "fixed"));
     assert.ok(result.chosen.score >= 0);
     assert.ok(result.chosen.subscores.geometryValidity > 0.99);
@@ -377,5 +377,44 @@ describe("adaptiveLayoutPlanner.buildAdaptiveLayout", () => {
     assert.equal(photo.position.col, 10);
     assert.equal(photo.position.colSpan, 3);
     assert.ok(rebalanced.subscores.geometryValidity > 0.99);
+  });
+
+  it("creates a photo band expansion candidate by compressing the band above it", () => {
+    const bandGrid: GridSpec = {
+      label: "photo-band-test",
+      columns: 12,
+      rowsPerPage: 10,
+      slots: [
+        slot("top-left", "body", 1, 1, 1, 6, 5, 120),
+        slot("top-right", "body", 1, 7, 1, 6, 5, 120),
+        slot("band-a", "image", 1, 1, 6, 4, 3),
+        slot("band-b", "image", 1, 5, 6, 4, 3),
+        slot("band-c", "image", 1, 9, 6, 4, 3),
+      ],
+    };
+    const result = buildAdaptiveLayout({
+      templateId: "v3-photo-band-test",
+      pageCount: 1,
+      gridSpec: bandGrid,
+      recurringSections: [],
+      articles: [
+        article("lead", "Meet Dorothy", 120, "resident-story"),
+        article("event", "Summer Concert Recap", 90, "event-recap"),
+      ],
+      images: [image("a"), image("b"), image("c")],
+    });
+    const expanded = result.candidates.find(
+      (candidate) => candidate.geometryVariant === "photo-band-expand",
+    );
+
+    assert.ok(expanded, "expected a photo band expansion candidate");
+    const topLeft = expanded.layout.blocks.find((block) => block.slotId === "top-left");
+    const imageA = expanded.layout.blocks.find((block) => block.slotId === "band-a");
+    assert.ok(topLeft);
+    assert.ok(imageA);
+    assert.equal(topLeft.position.rowSpan, 3);
+    assert.equal(imageA.position.row, 4);
+    assert.equal(imageA.position.rowSpan, 5);
+    assert.ok(expanded.subscores.geometryValidity > 0.99);
   });
 });
