@@ -146,7 +146,7 @@ describe("adaptiveLayoutPlanner.buildAdaptiveLayout", () => {
       ],
     });
 
-    assert.equal(result.candidates.length, 4);
+    assert.equal(result.candidates.length, 5);
     assert.ok(result.candidates.some((candidate) => candidate.geometryVariant !== "fixed"));
     assert.ok(result.chosen.score >= 0);
     assert.ok(result.chosen.subscores.geometryValidity > 0.99);
@@ -319,5 +319,32 @@ describe("adaptiveLayoutPlanner.buildAdaptiveLayout", () => {
     );
 
     assert.deepEqual(chosenIds, new Set([candidates[0].id]));
+  });
+
+  it("creates a text/photo rebalance candidate by shifting adjacent region boundaries", () => {
+    const result = buildAdaptiveLayout({
+      templateId: "v3-test",
+      pageCount: 2,
+      gridSpec,
+      recurringSections: [],
+      articles: [
+        article("lead", "Meet Dorothy", 220, "resident-story"),
+        article("event", "Summer Concert Recap", 125, "event-recap"),
+      ],
+      images: [image("upload-photo", "portrait", "UPLOAD")],
+    });
+    const rebalanced = result.candidates.find(
+      (candidate) => candidate.geometryVariant === "text-photo-rebalance",
+    );
+
+    assert.ok(rebalanced, "expected a text/photo rebalance candidate");
+    const lead = rebalanced.layout.blocks.find((block) => block.articleId === "lead");
+    const photo = rebalanced.layout.blocks.find((block) => block.imageId === "upload-photo");
+    assert.ok(lead);
+    assert.ok(photo);
+    assert.equal(lead.position.colSpan, 9);
+    assert.equal(photo.position.col, 10);
+    assert.equal(photo.position.colSpan, 3);
+    assert.ok(rebalanced.subscores.geometryValidity > 0.99);
   });
 });

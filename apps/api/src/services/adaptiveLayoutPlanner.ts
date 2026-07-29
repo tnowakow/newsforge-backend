@@ -21,7 +21,8 @@ type GeometryVariant =
   | "fixed"
   | "lead-photo-swap"
   | "photo-lead-swap"
-  | "brief-rail-swap";
+  | "brief-rail-swap"
+  | "text-photo-rebalance";
 
 export interface EditorialPlanItem {
   articleId: string;
@@ -466,6 +467,143 @@ function swapBlockPositions(
   };
 }
 
+function overlapLength(aStart: number, aSpan: number, bStart: number, bSpan: number): number {
+  const aEnd = aStart + aSpan;
+  const bEnd = bStart + bSpan;
+  return Math.max(0, Math.min(aEnd, bEnd) - Math.max(aStart, bStart));
+}
+
+type RebalanceAxis = "horizontal" | "vertical";
+type RebalanceTarget = "article" | "image";
+
+interface RebalancePair {
+  article: LayoutBlock;
+  image: LayoutBlock;
+  axis: RebalanceAxis;
+  score: number;
+}
+
+function findRebalancePairs(layout: AssembledLayout): RebalancePair[] {
+  const articles = layout.blocks.filter((block) => block.articleId);
+  const images = layout.blocks.filter((block) => block.imageId);
+  const pairs: RebalancePair[] = [];
+
+  for (const article of articles) {
+    for (const image of images) {
+      if (article.page !== image.page) continue;
+      const verticalOverlap = overlapLength(
+        article.position.row,
+        article.position.rowSpan,
+        image.position.row,
+        image.position.rowSpan,
+      );
+      const horizontalOverlap = overlapLength(
+        article.position.col,
+        article.position.colSpan,
+        image.position.col,
+        image.position.colSpan,
+      );
+      const horizontalAdjacent =
+        article.position.col + article.position.colSpan === image.position.col ||
+        image.position.col + image.position.colSpan === article.position.col;
+      const verticalAdjacent =
+        article.position.row + article.position.rowSpan === image.position.row ||
+        image.position.row + image.position.rowSpan === article.position.row;
+      const verticalOverlapRatio =
+        verticalOverlap / Math.max(Math.min(article.position.rowSpan, image.position.rowSpan), 1);
+      const horizontalOverlapRatio =
+        horizontalOverlap / Math.max(Math.min(article.position.colSpan, image.position.colSpan), 1);
+
+      if (horizontalAdjacent && verticalOverlapRatio >= 0.65) {
+        pairs.push({
+          article,
+          image,
+          axis: "horizontal",
+          score: verticalOverlapRatio * 100 + Math.min(blockArea(article), 120) + Math.min(blockArea(image), 120),
+        });
+      }
+      if (verticalAdjacent && horizontalOverlapRatio >= 0.65) {
+        pairs.push({
+          article,
+          image,
+          axis: "vertical",
+          score: horizontalOverlapRatio * 100 + Math.min(blockArea(article), 120) + Math.min(blockArea(image), 120),
+        });
+      }
+    }
+  }
+
+  return pairs.sort((a, b) => b.score - a.score);
+}
+
+function rebalanceTarget(plan: EditorialPlan): RebalanceTarget {
+  if (plan.photoGoal === "photo-led") return "image";
+  if (plan.photoGoal === "text-led" || plan.density === "dense") return "article";
+  const featureItems = plan.items.filter((item) =>
+    item.preferredProminence === "hero" || item.preferredProminence === "feature"
+  );
+  const briefItems = plan.items.filter((item) => item.preferredProminence === "brief");
+  return featureItems.length >= briefItems.length ? "article" : "image";
+}
+
+function resizePair(
+  layout: AssembledLayout,
+  pair: RebalancePair,
+  target: RebalanceTarget,
+): AssembledLayout {
+  const article = pair.article;
+  const image = pair.image;
+  const donor = target === "article" ? image : article;
+  const minDonorSpan = target === "article" ? 3 : 4;
+  const spanKey = pair.axis === "horizontal" ? "colSpan" : "rowSpan";
+  const donorSpan = donor.position[spanKey];
+  const delta = Math.min(2, Math.max(0, donorSpan - minDonorSpan));
+  if (delta <= 0) return layout;
+
+  return {
+    ...layout,
+    blocks: layout.blocks.map((block) => {
+      if (block.blockId !== article.blockId && block.blockId !== image.blockId) return block;
+
+      const next = { ...block, position: { ...block.position } };
+      const blockIsArticle = block.blockId === article.blockId;
+      const blockIsTarget = target === "article" ? blockIsArticle : !blockIsArticle;
+
+      if (pair.axis === "horizontal") {
+        const articleLeftOfImage = article.position.col < image.position.col;
+        if (blockIsTarget) {
+          next.position.colSpan += delta;
+          if (!articleLeftOfImage && blockIsArticle) next.position.col -= delta;
+          if (articleLeftOfImage && !blockIsArticle) next.position.col -= delta;
+        } else {
+          next.position.colSpan -= delta;
+          if (articleLeftOfImage && !blockIsArticle) next.position.col += delta;
+          if (!articleLeftOfImage && blockIsArticle) next.position.col += delta;
+        }
+      } else {
+        const articleAboveImage = article.position.row < image.position.row;
+        if (blockIsTarget) {
+          next.position.rowSpan += delta;
+          if (!articleAboveImage && blockIsArticle) next.position.row -= delta;
+          if (articleAboveImage && !blockIsArticle) next.position.row -= delta;
+        } else {
+          next.position.rowSpan -= delta;
+          if (articleAboveImage && !blockIsArticle) next.position.row += delta;
+          if (!articleAboveImage && blockIsArticle) next.position.row += delta;
+        }
+      }
+
+      return next;
+    }),
+  };
+}
+
+function rebalanceTextPhoto(layout: AssembledLayout, plan: EditorialPlan): AssembledLayout {
+  const pair = findRebalancePairs(layout)[0];
+  if (!pair) return layout;
+  return resizePair(layout, pair, rebalanceTarget(plan));
+}
+
 function applyGeometryVariant(
   layout: AssembledLayout,
   variant: GeometryVariant,
@@ -478,6 +616,9 @@ function applyGeometryVariant(
   if (variant === "photo-lead-swap") {
     return swapBlockPositions(layout, firstImageBlock(layout), leadArticleBlock(layout, plan));
   }
+  if (variant === "text-photo-rebalance") {
+    return rebalanceTextPhoto(layout, plan);
+  }
   return swapBlockPositions(layout, firstListOrBriefBlock(layout), firstImageBlock(layout));
 }
 
@@ -488,6 +629,7 @@ export function buildAdaptiveLayout(input: AdaptiveLayoutInput): AdaptiveLayoutR
     makeCandidate("editorial-priority", "Editorial priority", input, plan, "editorial", "uploadedFirst", "lead-photo-swap"),
     makeCandidate("photo-impact", "Photo impact", input, plan, "editorial", "landscapeFirst", "photo-lead-swap"),
     makeCandidate("briefs-first", "Briefs and recurring modules first", input, plan, "briefsFirst", "uploadedFirst", "brief-rail-swap"),
+    makeCandidate("text-photo-rebalance", "Text/photo rebalance", input, plan, "editorial", "uploadedFirst", "text-photo-rebalance"),
   ].sort((a, b) => b.score - a.score || a.id.localeCompare(b.id));
   return { plan, candidates, chosen: chooseAdaptiveCandidate(candidates, input.variationSeed) };
 }
