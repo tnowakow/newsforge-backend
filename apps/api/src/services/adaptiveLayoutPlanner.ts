@@ -364,7 +364,27 @@ export function chooseAdaptiveCandidate(
   const sorted = [...candidates].sort((a, b) => b.score - a.score || a.id.localeCompare(b.id));
   const best = sorted[0];
   if (!best || !variationSeed) return best;
-  const nearBest = sorted.filter((candidate) => best.score - candidate.score <= 0.04);
+  const bestUsefulOccupancy = best.subscores.usefulOccupancy;
+  const bestHasLowUtilityWarning = best.warnings.some((warning) =>
+    warning.startsWith("low-utility-blocks:"),
+  );
+  const nearBest = sorted.filter((candidate) => {
+    if (best.score - candidate.score > 0.04) return false;
+    if (
+      bestUsefulOccupancy != null &&
+      candidate.subscores.usefulOccupancy != null &&
+      bestUsefulOccupancy - candidate.subscores.usefulOccupancy > 0.08
+    ) {
+      return false;
+    }
+    if (
+      !bestHasLowUtilityWarning &&
+      candidate.warnings.some((warning) => warning.startsWith("low-utility-blocks:"))
+    ) {
+      return false;
+    }
+    return true;
+  });
   if (nearBest.length <= 1) return best;
   return nearBest[seedNumber(variationSeed) % nearBest.length];
 }
