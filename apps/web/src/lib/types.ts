@@ -109,6 +109,7 @@ export interface MockContentResult {
   articles: Article[];
   images: NewsImage[];
   counts: { articles: number; images: number };
+  scenario?: string;
 }
 
 export type PanelToken =

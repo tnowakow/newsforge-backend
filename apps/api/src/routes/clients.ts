@@ -42,6 +42,15 @@ const MockContentBody = z
     tone: z.enum(["warm", "formal", "playful", "civic"]).optional(),
     density: z.number().int().min(1).max(4).optional(),
     include: z.array(z.string()).optional(),
+    scenario: z
+      .enum([
+        "community-classic",
+        "panel-garden",
+        "photo-festival",
+        "resident-feature",
+        "editorial-light",
+      ])
+      .optional(),
   })
   .optional();
 
@@ -69,6 +78,7 @@ clientsRouter.post("/:id/mock-content", async (req, res) => {
     tone: body?.tone,
     density: body?.density,
     include: body?.include,
+    scenario: body?.scenario,
     recurringSections: recurring.success ? recurring.data : [],
   });
 

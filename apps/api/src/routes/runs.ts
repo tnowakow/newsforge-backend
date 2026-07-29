@@ -118,6 +118,15 @@ const CreateRunBody = z.object({
   password: z.string().optional(),
   articles: ArticlesSchema.optional(),
   images: ImagesSchema.optional(),
+  scenario: z
+    .enum([
+      "community-classic",
+      "panel-garden",
+      "photo-festival",
+      "resident-feature",
+      "editorial-light",
+    ])
+    .optional(),
 });
 
 runsRouter.post("/", async (req, res) => {
@@ -156,6 +165,7 @@ runsRouter.post("/", async (req, res) => {
       clientName: client.name,
       city: client.city,
       monthLabel: body.monthLabel,
+      scenario: body.scenario,
     });
     articles = articles ?? mock.articles;
     images = images ?? mock.images;

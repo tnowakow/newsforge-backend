@@ -13,6 +13,12 @@ import type {
 } from "@newsforge/shared/schemas";
 
 export type MockTone = "warm" | "formal" | "playful" | "civic";
+export type MockScenario =
+  | "community-classic"
+  | "panel-garden"
+  | "photo-festival"
+  | "resident-feature"
+  | "editorial-light";
 
 interface StorySeed {
   key: string;
@@ -168,6 +174,7 @@ export interface GenerateMockContentInput {
   tone?: MockTone;
   density?: number;
   include?: string[];
+  scenario?: MockScenario;
   recurringSections?: RecurringSection[];
 }
 
@@ -404,15 +411,19 @@ function generateTrilogyMockContent(
     },
   ];
 
+  const orderedSeeds = orderTrilogyStories(seeds, input);
+
   const articles = Array.from({ length: targets.articles }, (_, index) => {
-    const story = seeds[index % seeds.length];
+    const story = orderedSeeds[index % orderedSeeds.length];
+    const cycle = Math.floor(index / orderedSeeds.length);
+    const title = story.title(input);
     const section = input.recurringSections?.find((candidate) =>
       story.sectionMatch?.test(candidate.title),
     );
     const body = story.body(input);
     return {
       id: createId(),
-      title: story.title(input),
+      title: cycle > 0 ? `${title} Update` : title,
       body,
       wordCount: wordCount(body),
       byline: story.key === "director" ? "From the Executive Director" : undefined,
@@ -423,8 +434,14 @@ function generateTrilogyMockContent(
     };
   });
 
-  const images = Array.from({ length: targets.images }, (_, index) => {
-    const seed = IMAGE_SEEDS[index % IMAGE_SEEDS.length];
+  const imageSeeds = orderTrilogyImages(input.scenario);
+  const imageTarget = input.scenario === "photo-festival"
+    ? Math.max(targets.images, 12)
+    : input.scenario === "editorial-light"
+      ? Math.min(targets.images, 4)
+      : targets.images;
+  const images = Array.from({ length: imageTarget }, (_, index) => {
+    const seed = imageSeeds[index % imageSeeds.length];
     return {
       id: createId(),
       url: `${seed.url}?auto=format&fit=crop&w=1600&q=86&sig=trilogy-${index}`,
@@ -437,6 +454,109 @@ function generateTrilogyMockContent(
   });
 
   return { articles, images };
+}
+
+function orderTrilogyStories(
+  seeds: StorySeed[],
+  input: GenerateMockContentInput,
+): StorySeed[] {
+  const scenarioOrder: Record<MockScenario, string[]> = {
+    "community-classic": [
+      "birthdays",
+      "director",
+      "happy-hour",
+      "upcoming-events",
+      "out-and-about",
+      "smile-of-the-month",
+      "make-the-difference",
+      "trust-funds",
+      "summer-food",
+      "holiday",
+    ],
+    "panel-garden": [
+      "director",
+      "best-friends",
+      "calendar",
+      "summer-food",
+      "upcoming-events",
+      "trust-funds",
+      "staff-spot-ben",
+      "staff-spot-kim",
+      "birthdays",
+      "make-the-difference",
+    ],
+    "photo-festival": [
+      "out-and-about",
+      "scrubbly",
+      "happy-hour",
+      "upcoming-events",
+      "holiday",
+      "calendar",
+      "summer-food",
+      "smile-of-the-month",
+      "staff-spot-lindsay",
+      "director",
+    ],
+    "resident-feature": [
+      "smile-of-the-month",
+      "best-friends",
+      "scrubbly",
+      "director",
+      "staff-spot-lindsay",
+      "staff-spot-ben",
+      "upcoming-events",
+      "make-the-difference",
+      "birthdays",
+      "trust-funds",
+    ],
+    "editorial-light": [
+      "director",
+      "uv-safety",
+      "best-friends",
+      "trust-funds",
+      "summer-food",
+      "calendar",
+      "make-the-difference",
+      "birthdays",
+    ],
+  };
+  const includeGroups: Record<string, string[]> = {
+    director: ["director"],
+    spotlight: ["scrubbly", "smile-of-the-month", "best-friends"],
+    events: ["happy-hour", "upcoming-events", "out-and-about", "calendar", "holiday"],
+    menu: ["summer-food"],
+    opEd: ["uv-safety", "trust-funds", "make-the-difference"],
+  };
+  const allowedKeys = new Set(
+    (input.include ?? [])
+      .flatMap((key) => includeGroups[key] ?? [key])
+      .concat(["birthdays"]),
+  );
+  const byKey = new Map(seeds.map((seed) => [seed.key, seed]));
+  const preferredKeys = input.scenario ? scenarioOrder[input.scenario] : [];
+  const ordered = [
+    ...preferredKeys.flatMap((key) => {
+      const seed = byKey.get(key);
+      return seed ? [seed] : [];
+    }),
+    ...seeds.filter((seed) => !preferredKeys.includes(seed.key)),
+  ];
+  const filtered = input.include?.length
+    ? ordered.filter((seed) => allowedKeys.has(seed.key))
+    : ordered;
+  return filtered.length ? filtered : ordered;
+}
+
+function orderTrilogyImages(scenario: MockScenario | undefined): Array<(typeof IMAGE_SEEDS)[number]> {
+  const indexOrder: Record<MockScenario, number[]> = {
+    "community-classic": [0, 1, 2, 3, 4],
+    "panel-garden": [2, 0, 4, 3, 1],
+    "photo-festival": [1, 2, 0, 3, 4],
+    "resident-feature": [4, 1, 0, 2, 3],
+    "editorial-light": [4, 0, 3, 2, 1],
+  };
+  const order = scenario ? indexOrder[scenario] : indexOrder["community-classic"];
+  return order.map((index) => IMAGE_SEEDS[index]);
 }
 
 function normalizeDensity(density: number | undefined, richness: Richness): number {

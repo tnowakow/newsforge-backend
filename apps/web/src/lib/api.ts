@@ -110,6 +110,7 @@ export const api = {
       tone?: string;
       density?: number;
       include?: string[];
+      scenario?: string;
     },
   ) =>
     request<MockContentResult>(`/api/clients/${clientId}/mock-content`, {
@@ -190,6 +191,7 @@ export const api = {
     password?: string;
     articles?: Article[];
     images?: NewsImage[];
+    scenario?: string;
   }): Promise<RunRecord> => {
     const raw = await request<unknown>("/api/runs", {
       method: "POST",

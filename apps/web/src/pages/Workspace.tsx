@@ -27,11 +27,18 @@ import { AiRearrangeModal } from "@/components/AiRearrangeModal";
 
 type Tone = "warm" | "formal" | "playful" | "civic";
 type IncludeKey = "director" | "spotlight" | "events" | "menu" | "opEd";
+type DemoScenario =
+  | "community-classic"
+  | "panel-garden"
+  | "photo-festival"
+  | "resident-feature"
+  | "editorial-light";
 
 interface DemoPreset {
   id: "classic" | "panel" | "photo" | "resident" | "editorial";
   label: string;
   templateId: string;
+  scenario: DemoScenario;
   density: number;
   include: IncludeKey[];
   tone: Tone;
@@ -44,6 +51,7 @@ const DEMO_PRESETS: DemoPreset[] = [
     id: "classic",
     label: "Community Classic",
     templateId: "v3-spread-classic",
+    scenario: "community-classic",
     density: 3,
     include: ["director", "spotlight", "events", "menu", "opEd"],
     tone: "warm" as Tone,
@@ -52,6 +60,7 @@ const DEMO_PRESETS: DemoPreset[] = [
     id: "panel",
     label: "Panel Garden",
     templateId: "v3-panel-garden",
+    scenario: "panel-garden",
     density: 3,
     include: ["director", "spotlight", "events", "menu"],
     tone: "warm" as Tone,
@@ -60,6 +69,7 @@ const DEMO_PRESETS: DemoPreset[] = [
     id: "photo",
     label: "Photo Festival",
     templateId: "v3-photo-festival",
+    scenario: "photo-festival",
     density: 4,
     include: ["director", "events", "menu", "opEd"],
     tone: "playful" as Tone,
@@ -68,6 +78,7 @@ const DEMO_PRESETS: DemoPreset[] = [
     id: "resident",
     label: "Resident Feature",
     templateId: "v3-resident-feature",
+    scenario: "resident-feature",
     density: 3,
     include: ["director", "spotlight", "events"],
     tone: "warm" as Tone,
@@ -76,6 +87,7 @@ const DEMO_PRESETS: DemoPreset[] = [
     id: "editorial",
     label: "Editorial Light",
     templateId: "v3-editorial-light",
+    scenario: "editorial-light",
     density: 1,
     include: ["director", "spotlight", "opEd"],
     tone: "formal" as Tone,
@@ -115,6 +127,7 @@ export default function Workspace() {
     opEd: false,
   });
   const [demoTemplateId, setDemoTemplateId] = useState<string | undefined>();
+  const [demoScenario, setDemoScenario] = useState<DemoScenario | undefined>();
 
   const [generatedArticles, setGeneratedArticles] = useState<Article[]>([]);
   const [generatedImages, setGeneratedImages] = useState<NewsImage[]>([]);
@@ -246,6 +259,7 @@ export default function Workspace() {
         tone,
         density,
         include: includeList,
+        scenario: demoScenario,
       });
       setGeneratedArticles(result.articles ?? []);
       setGeneratedImages(result.images ?? []);
@@ -268,6 +282,7 @@ export default function Workspace() {
     setTone(preset.tone);
     setDensity(preset.density);
     setDemoTemplateId(preset.templateId);
+    setDemoScenario(preset.scenario);
     setInclude({
       director: preset.include.includes("director"),
       spotlight: preset.include.includes("spotlight"),
@@ -403,6 +418,7 @@ export default function Workspace() {
         ...(password ? { password } : {}),
         articles,
         images,
+        scenario: demoScenario,
       });
       // Honour minimum overlay duration of 2.5s
       const elapsed = Date.now() - start;
