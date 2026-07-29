@@ -399,7 +399,7 @@ function BlockView({
       <div
         className={cn(
           "leading-[1.55]",
-          role === "birthday" ? "text-[10.5px] leading-[1.28]" : "text-[9px]",
+          role === "birthday" ? "text-[8.5px] leading-[1.08]" : "text-[9px]",
           (role === "happyHour" || role === "upcomingEvents" || role === "outingList") &&
             "text-center text-[11px] leading-[1.35]",
         )}
@@ -411,7 +411,7 @@ function BlockView({
               key={i}
                 className={cn(
                   "mt-1 font-extrabold tracking-[0.12em] opacity-80",
-                  role === "birthday" ? "text-[10px] text-[#D85C2A]" : "text-[8px]",
+                  role === "birthday" ? "mt-0.5 text-[8.5px] text-[#D85C2A]" : "text-[8px]",
                 )}
             >
               {item.label}
@@ -491,7 +491,7 @@ function BlockView({
           role && `role-${role}`,
           block.style?.photoTreatment && `photo-${block.style.photoTreatment}`,
           bg && "px-2.5 py-2",
-          role === "birthday" && "border-b-[8px] border-[#D85C2A] px-4 py-3",
+          role === "birthday" && "border-b-[8px] border-[#D85C2A] px-3.5 py-2",
           role === "directorCorner" && "px-4 py-3",
           role === "featureBand" && "px-5 py-3",
           role === "spotlightRail" && "px-4 py-3",

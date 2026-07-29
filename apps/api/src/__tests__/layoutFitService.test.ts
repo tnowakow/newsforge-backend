@@ -166,6 +166,18 @@ describe("layoutFitService.fitContent", () => {
     assert.match(trimmedBody, /[.!?]$/);
   });
 
+  it("hard-trims an overlong first sentence to the slot cap", () => {
+    const article = makeArticle(
+      "a1",
+      35,
+      Array.from({ length: 35 }, (_, i) => `word${i}`).join(" ") + ".",
+    );
+    const result = fitContent([article], [], template);
+
+    assert.equal(result.articleFit[0].trimmed, true);
+    assert.ok(result.articles[0].wordCount <= 12);
+  });
+
   it("drops last-uploaded photos when over-supplied", () => {
     const images = [
       makeImage("i-old-1"),

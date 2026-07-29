@@ -285,10 +285,10 @@ export function renderRunHtml(input: RenderInput): string {
       background-image: radial-gradient(circle, rgba(21,27,43,0.22) 0 2px, transparent 2.4px);
       background-size: 18px 18px;
     }
-    .role-birthday.panel { padding: 17px 19px 10px; border-bottom: 8px solid #D85C2A; }
-    .role-birthday .script-heading { font-size: 20pt; text-align:left; }
-    .role-birthday .list-body { font-size: 9.6pt; line-height: 1.23; }
-    .role-birthday .list-group { color:#D85C2A; font-size: 9.2pt; margin-top: 6pt; }
+    .role-birthday.panel { padding: 12px 14px 8px; border-bottom: 8px solid #D85C2A; }
+    .role-birthday .script-heading { font-size: 18pt; text-align:left; margin-bottom:3pt; }
+    .role-birthday .list-body { font-size: 8.2pt; line-height: 1.06; }
+    .role-birthday .list-group { color:#D85C2A; font-size: 8.2pt; margin-top: 4pt; }
     .role-birthday .list-row { border-bottom: 0; }
     .role-directorCorner.panel { padding: 17px 20px; }
     .role-directorCorner .script-heading { font-size: clamp(17pt, 3vw, 23pt); font-style: normal; text-transform: uppercase; letter-spacing:0.02em; }

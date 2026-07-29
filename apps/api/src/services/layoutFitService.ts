@@ -183,6 +183,10 @@ function countWords(s: string): number {
   return s.trim().split(/\s+/).filter(Boolean).length;
 }
 
+function truncateWords(s: string, maxWords: number): string {
+  return s.trim().split(/\s+/).filter(Boolean).slice(0, maxWords).join(" ");
+}
+
 export interface FitContentResult {
   articles: Article[]; // possibly trimmed
   articleFit: LayoutFitArticleFit[];
@@ -251,6 +255,10 @@ export function fitContent(
       words += sw;
       took += 1;
       if (words >= cap) break;
+    }
+    if (words > cap) {
+      acc = truncateWords(acc, cap);
+      words = countWords(acc);
     }
     if (acc.length === 0) {
       acc = article.body.slice(0, Math.max(0, cap * 6)); // fallback char slice

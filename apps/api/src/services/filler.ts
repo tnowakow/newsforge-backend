@@ -230,6 +230,7 @@ function wordRangeForSlot(
     headline: { minWords: 4, maxWords: 12 },
     sidebar: { minWords: 30, maxWords: 100 },
     calendar: { minWords: 60, maxWords: 180 },
+    list: { minWords: 8, maxWords: 28 },
     spotlight: { minWords: 140, maxWords: 280 },
     body: { minWords: 100, maxWords: 220 },
     filler: { minWords: 40, maxWords: 120 },
