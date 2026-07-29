@@ -361,6 +361,13 @@ function seedNumber(seed: string): number {
 
 const MAX_VARIATION_USEFUL_OCCUPANCY_DROP = 0.05;
 
+function lowUtilityWarningCount(candidate: AdaptiveLayoutCandidate): number {
+  return candidate.warnings.reduce((sum, warning) => {
+    const match = /^low-utility-blocks:(\d+)$/.exec(warning);
+    return sum + (match ? Number(match[1]) : 0);
+  }, 0);
+}
+
 export function chooseAdaptiveCandidate(
   candidates: AdaptiveLayoutCandidate[],
   variationSeed?: string,
@@ -369,9 +376,7 @@ export function chooseAdaptiveCandidate(
   const best = sorted[0];
   if (!best || !variationSeed) return best;
   const bestUsefulOccupancy = best.subscores.usefulOccupancy;
-  const bestHasLowUtilityWarning = best.warnings.some((warning) =>
-    warning.startsWith("low-utility-blocks:"),
-  );
+  const bestLowUtilityWarnings = lowUtilityWarningCount(best);
   const nearBest = sorted.filter((candidate) => {
     if (best.score - candidate.score > 0.04) return false;
     if (
@@ -381,12 +386,7 @@ export function chooseAdaptiveCandidate(
     ) {
       return false;
     }
-    if (
-      !bestHasLowUtilityWarning &&
-      candidate.warnings.some((warning) => warning.startsWith("low-utility-blocks:"))
-    ) {
-      return false;
-    }
+    if (lowUtilityWarningCount(candidate) > bestLowUtilityWarnings) return false;
     return true;
   });
   if (nearBest.length <= 1) return best;

@@ -352,6 +352,37 @@ describe("adaptiveLayoutPlanner.buildAdaptiveLayout", () => {
     assert.deepEqual(chosenIds, new Set([candidates[0].id]));
   });
 
+  it("does not vary into candidates with more low-utility blocks than the best option", () => {
+    const result = buildAdaptiveLayout({
+      templateId: "v3-test",
+      pageCount: 2,
+      gridSpec,
+      recurringSections: [],
+      articles: [
+        article("lead", "Meet Dorothy", 220, "resident-story"),
+        article("event", "Summer Concert Recap", 125, "event-recap"),
+      ],
+      images: [image("upload-photo", "portrait", "UPLOAD")],
+    });
+    const candidates = result.candidates.slice(0, 2).map((candidate, index) => ({
+      ...candidate,
+      score: index === 0 ? 1 : 0.99,
+      subscores: {
+        ...candidate.subscores,
+        usefulOccupancy: index === 0 ? 0.82 : 0.8,
+      },
+      warnings: index === 0 ? ["low-utility-blocks:1"] : ["low-utility-blocks:2"],
+    }));
+
+    const chosenIds = new Set(
+      Array.from({ length: 20 }, (_, index) =>
+        chooseAdaptiveCandidate(candidates, `seed-${index}`).id,
+      ),
+    );
+
+    assert.deepEqual(chosenIds, new Set([candidates[0].id]));
+  });
+
   it("creates a text/photo rebalance candidate by shifting adjacent region boundaries", () => {
     const result = buildAdaptiveLayout({
       templateId: "v3-test",
