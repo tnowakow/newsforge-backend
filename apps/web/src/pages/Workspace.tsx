@@ -145,17 +145,17 @@ export default function Workspace() {
       .then((data) => {
         if (cancelled) return;
         const all: TemplateRecord[] = data?.templates ?? [];
-        // Trilogy is client #26 and gets exactly its 5 templates. Others get
-        // the templates matching their richness — but since Screen 5 is Trilogy-
-        // scoped, show only Trilogy-tagged templates when the client is Trilogy;
-        // otherwise show the richness-matching templates as a graceful fallback.
+        // Trilogy demos should show the five V3 inner-spread examples. Legacy
+        // Trilogy templates stay available to the backend, but the normal demo
+        // switcher focuses on the reference-quality spreads.
         const filtered = all.filter((t) => {
           const notes =
             (t.compatibilityHints as { notes?: string } | null)?.notes ?? "";
           const isTrilogyTemplate =
             notes.includes("[trilogy]") || t.name.startsWith("Trilogy ");
+          const isV3SpreadTemplate = notes.includes("[v3-spread]");
           if (client?.name === "Trilogy Health Services") {
-            return isTrilogyTemplate;
+            return isV3SpreadTemplate;
           }
           if (isTrilogyTemplate) return false;
           const hints = t.compatibilityHints?.richness ?? [];
@@ -322,7 +322,10 @@ export default function Workspace() {
     try {
       const newRun = await api.createRun({
         clientId: client.id,
-        templateId: client.defaultTemplate?.id ?? undefined,
+        templateId:
+          client.name === "Trilogy Health Services"
+            ? undefined
+            : client.defaultTemplate?.id ?? undefined,
         monthLabel: month,
         fillerMode: filler,
         ...(password ? { password } : {}),

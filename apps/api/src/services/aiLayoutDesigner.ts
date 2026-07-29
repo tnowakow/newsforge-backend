@@ -223,6 +223,8 @@ export async function designLayout(
       id: i.id,
       aspect: i.aspect,
       caption: i.caption ?? i.alt ?? null,
+      description: i.description ?? null,
+      tags: i.tags ?? [],
     })),
     startingBlocks: skeleton.blocks,
     respondWith:

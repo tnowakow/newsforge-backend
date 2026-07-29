@@ -95,12 +95,14 @@ export interface NewsImage {
   url: string;
   caption?: string;
   alt?: string;
+  description?: string;
+  tags?: string[];
   aspect?: "square" | "portrait" | "landscape";
   focalX?: number;
   focalY?: number;
   zoom?: number;
   isPlaceholder?: boolean;
-  source?: "MOCK" | "UPLOAD" | "GENERATED";
+  source?: "MOCK" | "UPLOAD" | "GENERATED" | "STOCK";
 }
 
 export interface MockContentResult {

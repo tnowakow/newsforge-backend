@@ -48,6 +48,7 @@ import {
 import { runComplianceSync } from "../services/complianceService.js";
 import { buildBundle } from "../services/bundleExportService.js";
 import { callGeminiJson } from "../gemini.js";
+import { selectStockPhotosForRun } from "../services/stockPhotoCatalog.js";
 
 export const runsRouter: Router = Router();
 
@@ -197,6 +198,16 @@ runsRouter.post("/", async (req, res) => {
     client.recurringSections,
   );
   const recurringSections = recurringParsed.success ? recurringParsed.data : [];
+
+  // Demo-quality stock matching: uploaded photos are preserved, while mock /
+  // generated placeholders get replaced or topped up from the described stock
+  // catalog. The matcher ranks per image slot using article text, slot role,
+  // aspect hints, and senior-living tags.
+  images = selectStockPhotosForRun({
+    articles,
+    images,
+    gridSpec: gridSpecParsed.data,
+  });
 
   // Fit strategy — overflow/underflow trimming before assembly (Vitaly §7).
   const scoreableChosen: ScoreableTemplate = {

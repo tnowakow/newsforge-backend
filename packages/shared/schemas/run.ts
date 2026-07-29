@@ -34,6 +34,10 @@ export const ImageSchema = z.object({
   url: z.string(),
   caption: z.string().optional(),
   alt: z.string().optional(),
+  /** Natural-language description used for semantic matching and prompt context. */
+  description: z.string().optional(),
+  /** Controlled-ish tags for deterministic stock/photo matching. */
+  tags: z.array(z.string()).default([]).optional(),
   aspect: z.enum(["square", "portrait", "landscape"]).default("landscape"),
   /** Editor image crop/focal-point controls. Percent values, 0..100. */
   focalX: z.number().min(0).max(100).default(50).optional(),
@@ -42,7 +46,7 @@ export const ImageSchema = z.object({
   zoom: z.number().min(1).max(3).default(1).optional(),
   /** True if this image is a placeholder rather than real content. */
   isPlaceholder: z.boolean().default(false),
-  source: z.enum(["MOCK", "UPLOAD", "GENERATED"]).default("MOCK"),
+  source: z.enum(["MOCK", "UPLOAD", "GENERATED", "STOCK"]).default("MOCK"),
 });
 export type NewsImage = z.infer<typeof ImageSchema>;
 export const ImagesSchema = z.array(ImageSchema);
