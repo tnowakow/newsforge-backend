@@ -35,6 +35,7 @@ export type LayoutFitCandidate = z.infer<typeof LayoutFitCandidateSchema>;
 export const AdaptiveLayoutCandidateReportSchema = z.object({
   id: z.string(),
   label: z.string(),
+  selected: z.boolean().optional(),
   geometryVariant: z.enum([
     "fixed",
     "lead-photo-swap",

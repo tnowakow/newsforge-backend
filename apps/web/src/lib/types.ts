@@ -202,6 +202,7 @@ export interface LayoutFitCandidate {
 export interface AdaptiveLayoutCandidateReport {
   id: string;
   label: string;
+  selected?: boolean;
   geometryVariant:
     | "fixed"
     | "lead-photo-swap"

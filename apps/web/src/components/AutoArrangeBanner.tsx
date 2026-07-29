@@ -81,7 +81,9 @@ export function AutoArrangeBanner({
       ? report.fallbackReason ?? "Gemini was unavailable, so V3 used its deterministic styled fallback."
       : undefined;
   const adaptiveCount = report.adaptiveCandidates?.length ?? 0;
-  const adaptiveWinner = report.adaptiveCandidates?.[0];
+  const adaptiveWinner =
+    report.adaptiveCandidates?.find((candidate) => candidate.selected) ??
+    report.adaptiveCandidates?.[0];
 
   const approved = approvalStatus === "approved";
   const disabledReason = approved

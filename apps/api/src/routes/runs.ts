@@ -218,6 +218,7 @@ runsRouter.post("/", async (req, res) => {
   const fitResult = fitContent(articles, images, scoreableChosen);
   articles = fitResult.articles;
   images = fitResult.keptImages;
+  const runId = createId();
 
   // v3: the AI layout designer produces the styled layout (panels, colored
   // headers, list blocks, captions). Falls back to the deterministic fitter
@@ -240,6 +241,7 @@ runsRouter.post("/", async (req, res) => {
     },
     clientName: client.name,
     monthLabel: body.monthLabel,
+    variationSeed: runId,
   });
   let layout = designed.layout;
 
@@ -299,7 +301,7 @@ runsRouter.post("/", async (req, res) => {
 
   const run = await prisma.newsletterRun.create({
     data: {
-      id: createId(),
+      id: runId,
       clientId: client.id,
       templateId: template.id,
       monthLabel,

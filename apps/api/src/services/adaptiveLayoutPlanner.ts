@@ -85,6 +85,7 @@ interface AdaptiveLayoutInput {
   images: NewsImage[];
   recurringSections: RecurringSection[];
   previousVersion?: number;
+  variationSeed?: string;
 }
 
 function roleForArticle(article: Article): EditorialRole {
@@ -343,6 +344,26 @@ export function applyCandidateMeasurements(
     .sort((a, b) => b.score - a.score || a.id.localeCompare(b.id));
 }
 
+function seedNumber(seed: string): number {
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) {
+    hash = (hash * 31 + seed.charCodeAt(i)) >>> 0;
+  }
+  return hash;
+}
+
+export function chooseAdaptiveCandidate(
+  candidates: AdaptiveLayoutCandidate[],
+  variationSeed?: string,
+): AdaptiveLayoutCandidate {
+  const sorted = [...candidates].sort((a, b) => b.score - a.score || a.id.localeCompare(b.id));
+  const best = sorted[0];
+  if (!best || !variationSeed) return best;
+  const nearBest = sorted.filter((candidate) => best.score - candidate.score <= 0.04);
+  if (nearBest.length <= 1) return best;
+  return nearBest[seedNumber(variationSeed) % nearBest.length];
+}
+
 function makeCandidate(
   id: string,
   label: string,
@@ -443,5 +464,5 @@ export function buildAdaptiveLayout(input: AdaptiveLayoutInput): AdaptiveLayoutR
     makeCandidate("photo-impact", "Photo impact", input, plan, "editorial", "landscapeFirst", "photo-lead-swap"),
     makeCandidate("briefs-first", "Briefs and recurring modules first", input, plan, "briefsFirst", "uploadedFirst", "brief-rail-swap"),
   ].sort((a, b) => b.score - a.score || a.id.localeCompare(b.id));
-  return { plan, candidates, chosen: candidates[0] };
+  return { plan, candidates, chosen: chooseAdaptiveCandidate(candidates, input.variationSeed) };
 }

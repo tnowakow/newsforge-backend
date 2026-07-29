@@ -31,6 +31,7 @@ import { DESIGN_LANGUAGE_PROMPT } from "./designLanguage.js";
 import {
   applyCandidateMeasurements,
   buildAdaptiveLayout,
+  chooseAdaptiveCandidate,
   type AdaptiveLayoutCandidate,
   type EditorialPlan,
 } from "./adaptiveLayoutPlanner.js";
@@ -58,6 +59,7 @@ export interface DesignLayoutInput {
   clientName: string;
   monthLabel?: string;
   previousVersion?: number;
+  variationSeed?: string;
 }
 
 export interface DesignLayoutResult {
@@ -66,7 +68,7 @@ export interface DesignLayoutResult {
   designNotes?: string;
   fallbackReason?: string;
   editorialPlan?: EditorialPlan;
-  adaptiveCandidates?: Array<Omit<AdaptiveLayoutCandidate, "layout">>;
+  adaptiveCandidates?: Array<Omit<AdaptiveLayoutCandidate, "layout"> & { selected?: boolean }>;
   promptAudit: {
     systemPrompt: string;
     userPrompt: string;
@@ -198,11 +200,14 @@ export async function designLayout(
       candidates: adaptive.candidates,
     });
     adaptiveCandidates = applyCandidateMeasurements(adaptive.candidates, measurements);
-    adaptiveChosen = adaptiveCandidates[0] ?? adaptive.chosen;
+    adaptiveChosen = chooseAdaptiveCandidate(adaptiveCandidates, input.variationSeed);
   } catch (err) {
     console.warn("[layout-measurement] candidate measurement skipped:", err);
   }
-  const adaptiveCandidateReport = adaptiveCandidates.map(({ layout: _layout, ...candidate }) => candidate);
+  const adaptiveCandidateReport = adaptiveCandidates.map(({ layout: _layout, ...candidate }) => ({
+    ...candidate,
+    selected: candidate.id === adaptiveChosen.id,
+  }));
   const deterministic = () =>
     applyVibrancyPass({
       layout: adaptiveChosen.layout,

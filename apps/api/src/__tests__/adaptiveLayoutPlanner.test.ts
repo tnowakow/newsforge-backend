@@ -9,6 +9,7 @@ import type {
 import {
   applyCandidateMeasurements,
   buildAdaptiveLayout,
+  chooseAdaptiveCandidate,
   createEditorialPlan,
 } from "../services/adaptiveLayoutPlanner.js";
 
@@ -209,5 +210,35 @@ describe("adaptiveLayoutPlanner.buildAdaptiveLayout", () => {
     assert.equal(reranked[0].id, second.id);
     assert.equal(reranked[0].subscores.renderFit, 1);
     assert.ok(reranked.at(-1)?.warnings.some((warning) => warning.startsWith("render-clipped-blocks")));
+  });
+
+  it("uses variation seeds only among near-best candidates", () => {
+    const result = buildAdaptiveLayout({
+      templateId: "v3-test",
+      pageCount: 2,
+      gridSpec,
+      recurringSections: [],
+      articles: [
+        article("lead", "Meet Dorothy", 220, "resident-story"),
+        article("event", "Summer Concert Recap", 125, "event-recap"),
+      ],
+      images: [image("upload-photo", "portrait", "UPLOAD")],
+    });
+    const closeCandidates = result.candidates.map((candidate, index) => ({
+      ...candidate,
+      score: 1 - index * 0.01,
+    }));
+    const chosenIds = new Set(
+      Array.from({ length: 20 }, (_, index) =>
+        chooseAdaptiveCandidate(closeCandidates, `seed-${index}`).id,
+      ),
+    );
+    assert.ok(chosenIds.size > 1);
+
+    const farCandidates = closeCandidates.map((candidate, index) => ({
+      ...candidate,
+      score: index === 0 ? 1 : 0.7,
+    }));
+    assert.equal(chooseAdaptiveCandidate(farCandidates, "seed-any").id, farCandidates[0].id);
   });
 });
