@@ -199,6 +199,43 @@ export interface LayoutFitCandidate {
   };
 }
 
+export interface AdaptiveLayoutCandidateReport {
+  id: string;
+  label: string;
+  score: number;
+  subscores: {
+    occupancy: number;
+    contentCoverage: number;
+    requiredCoverage: number;
+    balance: number;
+    clippingRisk: number;
+    geometryValidity: number;
+    photoImpact: number;
+  };
+  warnings: string[];
+}
+
+export interface EditorialPlanReport {
+  leadArticleId?: string;
+  photoGoal: "text-led" | "balanced" | "photo-led";
+  density: "sparse" | "moderate" | "dense";
+  requiredArticleIds: string[];
+  items: Array<{
+    articleId: string;
+    role:
+      | "lead"
+      | "executive-note"
+      | "event"
+      | "service"
+      | "recurring"
+      | "supporting";
+    priority: number;
+    required: boolean;
+    preferredProminence: "hero" | "feature" | "standard" | "brief";
+    trimMode: "preserve" | "sentence" | "brief";
+  }>;
+}
+
 export interface LayoutFitArticleFit {
   articleId: string;
   slotId: string;
@@ -220,6 +257,8 @@ export interface LayoutFitReport {
   designMode?: "ai" | "deterministic";
   designNotes?: string;
   fallbackReason?: string;
+  editorialPlan?: EditorialPlanReport;
+  adaptiveCandidates?: AdaptiveLayoutCandidateReport[];
   candidates: LayoutFitCandidate[];
   articleFit: LayoutFitArticleFit[];
   photoFit: LayoutFitPhotoFit[];

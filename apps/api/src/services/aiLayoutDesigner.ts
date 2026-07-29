@@ -27,6 +27,11 @@ import { callGeminiJson } from "../gemini.js";
 import { assembleLayout } from "./layoutAssembly.js";
 import { applyVibrancyPass } from "./vibrancyPass.js";
 import { DESIGN_LANGUAGE_PROMPT } from "./designLanguage.js";
+import {
+  buildAdaptiveLayout,
+  type AdaptiveLayoutCandidate,
+  type EditorialPlan,
+} from "./adaptiveLayoutPlanner.js";
 
 /** Layout design returns full spread JSON; production smokes can take 30-75s. */
 const DESIGN_TIMEOUT_MS = 90_000;
@@ -56,6 +61,8 @@ export interface DesignLayoutResult {
   mode: "ai" | "deterministic";
   designNotes?: string;
   fallbackReason?: string;
+  editorialPlan?: EditorialPlan;
+  adaptiveCandidates?: Array<Omit<AdaptiveLayoutCandidate, "layout">>;
   promptAudit: {
     systemPrompt: string;
     userPrompt: string;
@@ -172,17 +179,11 @@ function reattachMissingImages(
 export async function designLayout(
   input: DesignLayoutInput,
 ): Promise<DesignLayoutResult> {
+  const adaptive = buildAdaptiveLayout(input);
+  const adaptiveCandidateReport = adaptive.candidates.map(({ layout: _layout, ...candidate }) => candidate);
   const deterministic = () =>
     applyVibrancyPass({
-      layout: assembleLayout({
-        templateId: input.templateId,
-        pageCount: input.pageCount,
-        gridSpec: input.gridSpec,
-        articles: input.articles,
-        images: input.images,
-        recurringSections: input.recurringSections,
-        previousVersion: input.previousVersion,
-      }),
+      layout: adaptive.chosen.layout,
       articles: input.articles,
       images: input.images,
     });
@@ -237,7 +238,9 @@ export async function designLayout(
       layout: fallbackLayout,
       mode: "deterministic",
       designNotes:
-        "V3 inner-spread archetypes use deterministic reference layouts for demo stability.",
+        `Adaptive planner selected ${adaptive.chosen.label} from ${adaptive.candidates.length} candidates; Chromium measurement is the next fitting layer.`,
+      editorialPlan: adaptive.plan,
+      adaptiveCandidates: adaptiveCandidateReport,
       promptAudit: { systemPrompt, userPrompt },
     };
   }
@@ -255,6 +258,8 @@ export async function designLayout(
       layout: fallbackLayout,
       mode: "deterministic",
       fallbackReason: "reason" in result ? result.reason : "fallback",
+      editorialPlan: adaptive.plan,
+      adaptiveCandidates: adaptiveCandidateReport,
       promptAudit: { systemPrompt, userPrompt },
     };
   }
@@ -268,6 +273,8 @@ export async function designLayout(
       layout: fallbackLayout,
       mode: "deterministic",
       fallbackReason: "ai_returned_no_valid_blocks",
+      editorialPlan: adaptive.plan,
+      adaptiveCandidates: adaptiveCandidateReport,
       promptAudit: { systemPrompt, userPrompt },
     };
   }
@@ -293,6 +300,8 @@ export async function designLayout(
     layout,
     mode: "ai",
     designNotes: result.data.designNotes,
+    editorialPlan: adaptive.plan,
+    adaptiveCandidates: adaptiveCandidateReport,
     promptAudit: { systemPrompt, userPrompt },
   };
 }

@@ -80,6 +80,8 @@ export function AutoArrangeBanner({
       : designMode === "deterministic"
       ? report.fallbackReason ?? "Gemini was unavailable, so V3 used its deterministic styled fallback."
       : undefined;
+  const adaptiveCount = report.adaptiveCandidates?.length ?? 0;
+  const adaptiveWinner = report.adaptiveCandidates?.[0];
 
   const approved = approvalStatus === "approved";
   const disabledReason = approved
@@ -167,6 +169,19 @@ export function AutoArrangeBanner({
                 </span>
               ) : (
                 <span className="text-ink-muted"> · all photos placed</span>
+              )}
+              {adaptiveCount > 0 && (
+                <span
+                  className="text-ink-muted"
+                  title={
+                    adaptiveWinner
+                      ? `${adaptiveWinner.label}: ${(adaptiveWinner.score * 100).toFixed(0)}%`
+                      : undefined
+                  }
+                >
+                  {" · "}
+                  {adaptiveCount} layout candidates scored
+                </span>
               )}
               {designLabel && (
                 <span

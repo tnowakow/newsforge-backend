@@ -359,6 +359,8 @@ export function buildLayoutFitReport(input: {
     mode: "ai" | "deterministic";
     designNotes?: string;
     fallbackReason?: string;
+    editorialPlan?: LayoutFitReport["editorialPlan"];
+    adaptiveCandidates?: LayoutFitReport["adaptiveCandidates"];
   };
 }): LayoutFitReport {
   const pick =
@@ -373,6 +375,8 @@ export function buildLayoutFitReport(input: {
     designMode: input.design?.mode,
     designNotes: input.design?.designNotes,
     fallbackReason: input.design?.fallbackReason,
+    editorialPlan: input.design?.editorialPlan,
+    adaptiveCandidates: input.design?.adaptiveCandidates,
     candidates: pick.candidates,
     articleFit: input.fitResult.articleFit,
     photoFit: input.fitResult.photoFit,

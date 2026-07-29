@@ -32,6 +32,48 @@ export const LayoutFitCandidateSchema = z.object({
 });
 export type LayoutFitCandidate = z.infer<typeof LayoutFitCandidateSchema>;
 
+export const AdaptiveLayoutCandidateReportSchema = z.object({
+  id: z.string(),
+  label: z.string(),
+  score: z.number(),
+  subscores: z.object({
+    occupancy: z.number(),
+    contentCoverage: z.number(),
+    requiredCoverage: z.number(),
+    balance: z.number(),
+    clippingRisk: z.number(),
+    geometryValidity: z.number(),
+    photoImpact: z.number(),
+  }),
+  warnings: z.array(z.string()),
+});
+export type AdaptiveLayoutCandidateReport = z.infer<
+  typeof AdaptiveLayoutCandidateReportSchema
+>;
+
+export const EditorialPlanReportSchema = z.object({
+  leadArticleId: z.string().optional(),
+  photoGoal: z.enum(["text-led", "balanced", "photo-led"]),
+  density: z.enum(["sparse", "moderate", "dense"]),
+  requiredArticleIds: z.array(z.string()),
+  items: z.array(z.object({
+    articleId: z.string(),
+    role: z.enum([
+      "lead",
+      "executive-note",
+      "event",
+      "service",
+      "recurring",
+      "supporting",
+    ]),
+    priority: z.number(),
+    required: z.boolean(),
+    preferredProminence: z.enum(["hero", "feature", "standard", "brief"]),
+    trimMode: z.enum(["preserve", "sentence", "brief"]),
+  })),
+});
+export type EditorialPlanReport = z.infer<typeof EditorialPlanReportSchema>;
+
 export const LayoutFitArticleFitSchema = z.object({
   articleId: z.string(),
   slotId: z.string(),
@@ -56,6 +98,8 @@ export const LayoutFitReportSchema = z.object({
   designMode: z.enum(["ai", "deterministic"]).optional(),
   designNotes: z.string().optional(),
   fallbackReason: z.string().optional(),
+  editorialPlan: EditorialPlanReportSchema.optional(),
+  adaptiveCandidates: z.array(AdaptiveLayoutCandidateReportSchema).optional(),
   candidates: z.array(LayoutFitCandidateSchema),
   articleFit: z.array(LayoutFitArticleFitSchema),
   photoFit: z.array(LayoutFitPhotoFitSchema),

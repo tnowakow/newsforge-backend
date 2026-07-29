@@ -281,6 +281,8 @@ runsRouter.post("/", async (req, res) => {
       mode: designed.mode,
       designNotes: designed.designNotes,
       fallbackReason: designed.fallbackReason,
+      editorialPlan: designed.editorialPlan,
+      adaptiveCandidates: designed.adaptiveCandidates,
     },
   });
 
