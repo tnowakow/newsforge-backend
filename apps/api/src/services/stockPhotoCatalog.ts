@@ -143,10 +143,18 @@ const PHOTO_TOPICS = [
   },
 ];
 
+const PEXELS_PHOTO_IDS = [
+  7551668, 3768131, 3768136, 7551617, 7551667, 7551608, 7551752, 7551611,
+  7551672, 7551681, 7551648, 3822622, 3822621, 3822623, 4148842, 4148843,
+  3768114, 3768146, 3768138, 6646918, 6646917, 6646919, 6646878, 5799470,
+  7088524, 7088530, 5637731, 5637733, 5637735, 6647037, 6647040,
+];
+
 function photoUrl(topic: string, aspect: StockAspect, index: number): string {
-  const size =
-    aspect === "portrait" ? "1100x1600" : aspect === "square" ? "1400x1400" : "1600x1100";
-  return `https://picsum.photos/seed/newsforge-${topic}-${index}/${size}`;
+  void topic;
+  const id = PEXELS_PHOTO_IDS[index % PEXELS_PHOTO_IDS.length];
+  const width = aspect === "portrait" ? 1200 : aspect === "square" ? 1400 : 1600;
+  return `https://images.pexels.com/photos/${id}/pexels-photo-${id}.jpeg?auto=compress&cs=tinysrgb&w=${width}`;
 }
 
 const STOCK_PHOTOS: StockPhoto[] = PHOTO_TOPICS.flatMap((topic, topicIndex) =>
