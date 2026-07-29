@@ -25,6 +25,7 @@ interface MeasureInput {
 
 interface DomMeasurement {
   clippedBlocks: number;
+  clippedBlockIds: string[];
   overflowBlocks: number;
   missingImages: number;
   renderedImages: number;
@@ -71,6 +72,9 @@ async function measureCandidate(input: Omit<MeasureInput, "candidates"> & {
       }
     }
     const clippedBlocks = clippedBlockSet.size;
+    const clippedBlockIds = Array.from(clippedBlockSet)
+      .map((block) => block.getAttribute("data-block-id"))
+      .filter((id): id is string => typeof id === "string" && id.length > 0);
     const overflowBlocks = blocks.filter((block) => {
       const rect = block.getBoundingClientRect();
       const pageRect = block.closest(".page")?.getBoundingClientRect();
@@ -118,6 +122,7 @@ async function measureCandidate(input: Omit<MeasureInput, "candidates"> & {
     }
     return {
       clippedBlocks,
+      clippedBlockIds,
       overflowBlocks,
       missingImages: images.length - renderedImages,
       renderedImages,

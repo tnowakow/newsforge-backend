@@ -57,6 +57,7 @@ export interface AdaptiveCandidateScore {
 export interface CandidateMeasurement {
   candidateId: string;
   clippedBlocks: number;
+  clippedBlockIds?: string[];
   overflowBlocks: number;
   missingImages: number;
   renderedImages: number;

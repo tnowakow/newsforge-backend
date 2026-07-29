@@ -50,6 +50,7 @@ import { runComplianceSync } from "../services/complianceService.js";
 import { buildBundle } from "../services/bundleExportService.js";
 import { callGeminiJson } from "../gemini.js";
 import { selectStockPhotosForRun } from "../services/stockPhotoCatalog.js";
+import type { CandidateMeasurement } from "../services/adaptiveLayoutPlanner.js";
 
 export const runsRouter: Router = Router();
 
@@ -71,6 +72,58 @@ async function refreshCompliance(
     where: { id: runId },
     data: { complianceFlags: flags as unknown as object },
   });
+}
+
+function wordCount(text: string): number {
+  return text.trim().split(/\s+/).filter(Boolean).length;
+}
+
+function trimWords(text: string, ratio = 0.82): string {
+  const words = text.trim().split(/\s+/).filter(Boolean);
+  const keep = Math.max(8, Math.floor(words.length * ratio));
+  return words.slice(0, keep).join(" ");
+}
+
+function repairClippedBlocks(
+  layout: AssembledLayout,
+  articles: Article[],
+  measurement: CandidateMeasurement,
+): { layout: AssembledLayout; articles: Article[]; changed: boolean } {
+  const clipped = new Set(measurement.clippedBlockIds ?? []);
+  if (clipped.size === 0) return { layout, articles, changed: false };
+
+  let changed = false;
+  const articlesById = new Map(articles.map((article) => [article.id, article]));
+  const nextArticles = articles.map((article) => ({ ...article }));
+  const mutableArticlesById = new Map(nextArticles.map((article) => [article.id, article]));
+  const nextBlocks = layout.blocks.map((block) => {
+    if (!clipped.has(block.blockId)) return block;
+    changed = true;
+    if (block.listItems?.length) {
+      return {
+        ...block,
+        listItems: block.listItems.length > 8 ? block.listItems.slice(0, 8) : block.listItems,
+      };
+    }
+    if (block.articleId) {
+      const original = articlesById.get(block.articleId);
+      const article = mutableArticlesById.get(block.articleId);
+      if (original && article) {
+        article.body = trimWords(original.body);
+        article.wordCount = wordCount(article.body);
+      }
+    }
+    if (block.inlineText) {
+      return { ...block, inlineText: trimWords(block.inlineText) };
+    }
+    return block;
+  });
+
+  return {
+    layout: { ...layout, blocks: nextBlocks },
+    articles: nextArticles,
+    changed,
+  };
 }
 
 async function candidateTemplatesForClient(
@@ -295,24 +348,37 @@ runsRouter.post("/", async (req, res) => {
   const selectedAdaptive = adaptiveCandidatesForReport?.find((candidate) => candidate.selected);
   if (selectedAdaptive) {
     try {
-      const [finalMeasurement] = await measureAdaptiveCandidates({
-        clientName: client.name,
-        monthLabel,
-        brandKit,
-        gridSpec: gridSpecParsed.data,
-        articles,
-        images,
-        recurringSections,
-        candidates: [{
-          id: selectedAdaptive.id,
-          label: selectedAdaptive.label,
-          geometryVariant: selectedAdaptive.geometryVariant,
-          layout,
-          score: selectedAdaptive.score,
-          subscores: selectedAdaptive.subscores,
-          warnings: selectedAdaptive.warnings,
-        }],
-      });
+      const measureSelected = async () => {
+        const [measurement] = await measureAdaptiveCandidates({
+          clientName: client.name,
+          monthLabel,
+          brandKit,
+          gridSpec: gridSpecParsed.data,
+          articles: articles as Article[],
+          images,
+          recurringSections,
+          candidates: [{
+            id: selectedAdaptive.id,
+            label: selectedAdaptive.label,
+            geometryVariant: selectedAdaptive.geometryVariant,
+            layout,
+            score: selectedAdaptive.score,
+            subscores: selectedAdaptive.subscores,
+            warnings: selectedAdaptive.warnings,
+          }],
+        });
+        return measurement;
+      };
+
+      let finalMeasurement = await measureSelected();
+      for (let attempt = 0; attempt < 2 && finalMeasurement?.clippedBlocks > 0; attempt++) {
+        const repaired = repairClippedBlocks(layout, articles, finalMeasurement);
+        if (!repaired.changed) break;
+        layout = repaired.layout;
+        articles = repaired.articles;
+        finalMeasurement = await measureSelected();
+      }
+
       if (finalMeasurement) {
         const totalBlocks = Math.max(layout.blocks.length, 1);
         const totalImages = Math.max(finalMeasurement.totalImages, 1);

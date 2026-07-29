@@ -157,7 +157,7 @@ function renderBlock(input: RenderInput, b: LayoutBlock): string {
     return "";
   }
 
-  return `<div class="block${roleClass(b)}" style="${outerStyle}"><div class="block-inner${bg ? " panel" : ""}${roleClass(b)}" style="${panelStyle}">${inner}</div></div>`;
+  return `<div class="block${roleClass(b)}" data-block-id="${esc(b.blockId)}" data-slot-id="${esc(b.slotId)}" style="${outerStyle}"><div class="block-inner${bg ? " panel" : ""}${roleClass(b)}" style="${panelStyle}">${inner}</div></div>`;
 }
 
 function masthead(input: RenderInput, page: number): string {
