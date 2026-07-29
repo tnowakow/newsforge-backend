@@ -31,6 +31,7 @@ describe("mockContent Trilogy scenarios", () => {
     assert.equal(photo.articles[0].title, "Out and About");
     assert.equal(resident.articles[0].title, "Smile of the Month");
     assert.equal(editorial.articles[0].title, "Executive Director Corner");
+    assert.equal(editorial.articles[1].title, "Happy Birthday!");
     assert.notDeepEqual(
       classic.articles.slice(0, 5).map((article) => article.title),
       photo.articles.slice(0, 5).map((article) => article.title),

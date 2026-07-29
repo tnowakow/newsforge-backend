@@ -67,6 +67,18 @@ function articleMatchesSlot(article: Article, slot: TemplateSlot): boolean {
   return false;
 }
 
+function requiresSemanticArticle(slot: TemplateSlot): boolean {
+  return /birthday|exec-corner|director|happy-hour|schedule|upcoming-events|out-and-about|outing|smile-of-the-month|spotlight|feature-band|scrubbly|car-wash|make-the-difference|volunteer|trust-funds|info-footer/i.test(
+    slot.styleTag ?? "",
+  );
+}
+
+function matchesAnySemanticSlot(article: Article, slots: TemplateSlot[]): boolean {
+  return slots.some(
+    (slot) => requiresSemanticArticle(slot) && articleMatchesSlot(article, slot),
+  );
+}
+
 function newBlockFor(slot: TemplateSlot): LayoutBlock {
   return {
     blockId: createId(),
@@ -108,7 +120,9 @@ export function assembleLayout(input: AssembleInput): AssembledLayout {
     const matchingArticle =
       articlePool.find((a) => a.sectionId === section.id) ??
       articlePool.find((a) => articleMatchesSlot(a, slot)) ??
-      articlePool.find((a) => !a.sectionId);
+      (requiresSemanticArticle(slot)
+        ? undefined
+        : articlePool.find((a) => !a.sectionId));
     if (matchingArticle) {
       const i = articlePool.indexOf(matchingArticle);
       articlePool.splice(i, 1);
@@ -157,15 +171,28 @@ export function assembleLayout(input: AssembleInput): AssembledLayout {
       // Choose article best matching capacity.
       const max = slot.capacity.maxWords ?? Number.MAX_SAFE_INTEGER;
       const min = slot.capacity.minWords ?? 0;
+      const remainingSlots = slots.slice(i + 1);
       let pickIdx = articlePool.findIndex((a) => articleMatchesSlot(a, slot));
-      if (pickIdx === -1) pickIdx = articlePool.findIndex(
-        (a) => a.wordCount >= min && a.wordCount <= max,
-      );
-      if (pickIdx === -1 && articlePool.length > 0) {
-        const fallbackIdx = articlePool.findIndex(
-          (a) => min === 0 || a.wordCount >= Math.floor(min * 0.6),
+      if (!requiresSemanticArticle(slot)) {
+        if (pickIdx === -1) pickIdx = articlePool.findIndex(
+          (a) =>
+            a.wordCount >= min &&
+            a.wordCount <= max &&
+            !matchesAnySemanticSlot(a, remainingSlots),
         );
-        pickIdx = fallbackIdx;
+        if (pickIdx === -1 && articlePool.length > 0) {
+          const fallbackIdx = articlePool.findIndex(
+            (a) =>
+              (min === 0 || a.wordCount >= Math.floor(min * 0.6)) &&
+              !matchesAnySemanticSlot(a, remainingSlots),
+          );
+          pickIdx = fallbackIdx;
+        }
+        if (pickIdx === -1 && articlePool.length > 0) {
+          pickIdx = articlePool.findIndex(
+            (a) => min === 0 || a.wordCount >= Math.floor(min * 0.6),
+          );
+        }
       }
       if (pickIdx !== -1) {
         const article = articlePool.splice(pickIdx, 1)[0];

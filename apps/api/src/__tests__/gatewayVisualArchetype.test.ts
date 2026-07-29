@@ -94,3 +94,85 @@ test("Gateway-style inner spread lands key content in the intended archetype slo
   assert.equal(bySlot.get("volunteer")?.style?.panelRole, "volunteerCallout");
   assert.equal(bySlot.get("trust")?.style?.panelRole, "infoFooter");
 });
+
+test("semantic slots are not filled with unrelated articles", () => {
+  const gridSpec: GridSpec = {
+    label: "semantic-guard",
+    columns: 12,
+    rowsPerPage: 10,
+    slots: [
+      slot("birthdays", 1, "list", 1, 1, 6, 5, "birthdays panel:sun"),
+      slot("general", 1, "body", 7, 1, 6, 5),
+    ],
+  };
+  const articles: Article[] = [
+    {
+      id: "a-profile",
+      title: "The Best Friends Approach in Action",
+      body: "A resident profile belongs in a general feature slot, not a birthday module.",
+      wordCount: 12,
+      articleType: "resident-story",
+      isFiller: false,
+      source: "MOCK",
+    },
+  ];
+
+  const layout = assembleLayout({
+    templateId: "v3-editorial-light",
+    pageCount: 1,
+    gridSpec,
+    articles,
+    images: [],
+    recurringSections: [],
+  });
+
+  const bySlot = new Map(layout.blocks.map((block) => [block.slotId, block]));
+  assert.equal(bySlot.get("birthdays")?.articleId, undefined);
+  assert.equal(bySlot.get("birthdays")?.needsFiller, true);
+  assert.equal(bySlot.get("general")?.articleId, "a-profile");
+});
+
+test("generic slots do not steal articles needed by later semantic slots", () => {
+  const gridSpec: GridSpec = {
+    label: "semantic-preserve",
+    columns: 12,
+    rowsPerPage: 10,
+    slots: [
+      slot("general", 1, "body", 1, 1, 6, 5),
+      slot("birthdays", 1, "list", 7, 1, 6, 5, "birthdays panel:sun"),
+    ],
+  };
+  const articles: Article[] = [
+    {
+      id: "a-birthday",
+      title: "Happy Birthday!",
+      body: "RESIDENTS\nMary A. 7/3",
+      wordCount: 3,
+      articleType: "birthday",
+      isFiller: false,
+      source: "MOCK",
+    },
+    {
+      id: "a-general",
+      title: "Summer Flavors From the Kitchen",
+      body: "The kitchen is leaning into summer with crisp salads and grilled favorites.",
+      wordCount: 11,
+      articleType: "announcement",
+      isFiller: false,
+      source: "MOCK",
+    },
+  ];
+
+  const layout = assembleLayout({
+    templateId: "v3-editorial-light",
+    pageCount: 1,
+    gridSpec,
+    articles,
+    images: [],
+    recurringSections: [],
+  });
+
+  const bySlot = new Map(layout.blocks.map((block) => [block.slotId, block]));
+  assert.equal(bySlot.get("general")?.articleId, "a-general");
+  assert.equal(bySlot.get("birthdays")?.articleId, "a-birthday");
+});

@@ -511,13 +511,13 @@ function orderTrilogyStories(
     ],
     "editorial-light": [
       "director",
+      "birthdays",
       "uv-safety",
       "best-friends",
       "trust-funds",
       "summer-food",
       "calendar",
       "make-the-difference",
-      "birthdays",
     ],
   };
   const includeGroups: Record<string, string[]> = {
