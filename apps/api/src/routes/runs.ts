@@ -45,6 +45,7 @@ import {
   pickBestTemplate,
   type ScoreableTemplate,
 } from "../services/layoutFitService.js";
+import { measureAdaptiveCandidates } from "../services/layoutMeasurementService.js";
 import { runComplianceSync } from "../services/complianceService.js";
 import { buildBundle } from "../services/bundleExportService.js";
 import { callGeminiJson } from "../gemini.js";
@@ -229,6 +230,14 @@ runsRouter.post("/", async (req, res) => {
   articles = fitResult.articles;
   images = fitResult.keptImages;
   const runId = createId();
+  const brandKit = {
+    primaryColor: client.primaryColor,
+    secondaryColor: client.secondaryColor,
+    accentColor: client.accentColor,
+    headingFont: client.headingFont,
+    bodyFont: client.bodyFont,
+    logoUrl: client.logoUrl,
+  };
 
   // v3: the AI layout designer produces the styled layout (panels, colored
   // headers, list blocks, captions). Falls back to the deterministic fitter
@@ -241,14 +250,7 @@ runsRouter.post("/", async (req, res) => {
     images,
     recurringSections,
     brandVoice: client.brandVoice,
-    brandKit: {
-      primaryColor: client.primaryColor,
-      secondaryColor: client.secondaryColor,
-      accentColor: client.accentColor,
-      headingFont: client.headingFont,
-      bodyFont: client.bodyFont,
-      logoUrl: client.logoUrl,
-    },
+    brandKit,
     clientName: client.name,
     monthLabel: body.monthLabel,
     variationSeed: runId,
@@ -289,6 +291,76 @@ runsRouter.post("/", async (req, res) => {
     }
   }
 
+  let adaptiveCandidatesForReport = designed.adaptiveCandidates;
+  const selectedAdaptive = adaptiveCandidatesForReport?.find((candidate) => candidate.selected);
+  if (selectedAdaptive) {
+    try {
+      const [finalMeasurement] = await measureAdaptiveCandidates({
+        clientName: client.name,
+        monthLabel,
+        brandKit,
+        gridSpec: gridSpecParsed.data,
+        articles,
+        images,
+        recurringSections,
+        candidates: [{
+          id: selectedAdaptive.id,
+          label: selectedAdaptive.label,
+          geometryVariant: selectedAdaptive.geometryVariant,
+          layout,
+          score: selectedAdaptive.score,
+          subscores: selectedAdaptive.subscores,
+          warnings: selectedAdaptive.warnings,
+        }],
+      });
+      if (finalMeasurement) {
+        const totalBlocks = Math.max(layout.blocks.length, 1);
+        const totalImages = Math.max(finalMeasurement.totalImages, 1);
+        const renderFit = Math.max(
+          0,
+          1 -
+            finalMeasurement.clippedBlocks / totalBlocks -
+            finalMeasurement.overflowBlocks / totalBlocks -
+            finalMeasurement.missingImages / totalImages,
+        );
+        adaptiveCandidatesForReport = adaptiveCandidatesForReport?.map((candidate) => {
+          if (candidate.id !== selectedAdaptive.id) return candidate;
+          const baseWarnings = candidate.warnings.filter(
+            (warning) =>
+              !/^render-(clipped|overflow|missing)-/.test(warning) &&
+              !/^low-utility-blocks:/.test(warning),
+          );
+          return {
+            ...candidate,
+            measurement: finalMeasurement,
+            subscores: {
+              ...candidate.subscores,
+              renderFit,
+              usefulOccupancy: finalMeasurement.usefulOccupancy,
+            },
+            warnings: [
+              ...baseWarnings,
+              ...(finalMeasurement.clippedBlocks > 0
+                ? [`render-clipped-blocks:${finalMeasurement.clippedBlocks}`]
+                : []),
+              ...(finalMeasurement.overflowBlocks > 0
+                ? [`render-overflow-blocks:${finalMeasurement.overflowBlocks}`]
+                : []),
+              ...(finalMeasurement.missingImages > 0
+                ? [`render-missing-images:${finalMeasurement.missingImages}`]
+                : []),
+              ...(finalMeasurement.lowUtilityBlocks > 0
+                ? [`low-utility-blocks:${finalMeasurement.lowUtilityBlocks}`]
+                : []),
+            ],
+          };
+        });
+      }
+    } catch (err) {
+      console.warn("[layout-measurement] final selected measurement skipped:", err);
+    }
+  }
+
   // Build the fit report for persistence.
   const layoutFitReport = buildLayoutFitReport({
     articles,
@@ -302,7 +374,7 @@ runsRouter.post("/", async (req, res) => {
       designNotes: designed.designNotes,
       fallbackReason: designed.fallbackReason,
       editorialPlan: designed.editorialPlan,
-      adaptiveCandidates: designed.adaptiveCandidates,
+      adaptiveCandidates: adaptiveCandidatesForReport,
     },
   });
 
