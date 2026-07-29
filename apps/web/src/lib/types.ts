@@ -202,6 +202,11 @@ export interface LayoutFitCandidate {
 export interface AdaptiveLayoutCandidateReport {
   id: string;
   label: string;
+  geometryVariant:
+    | "fixed"
+    | "lead-photo-swap"
+    | "photo-lead-swap"
+    | "brief-rail-swap";
   score: number;
   subscores: {
     occupancy: number;

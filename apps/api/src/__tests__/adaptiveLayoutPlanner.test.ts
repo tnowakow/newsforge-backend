@@ -12,6 +12,23 @@ import {
   createEditorialPlan,
 } from "../services/adaptiveLayoutPlanner.js";
 
+function geometrySignature(candidate: ReturnType<typeof buildAdaptiveLayout>["candidates"][number]): string {
+  return candidate.layout.blocks
+    .filter((block) => block.articleId || block.imageId)
+    .map((block) =>
+      [
+        block.articleId ? `a:${block.articleId}` : `i:${block.imageId}`,
+        block.page,
+        block.position.col,
+        block.position.row,
+        block.position.colSpan,
+        block.position.rowSpan,
+      ].join(":"),
+    )
+    .sort()
+    .join("|");
+}
+
 function slot(
   id: string,
   type: TemplateSlot["type"],
@@ -129,10 +146,32 @@ describe("adaptiveLayoutPlanner.buildAdaptiveLayout", () => {
     });
 
     assert.equal(result.candidates.length, 4);
+    assert.ok(result.candidates.some((candidate) => candidate.geometryVariant !== "fixed"));
     assert.ok(result.chosen.score >= 0);
     assert.ok(result.chosen.subscores.geometryValidity > 0.99);
     assert.ok(result.chosen.subscores.requiredCoverage > 0.99);
     assert.ok(result.chosen.layout.blocks.some((block) => block.articleId === "lead"));
+  });
+
+  it("creates materially different geometry candidates, not only content-order variants", () => {
+    const result = buildAdaptiveLayout({
+      templateId: "v3-test",
+      pageCount: 2,
+      gridSpec,
+      recurringSections: [],
+      articles: [
+        article("birthday", "July Birthdays", 60, "birthday"),
+        article("lead", "Meet Dorothy", 220, "resident-story"),
+        article("event", "Summer Concert Recap", 125, "event-recap"),
+      ],
+      images: [
+        image("wide-photo", "landscape", "UPLOAD"),
+        image("group-photo", "landscape", "STOCK"),
+      ],
+    });
+    const signatures = new Set(result.candidates.map(geometrySignature));
+    assert.ok(signatures.size >= 2);
+    assert.ok(result.candidates.every((candidate) => candidate.subscores.geometryValidity > 0.99));
   });
 
   it("reranks candidates when browser measurement finds render failures", () => {

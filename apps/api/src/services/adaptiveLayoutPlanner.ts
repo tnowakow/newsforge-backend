@@ -17,6 +17,12 @@ type EditorialRole =
   | "recurring"
   | "supporting";
 
+type GeometryVariant =
+  | "fixed"
+  | "lead-photo-swap"
+  | "photo-lead-swap"
+  | "brief-rail-swap";
+
 export interface EditorialPlanItem {
   articleId: string;
   role: EditorialRole;
@@ -57,6 +63,7 @@ export interface CandidateMeasurement {
 export interface AdaptiveLayoutCandidate {
   id: string;
   label: string;
+  geometryVariant: GeometryVariant;
   layout: AssembledLayout;
   score: number;
   subscores: AdaptiveCandidateScore;
@@ -273,7 +280,7 @@ function scoreCandidate(
     if (!block.articleId) return false;
     const article = input.articles.find((a) => a.id === block.articleId);
     const slot = input.gridSpec.slots.find((s) => s.id === block.slotId);
-    const maxWords = slot?.capacity.maxWords ?? blockArea(block) * 12;
+    const maxWords = Math.max(slot?.capacity.maxWords ?? 0, blockArea(block) * 12);
     return article ? article.wordCount > maxWords : false;
   }).length;
   const subscores: AdaptiveCandidateScore = {
@@ -343,10 +350,11 @@ function makeCandidate(
   plan: EditorialPlan,
   articleMode: "source" | "editorial" | "briefsFirst",
   imageMode: "source" | "landscapeFirst" | "uploadedFirst",
+  geometryVariant: GeometryVariant,
 ): AdaptiveLayoutCandidate {
   const articles = orderArticles(input.articles, plan, articleMode);
   const images = orderImages(input.images, imageMode);
-  const layout = assembleLayout({
+  const layout = applyGeometryVariant(assembleLayout({
     templateId: input.templateId,
     pageCount: input.pageCount,
     gridSpec: input.gridSpec,
@@ -354,11 +362,12 @@ function makeCandidate(
     images,
     recurringSections: input.recurringSections,
     previousVersion: input.previousVersion,
-  });
+  }), geometryVariant, plan);
   const scored = scoreCandidate(layout, { ...input, articles, images }, plan);
   return {
     id,
     label,
+    geometryVariant,
     layout,
     score: scored.score,
     subscores: scored.subscores,
@@ -366,13 +375,73 @@ function makeCandidate(
   };
 }
 
+function largestBlock(blocks: LayoutBlock[]): LayoutBlock | undefined {
+  return [...blocks].sort((a, b) => blockArea(b) - blockArea(a))[0];
+}
+
+function firstImageBlock(layout: AssembledLayout): LayoutBlock | undefined {
+  return largestBlock(layout.blocks.filter((block) => block.imageId));
+}
+
+function leadArticleBlock(
+  layout: AssembledLayout,
+  plan: EditorialPlan,
+): LayoutBlock | undefined {
+  return (
+    layout.blocks.find((block) => block.articleId === plan.leadArticleId) ??
+    largestBlock(layout.blocks.filter((block) => block.articleId))
+  );
+}
+
+function firstListOrBriefBlock(layout: AssembledLayout): LayoutBlock | undefined {
+  return (
+    largestBlock(layout.blocks.filter((block) => block.kind === "list")) ??
+    largestBlock(layout.blocks.filter((block) => block.articleId && blockArea(block) <= 24))
+  );
+}
+
+function swapBlockPositions(
+  layout: AssembledLayout,
+  first: LayoutBlock | undefined,
+  second: LayoutBlock | undefined,
+): AssembledLayout {
+  if (!first || !second || first.blockId === second.blockId) return layout;
+  return {
+    ...layout,
+    blocks: layout.blocks.map((block) => {
+      if (block.blockId === first.blockId) {
+        return { ...block, page: second.page, position: second.position };
+      }
+      if (block.blockId === second.blockId) {
+        return { ...block, page: first.page, position: first.position };
+      }
+      return block;
+    }),
+  };
+}
+
+function applyGeometryVariant(
+  layout: AssembledLayout,
+  variant: GeometryVariant,
+  plan: EditorialPlan,
+): AssembledLayout {
+  if (variant === "fixed") return layout;
+  if (variant === "lead-photo-swap") {
+    return swapBlockPositions(layout, leadArticleBlock(layout, plan), firstImageBlock(layout));
+  }
+  if (variant === "photo-lead-swap") {
+    return swapBlockPositions(layout, firstImageBlock(layout), leadArticleBlock(layout, plan));
+  }
+  return swapBlockPositions(layout, firstListOrBriefBlock(layout), firstImageBlock(layout));
+}
+
 export function buildAdaptiveLayout(input: AdaptiveLayoutInput): AdaptiveLayoutResult {
   const plan = createEditorialPlan(input.articles, input.images);
   const candidates = [
-    makeCandidate("source-order", "Source order", input, plan, "source", "source"),
-    makeCandidate("editorial-priority", "Editorial priority", input, plan, "editorial", "uploadedFirst"),
-    makeCandidate("photo-impact", "Photo impact", input, plan, "editorial", "landscapeFirst"),
-    makeCandidate("briefs-first", "Briefs and recurring modules first", input, plan, "briefsFirst", "uploadedFirst"),
+    makeCandidate("source-order", "Source order", input, plan, "source", "source", "fixed"),
+    makeCandidate("editorial-priority", "Editorial priority", input, plan, "editorial", "uploadedFirst", "lead-photo-swap"),
+    makeCandidate("photo-impact", "Photo impact", input, plan, "editorial", "landscapeFirst", "photo-lead-swap"),
+    makeCandidate("briefs-first", "Briefs and recurring modules first", input, plan, "briefsFirst", "uploadedFirst", "brief-rail-swap"),
   ].sort((a, b) => b.score - a.score || a.id.localeCompare(b.id));
   return { plan, candidates, chosen: candidates[0] };
 }
