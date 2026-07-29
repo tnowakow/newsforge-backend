@@ -59,7 +59,7 @@ async function measureCandidate(input: Omit<MeasureInput, "candidates"> & {
     const blocks = Array.from(doc.querySelectorAll(".block")) as any[];
     const clippedBlockSet = new Set<any>();
     const clipTargets = Array.from(doc.querySelectorAll(
-      ".block-inner,.body,.list-body,figcaption",
+      ".body,.list-body,figcaption",
     )) as any[];
     for (const target of clipTargets) {
       const isCaption = target.tagName?.toLowerCase() === "figcaption";
