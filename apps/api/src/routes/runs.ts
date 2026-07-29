@@ -230,6 +230,14 @@ runsRouter.post("/", async (req, res) => {
     images,
     recurringSections,
     brandVoice: client.brandVoice,
+    brandKit: {
+      primaryColor: client.primaryColor,
+      secondaryColor: client.secondaryColor,
+      accentColor: client.accentColor,
+      headingFont: client.headingFont,
+      bodyFont: client.bodyFont,
+      logoUrl: client.logoUrl,
+    },
     clientName: client.name,
     monthLabel: body.monthLabel,
   });

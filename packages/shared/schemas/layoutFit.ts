@@ -44,8 +44,17 @@ export const AdaptiveLayoutCandidateReportSchema = z.object({
     clippingRisk: z.number(),
     geometryValidity: z.number(),
     photoImpact: z.number(),
+    renderFit: z.number().optional(),
   }),
   warnings: z.array(z.string()),
+  measurement: z.object({
+    candidateId: z.string(),
+    clippedBlocks: z.number().int().nonnegative(),
+    overflowBlocks: z.number().int().nonnegative(),
+    missingImages: z.number().int().nonnegative(),
+    renderedImages: z.number().int().nonnegative(),
+    totalImages: z.number().int().nonnegative(),
+  }).optional(),
 });
 export type AdaptiveLayoutCandidateReport = z.infer<
   typeof AdaptiveLayoutCandidateReportSchema

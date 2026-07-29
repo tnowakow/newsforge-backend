@@ -42,6 +42,16 @@ export interface AdaptiveCandidateScore {
   clippingRisk: number;
   geometryValidity: number;
   photoImpact: number;
+  renderFit?: number;
+}
+
+export interface CandidateMeasurement {
+  candidateId: string;
+  clippedBlocks: number;
+  overflowBlocks: number;
+  missingImages: number;
+  renderedImages: number;
+  totalImages: number;
 }
 
 export interface AdaptiveLayoutCandidate {
@@ -51,6 +61,7 @@ export interface AdaptiveLayoutCandidate {
   score: number;
   subscores: AdaptiveCandidateScore;
   warnings: string[];
+  measurement?: CandidateMeasurement;
 }
 
 export interface AdaptiveLayoutResult {
@@ -283,6 +294,46 @@ function scoreCandidate(
     0.10 * subscores.geometryValidity +
     0.05 * subscores.photoImpact;
   return { score, subscores, warnings };
+}
+
+function scoreWithMeasurement(
+  candidate: AdaptiveLayoutCandidate,
+  measurement: CandidateMeasurement,
+): AdaptiveLayoutCandidate {
+  const totalBlocks = Math.max(candidate.layout.blocks.length, 1);
+  const totalImages = Math.max(measurement.totalImages, 1);
+  const clippedPenalty = measurement.clippedBlocks / totalBlocks;
+  const overflowPenalty = measurement.overflowBlocks / totalBlocks;
+  const imagePenalty = measurement.missingImages / totalImages;
+  const renderFit = Math.max(0, 1 - clippedPenalty - overflowPenalty - imagePenalty);
+  const warnings = [
+    ...candidate.warnings,
+    ...(measurement.clippedBlocks > 0 ? [`render-clipped-blocks:${measurement.clippedBlocks}`] : []),
+    ...(measurement.overflowBlocks > 0 ? [`render-overflow-blocks:${measurement.overflowBlocks}`] : []),
+    ...(measurement.missingImages > 0 ? [`render-missing-images:${measurement.missingImages}`] : []),
+  ];
+  const subscores = { ...candidate.subscores, renderFit };
+  const score = candidate.score * 0.75 + renderFit * 0.25;
+  return {
+    ...candidate,
+    score,
+    subscores,
+    warnings,
+    measurement,
+  };
+}
+
+export function applyCandidateMeasurements(
+  candidates: AdaptiveLayoutCandidate[],
+  measurements: CandidateMeasurement[],
+): AdaptiveLayoutCandidate[] {
+  const byId = new Map(measurements.map((measurement) => [measurement.candidateId, measurement]));
+  return candidates
+    .map((candidate) => {
+      const measurement = byId.get(candidate.id);
+      return measurement ? scoreWithMeasurement(candidate, measurement) : candidate;
+    })
+    .sort((a, b) => b.score - a.score || a.id.localeCompare(b.id));
 }
 
 function makeCandidate(

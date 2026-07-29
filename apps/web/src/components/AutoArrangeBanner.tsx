@@ -175,7 +175,11 @@ export function AutoArrangeBanner({
                   className="text-ink-muted"
                   title={
                     adaptiveWinner
-                      ? `${adaptiveWinner.label}: ${(adaptiveWinner.score * 100).toFixed(0)}%`
+                      ? `${adaptiveWinner.label}: ${(adaptiveWinner.score * 100).toFixed(0)}%${
+                          adaptiveWinner.subscores.renderFit != null
+                            ? `, render fit ${(adaptiveWinner.subscores.renderFit * 100).toFixed(0)}%`
+                            : ""
+                        }`
                       : undefined
                   }
                 >

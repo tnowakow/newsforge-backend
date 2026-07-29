@@ -7,6 +7,7 @@ import type {
   TemplateSlot,
 } from "@newsforge/shared/schemas";
 import {
+  applyCandidateMeasurements,
   buildAdaptiveLayout,
   createEditorialPlan,
 } from "../services/adaptiveLayoutPlanner.js";
@@ -132,5 +133,42 @@ describe("adaptiveLayoutPlanner.buildAdaptiveLayout", () => {
     assert.ok(result.chosen.subscores.geometryValidity > 0.99);
     assert.ok(result.chosen.subscores.requiredCoverage > 0.99);
     assert.ok(result.chosen.layout.blocks.some((block) => block.articleId === "lead"));
+  });
+
+  it("reranks candidates when browser measurement finds render failures", () => {
+    const result = buildAdaptiveLayout({
+      templateId: "v3-test",
+      pageCount: 2,
+      gridSpec,
+      recurringSections: [],
+      articles: [
+        article("lead", "Meet Dorothy", 220, "resident-story"),
+        article("event", "Summer Concert Recap", 125, "event-recap"),
+      ],
+      images: [image("upload-photo", "portrait", "UPLOAD")],
+    });
+    const [first, second] = result.candidates;
+    const reranked = applyCandidateMeasurements(result.candidates, [
+      {
+        candidateId: first.id,
+        clippedBlocks: first.layout.blocks.length,
+        overflowBlocks: 0,
+        missingImages: 1,
+        renderedImages: 0,
+        totalImages: 1,
+      },
+      {
+        candidateId: second.id,
+        clippedBlocks: 0,
+        overflowBlocks: 0,
+        missingImages: 0,
+        renderedImages: 1,
+        totalImages: 1,
+      },
+    ]);
+
+    assert.equal(reranked[0].id, second.id);
+    assert.equal(reranked[0].subscores.renderFit, 1);
+    assert.ok(reranked.at(-1)?.warnings.some((warning) => warning.startsWith("render-clipped-blocks")));
   });
 });

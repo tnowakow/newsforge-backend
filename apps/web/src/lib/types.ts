@@ -211,8 +211,17 @@ export interface AdaptiveLayoutCandidateReport {
     clippingRisk: number;
     geometryValidity: number;
     photoImpact: number;
+    renderFit?: number;
   };
   warnings: string[];
+  measurement?: {
+    candidateId: string;
+    clippedBlocks: number;
+    overflowBlocks: number;
+    missingImages: number;
+    renderedImages: number;
+    totalImages: number;
+  };
 }
 
 export interface EditorialPlanReport {

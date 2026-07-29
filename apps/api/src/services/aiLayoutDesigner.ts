@@ -18,6 +18,7 @@ import {
   LayoutBlockSchema,
   type Article,
   type AssembledLayout,
+  type BrandKit,
   type GridSpec,
   type LayoutBlock,
   type NewsImage,
@@ -28,10 +29,12 @@ import { assembleLayout } from "./layoutAssembly.js";
 import { applyVibrancyPass } from "./vibrancyPass.js";
 import { DESIGN_LANGUAGE_PROMPT } from "./designLanguage.js";
 import {
+  applyCandidateMeasurements,
   buildAdaptiveLayout,
   type AdaptiveLayoutCandidate,
   type EditorialPlan,
 } from "./adaptiveLayoutPlanner.js";
+import { measureAdaptiveCandidates } from "./layoutMeasurementService.js";
 
 /** Layout design returns full spread JSON; production smokes can take 30-75s. */
 const DESIGN_TIMEOUT_MS = 90_000;
@@ -51,6 +54,7 @@ export interface DesignLayoutInput {
   images: NewsImage[];
   recurringSections: RecurringSection[];
   brandVoice: string;
+  brandKit: BrandKit;
   clientName: string;
   monthLabel?: string;
   previousVersion?: number;
@@ -180,10 +184,28 @@ export async function designLayout(
   input: DesignLayoutInput,
 ): Promise<DesignLayoutResult> {
   const adaptive = buildAdaptiveLayout(input);
-  const adaptiveCandidateReport = adaptive.candidates.map(({ layout: _layout, ...candidate }) => candidate);
+  let adaptiveCandidates = adaptive.candidates;
+  let adaptiveChosen = adaptive.chosen;
+  try {
+    const measurements = await measureAdaptiveCandidates({
+      clientName: input.clientName,
+      monthLabel: input.monthLabel ?? "Newsletter",
+      brandKit: input.brandKit,
+      gridSpec: input.gridSpec,
+      articles: input.articles,
+      images: input.images,
+      recurringSections: input.recurringSections,
+      candidates: adaptive.candidates,
+    });
+    adaptiveCandidates = applyCandidateMeasurements(adaptive.candidates, measurements);
+    adaptiveChosen = adaptiveCandidates[0] ?? adaptive.chosen;
+  } catch (err) {
+    console.warn("[layout-measurement] candidate measurement skipped:", err);
+  }
+  const adaptiveCandidateReport = adaptiveCandidates.map(({ layout: _layout, ...candidate }) => candidate);
   const deterministic = () =>
     applyVibrancyPass({
-      layout: adaptive.chosen.layout,
+      layout: adaptiveChosen.layout,
       articles: input.articles,
       images: input.images,
     });
@@ -238,7 +260,7 @@ export async function designLayout(
       layout: fallbackLayout,
       mode: "deterministic",
       designNotes:
-        `Adaptive planner selected ${adaptive.chosen.label} from ${adaptive.candidates.length} candidates; Chromium measurement is the next fitting layer.`,
+        `Adaptive planner selected ${adaptiveChosen.label} from ${adaptiveCandidates.length} candidates.`,
       editorialPlan: adaptive.plan,
       adaptiveCandidates: adaptiveCandidateReport,
       promptAudit: { systemPrompt, userPrompt },
