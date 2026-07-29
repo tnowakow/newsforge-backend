@@ -213,3 +213,40 @@ test("large sparse general slots accept useful articles below ideal minWords", (
   assert.equal(layout.blocks[0]?.articleId, "a-feature");
   assert.equal(layout.blocks[0]?.needsFiller, false);
 });
+
+test("tiny general slots do not accept oversized fallback articles", () => {
+  const gridSpec: GridSpec = {
+    label: "brief-overflow-guard",
+    columns: 12,
+    rowsPerPage: 10,
+    slots: [
+      {
+        ...slot("brief", 1, "body", 1, 1, 4, 2),
+        capacity: { maxWords: 45 },
+      },
+    ],
+  };
+  const articles: Article[] = [
+    {
+      id: "a-long",
+      title: "Protecting Your Skin During UV Safety Month",
+      body: "A useful wellness story can still be too long for a tiny brief slot, so it should not be silently clipped by the renderer.",
+      wordCount: 95,
+      articleType: "announcement",
+      isFiller: false,
+      source: "MOCK",
+    },
+  ];
+
+  const layout = assembleLayout({
+    templateId: "v3-editorial-light",
+    pageCount: 1,
+    gridSpec,
+    articles,
+    images: [],
+    recurringSections: [],
+  });
+
+  assert.equal(layout.blocks[0]?.articleId, undefined);
+  assert.equal(layout.blocks[0]?.needsFiller, true);
+});

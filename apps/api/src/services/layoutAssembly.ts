@@ -79,6 +79,12 @@ function matchesAnySemanticSlot(article: Article, slots: TemplateSlot[]): boolea
   );
 }
 
+function fitsSlotMaximum(article: Article, slot: TemplateSlot): boolean {
+  const max = slot.capacity.maxWords ?? Number.MAX_SAFE_INTEGER;
+  if (!Number.isFinite(max)) return true;
+  return article.wordCount <= Math.ceil(max * 1.15);
+}
+
 function newBlockFor(slot: TemplateSlot): LayoutBlock {
   return {
     blockId: createId(),
@@ -184,18 +190,23 @@ export function assembleLayout(input: AssembleInput): AssembledLayout {
           const fallbackIdx = articlePool.findIndex(
             (a) =>
               (min === 0 || a.wordCount >= Math.floor(min * 0.6)) &&
+              fitsSlotMaximum(a, slot) &&
               !matchesAnySemanticSlot(a, remainingSlots),
           );
           pickIdx = fallbackIdx;
         }
         if (pickIdx === -1 && articlePool.length > 0) {
           pickIdx = articlePool.findIndex(
-            (a) => !matchesAnySemanticSlot(a, remainingSlots),
+            (a) =>
+              fitsSlotMaximum(a, slot) &&
+              !matchesAnySemanticSlot(a, remainingSlots),
           );
         }
         if (pickIdx === -1 && articlePool.length > 0) {
           pickIdx = articlePool.findIndex(
-            (a) => min === 0 || a.wordCount >= Math.floor(min * 0.6),
+            (a) =>
+              fitsSlotMaximum(a, slot) &&
+              (min === 0 || a.wordCount >= Math.floor(min * 0.6)),
           );
         }
       }

@@ -92,10 +92,10 @@ const gridSpec: GridSpec = {
   columns: 12,
   rowsPerPage: 10,
   slots: [
-    slot("hero", "spotlight", 1, 1, 1, 7, 4, 180, "hero"),
+    slot("hero", "spotlight", 1, 1, 1, 7, 4, 220, "hero"),
     slot("hero-photo", "image", 1, 8, 1, 5, 4, undefined, "hero"),
     slot("event", "body", 1, 1, 5, 6, 3, 130),
-    slot("note", "sidebar", 1, 7, 5, 6, 3, 90),
+    slot("note", "sidebar", 1, 7, 5, 6, 3, 130),
     slot("photo-strip-1", "image", 2, 1, 1, 4, 4),
     slot("photo-strip-2", "image", 2, 5, 1, 4, 4),
     slot("photo-strip-3", "image", 2, 9, 1, 4, 4),
