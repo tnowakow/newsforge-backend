@@ -213,6 +213,45 @@ test("generic slots do not reuse semantic articles after their home slot passes"
   assert.equal(bySlot.get("general")?.articleId, undefined);
 });
 
+test("generic recurring fallbacks do not steal semantic articles", () => {
+  const gridSpec: GridSpec = {
+    label: "semantic-recurring-fallback",
+    columns: 12,
+    rowsPerPage: 10,
+    slots: [
+      slot("birthdays", 1, "list", 1, 1, 6, 5, "birthdays panel:sun"),
+      slot("spotlight", 1, "body", 7, 1, 6, 5),
+    ],
+  };
+  const articles: Article[] = [
+    {
+      id: "a-birthday",
+      title: "Happy Birthday!",
+      body: "RESIDENTS\nMary A. 7/3",
+      wordCount: 3,
+      articleType: "birthday",
+      isFiller: false,
+      source: "MOCK",
+    },
+  ];
+
+  const layout = assembleLayout({
+    templateId: "v3-editorial-light",
+    pageCount: 1,
+    gridSpec,
+    articles,
+    images: [],
+    recurringSections: [
+      { id: "sec-spotlight", title: "Spotlight", slotHint: "body", wordTarget: 60, required: false },
+    ],
+  });
+
+  const bySlot = new Map(layout.blocks.map((block) => [block.slotId, block]));
+  assert.equal(bySlot.get("birthdays")?.articleId, "a-birthday");
+  assert.equal(bySlot.get("spotlight")?.articleId, undefined);
+  assert.equal(bySlot.get("spotlight")?.needsFiller, true);
+});
+
 
 test("large sparse general slots accept useful articles below ideal minWords", () => {
   const gridSpec: GridSpec = {

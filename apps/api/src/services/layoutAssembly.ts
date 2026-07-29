@@ -191,7 +191,7 @@ export function assembleLayout(input: AssembleInput): AssembledLayout {
       articlePool.find((a) => articleMatchesSlot(a, slot)) ??
       (requiresSemanticArticle(slot)
         ? undefined
-        : articlePool.find((a) => !a.sectionId));
+        : articlePool.find((a) => !a.sectionId && !articleHasSemanticHome(a, slots)));
     if (matchingArticle) {
       const i = articlePool.indexOf(matchingArticle);
       articlePool.splice(i, 1);
