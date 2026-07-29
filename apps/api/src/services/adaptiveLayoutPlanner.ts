@@ -427,7 +427,7 @@ function makeCandidate(
     images,
     recurringSections: input.recurringSections,
     previousVersion: input.previousVersion,
-  }), geometryVariant, plan);
+  }), geometryVariant, plan, input.gridSpec);
   const scored = scoreCandidate(layout, { ...input, articles, images }, plan);
   return {
     id,
@@ -691,21 +691,24 @@ function applyGeometryVariant(
   layout: AssembledLayout,
   variant: GeometryVariant,
   plan: EditorialPlan,
+  gridSpec: GridSpec,
 ): AssembledLayout {
   if (variant === "fixed") return layout;
+  const keepIfValid = (candidate: AssembledLayout) =>
+    geometryWarnings(candidate, gridSpec).length === 0 ? candidate : layout;
   if (variant === "lead-photo-swap") {
-    return swapBlockPositions(layout, leadArticleBlock(layout, plan), firstImageBlock(layout));
+    return keepIfValid(swapBlockPositions(layout, leadArticleBlock(layout, plan), firstImageBlock(layout)));
   }
   if (variant === "photo-lead-swap") {
-    return swapBlockPositions(layout, firstImageBlock(layout), leadArticleBlock(layout, plan));
+    return keepIfValid(swapBlockPositions(layout, firstImageBlock(layout), leadArticleBlock(layout, plan)));
   }
   if (variant === "text-photo-rebalance") {
-    return rebalanceTextPhoto(layout, plan);
+    return keepIfValid(rebalanceTextPhoto(layout, plan));
   }
   if (variant === "photo-band-expand") {
-    return expandPhotoBand(layout);
+    return keepIfValid(expandPhotoBand(layout));
   }
-  return swapBlockPositions(layout, firstListOrBriefBlock(layout), firstImageBlock(layout));
+  return keepIfValid(swapBlockPositions(layout, firstListOrBriefBlock(layout), firstImageBlock(layout)));
 }
 
 export function buildAdaptiveLayout(input: AdaptiveLayoutInput): AdaptiveLayoutResult {

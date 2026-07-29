@@ -101,6 +101,10 @@ function matchesAnySemanticSlot(article: Article, slots: TemplateSlot[]): boolea
   );
 }
 
+function articleHasSemanticHome(article: Article, slots: TemplateSlot[]): boolean {
+  return matchesAnySemanticSlot(article, slots);
+}
+
 function fitsSlotMaximum(article: Article, slot: TemplateSlot): boolean {
   const max = slot.capacity.maxWords ?? Number.MAX_SAFE_INTEGER;
   if (!Number.isFinite(max)) return true;
@@ -237,20 +241,23 @@ export function assembleLayout(input: AssembleInput): AssembledLayout {
       const max = slot.capacity.maxWords ?? Number.MAX_SAFE_INTEGER;
       const min = slot.capacity.minWords ?? 0;
       const remainingSlots = slots.slice(i + 1);
+      const canUseInGenericSlot = (article: Article) =>
+        !articleHasSemanticHome(article, slots) &&
+        !matchesAnySemanticSlot(article, remainingSlots);
       let pickIdx = articlePool.findIndex((a) => articleMatchesSlot(a, slot));
       if (!requiresSemanticArticle(slot)) {
         if (pickIdx === -1) pickIdx = articlePool.findIndex(
           (a) =>
             a.wordCount >= min &&
             a.wordCount <= max &&
-            !matchesAnySemanticSlot(a, remainingSlots),
+            canUseInGenericSlot(a),
         );
         if (pickIdx === -1 && articlePool.length > 0) {
           const fallbackIdx = articlePool.findIndex(
             (a) =>
               (min === 0 || a.wordCount >= Math.floor(min * 0.6)) &&
               fitsSlotMaximum(a, slot) &&
-              !matchesAnySemanticSlot(a, remainingSlots),
+              canUseInGenericSlot(a),
           );
           pickIdx = fallbackIdx;
         }
@@ -258,14 +265,15 @@ export function assembleLayout(input: AssembleInput): AssembledLayout {
           pickIdx = articlePool.findIndex(
             (a) =>
               fitsSlotMaximum(a, slot) &&
-              !matchesAnySemanticSlot(a, remainingSlots),
+              canUseInGenericSlot(a),
           );
         }
         if (pickIdx === -1 && articlePool.length > 0) {
           pickIdx = articlePool.findIndex(
             (a) =>
               fitsSlotMaximum(a, slot) &&
-              (min === 0 || a.wordCount >= Math.floor(min * 0.6)),
+              (min === 0 || a.wordCount >= Math.floor(min * 0.6)) &&
+              canUseInGenericSlot(a),
           );
         }
       }

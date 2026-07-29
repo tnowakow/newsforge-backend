@@ -178,6 +178,22 @@ describe("layoutFitService.fitContent", () => {
     assert.ok(result.articles[0].wordCount <= 12);
   });
 
+  it("uses semantic slot capacity when final assembly can move the article", () => {
+    const carWash = {
+      ...makeArticle("car-wash", 95),
+      title: "Scrubbly Bubbly Car Wash",
+    };
+    const semanticTemplate = tmpl("t-semantic", [
+      slot("wide-feature", 1, "body", 1, 1, 12, 5, { maxWords: 220 }),
+      slot("car-wash-band", 1, "body", 1, 6, 12, 2, { maxWords: 40 }, "scrubbly car-wash feature-band"),
+    ]);
+
+    const result = fitContent([carWash], [], semanticTemplate);
+
+    assert.equal(result.articles[0].wordCount, 40);
+    assert.equal(result.articleFit[0].trimmed, true);
+  });
+
   it("drops last-uploaded photos when over-supplied", () => {
     const images = [
       makeImage("i-old-1"),

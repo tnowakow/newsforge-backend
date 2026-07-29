@@ -187,6 +187,33 @@ function truncateWords(s: string, maxWords: number): string {
   return s.trim().split(/\s+/).filter(Boolean).slice(0, maxWords).join(" ");
 }
 
+function articleMatchesSemanticSlot(article: Article, slot: TemplateSlot): boolean {
+  const tag = slot.styleTag ?? "";
+  const title = article.title;
+  if (/birthday/i.test(tag)) {
+    return article.articleType === "birthday" || /birthday|anniversar/i.test(title);
+  }
+  if (/exec-corner|director/i.test(tag)) {
+    return /executive director|director corner|from the director/i.test(title);
+  }
+  if (/happy-hour|schedule/i.test(tag)) return /happy hour/i.test(title);
+  if (/upcoming-events/i.test(tag)) return /upcoming events|calendar|activities/i.test(title);
+  if (/out-and-about|outing/i.test(tag)) return /out and about|outing|trip/i.test(title);
+  if (/smile-of-the-month|spotlight/i.test(tag)) return /smile of the month|spotlight|meet/i.test(title);
+  if (/feature-band|scrubbly|car-wash/i.test(tag)) return /scrubbly|car wash|feature/i.test(title);
+  if (/make-the-difference|volunteer/i.test(tag)) return /make the difference|volunteer/i.test(title);
+  if (/trust-funds|info-footer/i.test(tag)) return /trust funds|business office|compliance/i.test(title);
+  return false;
+}
+
+function semanticSlotCap(article: Article, slots: TemplateSlot[]): number | undefined {
+  const caps = slots
+    .filter((slot) => isArticleSlot(slot.type) && articleMatchesSemanticSlot(article, slot))
+    .map((slot) => slot.capacity?.maxWords)
+    .filter((cap): cap is number => typeof cap === "number" && Number.isFinite(cap));
+  return caps.length > 0 ? Math.min(...caps) : undefined;
+}
+
 export interface FitContentResult {
   articles: Article[]; // possibly trimmed
   articleFit: LayoutFitArticleFit[];
@@ -226,12 +253,25 @@ export function fitContent(
   for (let i = 0; i < articles.length; i++) {
     const article = articles[i];
     const slot = sortedSlots[i];
+    const semanticCap = semanticSlotCap(article, sortedSlots);
     if (!slot) {
-      // No matching slot — leave article as-is (assembly will drop/filler it).
-      trimmedArticles.push(article);
+      // No positional slot, but semantic sections may still claim a later
+      // targeted region during assembly. Keep those articles within that cap.
+      if (semanticCap && article.wordCount > semanticCap) {
+        const body = truncateWords(article.body, semanticCap);
+        const words = countWords(body);
+        trimmedArticles.push({ ...article, body, wordCount: words });
+        warnings.push(
+          `content-trimmed: ${article.id} (${article.wordCount}→${words} words)`,
+        );
+      } else {
+        trimmedArticles.push(article);
+      }
       continue;
     }
-    const cap = slot.capacity?.maxWords;
+    const cap = semanticCap
+      ? Math.min(slot.capacity?.maxWords ?? semanticCap, semanticCap)
+      : slot.capacity?.maxWords;
     if (!cap || article.wordCount <= cap) {
       trimmedArticles.push(article);
       articleFit.push({
