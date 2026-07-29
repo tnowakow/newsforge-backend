@@ -18,11 +18,46 @@ import {
   GridSpecSchema,
   ImagesSchema,
   RecurringSectionsSchema,
+  type NewsImage,
 } from "@newsforge/shared/schemas";
 
 export type RunHtmlResult =
   | { ok: true; html: string }
   | { ok: false; status: 404 | 500; reason: string };
+
+function svgFallbackDataUri(image: NewsImage): string {
+  const label = (image.alt ?? image.caption ?? "Newsletter photo")
+    .replace(/[<>&"]/g, "")
+    .slice(0, 80);
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800"><defs><linearGradient id="g" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stop-color="#dbeafe"/><stop offset="0.45" stop-color="#fef3c7"/><stop offset="1" stop-color="#fecdd3"/></linearGradient></defs><rect width="1200" height="800" fill="url(#g)"/><circle cx="240" cy="210" r="88" fill="#ffffff" opacity="0.75"/><rect x="150" y="340" width="900" height="210" rx="36" fill="#ffffff" opacity="0.72"/><text x="600" y="455" text-anchor="middle" font-family="Georgia, serif" font-size="44" fill="#334155">${label}</text></svg>`;
+  return `data:image/svg+xml;base64,${Buffer.from(svg).toString("base64")}`;
+}
+
+async function inlineRemoteImage(image: NewsImage): Promise<NewsImage> {
+  if (!/^https?:\/\//i.test(image.url)) return image;
+  try {
+    const res = await fetch(image.url, {
+      signal: AbortSignal.timeout(7_500),
+      headers: { "user-agent": "NewsForgeBot/1.0" },
+    });
+    if (!res.ok) return { ...image, url: svgFallbackDataUri(image) };
+    const contentType = res.headers.get("content-type") ?? "image/jpeg";
+    if (!contentType.startsWith("image/")) {
+      return { ...image, url: svgFallbackDataUri(image) };
+    }
+    const bytes = Buffer.from(await res.arrayBuffer());
+    return {
+      ...image,
+      url: `data:${contentType};base64,${bytes.toString("base64")}`,
+    };
+  } catch {
+    return { ...image, url: svgFallbackDataUri(image) };
+  }
+}
+
+async function inlineRemoteImages(images: NewsImage[]): Promise<NewsImage[]> {
+  return Promise.all(images.map(inlineRemoteImage));
+}
 
 export async function buildRunHtml(runId: string): Promise<RunHtmlResult> {
   const run = await prisma.newsletterRun.findUnique({
@@ -57,7 +92,7 @@ export async function buildRunHtml(runId: string): Promise<RunHtmlResult> {
     gridSpec: grid.data,
     layout: layout.data,
     articles: articles.data,
-    images: images.data,
+    images: await inlineRemoteImages(images.data),
     recurringSections: recurring.success ? recurring.data : [],
   });
 
