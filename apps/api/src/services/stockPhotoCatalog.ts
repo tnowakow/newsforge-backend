@@ -389,9 +389,6 @@ function captionFor(photo: StockPhoto, article: Article | undefined, slot: Templ
   if (title && /smile|spotlight|portrait/.test(role)) {
     return `${title} with a warm community feel`;
   }
-  if (title && /event|calendar|collage|photo-cluster/.test(role)) {
-    return `${title} captured in the life of the community`;
-  }
   return photo.caption;
 }
 
