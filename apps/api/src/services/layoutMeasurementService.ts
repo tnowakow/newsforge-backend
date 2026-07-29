@@ -51,6 +51,9 @@ async function measureCandidate(input: Omit<MeasureInput, "candidates"> & {
   await page.waitForNetworkIdle({ idleTime: 500, timeout: 5_000 }).catch(() => {
     // Broken/slow remote photos should be measured as missing, not fail the run.
   });
+  await page.evaluate(() => (globalThis as any).document?.fonts?.ready).catch(() => {
+    // Font readiness is best-effort; continue with layout measurement either way.
+  });
   const measured = await page.evaluate((): DomMeasurement => {
     const doc = (globalThis as any).document;
     const blocks = Array.from(doc.querySelectorAll(".block")) as any[];

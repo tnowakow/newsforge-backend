@@ -125,7 +125,7 @@ const TEMPLATES: V3Template[] = [
     richness: ["MODERATE", "RICH", "EXTRA_RICH"],
     slots: [
       s("rf-p1-bday", 1, "list", 1, 1, 6, 10, {}, "birthdays panel:sun"),
-      s("rf-p1-legacy", 1, "sidebar", 1, 11, 6, 6, { maxWords: 240 }, "panel:berry"),
+      s("rf-p1-legacy", 1, "sidebar", 1, 11, 6, 6, { maxWords: 60 }, "panel:berry"),
       s("rf-p1-exec", 1, "spotlight", 7, 1, 9, 9, { maxWords: 260 }, "exec-corner panel:cream"),
       s("rf-p1-spot", 1, "headline", 7, 10, 9, 3, { maxWords: 90 }, "hero"),
       s("rf-p1-img1", 1, "image", 7, 13, 9, 4, { aspect: "portrait" }, "caption hero-portrait"),
@@ -171,7 +171,7 @@ const TEMPLATES: V3Template[] = [
       s("pf-p2-out", 2, "sidebar", 13, 1, 6, 9, { maxWords: 160 }, "panel:sky"),
       s("pf-p2-img11", 2, "image", 19, 1, 6, 9, { aspect: "portrait" }, "caption"),
       s("pf-p2-small1", 2, "sidebar", 13, 10, 6, 4, { maxWords: 34 }, "trust-funds info-footer panel:navy"),
-      s("pf-p2-small2", 2, "filler", 13, 14, 6, 3, {}, "quiet-space"),
+      s("pf-p2-small2", 2, "filler", 13, 14, 6, 3, { maxWords: 24 }, "quiet-space"),
       s("pf-p2-img12", 2, "image", 19, 10, 6, 7, { aspect: "portrait" }, "caption"),
     ],
   },
