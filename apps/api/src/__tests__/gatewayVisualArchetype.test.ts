@@ -176,3 +176,40 @@ test("generic slots do not steal articles needed by later semantic slots", () =>
   assert.equal(bySlot.get("general")?.articleId, "a-general");
   assert.equal(bySlot.get("birthdays")?.articleId, "a-birthday");
 });
+
+test("large sparse general slots accept useful articles below ideal minWords", () => {
+  const gridSpec: GridSpec = {
+    label: "sparse-general",
+    columns: 12,
+    rowsPerPage: 10,
+    slots: [
+      {
+        ...slot("hero", 1, "headline", 1, 1, 12, 8, "hero"),
+        capacity: { minWords: 250, maxWords: 700 },
+      },
+    ],
+  };
+  const articles: Article[] = [
+    {
+      id: "a-feature",
+      title: "Protecting Your Skin During UV Safety Month",
+      body: "A short but useful wellness feature should expand into the large sparse slot.",
+      wordCount: 12,
+      articleType: "announcement",
+      isFiller: false,
+      source: "MOCK",
+    },
+  ];
+
+  const layout = assembleLayout({
+    templateId: "v3-editorial-light",
+    pageCount: 1,
+    gridSpec,
+    articles,
+    images: [],
+    recurringSections: [],
+  });
+
+  assert.equal(layout.blocks[0]?.articleId, "a-feature");
+  assert.equal(layout.blocks[0]?.needsFiller, false);
+});

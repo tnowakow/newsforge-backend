@@ -190,6 +190,11 @@ export function assembleLayout(input: AssembleInput): AssembledLayout {
         }
         if (pickIdx === -1 && articlePool.length > 0) {
           pickIdx = articlePool.findIndex(
+            (a) => !matchesAnySemanticSlot(a, remainingSlots),
+          );
+        }
+        if (pickIdx === -1 && articlePool.length > 0) {
+          pickIdx = articlePool.findIndex(
             (a) => min === 0 || a.wordCount >= Math.floor(min * 0.6),
           );
         }
