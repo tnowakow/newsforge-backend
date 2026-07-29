@@ -232,12 +232,12 @@ export async function designLayout(
   });
 
   const fallbackLayout = deterministic();
-  if (input.templateId === "v3-spread-classic") {
+  if (input.templateId.startsWith("v3-")) {
     return {
       layout: fallbackLayout,
       mode: "deterministic",
       designNotes:
-        "Gateway inner-spread archetype uses the deterministic reference layout for demo stability.",
+        "V3 inner-spread archetypes use deterministic reference layouts for demo stability.",
       promptAudit: { systemPrompt, userPrompt },
     };
   }

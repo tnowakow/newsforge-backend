@@ -194,6 +194,7 @@ function articleForSlot(articles: Article[], slot: TemplateSlot): Article | unde
     const title = article.title.toLowerCase();
     if (role.includes("birthday")) return article.articleType === "birthday" || title.includes("birthday");
     if (role.includes("happy-hour")) return title.includes("happy hour");
+    if (role.includes("photo-stack") || /p2-photo-[ab]/.test(role)) return /out and about|outing|trip/.test(title);
     if (role.includes("upcoming") || role.includes("event")) return /event|calendar|activities/.test(title);
     if (role.includes("outing")) return /outing|out and about|trip/.test(title);
     if (role.includes("smile") || role.includes("spotlight")) return article.articleType === "resident-story";
@@ -203,6 +204,10 @@ function articleForSlot(articles: Article[], slot: TemplateSlot): Article | unde
     return false;
   });
   if (exact) return exact;
+  if (role.includes("photo-stack") || /p2-photo-[ab]/.test(role)) {
+    const outing = articles.find((a) => /out and about|outing|trip/i.test(a.title));
+    if (outing) return outing;
+  }
   return articles.find((a) => a.articleType === "event-recap") ?? articles[0];
 }
 

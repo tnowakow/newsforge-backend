@@ -219,13 +219,13 @@ export function renderRunHtml(input: RenderInput): string {
   .masthead h1 { font-size: 26pt; line-height: 1.05; margin-top: 2pt; }
   .masthead.slim { display:flex; justify-content:space-between; font-size:8pt; letter-spacing:0.14em; text-transform:uppercase; color:#777; margin-bottom:0.12in; }
   .content { flex:1; min-height:0; display:grid; gap: 6px; }
-  .block { min-height: 0; min-width: 0; display:flex; }
+  .block { min-height: 0; min-width: 0; display:flex; overflow:hidden; }
   .block-inner { flex:1; min-width:0; overflow:hidden; display:flex; flex-direction:column; }
     .block-inner.panel { padding: 9px 11px; }
-    .section-heading { font-family: var(--heading-font); font-weight: 900; text-transform: uppercase; letter-spacing: 0.04em; font-size: 15pt; line-height:1.02; margin-bottom: 4pt; text-align:center; }
-    .script-heading { font-family: var(--heading-font); font-style: italic; font-weight: 800; font-size: 16pt; line-height:1.05; margin-bottom: 5pt; }
+    .section-heading { font-family: var(--heading-font); font-weight: 900; text-transform: uppercase; letter-spacing: 0.04em; font-size: clamp(11pt, 2.1vw, 15pt); line-height:1.02; margin-bottom: 4pt; text-align:center; }
+    .script-heading { font-family: var(--heading-font); font-style: italic; font-weight: 800; font-size: clamp(12pt, 2.25vw, 16pt); line-height:1.05; margin-bottom: 5pt; }
     .byline { font-size: 7.5pt; color: inherit; opacity:0.7; margin-bottom: 3pt; }
-    .body { font-size: 8.6pt; line-height: 1.38; }
+    .body { font-size: 8.6pt; line-height: 1.32; overflow:hidden; }
     .body.compact { font-size: 8pt; line-height: 1.28; }
     .body p + p { margin-top: 4pt; }
     .body.centered { text-align:center; }
@@ -237,7 +237,7 @@ export function renderRunHtml(input: RenderInput): string {
   .photo { flex:1; display:flex; flex-direction:column; min-height:0; }
     .photo-frame { flex:1; min-height:0; overflow:hidden; border-radius: 8px; }
     .photo-frame img { width:100%; height:100%; object-fit:cover; display:block; }
-    .photo figcaption { font-size: 7.4pt; font-style: italic; text-align:center; padding-top: 3pt; color:#555; }
+    .photo figcaption { font-size: 6.8pt; line-height:1.15; font-style: italic; text-align:center; padding-top: 2pt; color:#555; max-height: 18pt; overflow:hidden; }
     .photo-collage .photo-frame { border-radius: 10px; }
     .photo-wide .photo-frame { border-radius: 12px; }
     .photo-portrait .photo-frame { border-radius: 12px; }
@@ -251,12 +251,12 @@ export function renderRunHtml(input: RenderInput): string {
     .role-birthday .list-group { color:#D85C2A; font-size: 9.2pt; margin-top: 6pt; }
     .role-birthday .list-row { border-bottom: 0; }
     .role-directorCorner.panel { padding: 17px 20px; }
-    .role-directorCorner .script-heading { font-size: 23pt; font-style: normal; text-transform: uppercase; letter-spacing:0.02em; }
-    .role-directorCorner .body { font-weight: 700; font-size: 10pt; line-height:1.24; }
+    .role-directorCorner .script-heading { font-size: clamp(17pt, 3vw, 23pt); font-style: normal; text-transform: uppercase; letter-spacing:0.02em; }
+    .role-directorCorner .body { font-weight: 700; font-size: 9.4pt; line-height:1.2; }
     .role-happyHour .section-heading,
     .role-upcomingEvents .section-heading,
     .role-outingList .section-heading,
-    .role-volunteerCallout .section-heading { font-size: 19pt; }
+    .role-volunteerCallout .section-heading { font-size: clamp(13pt, 2.5vw, 19pt); }
     .role-happyHour .section-heading { margin-top: 7pt; }
     .role-happyHour .body,
     .role-upcomingEvents .body,
@@ -267,12 +267,12 @@ export function renderRunHtml(input: RenderInput): string {
     .role-outingList .list-body { font-size: 10pt; line-height:1.32; }
     .role-featureBand.panel { padding: 16px 22px; }
     .role-featureBand .script-heading,
-    .role-featureBand .section-heading { font-size: 20pt; text-transform:none; letter-spacing:0; }
-    .role-featureBand .body { font-size: 10pt; font-weight: 700; line-height:1.25; }
+    .role-featureBand .section-heading { font-size: clamp(14pt, 2.6vw, 20pt); text-transform:none; letter-spacing:0; }
+    .role-featureBand .body { font-size: 9.4pt; font-weight: 700; line-height:1.2; }
     .role-spotlightRail.panel { padding: 17px 20px; }
     .role-spotlightRail .script-heading,
-    .role-spotlightRail .section-heading { font-size: 18pt; text-transform:none; letter-spacing:0; }
-    .role-spotlightRail .body { font-size: 10pt; font-weight: 700; line-height:1.26; }
+    .role-spotlightRail .section-heading { font-size: clamp(14pt, 2.4vw, 18pt); text-transform:none; letter-spacing:0; }
+    .role-spotlightRail .body { font-size: 9.4pt; font-weight: 700; line-height:1.2; }
     .role-infoFooter.panel { padding: 14px 22px; }
     .role-infoFooter .script-heading,
     .role-infoFooter .section-heading { font-size: 18pt; text-transform:none; letter-spacing:0; margin-bottom:5pt; }
