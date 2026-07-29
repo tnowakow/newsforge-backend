@@ -53,12 +53,21 @@ async function measureCandidate(input: Omit<MeasureInput, "candidates"> & {
   });
   const measured = await page.evaluate((): DomMeasurement => {
     const doc = (globalThis as any).document;
-    const inners = Array.from(doc.querySelectorAll(".block-inner")) as any[];
-    const clippedBlocks = inners.filter((block) =>
-      block.scrollHeight > block.clientHeight + 1 ||
-      block.scrollWidth > block.clientWidth + 1,
-    ).length;
     const blocks = Array.from(doc.querySelectorAll(".block")) as any[];
+    const clippedBlockSet = new Set<any>();
+    const clipTargets = Array.from(doc.querySelectorAll(
+      ".block-inner,.body,.list-body,figcaption",
+    )) as any[];
+    for (const target of clipTargets) {
+      if (
+        target.scrollHeight > target.clientHeight + 1 ||
+        target.scrollWidth > target.clientWidth + 1
+      ) {
+        const owner = target.closest(".block");
+        if (owner) clippedBlockSet.add(owner);
+      }
+    }
+    const clippedBlocks = clippedBlockSet.size;
     const overflowBlocks = blocks.filter((block) => {
       const rect = block.getBoundingClientRect();
       const pageRect = block.closest(".page")?.getBoundingClientRect();
