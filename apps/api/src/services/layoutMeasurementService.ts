@@ -59,10 +59,10 @@ async function measureCandidate(input: Omit<MeasureInput, "candidates"> & {
       ".block-inner,.body,.list-body,figcaption",
     )) as any[];
     for (const target of clipTargets) {
-      if (
-        target.scrollHeight > target.clientHeight + 1 ||
-        target.scrollWidth > target.clientWidth + 1
-      ) {
+      const isCaption = target.tagName?.toLowerCase() === "figcaption";
+      const clipsVertically = target.scrollHeight > target.clientHeight + 1;
+      const clipsHorizontally = target.scrollWidth > target.clientWidth + 1;
+      if (clipsVertically || (!isCaption && clipsHorizontally)) {
         const owner = target.closest(".block");
         if (owner) clippedBlockSet.add(owner);
       }
