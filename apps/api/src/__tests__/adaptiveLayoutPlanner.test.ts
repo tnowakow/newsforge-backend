@@ -110,11 +110,12 @@ describe("adaptiveLayoutPlanner.createEditorialPlan", () => {
       article("lead", "Meet Dorothy", 220, "resident-story"),
       article("upload", "Garden Club Notes", 120, "announcement", "UPLOAD"),
     ];
-    const plan = createEditorialPlan(articles, [image("i1")]);
+    const plan = createEditorialPlan(articles, [image("i1"), image("i2")]);
     assert.equal(plan.leadArticleId, "lead");
     assert.ok(plan.requiredArticleIds.includes("lead"));
     assert.ok(plan.requiredArticleIds.includes("upload"));
-    assert.equal(plan.photoGoal, "text-led");
+    assert.equal(plan.photoGoal, "balanced");
+    assert.equal(plan.compositionGrammar, "lead-story-collage");
   });
 
   it("marks a photo-led issue when images outweigh stories", () => {
@@ -123,6 +124,18 @@ describe("adaptiveLayoutPlanner.createEditorialPlan", () => {
       Array.from({ length: 6 }, (_, i) => image(`i${i}`)),
     );
     assert.equal(plan.photoGoal, "photo-led");
+    assert.equal(plan.compositionGrammar, "photo-recap-spread");
+  });
+
+  it("recognizes event and milestone issues as their own composition grammar", () => {
+    const plan = createEditorialPlan(
+      [
+        article("birthday", "July Birthdays", 60, "birthday"),
+        article("event", "Summer Concert Recap", 125, "event-recap"),
+      ],
+      [image("i1"), image("i2")],
+    );
+    assert.equal(plan.compositionGrammar, "events-and-milestones");
   });
 });
 
@@ -146,10 +159,12 @@ describe("adaptiveLayoutPlanner.buildAdaptiveLayout", () => {
       ],
     });
 
-    assert.equal(result.candidates.length, 6);
+    assert.equal(result.candidates.length, 8);
     assert.ok(result.candidates.some((candidate) => candidate.geometryVariant !== "fixed"));
+    assert.ok(result.candidates.some((candidate) => candidate.geometryVariant === "grammar-feature-stack"));
     assert.ok(result.chosen.score >= 0);
     assert.ok(result.chosen.subscores.geometryValidity > 0.99);
+    assert.ok(result.chosen.subscores.grammarAffinity >= 0.48);
     assert.ok(result.chosen.subscores.requiredCoverage > 0.99);
     assert.ok(result.chosen.layout.blocks.some((block) => block.articleId === "lead"));
   });
@@ -457,6 +472,56 @@ describe("adaptiveLayoutPlanner.buildAdaptiveLayout", () => {
     );
 
     assert.deepEqual(chosenIds, new Set([candidates[0].id]));
+  });
+
+  it("creates a grammar feature stack candidate for story-led issues", () => {
+    const result = buildAdaptiveLayout({
+      templateId: "v3-test",
+      pageCount: 2,
+      gridSpec,
+      recurringSections: [],
+      articles: [
+        article("lead", "Meet Dorothy", 220, "resident-story"),
+        article("director", "From the Executive Director", 100, "executive-note"),
+        article("event", "Summer Concert Recap", 125, "event-recap"),
+      ],
+      images: [image("upload-photo", "portrait", "UPLOAD"), image("wide-photo")],
+    });
+    const grammar = result.candidates.find(
+      (candidate) => candidate.geometryVariant === "grammar-feature-stack",
+    );
+
+    assert.equal(result.plan.compositionGrammar, "director-note-feature");
+    assert.ok(grammar, "expected a grammar feature stack candidate");
+    assert.equal(grammar.subscores.grammarAffinity, 1);
+    const lead = grammar.layout.blocks.find((block) => block.articleId === "lead");
+    assert.ok(lead);
+    assert.equal(lead.position.col, 1);
+    assert.equal(lead.position.row, 1);
+    assert.equal(lead.position.colSpan, 7);
+    assert.ok(grammar.subscores.geometryValidity > 0.99);
+  });
+
+  it("creates a photo mosaic candidate for photo-led issues", () => {
+    const result = buildAdaptiveLayout({
+      templateId: "v3-test",
+      pageCount: 2,
+      gridSpec,
+      recurringSections: [],
+      articles: [article("lead", "Meet Dorothy", 160, "resident-story")],
+      images: Array.from({ length: 6 }, (_, i) => image(`photo-${i}`, "landscape")),
+    });
+    const mosaic = result.candidates.find(
+      (candidate) => candidate.geometryVariant === "grammar-photo-mosaic",
+    );
+
+    assert.equal(result.plan.compositionGrammar, "photo-recap-spread");
+    assert.ok(mosaic, "expected a grammar photo mosaic candidate");
+    assert.equal(mosaic.subscores.grammarAffinity, 1);
+    const imageBlocks = mosaic.layout.blocks.filter((block) => block.imageId);
+    assert.ok(imageBlocks.length >= 3);
+    assert.ok(imageBlocks.some((block) => block.position.row === 1 && block.position.rowSpan === 4));
+    assert.ok(mosaic.subscores.geometryValidity > 0.99);
   });
 
   it("creates a text/photo rebalance candidate by shifting adjacent region boundaries", () => {

@@ -23,7 +23,16 @@ type GeometryVariant =
   | "photo-lead-swap"
   | "brief-rail-swap"
   | "text-photo-rebalance"
-  | "photo-band-expand";
+  | "photo-band-expand"
+  | "grammar-feature-stack"
+  | "grammar-photo-mosaic";
+
+type CompositionGrammar =
+  | "lead-story-collage"
+  | "events-and-milestones"
+  | "director-note-feature"
+  | "photo-recap-spread"
+  | "mixed-briefs";
 
 export interface EditorialPlanItem {
   articleId: string;
@@ -39,6 +48,7 @@ export interface EditorialPlan {
   items: EditorialPlanItem[];
   photoGoal: "text-led" | "balanced" | "photo-led";
   density: "sparse" | "moderate" | "dense";
+  compositionGrammar: CompositionGrammar;
   requiredArticleIds: string[];
 }
 
@@ -50,6 +60,7 @@ export interface AdaptiveCandidateScore {
   clippingRisk: number;
   geometryValidity: number;
   photoImpact: number;
+  grammarAffinity: number;
   usefulOccupancy?: number;
   renderFit?: number;
 }
@@ -147,6 +158,24 @@ function words(articles: Article[]): number {
   return articles.reduce((sum, article) => sum + article.wordCount, 0);
 }
 
+function chooseCompositionGrammar(
+  articles: Article[],
+  images: NewsImage[],
+  photoGoal: EditorialPlan["photoGoal"],
+): CompositionGrammar {
+  const roles = articles.map(roleForArticle);
+  const hasLead = roles.includes("lead");
+  const hasExecutiveNote = roles.includes("executive-note");
+  const hasEvent = roles.includes("event");
+  const hasMilestones = roles.includes("recurring");
+
+  if (photoGoal === "photo-led" && images.length >= 4) return "photo-recap-spread";
+  if (hasEvent && hasMilestones) return "events-and-milestones";
+  if (hasLead && hasExecutiveNote) return "director-note-feature";
+  if (hasLead && images.length >= 2) return "lead-story-collage";
+  return "mixed-briefs";
+}
+
 export function createEditorialPlan(
   articles: Article[],
   images: NewsImage[],
@@ -167,11 +196,13 @@ export function createEditorialPlan(
       : totalWords < 700 && articles.length <= 6
         ? "sparse"
         : "moderate";
+  const compositionGrammar = chooseCompositionGrammar(articles, images, photoGoal);
   return {
     leadArticleId: items[0]?.articleId,
     items,
     photoGoal,
     density,
+    compositionGrammar,
     requiredArticleIds: items.filter((item) => item.required).map((item) => item.articleId),
   };
 }
@@ -283,6 +314,12 @@ function scoreCandidate(
     .reduce((sum, block) => sum + blockArea(block), 0);
   const desiredPhotoRatio = plan.photoGoal === "photo-led" ? 0.48 : plan.photoGoal === "text-led" ? 0.24 : 0.34;
   const actualPhotoRatio = imageArea / Math.max(imageArea + textArea, 1);
+  const hasGrammarSlot = layout.blocks.some((block) => block.slotId.startsWith("grammar-"));
+  const grammarAffinity = hasGrammarSlot
+    ? 1
+    : plan.compositionGrammar === "mixed-briefs"
+      ? 0.72
+      : 0.48;
   const clippingRisks = layout.blocks.filter((block) => {
     if (!block.articleId) return false;
     const article = input.articles.find((a) => a.id === block.articleId);
@@ -298,15 +335,17 @@ function scoreCandidate(
     clippingRisk: Math.max(0, 1 - clippingRisks / Math.max(placedArticleIds.size, 1)),
     geometryValidity: warnings.length === 0 ? 1 : Math.max(0, 1 - warnings.length * 0.2),
     photoImpact: Math.max(0, 1 - Math.abs(actualPhotoRatio - desiredPhotoRatio) / 0.5),
+    grammarAffinity,
   };
   const score =
-    0.20 * subscores.occupancy +
+    0.18 * subscores.occupancy +
     0.18 * subscores.contentCoverage +
     0.20 * subscores.requiredCoverage +
-    0.12 * subscores.balance +
+    0.11 * subscores.balance +
     0.15 * subscores.clippingRisk +
-    0.10 * subscores.geometryValidity +
-    0.05 * subscores.photoImpact;
+    0.09 * subscores.geometryValidity +
+    0.05 * subscores.photoImpact +
+    0.04 * subscores.grammarAffinity;
   return { score, subscores, warnings };
 }
 
@@ -688,6 +727,96 @@ function expandPhotoBand(layout: AssembledLayout): AssembledLayout {
   };
 }
 
+function contentBlocksOnPage(layout: AssembledLayout, page: number): LayoutBlock[] {
+  return layout.blocks.filter(
+    (block) => block.page === page && (block.articleId || block.imageId),
+  );
+}
+
+function contentRank(block: LayoutBlock, plan: EditorialPlan): number {
+  if (block.articleId === plan.leadArticleId) return 0;
+  if (block.imageId) return plan.photoGoal === "photo-led" ? 1 : 2;
+  const item = plan.items.find((candidate) => candidate.articleId === block.articleId);
+  if (item?.preferredProminence === "feature") return 1;
+  if (item?.preferredProminence === "standard") return 3;
+  if (item?.preferredProminence === "brief") return 4;
+  return 5;
+}
+
+function grammarPage(
+  layout: AssembledLayout,
+  plan: EditorialPlan,
+  page: number,
+  zones: Array<LayoutBlock["position"]>,
+): AssembledLayout {
+  const pageBlocks = contentBlocksOnPage(layout, page).sort(
+    (a, b) => contentRank(a, plan) - contentRank(b, plan) || blockArea(b) - blockArea(a),
+  );
+  if (pageBlocks.length === 0 || pageBlocks.length > zones.length) return layout;
+  const zoneByBlockId = new Map(
+    pageBlocks.map((block, index) => [block.blockId, zones[index]]),
+  );
+
+  return {
+    ...layout,
+    blocks: layout.blocks.map((block) => {
+      const position = zoneByBlockId.get(block.blockId);
+      if (!position) return block;
+      return {
+        ...block,
+        slotId: `grammar-${plan.compositionGrammar}-${block.slotId}`,
+        page,
+        position,
+      };
+    }),
+  };
+}
+
+function applyFeatureStackGrammar(
+  layout: AssembledLayout,
+  plan: EditorialPlan,
+  gridSpec: GridSpec,
+): AssembledLayout {
+  if (
+    plan.compositionGrammar !== "lead-story-collage" &&
+    plan.compositionGrammar !== "director-note-feature" &&
+    plan.compositionGrammar !== "events-and-milestones"
+  ) {
+    return layout;
+  }
+  if (gridSpec.columns < 12 || gridSpec.rowsPerPage < 9) return layout;
+  const zones: Array<LayoutBlock["position"]> = [
+    { col: 1, row: 1, colSpan: 7, rowSpan: 4 },
+    { col: 8, row: 1, colSpan: 5, rowSpan: 4 },
+    { col: 1, row: 5, colSpan: 6, rowSpan: 3 },
+    { col: 7, row: 5, colSpan: 6, rowSpan: 3 },
+    { col: 1, row: 8, colSpan: 12, rowSpan: Math.min(3, gridSpec.rowsPerPage - 7) },
+  ];
+  return grammarPage(layout, plan, 1, zones);
+}
+
+function applyPhotoMosaicGrammar(
+  layout: AssembledLayout,
+  plan: EditorialPlan,
+  gridSpec: GridSpec,
+): AssembledLayout {
+  if (plan.compositionGrammar !== "photo-recap-spread" && plan.photoGoal !== "photo-led") {
+    return layout;
+  }
+  if (gridSpec.columns < 12 || gridSpec.rowsPerPage < 9) return layout;
+  const targetPage =
+    [2, 1].find((page) => contentBlocksOnPage(layout, page).filter((block) => block.imageId).length >= 2) ?? 1;
+  const zones: Array<LayoutBlock["position"]> = [
+    { col: 1, row: 1, colSpan: 4, rowSpan: 4 },
+    { col: 5, row: 1, colSpan: 4, rowSpan: 4 },
+    { col: 9, row: 1, colSpan: 4, rowSpan: 4 },
+    { col: 1, row: 5, colSpan: 8, rowSpan: 3 },
+    { col: 9, row: 5, colSpan: 4, rowSpan: 3 },
+    { col: 1, row: 8, colSpan: 12, rowSpan: Math.min(3, gridSpec.rowsPerPage - 7) },
+  ];
+  return grammarPage(layout, plan, targetPage, zones);
+}
+
 function applyGeometryVariant(
   layout: AssembledLayout,
   variant: GeometryVariant,
@@ -709,6 +838,12 @@ function applyGeometryVariant(
   if (variant === "photo-band-expand") {
     return keepIfValid(expandPhotoBand(layout));
   }
+  if (variant === "grammar-feature-stack") {
+    return keepIfValid(applyFeatureStackGrammar(layout, plan, gridSpec));
+  }
+  if (variant === "grammar-photo-mosaic") {
+    return keepIfValid(applyPhotoMosaicGrammar(layout, plan, gridSpec));
+  }
   return keepIfValid(swapBlockPositions(layout, firstListOrBriefBlock(layout), firstImageBlock(layout)));
 }
 
@@ -721,6 +856,8 @@ export function buildAdaptiveLayout(input: AdaptiveLayoutInput): AdaptiveLayoutR
     makeCandidate("briefs-first", "Briefs and recurring modules first", input, plan, "briefsFirst", "uploadedFirst", "brief-rail-swap"),
     makeCandidate("text-photo-rebalance", "Text/photo rebalance", input, plan, "editorial", "uploadedFirst", "text-photo-rebalance"),
     makeCandidate("photo-band-expand", "Photo band expansion", input, plan, "source", "landscapeFirst", "photo-band-expand"),
+    makeCandidate("grammar-feature-stack", "Grammar: feature stack", input, plan, "editorial", "uploadedFirst", "grammar-feature-stack"),
+    makeCandidate("grammar-photo-mosaic", "Grammar: photo mosaic", input, plan, "editorial", "landscapeFirst", "grammar-photo-mosaic"),
   ].sort((a, b) => b.score - a.score || a.id.localeCompare(b.id));
   return { plan, candidates, chosen: chooseAdaptiveCandidate(candidates, input.variationSeed) };
 }

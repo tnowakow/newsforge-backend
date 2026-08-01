@@ -43,6 +43,8 @@ export const AdaptiveLayoutCandidateReportSchema = z.object({
     "brief-rail-swap",
     "text-photo-rebalance",
     "photo-band-expand",
+    "grammar-feature-stack",
+    "grammar-photo-mosaic",
   ]),
   score: z.number(),
   subscores: z.object({
@@ -53,6 +55,7 @@ export const AdaptiveLayoutCandidateReportSchema = z.object({
     clippingRisk: z.number(),
     geometryValidity: z.number(),
     photoImpact: z.number(),
+    grammarAffinity: z.number(),
     usefulOccupancy: z.number().optional(),
     renderFit: z.number().optional(),
   }),
@@ -77,6 +80,13 @@ export const EditorialPlanReportSchema = z.object({
   leadArticleId: z.string().optional(),
   photoGoal: z.enum(["text-led", "balanced", "photo-led"]),
   density: z.enum(["sparse", "moderate", "dense"]),
+  compositionGrammar: z.enum([
+    "lead-story-collage",
+    "events-and-milestones",
+    "director-note-feature",
+    "photo-recap-spread",
+    "mixed-briefs",
+  ]),
   requiredArticleIds: z.array(z.string()),
   items: z.array(z.object({
     articleId: z.string(),

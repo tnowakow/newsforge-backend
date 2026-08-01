@@ -208,7 +208,11 @@ export interface AdaptiveLayoutCandidateReport {
     | "fixed"
     | "lead-photo-swap"
     | "photo-lead-swap"
-    | "brief-rail-swap";
+    | "brief-rail-swap"
+    | "text-photo-rebalance"
+    | "photo-band-expand"
+    | "grammar-feature-stack"
+    | "grammar-photo-mosaic";
   score: number;
   subscores: {
     occupancy: number;
@@ -218,6 +222,7 @@ export interface AdaptiveLayoutCandidateReport {
     clippingRisk: number;
     geometryValidity: number;
     photoImpact: number;
+    grammarAffinity: number;
     usefulOccupancy?: number;
     renderFit?: number;
   };
@@ -238,6 +243,12 @@ export interface EditorialPlanReport {
   leadArticleId?: string;
   photoGoal: "text-led" | "balanced" | "photo-led";
   density: "sparse" | "moderate" | "dense";
+  compositionGrammar:
+    | "lead-story-collage"
+    | "events-and-milestones"
+    | "director-note-feature"
+    | "photo-recap-spread"
+    | "mixed-briefs";
   requiredArticleIds: string[];
   items: Array<{
     articleId: string;
