@@ -12,6 +12,10 @@ import {
   chooseAdaptiveCandidate,
   createEditorialPlan,
 } from "../services/adaptiveLayoutPlanner.js";
+import type {
+  AdaptiveLayoutCandidate,
+  CandidateMeasurement,
+} from "../services/adaptiveLayoutPlanner.js";
 
 function geometrySignature(candidate: ReturnType<typeof buildAdaptiveLayout>["candidates"][number]): string {
   return candidate.layout.blocks
@@ -603,5 +607,145 @@ describe("adaptiveLayoutPlanner.buildAdaptiveLayout", () => {
     assert.equal(imageA.position.row, 4);
     assert.equal(imageA.position.rowSpan, 5);
     assert.ok(expanded.subscores.geometryValidity > 0.99);
+  });
+});
+
+interface DemoVarietyScenario {
+  name: string;
+  articles: Article[];
+  images: NewsImage[];
+  expectedGrammar:
+    | "lead-story-collage"
+    | "events-and-milestones"
+    | "director-note-feature"
+    | "photo-recap-spread"
+    | "mixed-briefs";
+  expectedPersonality:
+    | "classic-community"
+    | "garden-warmth"
+    | "photo-journal"
+    | "resident-spotlight"
+    | "editorial-calm"
+    | "celebration-pop";
+  brandVoice?: string;
+  clientName?: string;
+}
+
+function measurementFor(
+  candidate: AdaptiveLayoutCandidate,
+  expectedGrammar: DemoVarietyScenario["expectedGrammar"],
+): CandidateMeasurement {
+  const imageCount = candidate.layout.blocks.filter((block) => block.imageId).length;
+  const grammarAligned =
+    expectedGrammar === "mixed-briefs" || candidate.subscores.grammarAffinity >= 1;
+  const underfilled = candidate.subscores.occupancy < 0.7;
+  const lowUtilityBlocks = grammarAligned ? 0 : underfilled ? 3 : 2;
+
+  return {
+    candidateId: candidate.id,
+    clippedBlocks: grammarAligned ? 0 : 2,
+    overflowBlocks: 0,
+    missingImages: 0,
+    renderedImages: imageCount,
+    totalImages: imageCount,
+    usefulOccupancy: grammarAligned ? 0.88 : underfilled ? 0.52 : 0.62,
+    lowUtilityBlocks,
+  };
+}
+
+function acceptedCandidate(
+  scenario: DemoVarietyScenario,
+): ReturnType<typeof buildAdaptiveLayout>["chosen"] {
+  const planned = buildAdaptiveLayout({
+    templateId: `v3-variety-${scenario.name}`,
+    pageCount: 2,
+    gridSpec,
+    recurringSections: [],
+    articles: scenario.articles,
+    images: scenario.images,
+    brandVoice: scenario.brandVoice,
+    clientName: scenario.clientName,
+    variationSeed: scenario.name,
+  });
+  const measured = applyCandidateMeasurements(
+    planned.candidates,
+    planned.candidates.map((candidate) => measurementFor(candidate, scenario.expectedGrammar)),
+  );
+  const chosen = chooseAdaptiveCandidate(measured, scenario.name);
+
+  assert.equal(planned.plan.compositionGrammar, scenario.expectedGrammar, scenario.name);
+  assert.equal(planned.plan.visualPersonality, scenario.expectedPersonality, scenario.name);
+  assert.equal(planned.candidates.length, 8, scenario.name);
+  assert.ok(chosen.subscores.renderFit != null, scenario.name);
+  assert.ok(chosen.subscores.renderFit >= 0.99, scenario.name);
+  assert.ok(chosen.subscores.usefulOccupancy != null, scenario.name);
+  assert.ok(chosen.subscores.usefulOccupancy >= 0.82, scenario.name);
+  assert.equal(chosen.measurement?.clippedBlocks, 0, scenario.name);
+  assert.equal(chosen.measurement?.overflowBlocks, 0, scenario.name);
+  assert.equal(chosen.measurement?.missingImages, 0, scenario.name);
+  assert.ok(!chosen.warnings.some((warning) => warning.startsWith("render-clipped-blocks")), scenario.name);
+  assert.ok(!chosen.warnings.some((warning) => warning.startsWith("low-utility-blocks")), scenario.name);
+
+  return chosen;
+}
+
+describe("adaptiveLayoutPlanner demo variety acceptance", () => {
+  const scenarios: DemoVarietyScenario[] = [
+    {
+      name: "director-note-with-resident-feature",
+      articles: [
+        article("resident", "Meet Evelyn", 210, "resident-story"),
+        article("director", "From the Executive Director", 150, "executive-note"),
+        article("event", "Summer Courtyard Concert", 110, "event-recap"),
+        article("volunteer", "Make the Difference", 55, "announcement"),
+      ],
+      images: [image("portrait", "portrait", "UPLOAD"), image("concert", "landscape")],
+      expectedGrammar: "director-note-feature",
+      expectedPersonality: "garden-warmth",
+      brandVoice: "Warm, friendly, community-focused and home-like",
+    },
+    {
+      name: "photo-recap-with-short-copy",
+      articles: [
+        article("recap", "Luau Photo Recap", 85, "event-recap"),
+        article("brief", "Around Campus", 55, "announcement"),
+      ],
+      images: Array.from({ length: 7 }, (_, index) =>
+        image(`recap-photo-${index}`, index % 2 === 0 ? "landscape" : "portrait"),
+      ),
+      expectedGrammar: "photo-recap-spread",
+      expectedPersonality: "photo-journal",
+    },
+    {
+      name: "events-and-milestones-calendar",
+      articles: [
+        article("birthdays", "August Birthdays", 70, "birthday"),
+        article("happy-hour", "Happy Hour Schedule", 90, "announcement"),
+        article("outing", "Out and About", 120, "event-recap"),
+        article("notice", "Family Night RSVP", 65, "announcement"),
+      ],
+      images: [image("outing-a"), image("outing-b")],
+      expectedGrammar: "events-and-milestones",
+      expectedPersonality: "editorial-calm",
+      brandVoice: "Classic, refined, calm monthly newsletter",
+    },
+    {
+      name: "dense-mixed-announcements",
+      articles: Array.from({ length: 15 }, (_, index) =>
+        article(`brief-${index}`, `Campus Brief ${index + 1}`, 130, "announcement"),
+      ),
+      images: [],
+      expectedGrammar: "mixed-briefs",
+      expectedPersonality: "editorial-calm",
+    },
+  ];
+
+  it("accepts measured winners across weird content/photo mixes without clipping or dead space", () => {
+    const winners = scenarios.map(acceptedCandidate);
+
+    assert.ok(new Set(scenarios.map((scenario) => scenario.expectedGrammar)).size >= 4);
+    assert.ok(new Set(scenarios.map((scenario) => scenario.expectedPersonality)).size >= 3);
+    assert.ok(new Set(winners.map((winner) => winner.geometryVariant)).size >= 2);
+    assert.ok(new Set(winners.map(geometrySignature)).size >= 3);
   });
 });
