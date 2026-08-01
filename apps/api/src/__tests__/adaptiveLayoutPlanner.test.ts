@@ -116,6 +116,7 @@ describe("adaptiveLayoutPlanner.createEditorialPlan", () => {
     assert.ok(plan.requiredArticleIds.includes("upload"));
     assert.equal(plan.photoGoal, "balanced");
     assert.equal(plan.compositionGrammar, "lead-story-collage");
+    assert.equal(plan.visualPersonality, "resident-spotlight");
   });
 
   it("marks a photo-led issue when images outweigh stories", () => {
@@ -125,6 +126,7 @@ describe("adaptiveLayoutPlanner.createEditorialPlan", () => {
     );
     assert.equal(plan.photoGoal, "photo-led");
     assert.equal(plan.compositionGrammar, "photo-recap-spread");
+    assert.equal(plan.visualPersonality, "photo-journal");
   });
 
   it("recognizes event and milestone issues as their own composition grammar", () => {
@@ -136,6 +138,19 @@ describe("adaptiveLayoutPlanner.createEditorialPlan", () => {
       [image("i1"), image("i2")],
     );
     assert.equal(plan.compositionGrammar, "events-and-milestones");
+  });
+
+  it("uses brand voice to choose a celebration personality", () => {
+    const plan = createEditorialPlan(
+      [
+        article("lead", "Meet Dorothy", 160, "resident-story"),
+        article("event", "Summer Concert Recap", 125, "event-recap"),
+      ],
+      [image("i1"), image("i2")],
+      { brandVoice: "Warm, colorful, community-focused, energetic" },
+    );
+
+    assert.equal(plan.visualPersonality, "celebration-pop");
   });
 });
 

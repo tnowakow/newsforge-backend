@@ -22,11 +22,13 @@ import type {
   NewsImage,
   PanelRole,
   PanelToken,
+  VisualPersonality,
 } from "@newsforge/shared/schemas";
 import {
   DARK_TOKENS,
   HEADER_ROTATION,
   PANEL_ROTATION,
+  PERSONALITY_STYLES,
 } from "./designLanguage.js";
 
 const BIRTHDAY_RE = /birthday/i;
@@ -205,11 +207,19 @@ export interface VibrancyInput {
   layout: AssembledLayout;
   articles: Article[];
   images: NewsImage[];
+  visualPersonality?: VisualPersonality;
 }
 
 export function applyVibrancyPass(input: VibrancyInput): AssembledLayout {
   const articleById = new Map(input.articles.map((a) => [a.id, a]));
   const imageById = new Map(input.images.map((i) => [i.id, i]));
+  const visualPersonality =
+    input.visualPersonality ?? input.layout.visualPersonality ?? "classic-community";
+  const personality = PERSONALITY_STYLES[visualPersonality];
+  const headerRotation = personality?.headerRotation ?? HEADER_ROTATION;
+  const panelRotation = personality?.panelRotation ?? PANEL_ROTATION;
+  const defaultCornerRadius = personality?.defaultCornerRadius ?? 8;
+  const defaultPhotoTreatment = personality?.photoTreatment ?? "rounded";
   let headerIdx = 0;
   let panelIdx = 0;
 
@@ -248,7 +258,7 @@ export function applyVibrancyPass(input: VibrancyInput): AssembledLayout {
           next.style!.panelRole = next.style!.panelRole ?? "birthday";
         } else {
           next.style!.bg =
-            next.style!.bg ?? PANEL_ROTATION[panelIdx++ % PANEL_ROTATION.length];
+            next.style!.bg ?? panelRotation[panelIdx++ % panelRotation.length];
           next.style!.centered = next.style!.centered ?? true;
         }
       }
@@ -260,7 +270,7 @@ export function applyVibrancyPass(input: VibrancyInput): AssembledLayout {
       /sidebar|calendar/.test(next.styleTag ?? "") &&
       !next.style!.bg
     ) {
-      next.style!.bg = PANEL_ROTATION[panelIdx++ % PANEL_ROTATION.length];
+      next.style!.bg = panelRotation[panelIdx++ % panelRotation.length];
     }
     if (/exec|director|letter|corner/i.test(next.styleTag ?? "") || /director/i.test(article?.title ?? "")) {
       next.style!.bg = next.style!.bg ?? "cream";
@@ -280,7 +290,7 @@ export function applyVibrancyPass(input: VibrancyInput): AssembledLayout {
       !next.style!.headerColor
     ) {
       next.style!.headerColor =
-        HEADER_ROTATION[headerIdx++ % HEADER_ROTATION.length];
+        headerRotation[headerIdx++ % headerRotation.length];
       next.heading = next.heading ?? article.title;
     }
 
@@ -302,8 +312,12 @@ export function applyVibrancyPass(input: VibrancyInput): AssembledLayout {
       } else if (/wide|hero/i.test(next.styleTag ?? "")) {
         next.style!.photoTreatment = next.style!.photoTreatment ?? "wide";
       } else {
-        next.style!.photoTreatment = next.style!.photoTreatment ?? "rounded";
+        next.style!.photoTreatment = next.style!.photoTreatment ?? defaultPhotoTreatment;
       }
+    }
+
+    if (next.style && next.style.bg && next.style.cornerRadius == null) {
+      next.style.cornerRadius = defaultCornerRadius;
     }
 
     // --- Dark panels invert text ---
@@ -316,5 +330,5 @@ export function applyVibrancyPass(input: VibrancyInput): AssembledLayout {
     return next;
   });
 
-  return { ...input.layout, blocks };
+  return { ...input.layout, visualPersonality, blocks };
 }

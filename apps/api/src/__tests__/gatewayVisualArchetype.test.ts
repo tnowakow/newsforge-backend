@@ -316,6 +316,65 @@ test("compact birthday modules limit rows before render measurement", () => {
   assert.ok((layout.blocks[0]?.listItems?.length ?? 0) <= 10);
 });
 
+test("vibrancy pass applies selected visual personality to panel and image defaults", () => {
+  const articles: Article[] = [
+    {
+      id: "a-event",
+      title: "Campus Notes",
+      body: "Residents enjoyed a bright afternoon together around campus.",
+      wordCount: 8,
+      articleType: "announcement",
+      isFiller: false,
+      source: "MOCK",
+    },
+  ];
+  const layout = applyVibrancyPass({
+    layout: {
+      templateId: "v3-spread-classic",
+      pageCount: 1,
+      version: 1,
+      blocks: [
+        {
+          blockId: "b1",
+          slotId: "events",
+          page: 1,
+          position: { col: 1, row: 1, colSpan: 6, rowSpan: 4 },
+          kind: "article",
+          articleId: "a-event",
+          styleTag: "panel:sky",
+          needsFiller: false,
+        },
+        {
+          blockId: "i1",
+          slotId: "photo",
+          page: 1,
+          position: { col: 7, row: 1, colSpan: 6, rowSpan: 4 },
+          kind: "image",
+          imageId: "img-1",
+          needsFiller: false,
+        },
+      ],
+      unfilledSlotIds: [],
+      stats: { placedArticles: 1, placedImages: 1, fillerBlocks: 0, emptySlots: 0 },
+    },
+    articles,
+    images: [
+      {
+        id: "img-1",
+        url: "https://example.com/photo.jpg",
+        aspect: "landscape",
+        isPlaceholder: false,
+        source: "STOCK",
+      },
+    ],
+    visualPersonality: "celebration-pop",
+  });
+
+  assert.equal(layout.visualPersonality, "celebration-pop");
+  assert.equal(layout.blocks[0]?.style?.cornerRadius, 4);
+  assert.equal(layout.blocks[1]?.style?.photoTreatment, "collage");
+});
+
 
 test("large sparse general slots accept useful articles below ideal minWords", () => {
   const gridSpec: GridSpec = {

@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { ArticleTypeSchema } from "./layoutFit.js";
-import { BlockStyleSchema, ListItemsSchema } from "./blockStyle.js";
+import { BlockStyleSchema, ListItemsSchema, VisualPersonalitySchema } from "./blockStyle.js";
 
 /**
  * One article in a newsletter run.
@@ -99,6 +99,7 @@ export type LayoutBlock = z.infer<typeof LayoutBlockSchema>;
 export const AssembledLayoutSchema = z.object({
   templateId: z.string(),
   pageCount: z.number().int().min(1),
+  visualPersonality: VisualPersonalitySchema.optional(),
   blocks: z.array(LayoutBlockSchema),
   /** Slot ids that the fitter could not fill from supplied content. */
   unfilledSlotIds: z.array(z.string()).default([]),

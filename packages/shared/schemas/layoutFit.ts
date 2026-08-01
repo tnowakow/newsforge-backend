@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { VisualPersonalitySchema } from "./blockStyle.js";
 
 /**
  * ArticleType — Gemini-classified article kind (v2 §4.A / §4.B).
@@ -80,6 +81,7 @@ export const EditorialPlanReportSchema = z.object({
   leadArticleId: z.string().optional(),
   photoGoal: z.enum(["text-led", "balanced", "photo-led"]),
   density: z.enum(["sparse", "moderate", "dense"]),
+  visualPersonality: VisualPersonalitySchema,
   compositionGrammar: z.enum([
     "lead-story-collage",
     "events-and-milestones",

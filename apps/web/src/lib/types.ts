@@ -138,6 +138,14 @@ export interface BlockStyle {
   compact?: boolean;
 }
 
+export type VisualPersonality =
+  | "classic-community"
+  | "garden-warmth"
+  | "photo-journal"
+  | "resident-spotlight"
+  | "editorial-calm"
+  | "celebration-pop";
+
 export interface ListItem {
   label: string;
   value?: string;
@@ -167,6 +175,7 @@ export interface LayoutBlock {
 export interface AssembledLayout {
   templateId: string;
   pageCount: number;
+  visualPersonality?: VisualPersonality;
   blocks: LayoutBlock[];
   unfilledSlotIds?: string[];
   stats: {
@@ -243,6 +252,7 @@ export interface EditorialPlanReport {
   leadArticleId?: string;
   photoGoal: "text-led" | "balanced" | "photo-led";
   density: "sparse" | "moderate" | "dense";
+  visualPersonality: VisualPersonality;
   compositionGrammar:
     | "lead-story-collage"
     | "events-and-milestones"

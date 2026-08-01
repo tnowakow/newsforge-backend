@@ -58,6 +58,16 @@ export const PhotoTreatmentSchema = z.enum([
 ]);
 export type PhotoTreatment = z.infer<typeof PhotoTreatmentSchema>;
 
+export const VisualPersonalitySchema = z.enum([
+  "classic-community",
+  "garden-warmth",
+  "photo-journal",
+  "resident-spotlight",
+  "editorial-calm",
+  "celebration-pop",
+]);
+export type VisualPersonality = z.infer<typeof VisualPersonalitySchema>;
+
 export const BlockStyleSchema = z.object({
   /** Panel background token. "paper" (or absent) = no panel. */
   bg: PanelTokenSchema.optional(),

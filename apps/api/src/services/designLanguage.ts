@@ -10,7 +10,7 @@
  * The web editor mirrors PANEL_PALETTE in apps/web/src/lib/v3.ts. If you
  * change a value here, change it there (Riley: assert parity in tests).
  */
-import type { PanelToken } from "@newsforge/shared/schemas";
+import type { PanelToken, VisualPersonality } from "@newsforge/shared/schemas";
 
 export interface BrandColors {
   primaryColor: string;
@@ -71,6 +71,79 @@ export const PANEL_ROTATION: PanelToken[] = [
   "blush",
   "leaf",
 ];
+
+export interface PersonalityStyle {
+  headerRotation: PanelToken[];
+  panelRotation: PanelToken[];
+  defaultCornerRadius: number;
+  photoTreatment: "rounded" | "collage" | "stacked" | "wide" | "portrait";
+}
+
+export const PERSONALITY_STYLES: Record<VisualPersonality, PersonalityStyle> = {
+  "classic-community": {
+    headerRotation: HEADER_ROTATION,
+    panelRotation: PANEL_ROTATION,
+    defaultCornerRadius: 8,
+    photoTreatment: "rounded",
+  },
+  "garden-warmth": {
+    headerRotation: ["leaf", "coral", "sky", "accent", "berry"],
+    panelRotation: ["cream", "leaf", "sky", "sun", "blush"],
+    defaultCornerRadius: 6,
+    photoTreatment: "rounded",
+  },
+  "photo-journal": {
+    headerRotation: ["primary", "coral", "accent", "navy", "leaf"],
+    panelRotation: ["paper", "cream", "sky", "blush", "leaf"],
+    defaultCornerRadius: 2,
+    photoTreatment: "wide",
+  },
+  "resident-spotlight": {
+    headerRotation: ["accent", "berry", "primary", "leaf", "coral"],
+    panelRotation: ["cream", "berry", "blush", "sky", "paper"],
+    defaultCornerRadius: 16,
+    photoTreatment: "portrait",
+  },
+  "editorial-calm": {
+    headerRotation: ["primary", "accent", "leaf", "coral", "sky"],
+    panelRotation: ["paper", "cream", "sky", "blush", "leaf"],
+    defaultCornerRadius: 0,
+    photoTreatment: "wide",
+  },
+  "celebration-pop": {
+    headerRotation: ["coral", "sun", "berry", "sky", "leaf"],
+    panelRotation: ["sun", "sky", "berry", "coral", "blush", "leaf"],
+    defaultCornerRadius: 4,
+    photoTreatment: "collage",
+  },
+};
+
+export function chooseVisualPersonality(input: {
+  brandVoice?: string | null;
+  clientName?: string | null;
+  photoGoal: "text-led" | "balanced" | "photo-led";
+  density: "sparse" | "moderate" | "dense";
+  compositionGrammar: string;
+}): VisualPersonality {
+  const voice = `${input.clientName ?? ""} ${input.brandVoice ?? ""}`.toLowerCase();
+  if (/celebrat|colorful|vibrant|playful|energetic|festival/.test(voice)) {
+    return "celebration-pop";
+  }
+  if (input.photoGoal === "photo-led" || input.compositionGrammar === "photo-recap-spread") {
+    return "photo-journal";
+  }
+  if (/garden|warm|friendly|community|home/.test(voice)) return "garden-warmth";
+  if (
+    input.compositionGrammar === "director-note-feature" ||
+    input.compositionGrammar === "lead-story-collage"
+  ) {
+    return "resident-spotlight";
+  }
+  if (input.density === "dense" || /editorial|calm|refined|classic/.test(voice)) {
+    return "editorial-calm";
+  }
+  return "classic-community";
+}
 
 /**
  * System prompt for the AI layout designer. Kept as a named export so the

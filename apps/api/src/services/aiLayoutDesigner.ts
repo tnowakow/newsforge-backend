@@ -213,6 +213,7 @@ export async function designLayout(
       layout: adaptiveChosen.layout,
       articles: input.articles,
       images: input.images,
+      visualPersonality: adaptive.plan.visualPersonality,
     });
 
   // Skeleton blocks from the template give the model stable blockIds to keep.
@@ -247,6 +248,12 @@ export async function designLayout(
       articleType: a.articleType ?? null,
       excerpt: excerpt(a.body),
     })),
+    editorialPlan: {
+      photoGoal: adaptive.plan.photoGoal,
+      density: adaptive.plan.density,
+      compositionGrammar: adaptive.plan.compositionGrammar,
+      visualPersonality: adaptive.plan.visualPersonality,
+    },
     images: input.images.map((i) => ({
       id: i.id,
       aspect: i.aspect,
@@ -321,6 +328,7 @@ export async function designLayout(
     },
     articles: input.articles,
     images: input.images,
+    visualPersonality: adaptive.plan.visualPersonality,
   });
 
   return {

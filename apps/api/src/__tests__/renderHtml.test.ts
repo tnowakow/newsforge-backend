@@ -42,6 +42,7 @@ function layout(templateId: string): AssembledLayout {
   return {
     templateId,
     pageCount: 1,
+    visualPersonality: templateId === "v3-photo-festival" ? undefined : "celebration-pop",
     version: 1,
     unfilledSlotIds: [],
     stats: { placedArticles: 1, placedImages: 1, fillerBlocks: 0, emptySlots: 0 },
@@ -95,5 +96,28 @@ describe("renderRunHtml personality classes", () => {
     assert.match(html, /personality-photo-festival \.masthead/);
     assert.match(html, /class="block role-outingList"/);
     assert.match(html, /class="photo photo-wide"/);
+  });
+
+  it("uses layout visual personality ahead of template fallback", () => {
+    const html = renderRunHtml({
+      clientName: "Trilogy Health Services",
+      monthLabel: "July 2026",
+      brandKit: {
+        primaryColor: "#1B365D",
+        secondaryColor: "#6FAE6B",
+        accentColor: "#E8762C",
+        headingFont: "Georgia",
+        bodyFont: "Georgia",
+        logoUrl: null,
+      },
+      gridSpec,
+      layout: layout("v3-spread-classic"),
+      articles,
+      images,
+      recurringSections: [],
+    });
+
+    assert.match(html, /class="page personality-celebration-pop"/);
+    assert.match(html, /personality-celebration-pop \.masthead/);
   });
 });

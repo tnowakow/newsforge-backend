@@ -6,8 +6,10 @@ import type {
   NewsImage,
   RecurringSection,
   TemplateSlot,
+  VisualPersonality,
 } from "@newsforge/shared/schemas";
 import { assembleLayout } from "./layoutAssembly.js";
+import { chooseVisualPersonality } from "./designLanguage.js";
 
 type EditorialRole =
   | "lead"
@@ -48,6 +50,7 @@ export interface EditorialPlan {
   items: EditorialPlanItem[];
   photoGoal: "text-led" | "balanced" | "photo-led";
   density: "sparse" | "moderate" | "dense";
+  visualPersonality: VisualPersonality;
   compositionGrammar: CompositionGrammar;
   requiredArticleIds: string[];
 }
@@ -101,6 +104,8 @@ interface AdaptiveLayoutInput {
   articles: Article[];
   images: NewsImage[];
   recurringSections: RecurringSection[];
+  brandVoice?: string;
+  clientName?: string;
   previousVersion?: number;
   variationSeed?: string;
 }
@@ -179,6 +184,7 @@ function chooseCompositionGrammar(
 export function createEditorialPlan(
   articles: Article[],
   images: NewsImage[],
+  options: { brandVoice?: string; clientName?: string } = {},
 ): EditorialPlan {
   const items = articles
     .map(planItem)
@@ -197,11 +203,19 @@ export function createEditorialPlan(
         ? "sparse"
         : "moderate";
   const compositionGrammar = chooseCompositionGrammar(articles, images, photoGoal);
+  const visualPersonality = chooseVisualPersonality({
+    brandVoice: options.brandVoice,
+    clientName: options.clientName,
+    photoGoal,
+    density,
+    compositionGrammar,
+  });
   return {
     leadArticleId: items[0]?.articleId,
     items,
     photoGoal,
     density,
+    visualPersonality,
     compositionGrammar,
     requiredArticleIds: items.filter((item) => item.required).map((item) => item.articleId),
   };
@@ -848,7 +862,10 @@ function applyGeometryVariant(
 }
 
 export function buildAdaptiveLayout(input: AdaptiveLayoutInput): AdaptiveLayoutResult {
-  const plan = createEditorialPlan(input.articles, input.images);
+  const plan = createEditorialPlan(input.articles, input.images, {
+    brandVoice: input.brandVoice,
+    clientName: input.clientName,
+  });
   const candidates = [
     makeCandidate("source-order", "Source order", input, plan, "source", "source", "fixed"),
     makeCandidate("editorial-priority", "Editorial priority", input, plan, "editorial", "uploadedFirst", "lead-photo-swap"),

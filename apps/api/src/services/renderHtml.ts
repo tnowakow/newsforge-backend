@@ -93,7 +93,9 @@ function photoClass(b: LayoutBlock): string {
   return b.style?.photoTreatment ? ` photo-${b.style.photoTreatment}` : "";
 }
 
-function personalityClass(templateId: string): string {
+function personalityClass(layout: AssembledLayout): string {
+  if (layout.visualPersonality) return `personality-${layout.visualPersonality}`;
+  const templateId = layout.templateId;
   if (templateId.includes("panel-garden")) return "personality-panel-garden";
   if (templateId.includes("photo-festival")) return "personality-photo-festival";
   if (templateId.includes("resident-feature")) return "personality-resident-feature";
@@ -181,7 +183,7 @@ export function renderRunHtml(input: RenderInput): string {
   const cols = input.gridSpec.columns;
   const rows = input.gridSpec.rowsPerPage;
   const pages = new Map<number, string[]>();
-  const personality = personalityClass(input.layout.templateId);
+  const personality = personalityClass(input.layout);
   for (let p = 1; p <= input.layout.pageCount; p++) pages.set(p, []);
   for (const b of input.layout.blocks) {
     if (!pages.has(b.page)) pages.set(b.page, []);
@@ -281,6 +283,35 @@ export function renderRunHtml(input: RenderInput): string {
     .personality-editorial-light .section-heading { font-size:clamp(10pt,1.8vw,13pt); letter-spacing:0.02em; }
     .personality-editorial-light .body { font-size:9pt; line-height:1.38; }
     .personality-editorial-light .photo-frame { border-radius:0; }
+    .personality-garden-warmth .masthead { min-height:36px; padding-bottom:5pt; border-bottom:2px solid ${input.brandKit.secondaryColor}; }
+    .personality-garden-warmth .masthead h1 { font-size:21pt; letter-spacing:0.02em; }
+    .personality-garden-warmth .content { gap:8px; }
+    .personality-garden-warmth .block-inner.panel { padding:11px 12px; }
+    .personality-garden-warmth .photo-frame { outline:2px solid rgba(21,27,43,0.10); outline-offset:-2px; }
+    .personality-photo-journal .masthead { min-height:36px; padding:7pt 9pt; border-radius:0; background:${input.brandKit.primaryColor}; color:#F7F5EF; }
+    .personality-photo-journal .masthead .kicker,
+    .personality-photo-journal .masthead h1 { color:#F7F5EF !important; }
+    .personality-photo-journal .masthead h1 { font-size:21pt; text-transform:uppercase; letter-spacing:0.04em; }
+    .personality-photo-journal .content { gap:4px; }
+    .personality-photo-journal .photo-frame { border-radius:2px; }
+    .personality-photo-journal .photo figcaption { font-style:normal; text-transform:uppercase; letter-spacing:0.08em; font-size:5.9pt; color:#333; }
+    .personality-resident-spotlight .masthead { min-height:50px; border-left:9px solid ${input.brandKit.accentColor}; padding-left:10pt; }
+    .personality-resident-spotlight .masthead h1 { font-size:24pt; }
+    .personality-resident-spotlight .content { gap:7px; }
+    .personality-resident-spotlight .section-heading { text-transform:none; letter-spacing:0.01em; }
+    .personality-editorial-calm .masthead { min-height:32px; border-bottom:1px solid rgba(21,27,43,0.18); }
+    .personality-editorial-calm .masthead h1 { font-size:19pt; font-weight:700; letter-spacing:0; }
+    .personality-editorial-calm .content { gap:9px; }
+    .personality-editorial-calm .block-inner.panel { padding:12px 14px; border-radius:0 !important; }
+    .personality-editorial-calm .photo-frame { border-radius:0; }
+    .personality-celebration-pop .masthead { min-height:38px; padding:7pt 10pt; background:${input.brandKit.accentColor}; color:#151B2B; }
+    .personality-celebration-pop .masthead .kicker,
+    .personality-celebration-pop .masthead h1 { color:#151B2B !important; }
+    .personality-celebration-pop .masthead h1 { font-size:22pt; text-transform:uppercase; letter-spacing:0.04em; }
+    .personality-celebration-pop .content { gap:5px; }
+    .personality-celebration-pop .block-inner.panel { padding:9px 11px; border-radius:4px !important; }
+    .personality-celebration-pop .photo-frame { border-radius:4px; }
+    .personality-celebration-pop .photo figcaption { font-style:normal; font-weight:700; color:#333; }
     .role-birthday {
       background-image: radial-gradient(circle, rgba(21,27,43,0.22) 0 2px, transparent 2.4px);
       background-size: 18px 18px;
