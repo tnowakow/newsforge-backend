@@ -10,7 +10,9 @@ type StockAspect = "square" | "portrait" | "landscape";
 
 interface StockPhoto {
   id: string;
+  topicKey: string;
   url: string;
+  sourceKey: string;
   caption: string;
   alt: string;
   description: string;
@@ -26,6 +28,42 @@ const CAPTION_VARIANT_ENDINGS = [
   "for the month ahead",
   "during a favorite campus routine",
 ];
+const REAL_LIFE_TAGS = new Set([
+  "activity",
+  "care",
+  "celebration",
+  "community",
+  "connection",
+  "conversation",
+  "event",
+  "family",
+  "friends",
+  "games",
+  "happy hour",
+  "helping",
+  "music",
+  "outing",
+  "portrait",
+  "resident",
+  "social",
+  "spotlight",
+  "staff",
+  "support",
+  "team",
+  "volunteer",
+]);
+const DETAIL_ONLY_TAGS = new Set([
+  "campus",
+  "decorations",
+  "dining",
+  "food",
+  "holiday",
+  "interior",
+  "meal",
+  "quiet",
+  "reading",
+  "technology",
+]);
 
 const PHOTO_TOPICS = [
   {
@@ -299,6 +337,10 @@ function photoUrl(topic: string, aspect: StockAspect, index: number): string {
   return `https://images.pexels.com/photos/${id}/pexels-photo-${id}.jpeg?auto=compress&cs=tinysrgb&w=${width}`;
 }
 
+function sourceKey(url: string): string {
+  return url.replace(/\?.*$/, "");
+}
+
 function variantCaption(captions: string[], variant: number): string {
   const base = captions[variant % captions.length];
   const ending = CAPTION_VARIANT_ENDINGS[Math.floor(variant / captions.length)] ?? "";
@@ -309,9 +351,12 @@ const STOCK_PHOTOS: StockPhoto[] = PHOTO_TOPICS.flatMap((topic, topicIndex) =>
   Array.from({ length: CATALOG_VARIANTS_PER_TOPIC }, (_, variant) => {
     const aspect = topic.aspects[variant % topic.aspects.length];
     const caption = variantCaption(topic.captions, variant);
+    const url = photoUrl(topic.key, aspect, topicIndex * 10 + variant);
     return {
       id: `stock-${topic.key}-${variant + 1}`,
-      url: photoUrl(topic.key, aspect, topicIndex * 10 + variant),
+      topicKey: topic.key,
+      url,
+      sourceKey: sourceKey(url),
       caption,
       alt: topic.alt,
       description: `${topic.description} Variant ${variant + 1} is best for ${aspect} slots and ${caption.toLowerCase()}.`,
@@ -360,7 +405,12 @@ function articleForSlot(articles: Article[], slot: TemplateSlot): Article | unde
   return articles.find((a) => a.articleType === "event-recap") ?? articles[0];
 }
 
-function scorePhoto(photo: StockPhoto, article: Article | undefined, slot: TemplateSlot): number {
+function scorePhoto(
+  photo: StockPhoto,
+  article: Article | undefined,
+  slot: TemplateSlot,
+  newsletterContext: Set<string>,
+): number {
   let score = 0;
   if (slot.capacity?.aspect && slot.capacity.aspect !== "any" && slot.capacity.aspect === photo.aspect) {
     score += 8;
@@ -372,8 +422,10 @@ function scorePhoto(photo: StockPhoto, article: Article | undefined, slot: Templ
   const hay = tokens(`${article?.title ?? ""} ${article?.body ?? ""}`);
   for (const tag of photo.tags) {
     if (hay.has(tag) || hay.has(tag.replace(/-/g, " "))) score += 3;
+    if (newsletterContext.has(tag) || newsletterContext.has(tag.replace(/-/g, " "))) score += 1;
   }
   const slotHay = roleTokens(slot);
+  const slotRole = `${slot.id} ${slot.styleTag ?? ""}`.toLowerCase();
   for (const tag of photo.tags) {
     const normalized = tag.replace(/\s+/g, "-");
     if (slotHay.has(tag) || slotHay.has(normalized)) score += 5;
@@ -381,6 +433,18 @@ function scorePhoto(photo: StockPhoto, article: Article | undefined, slot: Templ
   for (const role of photo.slotRoles) {
     const rt = tokens(role);
     for (const token of rt) if (slotHay.has(token)) score += 4;
+  }
+  const realLifeHits = photo.tags.filter((tag) => REAL_LIFE_TAGS.has(tag)).length;
+  score += Math.min(8, realLifeHits * 2);
+  if (/hero|portrait|spotlight|photo-cluster|collage|caption/.test(slotRole)) {
+    score += Math.min(6, realLifeHits * 2);
+  }
+  if (/hero|portrait|spotlight|photo-cluster|collage/.test(slotRole)) {
+    const detailOnlyHits = photo.tags.filter((tag) => DETAIL_ONLY_TAGS.has(tag)).length;
+    score -= Math.min(8, detailOnlyHits * 2);
+  }
+  if (/birthday|holiday|dining|garden|feature-band/.test(slotRole)) {
+    score += 2;
   }
   return score;
 }
@@ -423,18 +487,36 @@ export function selectStockPhotosForRun(input: SelectStockPhotosInput): NewsImag
   const targetCount = Math.max(imageSlots.length, input.images.length, 8);
   const needed = Math.max(0, targetCount - userImages.length);
   const used = new Set(userImages.map((img) => img.id));
+  const usedSources = new Set(userImages.map((img) => sourceKey(img.url)));
+  const usedTopicCounts = new Map<string, number>();
+  const newsletterContext = tokens(
+    [
+      input.gridSpec.label,
+      ...input.articles.flatMap((article) => [article.title, article.body]),
+    ].join(" "),
+  );
   const picked: NewsImage[] = [];
 
   for (let i = 0; i < needed; i++) {
     const slot = imageSlots[i % imageSlots.length];
     const article = articleForSlot(input.articles, slot);
     const candidates = STOCK_PHOTOS
-      .filter((p) => !used.has(p.id))
-      .map((p) => ({ photo: p, score: scorePhoto(p, article, slot) }))
+      .filter((p) => !used.has(p.id) && !usedSources.has(p.sourceKey))
+      .map((p) => ({
+        photo: p,
+        score:
+          scorePhoto(p, article, slot, newsletterContext) -
+          ((usedTopicCounts.get(p.topicKey) ?? 0) * 14),
+      }))
       .sort((a, b) => b.score - a.score || a.photo.id.localeCompare(b.photo.id));
     const best = candidates[0];
     if (!best) break;
     used.add(best.photo.id);
+    usedSources.add(best.photo.sourceKey);
+    usedTopicCounts.set(
+      best.photo.topicKey,
+      (usedTopicCounts.get(best.photo.topicKey) ?? 0) + 1,
+    );
     picked.push({
       id: best.photo.id || createId(),
       url: best.photo.url,
