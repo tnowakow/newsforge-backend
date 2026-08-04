@@ -95,7 +95,7 @@ export function AiRearrangeModal({
     } catch (err) {
       const msg =
         err instanceof ApiError && err.status === 401
-          ? "That's not it. Try again."
+          ? "Incorrect password."
           : err instanceof ApiError
             ? err.message
             : "Couldn't unlock.";
