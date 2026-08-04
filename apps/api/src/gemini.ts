@@ -11,7 +11,7 @@ import { GoogleGenerativeAI, type GenerativeModel } from "@google/generative-ai"
 import { z } from "zod";
 import { env } from "./env.js";
 
-const MODEL = "gemini-2.5-flash";
+export const GEMINI_MODEL = "gemini-2.5-flash";
 const OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
 const TIMEOUT_MS = 20_000;
 const MAX_RETRIES = 1;
@@ -111,22 +111,39 @@ export interface GeminiCallOptions<T> {
   timeoutMs?: number;
 }
 
+type AiJsonSuccess<T> = {
+  ok: true;
+  data: T;
+  usedFallback: false;
+  provider: "gemini" | "openai";
+  model: string;
+  durationMs: number;
+};
+
+type AiJsonFallback<T> = {
+  ok: true;
+  data: T;
+  usedFallback: true;
+  reason: string;
+  provider: "deterministic";
+  model: "v3-fallback";
+  durationMs: number;
+};
+
 /**
  * Call Gemini with strict JSON output, validate against schema, retry once,
  * and fall back deterministically. Never throws to caller.
  */
 export async function callGeminiJson<T>(
   opts: GeminiCallOptions<T>,
-): Promise<
-  | { ok: true; data: T; usedFallback: false; provider: "gemini" | "openai" }
-  | { ok: true; data: T; usedFallback: true; reason: string }
-> {
+): Promise<AiJsonSuccess<T> | AiJsonFallback<T>> {
+  const startedAt = Date.now();
   const c = getClient();
   let lastErr: unknown = null;
 
   if (c) {
     const model = c.getGenerativeModel({
-      model: MODEL,
+      model: GEMINI_MODEL,
       generationConfig: {
         responseMimeType: "application/json",
         temperature: 0.4,
@@ -155,6 +172,8 @@ export async function callGeminiJson<T>(
           data: parsed.data,
           usedFallback: false,
           provider: "gemini",
+          model: GEMINI_MODEL,
+          durationMs: Date.now() - startedAt,
         };
       } catch (err) {
         lastErr = err;
@@ -187,6 +206,8 @@ export async function callGeminiJson<T>(
           data: parsed.data,
           usedFallback: false,
           provider: "openai",
+          model: env.OPENAI_MODEL,
+          durationMs: Date.now() - startedAt,
         };
       } catch (err) {
         lastErr = err;
@@ -205,5 +226,8 @@ export async function callGeminiJson<T>(
     data: opts.fallback,
     usedFallback: true,
     reason: String(lastErr instanceof Error ? lastErr.message : lastErr),
+    provider: "deterministic",
+    model: "v3-fallback",
+    durationMs: Date.now() - startedAt,
   };
 }

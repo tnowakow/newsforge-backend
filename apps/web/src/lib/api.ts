@@ -9,6 +9,7 @@ import type {
   NewsImage,
   AssembledLayout,
   AiPromptAudit,
+  AiPromptAuditMeta,
 } from "./types";
 
 const BASE = ""; // Vite proxy handles /api → :3001
@@ -192,6 +193,7 @@ export const api = {
     articles?: Article[];
     images?: NewsImage[];
     scenario?: string;
+    contentGenerationAudit?: AiPromptAuditMeta & { prompt?: string };
   }): Promise<RunRecord> => {
     const raw = await request<unknown>("/api/runs", {
       method: "POST",

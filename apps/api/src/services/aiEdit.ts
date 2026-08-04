@@ -29,6 +29,9 @@ export interface AiEditResult {
   diff: AiEditDiff;
   status: "applied" | "fallback";
   reason?: string;
+  provider: "gemini" | "openai" | "deterministic";
+  model: string;
+  durationMs: number;
 }
 
 export async function runAiEdit(input: AiEditInput): Promise<AiEditResult> {
@@ -72,6 +75,9 @@ export async function runAiEdit(input: AiEditInput): Promise<AiEditResult> {
       diff: fallback.diff,
       status: "fallback",
       reason: "reason" in result ? result.reason : "fallback",
+      provider: result.provider,
+      model: result.model,
+      durationMs: result.durationMs,
     };
   }
 
@@ -90,5 +96,8 @@ export async function runAiEdit(input: AiEditInput): Promise<AiEditResult> {
     layout: merged,
     diff,
     status: "applied",
+    provider: result.provider,
+    model: result.model,
+    durationMs: result.durationMs,
   };
 }

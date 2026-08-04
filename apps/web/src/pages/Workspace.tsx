@@ -8,6 +8,7 @@ import type {
   NewsImage,
   RunRecord,
   TemplateRecord,
+  AiPromptAuditMeta,
 } from "@/lib/types";
 import { normalizeApprovalStatus } from "@/lib/types";
 import { Button } from "@/components/ui/Button";
@@ -131,6 +132,8 @@ export default function Workspace() {
 
   const [generatedArticles, setGeneratedArticles] = useState<Article[]>([]);
   const [generatedImages, setGeneratedImages] = useState<NewsImage[]>([]);
+  const [contentGenerationAudit, setContentGenerationAudit] =
+    useState<(AiPromptAuditMeta & { prompt?: string }) | null>(null);
   const [generating, setGenerating] = useState(false);
   const [generateError, setGenerateError] = useState<string | null>(null);
 
@@ -263,6 +266,7 @@ export default function Workspace() {
       });
       setGeneratedArticles(result.articles ?? []);
       setGeneratedImages(result.images ?? []);
+      setContentGenerationAudit(result.audit ?? null);
       toast(
         `Generated ${result.articles?.length ?? 0} articles · ${result.images?.length ?? 0} images`,
         { tone: "success" },
@@ -419,6 +423,7 @@ export default function Workspace() {
         articles,
         images,
         scenario: demoScenario,
+        ...(contentGenerationAudit ? { contentGenerationAudit } : {}),
       });
       // Honour minimum overlay duration of 2.5s
       const elapsed = Date.now() - start;
@@ -645,6 +650,7 @@ export default function Workspace() {
                 onClear={() => {
                   setGeneratedArticles([]);
                   setGeneratedImages([]);
+                  setContentGenerationAudit(null);
                 }}
                 error={generateError}
                 presets={DEMO_PRESETS}

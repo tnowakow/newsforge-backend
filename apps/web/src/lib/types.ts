@@ -110,6 +110,10 @@ export interface MockContentResult {
   images: NewsImage[];
   counts: { articles: number; images: number };
   scenario?: string;
+  audit?: AiPromptAuditMeta & {
+    kind: "generation-content";
+    prompt: string;
+  };
 }
 
 export type PanelToken =
@@ -191,8 +195,23 @@ export interface AiPromptAudit {
   id: string;
   prompt: string;
   resultStatus: string;
-  diffSummary?: unknown;
+  diffSummary?: AiPromptAuditMeta | null;
   createdAt: string;
+}
+
+export interface AiPromptAuditMeta {
+  kind?: string;
+  provider?: string;
+  model?: string;
+  durationMs?: number;
+  mode?: string;
+  usedFallback?: boolean;
+  fallbackReason?: string;
+  designNotes?: string;
+  templateId?: string;
+  articles?: number;
+  images?: number;
+  summary?: string;
 }
 
 // ---------------- v2 additions ----------------

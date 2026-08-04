@@ -68,6 +68,7 @@ clientsRouter.post("/:id/mock-content", async (req, res) => {
 
   const recurring = RecurringSectionsSchema.safeParse(client.recurringSections);
 
+  const startedAt = Date.now();
   const { articles, images } = await generateMockContent({
     richness: client.richnessLevel,
     careLevel: client.careLevel,
@@ -81,6 +82,7 @@ clientsRouter.post("/:id/mock-content", async (req, res) => {
     scenario: body?.scenario,
     recurringSections: recurring.success ? recurring.data : [],
   });
+  const durationMs = Date.now() - startedAt;
 
   res.json({
     clientId: client.id,
@@ -88,5 +90,24 @@ clientsRouter.post("/:id/mock-content", async (req, res) => {
     articles,
     images,
     counts: { articles: articles.length, images: images.length },
+    audit: {
+      kind: "generation-content",
+      provider: "newsforge",
+      model: "deterministic-mock-content",
+      durationMs,
+      prompt: JSON.stringify(
+        {
+          task: "Generate mock newsletter content and starter image placeholders.",
+          client: client.name,
+          month: body?.month ?? null,
+          tone: body?.tone ?? null,
+          density: body?.density ?? null,
+          include: body?.include ?? null,
+          scenario: body?.scenario ?? null,
+        },
+        null,
+        2,
+      ),
+    },
   });
 });

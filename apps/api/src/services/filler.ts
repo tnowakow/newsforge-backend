@@ -40,6 +40,9 @@ interface FillerOutput {
   promptAudit?: {
     systemPrompt: string;
     userPrompt: string;
+    provider: "gemini" | "openai" | "deterministic";
+    model: string;
+    durationMs: number;
   };
 }
 
@@ -217,7 +220,13 @@ export async function generateFiller(input: FillerInput): Promise<FillerOutput> 
     usedFallback: "usedFallback" in result ? result.usedFallback : undefined,
     fallbackReason:
       "reason" in result ? (result as { reason: string }).reason : undefined,
-    promptAudit: { systemPrompt, userPrompt },
+    promptAudit: {
+      systemPrompt,
+      userPrompt,
+      provider: result.provider,
+      model: result.model,
+      durationMs: result.durationMs,
+    },
   };
 }
 

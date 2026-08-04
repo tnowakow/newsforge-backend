@@ -72,6 +72,9 @@ export interface DesignLayoutResult {
   promptAudit: {
     systemPrompt: string;
     userPrompt: string;
+    provider: "gemini" | "openai" | "deterministic";
+    model: string;
+    durationMs: number;
   };
 }
 
@@ -287,7 +290,13 @@ export async function designLayout(
       fallbackReason: "reason" in result ? result.reason : "fallback",
       editorialPlan: adaptive.plan,
       adaptiveCandidates: adaptiveCandidateReport,
-      promptAudit: { systemPrompt, userPrompt },
+      promptAudit: {
+        systemPrompt,
+        userPrompt,
+        provider: result.provider,
+        model: result.model,
+        durationMs: result.durationMs,
+      },
     };
   }
 
@@ -302,7 +311,13 @@ export async function designLayout(
       fallbackReason: "ai_returned_no_valid_blocks",
       editorialPlan: adaptive.plan,
       adaptiveCandidates: adaptiveCandidateReport,
-      promptAudit: { systemPrompt, userPrompt },
+      promptAudit: {
+        systemPrompt,
+        userPrompt,
+        provider: result.provider,
+        model: result.model,
+        durationMs: result.durationMs,
+      },
     };
   }
   blocks = reattachMissingImages(blocks, input);
@@ -334,6 +349,12 @@ export async function designLayout(
         : "Gemini returned the styled V3 layout."),
     editorialPlan: adaptive.plan,
     adaptiveCandidates: adaptiveCandidateReport,
-    promptAudit: { systemPrompt, userPrompt },
+    promptAudit: {
+      systemPrompt,
+      userPrompt,
+      provider: result.provider,
+      model: result.model,
+      durationMs: result.durationMs,
+    },
   };
 }

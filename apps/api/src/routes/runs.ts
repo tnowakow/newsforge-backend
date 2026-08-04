@@ -173,6 +173,15 @@ const CreateRunBody = z.object({
   password: z.string().optional(),
   articles: ArticlesSchema.optional(),
   images: ImagesSchema.optional(),
+  contentGenerationAudit: z
+    .object({
+      kind: z.string().optional(),
+      provider: z.string().optional(),
+      model: z.string().optional(),
+      durationMs: z.number().nonnegative().optional(),
+      prompt: z.string().optional(),
+    })
+    .optional(),
   scenario: z
     .enum([
       "community-classic",
@@ -212,7 +221,23 @@ runsRouter.post("/", async (req, res) => {
   // Use supplied content, or generate mock content for this client.
   let articles = body.articles;
   let images = body.images;
+  let generatedContentAudit:
+    | {
+        prompt: string;
+        provider: string;
+        model: string;
+        durationMs?: number;
+      }
+    | undefined = body.contentGenerationAudit
+      ? {
+          prompt: body.contentGenerationAudit.prompt ?? "Mock content generated in the workspace before newsletter assembly.",
+          provider: body.contentGenerationAudit.provider ?? "newsforge",
+          model: body.contentGenerationAudit.model ?? "deterministic-mock-content",
+          durationMs: body.contentGenerationAudit.durationMs,
+        }
+      : undefined;
   if (!articles || !images) {
+    const mockStartedAt = Date.now();
     const mock = await generateMockContent({
       richness: client.richnessLevel,
       careLevel: client.careLevel,
@@ -224,6 +249,21 @@ runsRouter.post("/", async (req, res) => {
     });
     articles = articles ?? mock.articles;
     images = images ?? mock.images;
+    generatedContentAudit = {
+      prompt: JSON.stringify(
+        {
+          task: "Generate mock newsletter content and starter image placeholders.",
+          client: client.name,
+          month: body.monthLabel ?? null,
+          scenario: body.scenario ?? null,
+        },
+        null,
+        2,
+      ),
+      provider: "newsforge",
+      model: "deterministic-mock-content",
+      durationMs: Date.now() - mockStartedAt,
+    };
   }
 
   // ---- v2: auto-arrange template selection (deterministic scoring) ----
@@ -319,6 +359,9 @@ runsRouter.post("/", async (req, res) => {
     | {
         systemPrompt: string;
         userPrompt: string;
+        provider: "gemini" | "openai" | "deterministic";
+        model: string;
+        durationMs: number;
         usedFallback?: boolean;
         fallbackReason?: string;
       }
@@ -491,12 +534,41 @@ runsRouter.post("/", async (req, res) => {
         mode: designed.mode,
         designNotes: designed.designNotes,
         fallbackReason: designed.fallbackReason,
+        provider: designed.promptAudit.provider,
+        model: designed.promptAudit.model,
+        durationMs: designed.promptAudit.durationMs,
         templateId: template.id,
       } as unknown as object,
       layoutBefore: layout as unknown as object,
       layoutAfter: layout as unknown as object,
     },
   });
+
+  const containsMockContent =
+    articles.some((article) => article.source === "MOCK") ||
+    images.some((image) => image.source === "MOCK");
+  if (generatedContentAudit || containsMockContent) {
+    await prisma.aiEdit.create({
+      data: {
+        id: createId(),
+        runId: run.id,
+        prompt:
+          generatedContentAudit?.prompt ??
+          "Mock content generated in the workspace before newsletter assembly.",
+        resultStatus: "generation-content",
+        diffSummary: {
+          kind: "generation-content",
+          provider: generatedContentAudit?.provider ?? "newsforge",
+          model: generatedContentAudit?.model ?? "deterministic-mock-content",
+          durationMs: generatedContentAudit?.durationMs,
+          articles: articles.length,
+          images: images.length,
+        } as unknown as object,
+        layoutBefore: layout as unknown as object,
+        layoutAfter: layout as unknown as object,
+      },
+    });
+  }
 
   if (fillerPromptAudit) {
     await prisma.aiEdit.create({
@@ -517,6 +589,9 @@ runsRouter.post("/", async (req, res) => {
           kind: "generation-filler",
           usedFallback: fillerPromptAudit.usedFallback ?? false,
           fallbackReason: fillerPromptAudit.fallbackReason,
+          provider: fillerPromptAudit.provider,
+          model: fillerPromptAudit.model,
+          durationMs: fillerPromptAudit.durationMs,
         } as unknown as object,
         layoutBefore: layout as unknown as object,
         layoutAfter: layout as unknown as object,
@@ -958,7 +1033,14 @@ runsRouter.post("/:id/ai-edit", aiRateLimit, async (req, res) => {
         runId: run.id,
         prompt,
         resultStatus: result.status,
-        diffSummary: result.diff as unknown as object,
+        diffSummary: {
+          ...result.diff,
+          kind: "edit",
+          provider: result.provider,
+          model: result.model,
+          durationMs: result.durationMs,
+          fallbackReason: result.reason,
+        } as unknown as object,
         layoutBefore: before as unknown as object,
         layoutAfter:
           result.status === "applied"
