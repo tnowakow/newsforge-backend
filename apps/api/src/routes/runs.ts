@@ -50,6 +50,7 @@ import { runComplianceSync } from "../services/complianceService.js";
 import { buildBundle } from "../services/bundleExportService.js";
 import { callGeminiJson } from "../gemini.js";
 import { selectStockPhotosForRun } from "../services/stockPhotoCatalog.js";
+import { wrapV3InnerSpreadForDemo } from "../services/fullNewsletterWrapper.js";
 import type { CandidateMeasurement } from "../services/adaptiveLayoutPlanner.js";
 
 export const runsRouter: Router = Router();
@@ -343,6 +344,14 @@ runsRouter.post("/", async (req, res) => {
       };
     }
   }
+
+  layout = wrapV3InnerSpreadForDemo({
+    layout,
+    articles,
+    images,
+    clientName: client.name,
+    monthLabel,
+  });
 
   let adaptiveCandidatesForReport = designed.adaptiveCandidates;
   const selectedAdaptive = adaptiveCandidatesForReport?.find((candidate) => candidate.selected);
@@ -1145,7 +1154,16 @@ runsRouter.post("/:id/ai-arrange", aiRateLimit, async (req, res) => {
     recurringSections: recurring,
   });
   const bumpedVersion = run.layoutVersion + 1;
-  const finalLayout: AssembledLayout = { ...newLayout, version: bumpedVersion };
+  const finalLayout: AssembledLayout = {
+    ...wrapV3InnerSpreadForDemo({
+      layout: newLayout,
+      articles: fitResult.articles,
+      images: fitResult.keptImages,
+      clientName: run.client.name,
+      monthLabel: run.monthLabel,
+    }),
+    version: bumpedVersion,
+  };
   const layoutFitReport = buildLayoutFitReport({
     articles: fitResult.articles,
     images: fitResult.keptImages,
