@@ -3,6 +3,11 @@ import { z } from "zod";
 import { prisma } from "../db.js";
 import { generateMockContentWithAi } from "../services/mockContent.js";
 import {
+  checkAiPassword,
+  hasAiUnlockCookie,
+  setAiUnlockedCookie,
+} from "../middleware/aiUnlock.js";
+import {
   RecurringSectionsSchema,
 } from "@newsforge/shared/schemas";
 
@@ -42,6 +47,7 @@ const MockContentBody = z
     tone: z.enum(["warm", "formal", "playful", "civic"]).optional(),
     density: z.number().int().min(1).max(4).optional(),
     include: z.array(z.string()).optional(),
+    password: z.string().optional(),
     scenario: z
       .enum([
         "community-classic",
@@ -57,6 +63,14 @@ const MockContentBody = z
 clientsRouter.post("/:id/mock-content", async (req, res) => {
   const parsed = MockContentBody.safeParse(req.body);
   const body = parsed.success ? parsed.data : undefined;
+
+  if (!hasAiUnlockCookie(req)) {
+    if (!body?.password || !checkAiPassword(body.password)) {
+      res.status(401).json({ error: "ai_locked" });
+      return;
+    }
+    setAiUnlockedCookie(res);
+  }
 
   const client = await prisma.client.findUnique({
     where: { id: req.params.id },

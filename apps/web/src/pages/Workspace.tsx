@@ -136,6 +136,7 @@ export default function Workspace() {
     useState<(AiPromptAuditMeta & { prompt?: string }) | null>(null);
   const [generating, setGenerating] = useState(false);
   const [generateError, setGenerateError] = useState<string | null>(null);
+  const [mockUnlockOpen, setMockUnlockOpen] = useState(false);
 
   // Uploads
   const [uploads, setUploads] = useState<UploadItem[]>([]);
@@ -250,7 +251,7 @@ export default function Workspace() {
     return totalArticles;
   }, [run, totalArticles]);
 
-  const handleGenerateMock = async () => {
+  const generateMockContent = async (password?: string) => {
     setGenerating(true);
     setGenerateError(null);
     try {
@@ -263,6 +264,7 @@ export default function Workspace() {
         density,
         include: includeList,
         scenario: demoScenario,
+        ...(password ? { password } : {}),
       });
       setGeneratedArticles(result.articles ?? []);
       setGeneratedImages(result.images ?? []);
@@ -272,12 +274,24 @@ export default function Workspace() {
         { tone: "success" },
       );
     } catch (err) {
+      if (
+        err instanceof ApiError &&
+        err.status === 401 &&
+        err.message === "ai_locked"
+      ) {
+        setMockUnlockOpen(true);
+        return;
+      }
       const msg = err instanceof ApiError ? err.message : "Mock generation hiccuped.";
       setGenerateError("Mock generation hiccuped. Try again.");
       toast(msg, { tone: "error" });
     } finally {
       setGenerating(false);
     }
+  };
+
+  const handleGenerateMock = () => {
+    setMockUnlockOpen(true);
   };
 
   const applyDemoPreset = (presetId: DemoPreset["id"]) => {
@@ -686,9 +700,23 @@ export default function Workspace() {
       <AssembleUnlockModal
         open={assembleUnlockOpen}
         onClose={() => setAssembleUnlockOpen(false)}
+        title="Generate newsletter access"
+        subtitle="Generate Newsletter uses the shared demo password."
+        submitLabel="Unlock and assemble"
         onUnlocked={(password) => {
           setAssembleUnlockOpen(false);
           void assemble(password);
+        }}
+      />
+      <AssembleUnlockModal
+        open={mockUnlockOpen}
+        onClose={() => setMockUnlockOpen(false)}
+        title="Generate mock content access"
+        subtitle="Generate Mock Content uses AI and requires the shared demo password."
+        submitLabel="Unlock and generate"
+        onUnlocked={(password) => {
+          setMockUnlockOpen(false);
+          void generateMockContent(password);
         }}
       />
 
@@ -753,10 +781,16 @@ export default function Workspace() {
 function AssembleUnlockModal({
   open,
   onClose,
+  title,
+  subtitle,
+  submitLabel,
   onUnlocked,
 }: {
   open: boolean;
   onClose: () => void;
+  title: string;
+  subtitle: string;
+  submitLabel: string;
   onUnlocked: (password: string) => void;
 }) {
   const [password, setPassword] = useState("");
@@ -801,8 +835,8 @@ function AssembleUnlockModal({
       labelledBy="assemble-unlock-title"
     >
       <ModalHeader
-        title={<span id="assemble-unlock-title">AI filler access</span>}
-        subtitle="Generate AI filler uses the shared demo password."
+        title={<span id="assemble-unlock-title">{title}</span>}
+        subtitle={subtitle}
         onClose={onClose}
       />
       <form onSubmit={handleSubmit} className="p-5 space-y-4">
@@ -834,7 +868,7 @@ function AssembleUnlockModal({
             disabled={!password}
             loading={unlocking}
           >
-            Unlock and assemble →
+            {submitLabel}
           </Button>
         </div>
       </form>

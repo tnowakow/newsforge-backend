@@ -111,6 +111,7 @@ export const api = {
       tone?: string;
       density?: number;
       include?: string[];
+      password?: string;
       scenario?: string;
     },
   ) =>
