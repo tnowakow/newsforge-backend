@@ -628,6 +628,15 @@ runsRouter.get("/", async (req, res) => {
   res.json({ runs, total, limit, offset });
 });
 
+// ---- Unlock status (site-wide gate check) ----
+// Registered before GET /:id so "unlock-status" isn't swallowed as a run id.
+// The unlock cookie is httpOnly so the frontend can't read it directly; this
+// endpoint lets the SPA ask "am I unlocked?" on load. Same password and same
+// cookie as the AI unlock gate — one password, one session.
+runsRouter.get("/unlock-status", (req, res) => {
+  res.json({ unlocked: hasAiUnlockCookie(req) });
+});
+
 runsRouter.get("/:id/ai-edits", async (req, res) => {
   const runId = String(req.params.id);
   const run = await prisma.newsletterRun.findUnique({
@@ -967,13 +976,6 @@ runsRouter.post("/unlock", unlockRateLimit, (req, res) => {
   res.json({ unlocked: true });
 });
 
-// ---- Unlock status (site-wide gate check) ----
-// The unlock cookie is httpOnly so the frontend can't read it directly;
-// this endpoint lets the SPA ask "am I unlocked?" on load. Same password
-// and same cookie as the AI unlock gate — one password, one session.
-runsRouter.get("/unlock-status", (req, res) => {
-  res.json({ unlocked: hasAiUnlockCookie(req) });
-});
 
 // ---- AI Edit ----
 const AiEditBody = z.object({
