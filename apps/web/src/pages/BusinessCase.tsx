@@ -7,7 +7,7 @@ import { api, ApiError } from "@/lib/api";
 const DEFAULTS = {
   locations: 150,
   currentMinutes: 60,
-  draftMinutes: 12,
+  draftMinutes: 15,
   adjustmentMinutes: 8,
   revisionRate: 65,
   loadedHourlyRate: 45,
@@ -65,8 +65,8 @@ export default function BusinessCase() {
   const workflow = [
     {
       step: "Monthly intake",
-      today: "Collect community content and photos across locations",
-      newsforge: "Campuses upload content and photos into the same repeatable flow",
+      today: "Campuses upload to your intake site; your team collects the content and photos",
+      newsforge: "Same collection as today; your team then drops each location's Word doc and photos into NewsForge",
     },
     {
       step: "First draft",
@@ -94,7 +94,7 @@ export default function BusinessCase() {
       <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <p className="text-2xs uppercase tracking-widest text-ink-muted">
-            PorterOne business case
+            Porter One business case
           </p>
           <h1 className="mt-2 max-w-3xl font-display text-3xl font-semibold tracking-tight">
             NewsForge creates the first 80%; designers polish the final 20%.
@@ -102,8 +102,9 @@ export default function BusinessCase() {
           <p className="mt-3 max-w-3xl text-sm leading-6 text-ink-muted">
             Trilogy locations each bring their own content, photos, approval
             cycle, and last-mile edits. NewsForge removes the blank-page layout
-            grind, keeps approval visible, and hands production teams an
-            editable IDML file when InDesign is the fastest path.
+            grind: your team drops each location's submission in, and NewsForge
+            does the layout. It keeps approval visible and hands production
+            teams an editable IDML file when InDesign is the fastest path.
           </p>
         </div>
         <Link
@@ -145,8 +146,8 @@ export default function BusinessCase() {
                 Live assumptions
               </h2>
               <p className="mt-1 text-sm text-ink-muted">
-                These are pilot targets to validate with PorterOne's real
-                production work. Adjust the math while Will talks through the
+                These are pilot targets to validate with Porter One's real
+                production work. Adjust every assumption to match your real
                 operating model.
               </p>
             </div>
@@ -192,6 +193,7 @@ export default function BusinessCase() {
               max={30}
               step={1}
               suffix="min/location"
+              caption="Includes moving the submission from your intake site into NewsForge."
               onChange={setDraftMinutes}
             />
             <SliderControl
@@ -204,7 +206,7 @@ export default function BusinessCase() {
               onChange={setAdjustmentMinutes}
             />
             <SliderControl
-              label="Locations needing edits"
+              label="Locations needing Adobe polish"
               value={revisionRate}
               min={0}
               max={100}
@@ -246,10 +248,10 @@ export default function BusinessCase() {
             </div>
             <div className="mt-5 rounded-md border border-success/25 bg-success/10 p-4">
               <div className="text-sm font-semibold text-success">
-                Positioning spine
+                The bottom line
               </div>
               <p className="mt-1 text-sm leading-6 text-ink">
-                NewsForge gives PorterOne back about{" "}
+                NewsForge gives Porter One back about{" "}
                 <strong>{formatNumber(metrics.savedHours)} hours every month</strong>{" "}
                 by handling the first-draft layout work, while designers keep
                 ownership of the finished newsletter in InDesign.
@@ -263,14 +265,14 @@ export default function BusinessCase() {
             </h2>
             <div className="mt-4 grid gap-3">
               <AssuranceLine text="Campuses still submit their monthly content and photos through the same operating rhythm." />
-              <AssuranceLine text="PorterOne designers still own final quality, brand judgment, and approval-ready polish." />
+              <AssuranceLine text="Porter One designers still own final quality, brand judgment, and approval-ready polish." />
               <AssuranceLine text="InDesign stays in the loop through editable IDML; the web editor is for quick fixes, not replacing Adobe." />
             </div>
           </Card>
 
           <Card hover={false} className="p-5">
             <h2 className="font-display text-lg font-semibold">
-              Talk track
+              How the month changes
             </h2>
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
               {workflow.map((item) => (
@@ -309,7 +311,7 @@ function BusinessCaseAccessGate({ onUnlocked }: { onUnlocked: () => void }) {
     } catch (err) {
       const msg =
         err instanceof ApiError && err.status === 401
-          ? "That's not it. Try again."
+          ? "Incorrect password."
           : err instanceof ApiError
             ? err.message
             : "Couldn't unlock.";
@@ -323,13 +325,13 @@ function BusinessCaseAccessGate({ onUnlocked }: { onUnlocked: () => void }) {
     <div className="grid min-h-[calc(100vh-8rem)] place-items-center px-6 py-12">
       <Card hover={false} className="w-full max-w-[460px] p-6">
         <div className="text-2xs font-semibold uppercase tracking-widest text-ink-muted">
-          PorterOne business case
+          Porter One business case
         </div>
         <h1 className="mt-3 font-display text-2xl font-semibold tracking-tight">
           Demo access required
         </h1>
         <p className="mt-2 text-sm leading-6 text-ink-muted">
-          This calculator uses PorterOne operating assumptions and is protected
+          This calculator uses Porter One operating assumptions and is protected
           with the shared NewsForge demo password.
         </p>
         <form onSubmit={handleSubmit} className="mt-5 space-y-4">
@@ -403,6 +405,7 @@ function SliderControl({
   step,
   prefix = "",
   suffix,
+  caption,
   onChange,
 }: {
   label: string;
@@ -412,6 +415,7 @@ function SliderControl({
   step: number;
   prefix?: string;
   suffix: string;
+  caption?: string;
   onChange: (value: number) => void;
 }) {
   return (
@@ -433,6 +437,9 @@ function SliderControl({
         onChange={(event) => onChange(Number(event.target.value))}
         className="w-full accent-[rgb(var(--accent))]"
       />
+      {caption && (
+        <div className="mt-1.5 text-xs leading-5 text-ink-muted">{caption}</div>
+      )}
     </label>
   );
 }
