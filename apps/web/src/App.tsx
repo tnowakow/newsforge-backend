@@ -3,6 +3,7 @@ import ClientPicker from "./pages/ClientPicker";
 import Workspace from "./pages/Workspace";
 import Preview from "./pages/Preview";
 import Approved from "./pages/Approved";
+import BusinessCase from "./pages/BusinessCase";
 
 export default function App() {
   return (
@@ -14,6 +15,7 @@ export default function App() {
           <Route path="/workspace/:clientId" element={<Workspace />} />
           <Route path="/workspace/:clientId/preview" element={<Preview />} />
           <Route path="/newsletters" element={<Approved />} />
+          <Route path="/business-case" element={<BusinessCase />} />
           {/* v2 Screen 9 legacy alias */}
           <Route path="/approved" element={<Approved />} />
           {/* Convenience aliases used in the prompt */}
@@ -50,16 +52,26 @@ function AppHeader() {
       <div className="flex items-center gap-2 text-ink-muted">
         {/* v2 Screen 9 nav — hidden on /preview per v1 fullscreen pattern */}
         {!hideOnFullscreen && (
-          <Link
-            to="/newsletters"
-            className={`h-8 px-3 rounded-md text-sm hover:text-ink hover:bg-rule/40 grid place-items-center ${
-              loc.pathname === "/newsletters" || loc.pathname === "/approved"
-                ? "text-ink"
-                : ""
-            }`}
-          >
-            Newsletters
-          </Link>
+          <>
+            <Link
+              to="/newsletters"
+              className={`h-8 px-3 rounded-md text-sm hover:text-ink hover:bg-rule/40 grid place-items-center ${
+                loc.pathname === "/newsletters" || loc.pathname === "/approved"
+                  ? "text-ink"
+                  : ""
+              }`}
+            >
+              Newsletters
+            </Link>
+            <Link
+              to="/business-case"
+              className={`h-8 px-3 rounded-md text-sm hover:text-ink hover:bg-rule/40 grid place-items-center ${
+                loc.pathname === "/business-case" ? "text-ink" : ""
+              }`}
+            >
+              Business Case
+            </Link>
+          </>
         )}
         <button
           className="h-8 w-8 rounded-md hover:bg-rule/40 grid place-items-center"

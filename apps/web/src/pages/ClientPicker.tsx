@@ -95,13 +95,23 @@ export default function ClientPicker() {
   return (
     <div className="px-10 pt-10 pb-16 max-w-[1320px] mx-auto">
       {/* Page intro */}
-      <h1 className="text-xl font-display font-semibold tracking-tight">
-        Pick a client
-      </h1>
-      <p className="text-sm text-ink-muted mt-1.5">
-        {clients ? `${clients.length} communities` : "Loading communities"} · Choose
-        one to start assembling this month's newsletter
-      </p>
+      <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+        <div>
+          <h1 className="text-xl font-display font-semibold tracking-tight">
+            Pick a client
+          </h1>
+          <p className="text-sm text-ink-muted mt-1.5">
+            {clients ? `${clients.length} communities` : "Loading communities"} · Choose
+            one to start assembling this month's newsletter
+          </p>
+        </div>
+        <Link
+          to="/business-case"
+          className="inline-flex h-10 items-center justify-center rounded-md bg-porter px-4 text-sm font-medium text-white hover:bg-porter-600"
+        >
+          Show Business Case
+        </Link>
+      </div>
 
       {/* Toolbar */}
       <div className="mt-6 flex flex-wrap gap-3 items-center">
