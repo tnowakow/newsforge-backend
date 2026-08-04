@@ -1,6 +1,8 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Card } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
+import { api, ApiError } from "@/lib/api";
 
 const DEFAULTS = {
   locations: 150,
@@ -8,10 +10,17 @@ const DEFAULTS = {
   draftMinutes: 12,
   adjustmentMinutes: 8,
   revisionRate: 65,
-  loadedHourlyRate: 75,
+  loadedHourlyRate: 45,
 };
 
+const AI_UNLOCK_KEY = "newsforge.aiUnlocked";
+
 export default function BusinessCase() {
+  const [unlocked, setUnlocked] = useState(
+    () =>
+      typeof window !== "undefined" &&
+      window.sessionStorage.getItem(AI_UNLOCK_KEY) === "1",
+  );
   const [locations, setLocations] = useState(DEFAULTS.locations);
   const [currentMinutes, setCurrentMinutes] = useState(DEFAULTS.currentMinutes);
   const [draftMinutes, setDraftMinutes] = useState(DEFAULTS.draftMinutes);
@@ -57,24 +66,28 @@ export default function BusinessCase() {
     {
       step: "Monthly intake",
       today: "Collect community content and photos across locations",
-      newsforge: "Upload monthly content and images into a repeatable workspace",
+      newsforge: "Campuses upload content and photos into the same repeatable flow",
     },
     {
       step: "First draft",
       today: `${formatNumber(locations)} manual layouts at ${currentMinutes} min each`,
-      newsforge: `AI-assisted first draft at ${draftMinutes} min each`,
+      newsforge: `Pilot target: AI-assisted layout draft at ${draftMinutes} min each`,
     },
     {
       step: "Approval",
-      today: "Send proofs, wait for notes, reopen files for edits",
-      newsforge: "Share generated preview, track status, preserve the version",
+      today: "Late first proofs compress the revision window",
+      newsforge: "Target proofs around the 5th so teams are not scrambling near the 20th",
     },
     {
       step: "Final polish",
       today: "Manual rework happens inside production tools",
-      newsforge: "Export PDF or IDML so quick Adobe edits stay available",
+      newsforge: "Export editable IDML so Adobe polish stays in the designer's tool",
     },
   ];
+
+  if (!unlocked) {
+    return <BusinessCaseAccessGate onUnlocked={() => setUnlocked(true)} />;
+  }
 
   return (
     <div className="px-10 pt-10 pb-16 max-w-[1320px] mx-auto">
@@ -84,13 +97,13 @@ export default function BusinessCase() {
             PorterOne business case
           </p>
           <h1 className="mt-2 max-w-3xl font-display text-3xl font-semibold tracking-tight">
-            Turn 150 monthly newsletters into a repeatable production line.
+            NewsForge creates the first 80%; designers polish the final 20%.
           </h1>
           <p className="mt-3 max-w-3xl text-sm leading-6 text-ink-muted">
             Trilogy locations each bring their own content, photos, approval
-            cycle, and last-mile edits. NewsForge compresses the first draft,
-            keeps approval visible, and still hands production teams an InDesign
-            file when Adobe polish is the fastest path.
+            cycle, and last-mile edits. NewsForge removes the blank-page layout
+            grind, keeps approval visible, and hands production teams an
+            editable IDML file when InDesign is the fastest path.
           </p>
         </div>
         <Link
@@ -115,12 +128,12 @@ export default function BusinessCase() {
         <MetricCard
           label="Annual labor value"
           value={currency(metrics.annualDollarValue)}
-          detail={`At ${currency(loadedHourlyRate)}/hr loaded cost`}
+          detail={`At ${currency(loadedHourlyRate)}/hr loaded production cost`}
         />
         <MetricCard
-          label="Production queue"
-          value={`${formatNumber(locations)} locations`}
-          detail="Each with unique content, photos, and approval"
+          label="Proofing runway"
+          value="5th vs 20th"
+          detail="Pilot target: widen the monthly revision window"
         />
       </div>
 
@@ -132,7 +145,8 @@ export default function BusinessCase() {
                 Live assumptions
               </h2>
               <p className="mt-1 text-sm text-ink-muted">
-                Adjust the demo math while PorterOne talks through the real
+                These are pilot targets to validate with PorterOne's real
+                production work. Adjust the math while Will talks through the
                 operating model.
               </p>
             </div>
@@ -172,7 +186,7 @@ export default function BusinessCase() {
               onChange={setCurrentMinutes}
             />
             <SliderControl
-              label="NewsForge first draft time"
+              label="Pilot target first draft time"
               value={draftMinutes}
               min={5}
               max={30}
@@ -201,8 +215,8 @@ export default function BusinessCase() {
             <SliderControl
               label="Loaded production cost"
               value={loadedHourlyRate}
-              min={35}
-              max={150}
+              min={25}
+              max={125}
               step={5}
               prefix="$"
               suffix="/hr"
@@ -224,7 +238,7 @@ export default function BusinessCase() {
                 tone="current"
               />
               <ComparisonBar
-                label="NewsForge draft + approval edits"
+                label="NewsForge pilot target + Adobe polish"
                 hours={metrics.newsforgeHours}
                 max={Math.max(metrics.currentHours, metrics.newsforgeHours)}
                 tone="newsforge"
@@ -232,14 +246,25 @@ export default function BusinessCase() {
             </div>
             <div className="mt-5 rounded-md border border-success/25 bg-success/10 p-4">
               <div className="text-sm font-semibold text-success">
-                Demo headline
+                Positioning spine
               </div>
               <p className="mt-1 text-sm leading-6 text-ink">
                 NewsForge gives PorterOne back about{" "}
                 <strong>{formatNumber(metrics.savedHours)} hours every month</strong>{" "}
-                before counting fewer handoffs, cleaner approvals, and faster
-                Adobe-ready changes.
+                by handling the first-draft layout work, while designers keep
+                ownership of the finished newsletter in InDesign.
               </p>
+            </div>
+          </Card>
+
+          <Card hover={false} className="p-5">
+            <h2 className="font-display text-lg font-semibold">
+              What this does not change
+            </h2>
+            <div className="mt-4 grid gap-3">
+              <AssuranceLine text="Campuses still submit their monthly content and photos through the same operating rhythm." />
+              <AssuranceLine text="PorterOne designers still own final quality, brand judgment, and approval-ready polish." />
+              <AssuranceLine text="InDesign stays in the loop through editable IDML; the web editor is for quick fixes, not replacing Adobe." />
             </div>
           </Card>
 
@@ -263,6 +288,87 @@ export default function BusinessCase() {
           </Card>
         </div>
       </div>
+    </div>
+  );
+}
+
+function BusinessCaseAccessGate({ onUnlocked }: { onUnlocked: () => void }) {
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [unlocking, setUnlocking] = useState(false);
+
+  async function handleSubmit(event: React.FormEvent) {
+    event.preventDefault();
+    if (!password) return;
+    setUnlocking(true);
+    setError(null);
+    try {
+      await api.unlock(password);
+      window.sessionStorage.setItem(AI_UNLOCK_KEY, "1");
+      onUnlocked();
+    } catch (err) {
+      const msg =
+        err instanceof ApiError && err.status === 401
+          ? "That's not it. Try again."
+          : err instanceof ApiError
+            ? err.message
+            : "Couldn't unlock.";
+      setError(msg);
+    } finally {
+      setUnlocking(false);
+    }
+  }
+
+  return (
+    <div className="grid min-h-[calc(100vh-8rem)] place-items-center px-6 py-12">
+      <Card hover={false} className="w-full max-w-[460px] p-6">
+        <div className="text-2xs font-semibold uppercase tracking-widest text-ink-muted">
+          PorterOne business case
+        </div>
+        <h1 className="mt-3 font-display text-2xl font-semibold tracking-tight">
+          Demo access required
+        </h1>
+        <p className="mt-2 text-sm leading-6 text-ink-muted">
+          This calculator uses PorterOne operating assumptions and is protected
+          with the shared NewsForge demo password.
+        </p>
+        <form onSubmit={handleSubmit} className="mt-5 space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-1.5">
+              Enter demo password
+            </label>
+            <input
+              type="password"
+              autoFocus
+              value={password}
+              onChange={(event) => {
+                setPassword(event.target.value);
+                setError(null);
+              }}
+              className={`h-10 w-full rounded-md border bg-surface px-3 text-sm focus:outline-none ${
+                error ? "border-error" : "border-rule focus:border-accent"
+              }`}
+            />
+            {error && <div className="mt-1.5 text-2xs text-error">{error}</div>}
+          </div>
+          <div className="flex items-center justify-between gap-3">
+            <Link
+              to="/"
+              className="inline-flex h-10 items-center justify-center rounded-md px-3 text-sm font-medium text-ink hover:bg-rule/30"
+            >
+              Back
+            </Link>
+            <Button
+              type="submit"
+              variant="primary"
+              disabled={!password}
+              loading={unlocking}
+            >
+              Unlock business case
+            </Button>
+          </div>
+        </form>
+      </Card>
     </div>
   );
 }
@@ -364,6 +470,14 @@ function WorkflowLine({ label, text }: { label: string; text: string }) {
         {label}
       </div>
       <div className="mt-1 text-sm leading-5">{text}</div>
+    </div>
+  );
+}
+
+function AssuranceLine({ text }: { text: string }) {
+  return (
+    <div className="rounded-md border border-rule bg-bg p-3 text-sm leading-5">
+      {text}
     </div>
   );
 }
