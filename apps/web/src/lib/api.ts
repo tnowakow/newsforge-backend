@@ -279,6 +279,10 @@ export const api = {
       body: JSON.stringify({ password }),
     }),
 
+  // Site-wide gate check — same password/cookie as AI unlock.
+  unlockStatus: () =>
+    request<{ unlocked: boolean }>("/api/runs/unlock-status"),
+
   listAiPrompts: async (runId: string): Promise<AiPromptAudit[]> => {
     const raw = await request<{ edits: AiPromptAudit[] }>(
       `/api/runs/${runId}/ai-edits`,

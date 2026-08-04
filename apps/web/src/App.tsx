@@ -1,32 +1,127 @@
+import { useEffect, useState, type FormEvent } from "react";
 import { Routes, Route, Link, useLocation } from "react-router-dom";
 import ClientPicker from "./pages/ClientPicker";
 import Workspace from "./pages/Workspace";
 import Preview from "./pages/Preview";
 import Approved from "./pages/Approved";
 import BusinessCase from "./pages/BusinessCase";
+import { api } from "./lib/api";
 
 export default function App() {
   return (
-    <div className="min-h-screen flex flex-col">
-      <AppHeader />
-      <main className="flex-1">
-        <Routes>
-          <Route path="/" element={<ClientPicker />} />
-          <Route path="/workspace/:clientId" element={<Workspace />} />
-          <Route path="/workspace/:clientId/preview" element={<Preview />} />
-          <Route path="/newsletters" element={<Approved />} />
-          <Route path="/business-case" element={<BusinessCase />} />
-          {/* v2 Screen 9 legacy alias */}
-          <Route path="/approved" element={<Approved />} />
-          {/* Convenience aliases used in the prompt */}
-          <Route path="/client/:clientId" element={<Workspace />} />
-          <Route path="/run/:runId/preview" element={<Preview />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </main>
-      <AppFooter />
-    </div>
+    <SiteGate>
+      <div className="min-h-screen flex flex-col">
+        <AppHeader />
+        <main className="flex-1">
+          <Routes>
+            <Route path="/" element={<ClientPicker />} />
+            <Route path="/workspace/:clientId" element={<Workspace />} />
+            <Route path="/workspace/:clientId/preview" element={<Preview />} />
+            <Route path="/newsletters" element={<Approved />} />
+            <Route path="/business-case" element={<BusinessCase />} />
+            {/* v2 Screen 9 legacy alias */}
+            <Route path="/approved" element={<Approved />} />
+            {/* Convenience aliases used in the prompt */}
+            <Route path="/client/:clientId" element={<Workspace />} />
+            <Route path="/run/:runId/preview" element={<Preview />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </main>
+        <AppFooter />
+      </div>
+    </SiteGate>
   );
+}
+
+/**
+ * Site-wide password gate. Same password + same httpOnly cookie as the AI
+ * unlock flow (backend: checkAiPassword / hasAiUnlockCookie) — one password
+ * unlocks both the site and the AI generation features. Checks status once
+ * on load via GET /api/runs/unlock-status (cookie is httpOnly, so the SPA
+ * can't read it directly).
+ */
+function SiteGate({ children }: { children: React.ReactNode }) {
+  const [status, setStatus] = useState<"checking" | "locked" | "unlocked">(
+    "checking",
+  );
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    api
+      .unlockStatus()
+      .then((res) => setStatus(res.unlocked ? "unlocked" : "locked"))
+      .catch(() => setStatus("locked"));
+  }, []);
+
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+    setSubmitting(true);
+    setError(null);
+    try {
+      const res = await api.unlock(password);
+      if (res.unlocked) {
+        setStatus("unlocked");
+      } else {
+        setError("Incorrect password.");
+      }
+    } catch {
+      setError("Incorrect password.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  if (status === "checking") {
+    return <div className="min-h-screen bg-bg" />;
+  }
+
+  if (status === "locked") {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-bg px-6">
+        <form
+          onSubmit={handleSubmit}
+          className="w-full max-w-sm rounded-lg border border-rule bg-surface p-8 shadow-sm"
+        >
+          <div className="flex items-center gap-2 mb-6">
+            <span className="h-7 w-7 rounded-md bg-ink text-bg grid place-items-center font-display font-bold text-sm">
+              N
+            </span>
+            <span className="font-display font-semibold tracking-tight text-base">
+              NewsForge
+            </span>
+          </div>
+          <label className="block text-sm font-medium mb-2" htmlFor="site-gate-password">
+            This demo is password-protected
+          </label>
+          <input
+            id="site-gate-password"
+            type="password"
+            autoFocus
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full h-10 px-3 rounded-md border border-rule bg-bg mb-3"
+            placeholder="Password"
+          />
+          {error && (
+            <p className="text-sm text-red-600 mb-3" role="alert">
+              {error}
+            </p>
+          )}
+          <button
+            type="submit"
+            disabled={submitting || !password}
+            className="w-full h-10 rounded-md bg-accent text-white font-medium disabled:opacity-50"
+          >
+            {submitting ? "Checking…" : "Enter"}
+          </button>
+        </form>
+      </div>
+    );
+  }
+
+  return <>{children}</>;
 }
 
 function AppHeader() {

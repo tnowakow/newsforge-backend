@@ -967,6 +967,14 @@ runsRouter.post("/unlock", unlockRateLimit, (req, res) => {
   res.json({ unlocked: true });
 });
 
+// ---- Unlock status (site-wide gate check) ----
+// The unlock cookie is httpOnly so the frontend can't read it directly;
+// this endpoint lets the SPA ask "am I unlocked?" on load. Same password
+// and same cookie as the AI unlock gate — one password, one session.
+runsRouter.get("/unlock-status", (req, res) => {
+  res.json({ unlocked: hasAiUnlockCookie(req) });
+});
+
 // ---- AI Edit ----
 const AiEditBody = z.object({
   prompt: z.string().min(3).max(2000),
