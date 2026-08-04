@@ -387,6 +387,17 @@ export const api = {
       body: JSON.stringify({ regenerate }),
     }),
 
+  exportIdml: async (
+    runId: string,
+  ): Promise<{
+    ok: true;
+    url: string;
+    fileName: string;
+  }> =>
+    request(`/api/runs/${runId}/export/idml`, {
+      method: "POST",
+    }),
+
   /**
    * v2 §4.5 — Static instructional .docx. Returns a URL the caller can
    * hand to an `<a href>` so the browser drives the download UI.

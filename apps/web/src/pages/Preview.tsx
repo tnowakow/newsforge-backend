@@ -68,6 +68,7 @@ export default function Preview() {
   const [pdfWebUrl, setPdfWebUrl] = useState<string | null>(null);
   const [pdfPrintUrl, setPdfPrintUrl] = useState<string | null>(null);
   const [bundleUrl, setBundleUrl] = useState<string | null>(null);
+  const [idmlDownloading, setIdmlDownloading] = useState(false);
 
   // Edit-mode local state
   const [pendingLayout, setPendingLayout] = useState<AssembledLayout | null>(null);
@@ -331,6 +332,33 @@ export default function Preview() {
     }
   };
 
+  const downloadIdml = async () => {
+    if (!run) return;
+    setIdmlDownloading(true);
+    try {
+      const result = await api.exportIdml(run.id);
+      const a = document.createElement("a");
+      a.href = result.url;
+      a.download =
+        result.fileName ||
+        `${slug(run.client?.name ?? "newsletter")}-${slug(
+          run.monthLabel ?? "newsletter",
+        )}.idml.zip`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      toast("InDesign IDML download started.", { tone: "success" });
+    } catch (err) {
+      const msg = err instanceof ApiError ? err.message : "Couldn't export InDesign file.";
+      toast(`${msg} Try again.`, {
+        tone: "error",
+        action: { label: "Retry", onClick: downloadIdml },
+      });
+    } finally {
+      setIdmlDownloading(false);
+    }
+  };
+
   // ---- AI apply handler ----
   const handleAiApplied = (newLayout: unknown, status: string) => {
     setAiRunning(true);
@@ -410,9 +438,11 @@ export default function Preview() {
         <PreviewTopBar
           run={run}
           downloading={downloading}
+          idmlDownloading={idmlDownloading}
           pdfVariant={pdfVariant}
           onVariantChange={setPdfVariant}
           onDownload={downloadPdf}
+          onDownloadIdml={downloadIdml}
           onEdit={enterEdit}
           onAi={() => setAiOpen(true)}
           onPromptLog={() => setPromptLogOpen(true)}
@@ -604,18 +634,22 @@ export default function Preview() {
 function PreviewTopBar({
   run,
   downloading,
+  idmlDownloading,
   pdfVariant,
   onVariantChange,
   onDownload,
+  onDownloadIdml,
   onEdit,
   onAi,
   onPromptLog,
 }: {
   run: RunRecord | null;
   downloading: boolean;
+  idmlDownloading: boolean;
   pdfVariant: PdfVariant;
   onVariantChange: (v: PdfVariant) => void;
   onDownload: () => void;
+  onDownloadIdml: () => void;
   onEdit: () => void;
   onAi: () => void;
   onPromptLog: () => void;
@@ -668,6 +702,14 @@ function PreviewTopBar({
             : pdfVariant === "print"
               ? "Download Print PDF"
               : "Download Web PDF"}
+        </Button>
+        <Button
+          variant="secondary"
+          disabled={!run}
+          loading={idmlDownloading}
+          onClick={onDownloadIdml}
+        >
+          InDesign IDML
         </Button>
         <Button variant="secondary" disabled={!run} onClick={onEdit}>
           Edit Layout

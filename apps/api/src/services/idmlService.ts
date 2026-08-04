@@ -5,8 +5,7 @@
  * it as a fully editable document. This service generates a minimal but
  * valid package from the layout model:
  *
- *   - two letter-size pages (the 11×17 inner spread, split as InDesign
- *     facing content: one spread per page for v3 simplicity)
+ *   - one editable letter-size InDesign page for each rendered newsletter page
  *   - a TextFrame per text/list block at exact grid geometry, panel fills
  *     as document swatches, brand Heading/Body/Caption paragraph styles
  *   - a Rectangle+Image per photo block with a Link into Links/
@@ -164,10 +163,10 @@ ${ps("NF ListRow", body, 9, 12)}
 </idPkg:Styles>`;
 }
 
-function preferencesXml(): string {
+function preferencesXml(pageCount: number): string {
   return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <idPkg:Preferences xmlns:idPkg="http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging" DOMVersion="18.0">
-  <DocumentPreference PageWidth="${PAGE_W}" PageHeight="${PAGE_H}" PagesPerDocument="2" FacingPages="false" DocumentBleedTopOffset="9" DocumentBleedBottomOffset="9" DocumentBleedInsideOrLeftOffset="9" DocumentBleedOutsideOrRightOffset="9"/>
+  <DocumentPreference PageWidth="${PAGE_W}" PageHeight="${PAGE_H}" PagesPerDocument="${pageCount}" FacingPages="false" DocumentBleedTopOffset="9" DocumentBleedBottomOffset="9" DocumentBleedInsideOrLeftOffset="9" DocumentBleedOutsideOrRightOffset="9"/>
   <ViewPreference HorizontalMeasurementUnits="Points" VerticalMeasurementUnits="Points"/>
 </idPkg:Preferences>`;
 }
@@ -381,7 +380,7 @@ ${(spreadXmlByPage.get(page) ?? []).join("\n")}
   idml.file("Resources/Graphic.xml", graphicXml(swatches));
   idml.file("Resources/Fonts.xml", fontsXml(run.client.headingFont, run.client.bodyFont));
   idml.file("Resources/Styles.xml", stylesXml(run.client.headingFont, run.client.bodyFont));
-  idml.file("Resources/Preferences.xml", preferencesXml());
+  idml.file("Resources/Preferences.xml", preferencesXml(pages.length));
   idml.file("MasterSpreads/MasterSpread_uMaster.xml", masterSpreadXml());
   idml.file("XML/Tags.xml", tagsXml());
   idml.file("XML/BackingStory.xml", backingStoryXml());

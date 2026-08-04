@@ -54,6 +54,7 @@ export function ApprovalStrip({
   const [actorName, setActorName] = useState("");
   const [notesPopoverOpen, setNotesPopoverOpen] = useState(false);
   const [bundleRefreshing, setBundleRefreshing] = useState(false);
+  const [idmlRefreshing, setIdmlRefreshing] = useState(false);
 
   const handleApprove = async () => {
     setApproving(true);
@@ -123,6 +124,20 @@ export function ApprovalStrip({
       toast(msg, { tone: "error" });
     } finally {
       setBundleRefreshing(false);
+    }
+  };
+
+  const handleIdmlDownload = async () => {
+    setIdmlRefreshing(true);
+    try {
+      const result = await api.exportIdml(run.id);
+      window.open(result.url, "_self");
+      toast("InDesign IDML download started", { tone: "success" });
+    } catch (err) {
+      const msg = err instanceof ApiError ? err.message : "IDML export failed.";
+      toast(msg, { tone: "error" });
+    } finally {
+      setIdmlRefreshing(false);
     }
   };
 
@@ -291,6 +306,14 @@ export function ApprovalStrip({
               loading={bundleRefreshing}
             >
               📦 Download InDesign bundle
+            </Button>
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={handleIdmlDownload}
+              loading={idmlRefreshing}
+            >
+              InDesign IDML
             </Button>
             <Button
               size="sm"

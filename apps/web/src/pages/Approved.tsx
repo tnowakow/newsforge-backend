@@ -261,6 +261,7 @@ function ApprovedRunCard({
     null,
   );
   const [refreshing, setRefreshing] = useState(false);
+  const [idmlRefreshing, setIdmlRefreshing] = useState(false);
   const approvedAt = run.approvedAt
     ? new Date(run.approvedAt).toISOString().replace("T", " ").slice(0, 16) + " UTC"
     : "";
@@ -295,6 +296,20 @@ function ApprovedRunCard({
       toast(msg, { tone: "error" });
     } finally {
       setRefreshing(false);
+    }
+  };
+
+  const downloadIdml = async () => {
+    setIdmlRefreshing(true);
+    try {
+      const result = await api.exportIdml(run.id);
+      window.open(result.url, "_self");
+      toast("InDesign IDML download started.", { tone: "success" });
+    } catch (err) {
+      const msg = err instanceof ApiError ? err.message : "IDML export failed.";
+      toast(msg, { tone: "error" });
+    } finally {
+      setIdmlRefreshing(false);
     }
   };
 
@@ -369,6 +384,14 @@ function ApprovedRunCard({
             onClick={downloadBundle}
           >
             📦 InDesign bundle
+          </Button>
+          <Button
+            size="sm"
+            variant="secondary"
+            loading={idmlRefreshing}
+            onClick={downloadIdml}
+          >
+            InDesign IDML
           </Button>
           {approvalStatus !== "approved" && (
             <Link
