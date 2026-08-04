@@ -66,15 +66,7 @@ function articleTeasers(articles: Article[], max = 4): string {
     : "- Community updates\n- Resident moments\n- Upcoming events";
 }
 
-function backPageCopy(articles: Article[]): string {
-  const event = articles.find((article) =>
-    /event|calendar|activity|outing|happy hour/i.test(
-      `${article.title} ${article.body.slice(0, 160)}`,
-    ),
-  );
-  if (event) {
-    return event.body.split(/\n{2,}/)[0]?.trim() || event.title;
-  }
+function closingCopy(): string {
   return "Thank you for being part of this month's community story. Watch for upcoming events, resident celebrations, and new ways to connect with neighbors and the team.";
 }
 
@@ -94,9 +86,14 @@ export function wrapV3InnerSpreadForDemo({
     page: block.page + 1,
   }));
 
-  const hero = images[0];
-  const secondary = images.find((image) => image.id !== hero?.id);
-  const lead = articles[0];
+  const innerImageIds = new Set(
+    shiftedInnerBlocks
+      .map((block) => block.imageId)
+      .filter((id): id is string => Boolean(id)),
+  );
+  const wrapperImages = images.filter((image) => !innerImageIds.has(image.id));
+  const hero = wrapperImages[0];
+  const secondary = wrapperImages.find((image) => image.id !== hero?.id);
   const coverBlocks: LayoutBlock[] = [
     textBlock(
       "demo-cover-title",
@@ -143,10 +140,8 @@ export function wrapV3InnerSpreadForDemo({
     textBlock(
       "demo-back-note",
       4,
-      lead?.title ?? "Community Notes",
-      lead
-        ? lead.body.split(/\n{2,}/)[0]?.trim() || lead.title
-        : "A few favorite moments and helpful reminders from around the community.",
+      "Stay Connected",
+      `${clientName} closes ${monthLabel} with gratitude for the residents, families, and team members who make every gathering feel personal.`,
       { col: 2, row: 2, colSpan: secondary ? 12 : 22, rowSpan: 6 },
       {
         bg: "cream",
@@ -160,7 +155,7 @@ export function wrapV3InnerSpreadForDemo({
       "demo-back-events",
       4,
       "Looking Ahead",
-      backPageCopy(articles),
+      closingCopy(),
       { col: 2, row: 9, colSpan: secondary ? 12 : 22, rowSpan: 5 },
       {
         bg: "navy",

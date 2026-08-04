@@ -114,4 +114,61 @@ describe("wrapV3InnerSpreadForDemo", () => {
     assert.equal(twice.blocks.length, once.blocks.length);
     assert.deepEqual(twice.blocks.map((block) => block.page), once.blocks.map((block) => block.page));
   });
+
+  it("does not repeat inner-spread articles or images on wrapper pages", () => {
+    const birthdayArticles: Article[] = [
+      {
+        id: "birthday",
+        title: "Happy Birthday!",
+        body: "RESIDENTS\nMary Ann F. 7/3\nShirley S. 7/10",
+        wordCount: 8,
+        isFiller: false,
+        source: "MOCK",
+        articleType: "birthday",
+      },
+      ...articles,
+    ];
+    const layout = innerSpread();
+    layout.blocks = [
+      {
+        blockId: "birthday-inner",
+        slotId: "birthday-inner",
+        page: 1,
+        position: { col: 1, row: 1, colSpan: 8, rowSpan: 4 },
+        kind: "article",
+        articleId: "birthday",
+        needsFiller: false,
+      },
+      {
+        blockId: "image-inner",
+        slotId: "image-inner",
+        page: 2,
+        position: { col: 1, row: 1, colSpan: 8, rowSpan: 4 },
+        kind: "image",
+        imageId: "i1",
+        needsFiller: false,
+      },
+    ];
+
+    const wrapped = wrapV3InnerSpreadForDemo({
+      layout,
+      articles: birthdayArticles,
+      images,
+      clientName: "Trilogy Health Services",
+      monthLabel: "June 2026",
+    });
+
+    const backText = wrapped.blocks
+      .filter((block) => block.page === 4)
+      .flatMap((block) => [block.heading, block.inlineText, block.caption])
+      .filter(Boolean)
+      .join("\n");
+    assert.equal(/Happy Birthday|Mary Ann|Shirley/.test(backText), false);
+
+    const wrapperImageIds = wrapped.blocks
+      .filter((block) => block.page === 1 || block.page === 4)
+      .map((block) => block.imageId)
+      .filter(Boolean);
+    assert.equal(wrapperImageIds.includes("i1"), false);
+  });
 });

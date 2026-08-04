@@ -269,7 +269,7 @@ export function AiPromptModal({
           )}
 
           <div className="text-2xs text-ink-muted">
-            Powered by Gemini 2.5 Flash
+            Powered by Gemini with OpenAI backup
           </div>
 
           <div className="flex items-center justify-end gap-3 pt-2 border-t border-rule">

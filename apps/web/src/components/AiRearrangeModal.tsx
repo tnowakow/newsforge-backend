@@ -132,10 +132,10 @@ export function AiRearrangeModal({
       const msg =
         err instanceof ApiError
           ? err.message
-          : "Gemini didn't respond in time.";
+          : "AI didn't respond in time.";
       setFailure(
         err instanceof ApiError && err.status === 429
-          ? "Gemini is over rate limit — try again in a minute."
+          ? "AI is over rate limit — try again in a minute."
           : msg,
       );
     } finally {
@@ -167,7 +167,7 @@ export function AiRearrangeModal({
         }
         subtitle={
           unlocked
-            ? "Ask Gemini to re-pick the template. Deterministic fallback if it fails."
+            ? "Ask AI to re-pick the template. Deterministic fallback if both providers fail."
             : "AI actions require the shared demo password."
         }
         onClose={onClose}

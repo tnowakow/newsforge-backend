@@ -7,6 +7,8 @@ import { z } from "zod";
 const EnvSchema = z.object({
   DATABASE_URL: z.string().url().or(z.string().min(1)),
   GEMINI_API_KEY: z.string().optional().default(""),
+  OPENAI_API_KEY: z.string().optional().default(""),
+  OPENAI_MODEL: z.string().optional().default("gpt-4o-mini"),
   // Canonical (v2): AI_UNLOCK_PASSWORD. Legacy: AI_EDIT_PASSWORD.
   AI_UNLOCK_PASSWORD: z.string().min(1).optional(),
   AI_EDIT_PASSWORD: z.string().min(1).optional(),

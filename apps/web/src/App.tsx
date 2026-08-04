@@ -96,7 +96,7 @@ function AppFooter() {
   return (
     <footer className="px-10 py-4 text-2xs text-ink-muted border-t border-rule flex items-center justify-between">
       <span>NewsForge demo · Built for Porter One Design</span>
-      <span className="opacity-70">Gemini 2.5 Flash · React · Vite</span>
+      <span className="opacity-70">Gemini + OpenAI backup · React · Vite</span>
     </footer>
   );
 }

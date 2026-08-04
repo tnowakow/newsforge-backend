@@ -76,9 +76,10 @@ export function AutoArrangeBanner({
       : null;
   const designTitle =
     designMode === "ai"
-      ? report.designNotes ?? "Gemini returned the styled V3 layout."
+      ? report.designNotes ?? "AI returned the styled V3 layout."
       : designMode === "deterministic"
-      ? report.fallbackReason ?? "Gemini was unavailable, so V3 used its deterministic styled fallback."
+      ? report.fallbackReason ??
+        "Configured AI providers were unavailable, so V3 used its deterministic styled fallback."
       : undefined;
   const adaptiveCount = report.adaptiveCandidates?.length ?? 0;
   const adaptiveWinner =

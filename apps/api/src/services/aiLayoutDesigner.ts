@@ -8,9 +8,9 @@
  * returns the full styled AssembledLayout (panels, colored headers, list
  * blocks, captions).
  *
- * Safety net (Vitaly rule 14 preserved): if Gemini is unavailable, times
- * out, fails schema validation, or returns broken references, we fall back
- * to the deterministic fitter — and EITHER path is finished by
+ * Safety net (Vitaly rule 14 preserved): if Gemini and the OpenAI backup are
+ * unavailable, time out, fail schema validation, or return broken references,
+ * we fall back to the deterministic fitter — and EITHER path is finished by
  * applyVibrancyPass, so output is always styled.
  */
 import { z } from "zod";
@@ -115,11 +115,16 @@ function sanitizeBlocks(
   const articleIds = new Set(input.articles.map((a) => a.id));
   const imageIds = new Set(input.images.map((i) => i.id));
   const cols = input.gridSpec.columns;
+  const seenArticles = new Set<string>();
   const seenImages = new Set<string>();
 
   const kept = blocks.filter((b) => {
     if (b.page < 1 || b.page > input.pageCount) return false;
-    if (b.articleId && !articleIds.has(b.articleId)) return false;
+    if (b.articleId) {
+      if (!articleIds.has(b.articleId)) return false;
+      if (seenArticles.has(b.articleId)) return false;
+      seenArticles.add(b.articleId);
+    }
     if (b.imageId) {
       if (!imageIds.has(b.imageId)) return false;
       if (seenImages.has(b.imageId)) return false; // no duplicate placements
@@ -267,18 +272,6 @@ export async function designLayout(
   });
 
   const fallbackLayout = deterministic();
-  if (input.templateId.startsWith("v3-")) {
-    return {
-      layout: fallbackLayout,
-      mode: "deterministic",
-      designNotes:
-        `Adaptive planner selected ${adaptiveChosen.label} from ${adaptiveCandidates.length} candidates.`,
-      editorialPlan: adaptive.plan,
-      adaptiveCandidates: adaptiveCandidateReport,
-      promptAudit: { systemPrompt, userPrompt },
-    };
-  }
-
   const result = await callGeminiJson({
     schema: AiDesignResponseSchema,
     systemPrompt,
@@ -334,7 +327,11 @@ export async function designLayout(
   return {
     layout,
     mode: "ai",
-    designNotes: result.data.designNotes,
+    designNotes:
+      result.data.designNotes ??
+      (result.provider === "openai"
+        ? "OpenAI backup returned the styled V3 layout."
+        : "Gemini returned the styled V3 layout."),
     editorialPlan: adaptive.plan,
     adaptiveCandidates: adaptiveCandidateReport,
     promptAudit: { systemPrompt, userPrompt },

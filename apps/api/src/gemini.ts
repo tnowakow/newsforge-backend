@@ -1,10 +1,10 @@
 /**
- * Gemini 2.5 Flash wrapper.
+ * AI JSON wrapper. Gemini is the primary provider; OpenAI is the demo backup.
  *
  * Rules from Vitaly:
  *   - abortable timeout, bounded retry
  *   - Zod-validated response
- *   - Deterministic fallback when Gemini fails or is not configured
+ *   - Deterministic fallback only after configured AI providers fail
  *   - Called from backend ONLY (key from env)
  */
 import { GoogleGenerativeAI, type GenerativeModel } from "@google/generative-ai";
@@ -12,6 +12,7 @@ import { z } from "zod";
 import { env } from "./env.js";
 
 const MODEL = "gemini-2.5-flash";
+const OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
 const TIMEOUT_MS = 20_000;
 const MAX_RETRIES = 1;
 
@@ -50,6 +51,56 @@ function extractJson(text: string): unknown {
   return JSON.parse(raw);
 }
 
+async function callOpenAiWithTimeout(
+  systemPrompt: string,
+  userPrompt: string,
+  ms: number,
+) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), ms);
+  try {
+    const response = await fetch(OPENAI_API_URL, {
+      method: "POST",
+      signal: controller.signal,
+      headers: {
+        Authorization: `Bearer ${env.OPENAI_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: env.OPENAI_MODEL,
+        temperature: 0.4,
+        response_format: { type: "json_object" },
+        messages: [
+          {
+            role: "system",
+            content: `${systemPrompt}\n\nReturn only valid JSON.`,
+          },
+          { role: "user", content: userPrompt },
+        ],
+      }),
+    });
+
+    if (!response.ok) {
+      const body = await response.text().catch(() => "");
+      throw new Error(`OpenAI ${response.status}: ${body.slice(0, 220)}`);
+    }
+
+    const json = (await response.json()) as {
+      choices?: Array<{ message?: { content?: string | null } }>;
+    };
+    const text = json.choices?.[0]?.message?.content;
+    if (!text) throw new Error("OpenAI returned empty content");
+    return text;
+  } catch (err) {
+    if (controller.signal.aborted) {
+      throw new Error("OpenAI timeout");
+    }
+    throw err;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 export interface GeminiCallOptions<T> {
   schema: z.ZodType<T>;
   systemPrompt: string;
@@ -66,52 +117,89 @@ export interface GeminiCallOptions<T> {
  */
 export async function callGeminiJson<T>(
   opts: GeminiCallOptions<T>,
-): Promise<{ ok: true; data: T; usedFallback: false } | { ok: true; data: T; usedFallback: true; reason: string }> {
+): Promise<
+  | { ok: true; data: T; usedFallback: false; provider: "gemini" | "openai" }
+  | { ok: true; data: T; usedFallback: true; reason: string }
+> {
   const c = getClient();
-  if (!c) {
-    return {
-      ok: true,
-      data: opts.fallback,
-      usedFallback: true,
-      reason: "GEMINI_API_KEY not configured",
-    };
-  }
-
-  const model = c.getGenerativeModel({
-    model: MODEL,
-    generationConfig: {
-      responseMimeType: "application/json",
-      temperature: 0.4,
-    },
-    systemInstruction: opts.systemPrompt,
-  });
-
   let lastErr: unknown = null;
-  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
-    try {
-      const result = await generateContentWithTimeout(
-        model,
-        opts.userPrompt,
-        opts.timeoutMs ?? TIMEOUT_MS,
-      );
-      const text = result.response.text();
-      const json = extractJson(text);
-      const parsed = opts.schema.safeParse(json);
-      if (!parsed.success) {
-        lastErr = new Error(
-          `Gemini response failed schema validation: ${parsed.error.message}`,
+
+  if (c) {
+    const model = c.getGenerativeModel({
+      model: MODEL,
+      generationConfig: {
+        responseMimeType: "application/json",
+        temperature: 0.4,
+      },
+      systemInstruction: opts.systemPrompt,
+    });
+
+    for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+      try {
+        const result = await generateContentWithTimeout(
+          model,
+          opts.userPrompt,
+          opts.timeoutMs ?? TIMEOUT_MS,
         );
-        continue;
+        const text = result.response.text();
+        const json = extractJson(text);
+        const parsed = opts.schema.safeParse(json);
+        if (!parsed.success) {
+          lastErr = new Error(
+            `Gemini response failed schema validation: ${parsed.error.message}`,
+          );
+          continue;
+        }
+        return {
+          ok: true,
+          data: parsed.data,
+          usedFallback: false,
+          provider: "gemini",
+        };
+      } catch (err) {
+        lastErr = err;
+        // brief backoff
+        await new Promise((r) => setTimeout(r, 250 * (attempt + 1)));
       }
-      return { ok: true, data: parsed.data, usedFallback: false };
-    } catch (err) {
-      lastErr = err;
-      // brief backoff
-      await new Promise((r) => setTimeout(r, 250 * (attempt + 1)));
     }
+  } else {
+    lastErr = new Error("GEMINI_API_KEY not configured");
   }
 
-  console.warn("[gemini] falling back:", lastErr);
+  if (env.OPENAI_API_KEY) {
+    for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+      try {
+        const text = await callOpenAiWithTimeout(
+          opts.systemPrompt,
+          opts.userPrompt,
+          opts.timeoutMs ?? TIMEOUT_MS,
+        );
+        const json = extractJson(text);
+        const parsed = opts.schema.safeParse(json);
+        if (!parsed.success) {
+          lastErr = new Error(
+            `OpenAI response failed schema validation: ${parsed.error.message}`,
+          );
+          continue;
+        }
+        return {
+          ok: true,
+          data: parsed.data,
+          usedFallback: false,
+          provider: "openai",
+        };
+      } catch (err) {
+        lastErr = err;
+        await new Promise((r) => setTimeout(r, 250 * (attempt + 1)));
+      }
+    }
+  } else if (lastErr instanceof Error) {
+    lastErr = new Error(`${lastErr.message}; OPENAI_API_KEY not configured`);
+  } else {
+    lastErr = new Error(`${String(lastErr)}; OPENAI_API_KEY not configured`);
+  }
+
+  console.warn("[ai-json] falling back:", lastErr);
   return {
     ok: true,
     data: opts.fallback,

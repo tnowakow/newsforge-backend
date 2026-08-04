@@ -511,14 +511,14 @@ export default function Workspace() {
       templates.find((t) => t.id === result.chosenTemplateId)?.name ?? "template";
     if (result.chosenBy === "ai") {
       toast(
-        `Gemini picked ${chosenName}${
+        `AI picked ${chosenName}${
           result.reason ? ` — ${result.reason.slice(0, 120)}` : ""
         }`,
         { tone: "success" },
       );
     } else {
       toast(
-        `Gemini failed — used deterministic pick (${chosenName}).`,
+        `AI failed — used deterministic pick (${chosenName}).`,
         { tone: "warn" },
       );
     }
