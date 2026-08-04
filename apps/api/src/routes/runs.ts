@@ -18,7 +18,7 @@ import {
 } from "@newsforge/shared/schemas";
 import { assembleLayout } from "../services/layoutAssembly.js";
 import { designLayout } from "../services/aiLayoutDesigner.js";
-import { generateMockContent } from "../services/mockContent.js";
+import { generateMockContentWithAi } from "../services/mockContent.js";
 import { generateFiller } from "../services/filler.js";
 import { runAiEdit } from "../services/aiEdit.js";
 import {
@@ -180,6 +180,8 @@ const CreateRunBody = z.object({
       model: z.string().optional(),
       durationMs: z.number().nonnegative().optional(),
       prompt: z.string().optional(),
+      usedFallback: z.boolean().optional(),
+      fallbackReason: z.string().optional(),
     })
     .optional(),
   scenario: z
@@ -227,6 +229,8 @@ runsRouter.post("/", async (req, res) => {
         provider: string;
         model: string;
         durationMs?: number;
+        usedFallback?: boolean;
+        fallbackReason?: string;
       }
     | undefined = body.contentGenerationAudit
       ? {
@@ -234,11 +238,12 @@ runsRouter.post("/", async (req, res) => {
           provider: body.contentGenerationAudit.provider ?? "newsforge",
           model: body.contentGenerationAudit.model ?? "deterministic-mock-content",
           durationMs: body.contentGenerationAudit.durationMs,
+          usedFallback: body.contentGenerationAudit.usedFallback,
+          fallbackReason: body.contentGenerationAudit.fallbackReason,
         }
       : undefined;
   if (!articles || !images) {
-    const mockStartedAt = Date.now();
-    const mock = await generateMockContent({
+    const mock = await generateMockContentWithAi({
       richness: client.richnessLevel,
       careLevel: client.careLevel,
       brandVoice: client.brandVoice,
@@ -250,19 +255,12 @@ runsRouter.post("/", async (req, res) => {
     articles = articles ?? mock.articles;
     images = images ?? mock.images;
     generatedContentAudit = {
-      prompt: JSON.stringify(
-        {
-          task: "Generate mock newsletter content and starter image placeholders.",
-          client: client.name,
-          month: body.monthLabel ?? null,
-          scenario: body.scenario ?? null,
-        },
-        null,
-        2,
-      ),
-      provider: "newsforge",
-      model: "deterministic-mock-content",
-      durationMs: Date.now() - mockStartedAt,
+      prompt: mock.audit.prompt,
+      provider: mock.audit.provider,
+      model: mock.audit.model,
+      durationMs: mock.audit.durationMs,
+      usedFallback: mock.audit.usedFallback,
+      fallbackReason: mock.audit.fallbackReason,
     };
   }
 
@@ -561,6 +559,8 @@ runsRouter.post("/", async (req, res) => {
           provider: generatedContentAudit?.provider ?? "newsforge",
           model: generatedContentAudit?.model ?? "deterministic-mock-content",
           durationMs: generatedContentAudit?.durationMs,
+          usedFallback: generatedContentAudit?.usedFallback ?? false,
+          fallbackReason: generatedContentAudit?.fallbackReason,
           articles: articles.length,
           images: images.length,
         } as unknown as object,

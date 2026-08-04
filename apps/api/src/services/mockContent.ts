@@ -4,6 +4,7 @@
  * article has a distinct purpose, concrete detail, and layout-friendly length.
  */
 import { createId } from "@paralleldrive/cuid2";
+import { z } from "zod";
 import type {
   Article,
   CareLevel,
@@ -183,6 +184,28 @@ export interface GenerateMockContentResult {
   images: NewsImage[];
 }
 
+export interface GenerateMockContentAudit {
+  kind: "generation-content";
+  provider: "gemini" | "openai" | "deterministic";
+  model: string;
+  durationMs: number;
+  prompt: string;
+  usedFallback: boolean;
+  fallbackReason?: string;
+}
+
+const AI_MOCK_CONTENT_TIMEOUT_MS = 90_000;
+
+const AiMockArticleSchema = z.object({
+  sourceId: z.string(),
+  title: z.string().min(1),
+  body: z.string().min(1),
+});
+
+const AiMockContentResponseSchema = z.object({
+  articles: z.array(AiMockArticleSchema).min(1),
+});
+
 export function generateMockContent(
   input: GenerateMockContentInput,
 ): GenerateMockContentResult {
@@ -237,6 +260,114 @@ export function generateMockContent(
   });
 
   return { articles, images };
+}
+
+export async function generateMockContentWithAi(
+  input: GenerateMockContentInput,
+): Promise<GenerateMockContentResult & { audit: GenerateMockContentAudit }> {
+  const { callGeminiJson } = await import("../gemini.js");
+  const fallback = generateMockContent(input);
+  const targetArticles = fallback.articles.length;
+  const targetImages = fallback.images.length;
+
+  const systemPrompt = [
+    `You are the senior editor for ${input.clientName ?? "a senior-living community"}'s monthly community newsletter.`,
+    `Brand voice: ${input.brandVoice}.`,
+    `Newsletter month: ${input.monthLabel ?? "the upcoming issue"}.`,
+    `Write polished, specific senior-living newsletter content for residents, families, prospects, and team members.`,
+    `Return exactly ${targetArticles} articles. Keep each sourceId from the input and do not add or remove IDs.`,
+    `Do not invent real private resident medical details, full names, quotations, or promises. Initial-plus-last-name birthday/demo names are acceptable only when they already appear in the source draft.`,
+    `Do not repeat the same story angle or opening across articles.`,
+    `Keep article lengths close to the source drafts because the copy will be placed into a fixed print layout.`,
+    `Always respond with valid JSON matching the schema. No prose outside JSON.`,
+  ].join(" ");
+
+  const userPrompt = JSON.stringify(
+    {
+      schema: {
+        articles: [
+          {
+            sourceId: "must match an input article id",
+            title: "short newsletter headline",
+            body: "layout-friendly article body",
+          },
+        ],
+      },
+      client: input.clientName ?? null,
+      city: input.city ?? null,
+      month: input.monthLabel ?? null,
+      tone: input.tone ?? null,
+      density: input.density ?? null,
+      scenario: input.scenario ?? null,
+      requestedIncludes: input.include ?? null,
+      targetCounts: {
+        articles: targetArticles,
+        images: targetImages,
+      },
+      sourceDrafts: fallback.articles.map((article) => ({
+        sourceId: article.id,
+        title: article.title,
+        articleType: article.articleType ?? null,
+        byline: article.byline ?? null,
+        wordCount: article.wordCount,
+        body: article.body,
+      })),
+    },
+    null,
+    2,
+  );
+
+  const result = await callGeminiJson({
+    schema: AiMockContentResponseSchema,
+    systemPrompt,
+    userPrompt,
+    timeoutMs: AI_MOCK_CONTENT_TIMEOUT_MS,
+    fallback: {
+      articles: fallback.articles.map((article) => ({
+        sourceId: article.id,
+        title: article.title,
+        body: article.body,
+      })),
+    },
+  });
+
+  const bySourceId = new Map(
+    result.data.articles.map((article) => [article.sourceId, article]),
+  );
+  const articles = fallback.articles.map((article) => {
+    const generated = bySourceId.get(article.id);
+    if (!generated) return article;
+    const body = generated.body.trim();
+    return {
+      ...article,
+      title: generated.title.trim(),
+      body,
+      wordCount: wordCount(body),
+      source: result.usedFallback ? article.source : "GENERATED",
+    };
+  });
+
+  const prompt = [
+    "[AI mock content system prompt]",
+    systemPrompt,
+    "",
+    "[AI mock content user prompt]",
+    userPrompt,
+  ].join("\n");
+
+  return {
+    articles,
+    images: fallback.images,
+    audit: {
+      kind: "generation-content",
+      provider: result.provider,
+      model: result.model,
+      durationMs: result.durationMs,
+      prompt,
+      usedFallback: result.usedFallback,
+      fallbackReason: "reason" in result ? result.reason : undefined,
+    },
+  };
 }
 
 function generateTrilogyMockContent(
