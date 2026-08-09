@@ -108,7 +108,7 @@ function repairClippedBlocks(
     if (block.articleId) {
       const article = mutableArticlesById.get(block.articleId);
       if (article) {
-        const ratio = block.position.rowSpan <= 2 ? 0.45 : block.position.rowSpan <= 3 ? 0.62 : 0.76;
+        const ratio = block.position.rowSpan <= 2 ? 0.45 : block.position.rowSpan <= 3 ? 0.58 : 0.68;
         article.body = trimWords(article.body, ratio);
         article.wordCount = wordCount(article.body);
       }
@@ -424,7 +424,7 @@ runsRouter.post("/", async (req, res) => {
       };
 
       let finalMeasurement = await measureSelected();
-      for (let attempt = 0; attempt < 3 && finalMeasurement?.clippedBlocks > 0; attempt++) {
+      for (let attempt = 0; attempt < 5 && finalMeasurement?.clippedBlocks > 0; attempt++) {
         const repaired = repairClippedBlocks(layout, articles, finalMeasurement);
         if (!repaired.changed) break;
         layout = repaired.layout;
