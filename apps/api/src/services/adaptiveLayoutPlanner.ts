@@ -77,6 +77,9 @@ export interface CandidateMeasurement {
   renderedImages: number;
   totalImages: number;
   usefulOccupancy: number;
+  geometricCoverage?: number;
+  minPageUtility?: number;
+  largestEmptyBandRatio?: number;
   lowUtilityBlocks: number;
 }
 
@@ -381,15 +384,30 @@ function scoreWithMeasurement(
     ...(measurement.lowUtilityBlocks > 0 ? [`low-utility-blocks:${measurement.lowUtilityBlocks}`] : []),
   ];
   const usefulOccupancy = Math.max(0, Math.min(1, measurement.usefulOccupancy));
+  const geometricCoverage = measurement.geometricCoverage == null
+    ? 1
+    : Math.max(0, Math.min(1, measurement.geometricCoverage));
+  const minPageUtility = measurement.minPageUtility == null
+    ? usefulOccupancy
+    : Math.max(0, Math.min(1, measurement.minPageUtility));
+  const largestEmptyBandRatio = measurement.largestEmptyBandRatio == null
+    ? 0
+    : Math.max(0, Math.min(1, measurement.largestEmptyBandRatio));
   const subscores = { ...candidate.subscores, renderFit, usefulOccupancy };
   const underfillPenalty = Math.max(0, 0.86 - usefulOccupancy) * 0.18;
+  const coveragePenalty = Math.max(0, 0.9 - geometricCoverage) * 0.3;
+  const pageUtilityPenalty = Math.max(0, 0.72 - minPageUtility) * 0.24;
+  const emptyBandPenalty = Math.max(0, largestEmptyBandRatio - 0.18) * 0.2;
   const renderPenalty = (1 - renderFit) * 0.35;
   const lowUtilityPenalty = measurement.lowUtilityBlocks * 0.055;
   const score = Math.max(
     0,
-    candidate.score * 0.54 + renderFit * 0.20 + usefulOccupancy * 0.26 -
+    candidate.score * 0.44 + renderFit * 0.18 + usefulOccupancy * 0.22 + geometricCoverage * 0.16 -
       renderPenalty -
       underfillPenalty -
+      coveragePenalty -
+      pageUtilityPenalty -
+      emptyBandPenalty -
       lowUtilityPenalty,
   );
   return {
@@ -788,6 +806,24 @@ function grammarPage(
   };
 }
 
+function scaleZone(
+  zone: LayoutBlock["position"],
+  gridSpec: GridSpec,
+): LayoutBlock["position"] {
+  const colScale = gridSpec.columns / 12;
+  const rowScale = gridSpec.rowsPerPage / 10;
+  const col = Math.max(1, Math.round((zone.col - 1) * colScale) + 1);
+  const row = Math.max(1, Math.round((zone.row - 1) * rowScale) + 1);
+  const colSpan = Math.max(1, Math.round(zone.colSpan * colScale));
+  const rowSpan = Math.max(1, Math.round(zone.rowSpan * rowScale));
+  return {
+    col,
+    row,
+    colSpan: Math.min(colSpan, gridSpec.columns - col + 1),
+    rowSpan: Math.min(rowSpan, gridSpec.rowsPerPage - row + 1),
+  };
+}
+
 function applyFeatureStackGrammar(
   layout: AssembledLayout,
   plan: EditorialPlan,
@@ -807,7 +843,7 @@ function applyFeatureStackGrammar(
     { col: 1, row: 5, colSpan: 6, rowSpan: 3 },
     { col: 7, row: 5, colSpan: 6, rowSpan: 3 },
     { col: 1, row: 8, colSpan: 12, rowSpan: Math.min(3, gridSpec.rowsPerPage - 7) },
-  ];
+  ].map((zone) => scaleZone(zone, gridSpec));
   return grammarPage(layout, plan, 1, zones);
 }
 
@@ -829,7 +865,7 @@ function applyPhotoMosaicGrammar(
     { col: 1, row: 5, colSpan: 8, rowSpan: 3 },
     { col: 9, row: 5, colSpan: 4, rowSpan: 3 },
     { col: 1, row: 8, colSpan: 12, rowSpan: Math.min(3, gridSpec.rowsPerPage - 7) },
-  ];
+  ].map((zone) => scaleZone(zone, gridSpec));
   return grammarPage(layout, plan, targetPage, zones);
 }
 

@@ -453,6 +453,7 @@ runsRouter.post("/", async (req, res) => {
               ...candidate.subscores,
               renderFit,
               usefulOccupancy: finalMeasurement.usefulOccupancy,
+              geometricCoverage: finalMeasurement.geometricCoverage,
             },
             warnings: [
               ...baseWarnings,

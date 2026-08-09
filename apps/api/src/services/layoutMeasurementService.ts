@@ -31,6 +31,9 @@ interface DomMeasurement {
   renderedImages: number;
   totalImages: number;
   usefulOccupancy: number;
+  geometricCoverage: number;
+  minPageUtility: number;
+  largestEmptyBandRatio: number;
   lowUtilityBlocks: number;
 }
 
@@ -89,36 +92,72 @@ async function measureCandidate(input: Omit<MeasureInput, "candidates"> & {
     const images = Array.from(doc.querySelectorAll(".photo img")) as any[];
     const renderedImages = images.filter((image) => image.complete && image.naturalWidth > 0).length;
     let weightedUtility = 0;
-    let totalBlockArea = 0;
+    let totalContentArea = 0;
+    let totalCoveredArea = 0;
+    let minPageUtility = 1;
+    let largestEmptyBandRatio = 0;
     let lowUtilityBlocks = 0;
-    for (const block of blocks) {
-      const rect = block.getBoundingClientRect();
-      const area = Math.max(0, rect.width * rect.height);
-      if (area <= 0) continue;
-      const image = block.querySelector(".photo img") as any;
-      let utility = 0;
-      if (image) {
-        utility = image.complete && image.naturalWidth > 0 ? 1 : 0;
-      } else {
-        const contentNodes = Array.from(block.querySelectorAll(
-          ".section-heading,.script-heading,.byline,.body p,.list-row,.list-group,figcaption",
-        )) as any[];
-        const contentRects = contentNodes
-          .map((node) => node.getBoundingClientRect())
-          .filter((r) => r.width > 1 && r.height > 1);
-        if (contentRects.length > 0) {
-          const top = Math.min(...contentRects.map((r) => r.top));
-          const bottom = Math.max(...contentRects.map((r) => r.bottom));
-          const left = Math.min(...contentRects.map((r) => r.left));
-          const right = Math.max(...contentRects.map((r) => r.right));
-          const verticalFill = Math.max(0, Math.min(1, (bottom - top) / Math.max(rect.height, 1)));
-          const horizontalFill = Math.max(0.25, Math.min(1, (right - left) / Math.max(rect.width, 1)));
-          utility = Math.max(0, Math.min(1, verticalFill * (0.75 + horizontalFill * 0.25) * 1.35));
+    const pages = Array.from(doc.querySelectorAll(".page")) as any[];
+    for (const page of pages) {
+      const content = page.querySelector(".content") as any;
+      if (!content) continue;
+      const contentRect = content.getBoundingClientRect();
+      const contentArea = Math.max(0, contentRect.width * contentRect.height);
+      if (contentArea <= 0) continue;
+      totalContentArea += contentArea;
+      let pageWeightedUtility = 0;
+      let pageCoveredArea = 0;
+      const rowBuckets = Array.from({ length: 16 }, () => false);
+      const pageBlocks = blocks.filter((block) => block.closest(".page") === page);
+      for (const block of pageBlocks) {
+        const rect = block.getBoundingClientRect();
+        const width = Math.max(0, Math.min(rect.right, contentRect.right) - Math.max(rect.left, contentRect.left));
+        const height = Math.max(0, Math.min(rect.bottom, contentRect.bottom) - Math.max(rect.top, contentRect.top));
+        const area = width * height;
+        if (area <= 0) continue;
+        const startBucket = Math.max(0, Math.floor(((Math.max(rect.top, contentRect.top) - contentRect.top) / contentRect.height) * rowBuckets.length));
+        const endBucket = Math.min(rowBuckets.length - 1, Math.floor(((Math.min(rect.bottom, contentRect.bottom) - contentRect.top) / contentRect.height) * rowBuckets.length));
+        for (let i = startBucket; i <= endBucket; i++) rowBuckets[i] = true;
+        const image = block.querySelector(".photo img") as any;
+        let utility = 0;
+        if (image) {
+          utility = image.complete && image.naturalWidth > 0 ? 1 : 0;
+        } else {
+          const contentNodes = Array.from(block.querySelectorAll(
+            ".section-heading,.script-heading,.byline,.body p,.list-row,.list-group,figcaption",
+          )) as any[];
+          const contentRects = contentNodes
+            .map((node) => node.getBoundingClientRect())
+            .filter((r) => r.width > 1 && r.height > 1);
+          if (contentRects.length > 0) {
+            const top = Math.min(...contentRects.map((r) => r.top));
+            const bottom = Math.max(...contentRects.map((r) => r.bottom));
+            const left = Math.min(...contentRects.map((r) => r.left));
+            const right = Math.max(...contentRects.map((r) => r.right));
+            const verticalFill = Math.max(0, Math.min(1, (bottom - top) / Math.max(rect.height, 1)));
+            const horizontalFill = Math.max(0.25, Math.min(1, (right - left) / Math.max(rect.width, 1)));
+            utility = Math.max(0, Math.min(1, verticalFill * (0.75 + horizontalFill * 0.25) * 1.35));
+          }
+        }
+        pageWeightedUtility += area * utility;
+        weightedUtility += area * utility;
+        pageCoveredArea += area;
+        totalCoveredArea += area;
+        if (utility < 0.42 && area > 32_000) lowUtilityBlocks += 1;
+      }
+      minPageUtility = Math.min(minPageUtility, pageWeightedUtility / contentArea);
+      let emptyRun = 0;
+      let maxEmptyRun = 0;
+      for (const occupied of rowBuckets) {
+        if (occupied) {
+          maxEmptyRun = Math.max(maxEmptyRun, emptyRun);
+          emptyRun = 0;
+        } else {
+          emptyRun += 1;
         }
       }
-      weightedUtility += area * utility;
-      totalBlockArea += area;
-      if (utility < 0.42 && area > 32_000) lowUtilityBlocks += 1;
+      maxEmptyRun = Math.max(maxEmptyRun, emptyRun);
+      largestEmptyBandRatio = Math.max(largestEmptyBandRatio, maxEmptyRun / rowBuckets.length);
     }
     return {
       clippedBlocks,
@@ -127,7 +166,10 @@ async function measureCandidate(input: Omit<MeasureInput, "candidates"> & {
       missingImages: images.length - renderedImages,
       renderedImages,
       totalImages: images.length,
-      usefulOccupancy: totalBlockArea > 0 ? weightedUtility / totalBlockArea : 0,
+      usefulOccupancy: totalContentArea > 0 ? weightedUtility / totalContentArea : 0,
+      geometricCoverage: totalContentArea > 0 ? totalCoveredArea / totalContentArea : 0,
+      minPageUtility: minPageUtility === 1 ? 0 : minPageUtility,
+      largestEmptyBandRatio,
       lowUtilityBlocks,
     };
   });

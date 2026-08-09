@@ -113,6 +113,58 @@ function firstSentence(text: string, max = 90): string {
   return s.length <= max ? s : `${s.slice(0, max).replace(/\s+\S*$/, "")}…`;
 }
 
+/** True when a body reads as prose (a caption-worthy excerpt exists) rather
+ * than a structured list (birthdays, schedules, dated outings) that
+ * parseListItems would already claim for a "list" block. */
+function isNarrativeBody(body: string): boolean {
+  return parseListItems(body).length < 2;
+}
+
+function blockCenter(block: LayoutBlock): { x: number; y: number } {
+  return {
+    x: block.position.col + block.position.colSpan / 2,
+    y: block.position.row + block.position.rowSpan / 2,
+  };
+}
+
+function blockDistance(a: LayoutBlock, b: LayoutBlock): number {
+  const ca = blockCenter(a);
+  const cb = blockCenter(b);
+  return Math.hypot(ca.x - cb.x, ca.y - cb.y);
+}
+
+/**
+ * Find the nearest same-page text block whose article reads as prose (not a
+ * birthday/schedule list), so an image's caption can be grounded in the
+ * story it actually illustrates instead of a generic stock-photo caption.
+ */
+function findNearbyNarrativeArticle(
+  imageBlock: LayoutBlock,
+  allBlocks: LayoutBlock[],
+  articleById: Map<string, Article>,
+): Article | undefined {
+  let best: { article: Article; distance: number } | undefined;
+  for (const candidate of allBlocks) {
+    if (candidate.blockId === imageBlock.blockId) continue;
+    if (candidate.page !== imageBlock.page) continue;
+    if (!candidate.articleId) continue;
+    const article = articleById.get(candidate.articleId);
+    if (!article || !isNarrativeBody(article.body)) continue;
+    const distance = blockDistance(imageBlock, candidate);
+    if (!best || distance < best.distance) best = { article, distance };
+  }
+  return best?.article;
+}
+
+/** A short, specific caption drawn from the adjacent article's own text —
+ * never invents facts, just excerpts the story the photo sits beside. */
+function captionFromArticle(article: Article): string | undefined {
+  const sentence = firstSentence(article.body, 100);
+  if (sentence.length >= 15) return sentence;
+  const title = article.title.trim();
+  return title.length >= 4 ? title : undefined;
+}
+
 function roleFor(block: LayoutBlock, title = "", body = ""): PanelRole | null {
   const haystack = `${block.styleTag ?? ""} ${title} ${body.slice(0, 240)}`;
   if (BIRTHDAY_RE.test(haystack)) return "birthday";
@@ -294,11 +346,17 @@ export function applyVibrancyPass(input: VibrancyInput): AssembledLayout {
       next.heading = next.heading ?? article.title;
     }
 
-    // --- Every image gets a caption ---
+    // --- Every image gets a caption, grounded in nearby story context ---
     if (next.kind === "image" && next.imageId) {
       const img = imageById.get(next.imageId);
       if (!next.caption) {
+        const isRealUpload = img?.source === "UPLOAD" && !!img.caption;
+        const nearbyArticle = isRealUpload
+          ? undefined
+          : findNearbyNarrativeArticle(next, input.layout.blocks, articleById);
         next.caption =
+          (isRealUpload ? img?.caption : undefined) ??
+          (nearbyArticle ? captionFromArticle(nearbyArticle) : undefined) ??
           img?.caption ??
           (img?.alt ? firstSentence(img.alt) : undefined) ??
           "A wonderful moment around campus!";

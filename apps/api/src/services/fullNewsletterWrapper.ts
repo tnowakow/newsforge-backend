@@ -70,6 +70,18 @@ function closingCopy(): string {
   return "Thank you for being part of this month's community story. Watch for upcoming events, resident celebrations, and new ways to connect with neighbors and the team.";
 }
 
+/**
+ * Wrapper cover/back pages use a 24×16 grid (same as v3 inner-spread
+ * templates). To match the reference newsletters' "no white space, panels
+ * touching" density, the two text bands + optional photo column must sum
+ * to the full grid exactly — no dead rows/cols at any edge.
+ */
+const WRAP_COLS = 24;
+const WRAP_ROWS = 16;
+const WRAP_IMG_COL_SPAN = 9;
+const WRAP_TOP_ROWSPAN = 7;
+const WRAP_BOTTOM_ROWSPAN = WRAP_ROWS - WRAP_TOP_ROWSPAN; // 9
+
 export function wrapV3InnerSpreadForDemo({
   layout,
   articles,
@@ -94,13 +106,20 @@ export function wrapV3InnerSpreadForDemo({
   const wrapperImages = images.filter((image) => !innerImageIds.has(image.id));
   const hero = wrapperImages[0];
   const secondary = wrapperImages.find((image) => image.id !== hero?.id);
+
+  // Text column spans the full grid width when there is no photo to share
+  // the page with; otherwise it yields WRAP_IMG_COL_SPAN columns on the
+  // right to the photo, and the two always sum to WRAP_COLS (no gutter gap).
+  const coverTextColSpan = hero ? WRAP_COLS - WRAP_IMG_COL_SPAN : WRAP_COLS;
+  const backTextColSpan = secondary ? WRAP_COLS - WRAP_IMG_COL_SPAN : WRAP_COLS;
+
   const coverBlocks: LayoutBlock[] = [
     textBlock(
       "demo-cover-title",
       1,
       `${clientName}`,
       `${monthLabel}\nCommunity Newsletter`,
-      { col: 2, row: 2, colSpan: hero ? 10 : 22, rowSpan: 5 },
+      { col: 1, row: 1, colSpan: coverTextColSpan, rowSpan: WRAP_TOP_ROWSPAN },
       {
         bg: "cream",
         headerColor: "primary",
@@ -114,7 +133,7 @@ export function wrapV3InnerSpreadForDemo({
       1,
       "Inside This Issue",
       articleTeasers(articles),
-      { col: 2, row: 9, colSpan: hero ? 10 : 22, rowSpan: 6 },
+      { col: 1, row: 1 + WRAP_TOP_ROWSPAN, colSpan: coverTextColSpan, rowSpan: WRAP_BOTTOM_ROWSPAN },
       {
         bg: "sky",
         headerColor: "navy",
@@ -130,7 +149,12 @@ export function wrapV3InnerSpreadForDemo({
         "demo-cover-hero",
         1,
         hero.id,
-        { col: 13, row: 2, colSpan: 11, rowSpan: 13 },
+        {
+          col: WRAP_COLS - WRAP_IMG_COL_SPAN + 1,
+          row: 1,
+          colSpan: WRAP_IMG_COL_SPAN,
+          rowSpan: WRAP_ROWS,
+        },
         hero.caption ?? hero.alt,
       ),
     );
@@ -142,7 +166,7 @@ export function wrapV3InnerSpreadForDemo({
       4,
       "Stay Connected",
       `${clientName} closes ${monthLabel} with gratitude for the residents, families, and team members who make every gathering feel personal.`,
-      { col: 2, row: 2, colSpan: secondary ? 12 : 22, rowSpan: 6 },
+      { col: 1, row: 1, colSpan: backTextColSpan, rowSpan: WRAP_TOP_ROWSPAN },
       {
         bg: "cream",
         headerColor: "primary",
@@ -156,7 +180,7 @@ export function wrapV3InnerSpreadForDemo({
       4,
       "Looking Ahead",
       closingCopy(),
-      { col: 2, row: 9, colSpan: secondary ? 12 : 22, rowSpan: 5 },
+      { col: 1, row: 1 + WRAP_TOP_ROWSPAN, colSpan: backTextColSpan, rowSpan: WRAP_BOTTOM_ROWSPAN },
       {
         bg: "navy",
         headerColor: "paper",
@@ -174,7 +198,12 @@ export function wrapV3InnerSpreadForDemo({
         "demo-back-photo",
         4,
         secondary.id,
-        { col: 15, row: 2, colSpan: 9, rowSpan: 12 },
+        {
+          col: WRAP_COLS - WRAP_IMG_COL_SPAN + 1,
+          row: 1,
+          colSpan: WRAP_IMG_COL_SPAN,
+          rowSpan: WRAP_ROWS,
+        },
         secondary.caption ?? secondary.alt,
       ),
     );
