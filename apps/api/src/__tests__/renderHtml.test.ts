@@ -120,4 +120,32 @@ describe("renderRunHtml personality classes", () => {
     assert.match(html, /class="page personality-celebration-pop"/);
     assert.match(html, /personality-celebration-pop \.masthead/);
   });
+
+  it("marks low-copy large modules for denser Porter-style rendering", () => {
+    const sparseLargeModule = layout("v3-spread-classic");
+    sparseLargeModule.blocks[0] = {
+      ...sparseLargeModule.blocks[0],
+      position: { col: 1, row: 1, colSpan: 9, rowSpan: 8 },
+    };
+    const html = renderRunHtml({
+      clientName: "Trilogy Health Services",
+      monthLabel: "July 2026",
+      brandKit: {
+        primaryColor: "#1B365D",
+        secondaryColor: "#6FAE6B",
+        accentColor: "#E8762C",
+        headingFont: "Georgia",
+        bodyFont: "Georgia",
+        logoUrl: null,
+      },
+      gridSpec,
+      layout: sparseLargeModule,
+      articles,
+      images,
+      recurringSections: [],
+    });
+
+    assert.match(html, /class="block role-outingList copy-fill-lg"/);
+    assert.match(html, /\.copy-fill-lg \.body/);
+  });
 });

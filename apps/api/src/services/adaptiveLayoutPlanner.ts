@@ -382,12 +382,14 @@ function scoreWithMeasurement(
   ];
   const usefulOccupancy = Math.max(0, Math.min(1, measurement.usefulOccupancy));
   const subscores = { ...candidate.subscores, renderFit, usefulOccupancy };
+  const underfillPenalty = Math.max(0, 0.86 - usefulOccupancy) * 0.18;
   const renderPenalty = (1 - renderFit) * 0.35;
-  const lowUtilityPenalty = measurement.lowUtilityBlocks * 0.025;
+  const lowUtilityPenalty = measurement.lowUtilityBlocks * 0.055;
   const score = Math.max(
     0,
-    candidate.score * 0.66 + renderFit * 0.20 + usefulOccupancy * 0.14 -
+    candidate.score * 0.54 + renderFit * 0.20 + usefulOccupancy * 0.26 -
       renderPenalty -
+      underfillPenalty -
       lowUtilityPenalty,
   );
   return {
@@ -420,7 +422,7 @@ function seedNumber(seed: string): number {
   return hash;
 }
 
-const MAX_VARIATION_USEFUL_OCCUPANCY_DROP = 0.05;
+const MAX_VARIATION_USEFUL_OCCUPANCY_DROP = 0.025;
 
 function lowUtilityWarningCount(candidate: AdaptiveLayoutCandidate): number {
   return candidate.warnings.reduce((sum, warning) => {

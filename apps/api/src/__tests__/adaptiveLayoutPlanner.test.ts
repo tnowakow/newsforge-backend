@@ -338,6 +338,49 @@ describe("adaptiveLayoutPlanner.buildAdaptiveLayout", () => {
     assert.ok(reranked[1].warnings.includes("low-utility-blocks:2"));
   });
 
+  it("treats measured page density as a first-class ranking signal", () => {
+    const result = buildAdaptiveLayout({
+      templateId: "v3-test",
+      pageCount: 2,
+      gridSpec,
+      recurringSections: [],
+      articles: [
+        article("lead", "Meet Dorothy", 220, "resident-story"),
+        article("event", "Summer Concert Recap", 125, "event-recap"),
+      ],
+      images: [image("upload-photo", "portrait", "UPLOAD")],
+    });
+    const [underfilled, dense] = result.candidates;
+    const reranked = applyCandidateMeasurements([
+      { ...underfilled, score: 0.99 },
+      { ...dense, score: 0.91 },
+    ], [
+      {
+        candidateId: underfilled.id,
+        clippedBlocks: 0,
+        overflowBlocks: 0,
+        missingImages: 0,
+        renderedImages: 1,
+        totalImages: 1,
+        usefulOccupancy: 0.54,
+        lowUtilityBlocks: 3,
+      },
+      {
+        candidateId: dense.id,
+        clippedBlocks: 0,
+        overflowBlocks: 0,
+        missingImages: 0,
+        renderedImages: 1,
+        totalImages: 1,
+        usefulOccupancy: 0.9,
+        lowUtilityBlocks: 0,
+      },
+    ]);
+
+    assert.equal(reranked[0].id, dense.id);
+    assert.ok(reranked[1].warnings.includes("low-utility-blocks:3"));
+  });
+
   it("uses variation seeds only among near-best candidates", () => {
     const result = buildAdaptiveLayout({
       templateId: "v3-test",

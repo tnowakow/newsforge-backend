@@ -118,7 +118,7 @@ async function measureCandidate(input: Omit<MeasureInput, "candidates"> & {
       }
       weightedUtility += area * utility;
       totalBlockArea += area;
-      if (utility < 0.32 && area > 45_000) lowUtilityBlocks += 1;
+      if (utility < 0.42 && area > 32_000) lowUtilityBlocks += 1;
     }
     return {
       clippedBlocks,

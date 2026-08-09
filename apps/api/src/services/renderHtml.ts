@@ -42,6 +42,14 @@ interface RenderInput {
   articles: Article[];
   images: NewsImage[];
   recurringSections: RecurringSection[];
+  /**
+   * "web" (default) renders the byte-stable on-screen/preview HTML: Letter
+   * pages, no bleed, no crop marks (Vitaly rule 6 + V2-PRINT-VALIDATION §7.2).
+   * "print" adds the bleed-fill wrapper, @page landscape spread size, and
+   * crop-marks SVG per V2-PRINT-VALIDATION §2/§3 — used only by the
+   * Puppeteer print-PDF render pass (pdf.ts variant="print").
+   */
+  variant?: "web" | "print";
 }
 
 function esc(s: string): string {
@@ -93,6 +101,27 @@ function photoClass(b: LayoutBlock): string {
   return b.style?.photoTreatment ? ` photo-${b.style.photoTreatment}` : "";
 }
 
+function countWords(s: string): number {
+  return s.trim().split(/\s+/).filter(Boolean).length;
+}
+
+function copyDensityClass(
+  b: LayoutBlock,
+  article: Article | undefined,
+): string {
+  if (b.kind === "image") return "";
+  const area = b.position.colSpan * b.position.rowSpan;
+  const words =
+    article?.wordCount ??
+    (b.inlineText ? countWords(b.inlineText) : 0);
+  const rows = b.listItems?.length ?? 0;
+  const utilityUnits = Math.max(words, rows * 9);
+  if (area >= 120 && utilityUnits < area * 1.35) return " copy-fill-xl";
+  if (area >= 70 && utilityUnits < area * 1.1) return " copy-fill-lg";
+  if (area >= 36 && utilityUnits < area * 0.85) return " copy-fill-md";
+  return "";
+}
+
 function personalityClass(layout: AssembledLayout): string {
   if (layout.visualPersonality) return `personality-${layout.visualPersonality}`;
   const templateId = layout.templateId;
@@ -107,6 +136,8 @@ function renderBlock(input: RenderInput, b: LayoutBlock): string {
   const articlesById = new Map(input.articles.map((a) => [a.id, a]));
   const imagesById = new Map(input.images.map((i) => [i.id, i]));
   const sectionsById = new Map(input.recurringSections.map((s) => [s.id, s]));
+  const article = b.articleId ? articlesById.get(b.articleId) : undefined;
+  const section = b.sectionId ? sectionsById.get(b.sectionId) : undefined;
 
   const bg = token(input, b.style?.bg);
   const headerColor =
@@ -142,8 +173,6 @@ function renderBlock(input: RenderInput, b: LayoutBlock): string {
         </figure>`;
     }
   } else if (b.kind === "article" || b.kind === "recurring" || b.kind === "filler") {
-    const article = b.articleId ? articlesById.get(b.articleId) : undefined;
-    const section = b.sectionId ? sectionsById.get(b.sectionId) : undefined;
     const title = b.heading ?? article?.title ?? section?.title ?? "";
     const bodyHtml = article
       ? paragraphs(article.body)
@@ -159,7 +188,8 @@ function renderBlock(input: RenderInput, b: LayoutBlock): string {
     return "";
   }
 
-  return `<div class="block${roleClass(b)}" data-block-id="${esc(b.blockId)}" data-slot-id="${esc(b.slotId)}" style="${outerStyle}"><div class="block-inner${bg ? " panel" : ""}${roleClass(b)}" style="${panelStyle}">${inner}</div></div>`;
+  const densityClass = copyDensityClass(b, article);
+  return `<div class="block${roleClass(b)}${densityClass}" data-block-id="${esc(b.blockId)}" data-slot-id="${esc(b.slotId)}" style="${outerStyle}"><div class="block-inner${bg ? " panel" : ""}${roleClass(b)}${densityClass}" style="${panelStyle}">${inner}</div></div>`;
 }
 
 function masthead(input: RenderInput, page: number): string {
@@ -220,42 +250,55 @@ export function renderRunHtml(input: RenderInput): string {
   @page { size: letter; margin: 0; }
   .page {
     width: 8.5in; height: 11in; position: relative;
-    padding: 0.42in 0.42in 0.5in;
+    padding: 0.34in 0.34in 0.4in;
     page-break-after: always; overflow: hidden;
     display: flex; flex-direction: column;
   }
-    .masthead { margin-bottom: 0.12in; font-family: var(--heading-font); display:flex; align-items:center; gap:12px; min-height:44px; }
+    .masthead { margin-bottom: 0.08in; font-family: var(--heading-font); display:flex; align-items:center; gap:12px; min-height:38px; }
     .masthead .logo { max-height:40px; max-width:118px; object-fit:contain; }
     .masthead .kicker { font-size: 8pt; letter-spacing: 0.18em; text-transform: uppercase; }
   .masthead h1 { font-size: 26pt; line-height: 1.05; margin-top: 2pt; }
-  .masthead.slim { display:flex; justify-content:space-between; font-size:8pt; letter-spacing:0.14em; text-transform:uppercase; color:#777; margin-bottom:0.12in; }
-  .content { flex:1; min-height:0; display:grid; gap: 6px; }
+  .masthead.slim { display:flex; justify-content:space-between; font-size:8pt; letter-spacing:0.14em; text-transform:uppercase; color:#777; margin-bottom:0.08in; }
+  .content { flex:1; min-height:0; display:grid; gap: 4px; }
   .block { min-height: 0; min-width: 0; display:flex; overflow:hidden; }
   .block-inner { flex:1; min-width:0; overflow:hidden; display:flex; flex-direction:column; }
-    .block-inner.panel { padding: 9px 11px; }
-    .section-heading { font-family: var(--heading-font); font-weight: 900; text-transform: uppercase; letter-spacing: 0.04em; font-size: clamp(11pt, 2.1vw, 15pt); line-height:1.02; margin-bottom: 4pt; text-align:center; }
-    .script-heading { font-family: var(--heading-font); font-style: italic; font-weight: 800; font-size: clamp(12pt, 2.25vw, 16pt); line-height:1.05; margin-bottom: 5pt; }
-    .byline { font-size: 7.5pt; color: inherit; opacity:0.7; margin-bottom: 3pt; }
-    .body { font-size: 8.6pt; line-height: 1.32; overflow:hidden; }
-    .body.compact { font-size: 8pt; line-height: 1.28; }
-    .body p + p { margin-top: 4pt; }
+    .block-inner.panel { padding: 7px 9px; }
+    .section-heading { font-family: var(--heading-font); font-weight: 900; text-transform: uppercase; letter-spacing: 0.04em; font-size: clamp(11pt, 2.1vw, 15pt); line-height:1.0; margin-bottom: 3pt; text-align:center; }
+    .script-heading { font-family: var(--heading-font); font-style: italic; font-weight: 800; font-size: clamp(12pt, 2.25vw, 16pt); line-height:1.03; margin-bottom: 3pt; }
+    .byline { font-size: 7.4pt; color: inherit; opacity:0.7; margin-bottom: 2pt; }
+    .body { font-size: 8.8pt; line-height: 1.24; overflow:hidden; }
+    .body.compact { font-size: 8.5pt; line-height: 1.18; }
+    .body p + p { margin-top: 2.5pt; }
     .body.centered { text-align:center; }
-  .list-body { font-size: 8.4pt; line-height: 1.5; }
-  .list-group { font-weight: 800; letter-spacing: 0.12em; font-size: 7.6pt; margin: 5pt 0 2pt; opacity: 0.85; }
+  .list-body { font-size: 8.8pt; line-height: 1.28; }
+  .list-group { font-weight: 800; letter-spacing: 0.12em; font-size: 7.5pt; margin: 3pt 0 1.5pt; opacity: 0.85; }
   .list-row { display:flex; justify-content:space-between; gap: 8px; border-bottom: 1px dotted rgba(0,0,0,0.12); padding: 1pt 0; }
   .block-inner[style*="color:#F7F5EF"] .list-row { border-bottom-color: rgba(255,255,255,0.25); }
   .list-label { font-weight: 600; }
   .photo { flex:1; display:flex; flex-direction:column; min-height:0; }
     .photo-frame { flex:1; min-height:0; overflow:hidden; border-radius: 8px; }
     .photo-frame img { width:100%; height:100%; object-fit:cover; display:block; }
-    .photo figcaption { font-size: 6.8pt; line-height:1.15; font-style: italic; text-align:center; padding-top: 2pt; color:#555; max-height: 18pt; overflow:hidden; }
+    .photo figcaption { font-size: 6.7pt; line-height:1.08; font-style: italic; text-align:center; padding-top: 1.5pt; color:#555; max-height: 15pt; overflow:hidden; }
+    .copy-fill-md .section-heading { font-size: clamp(12pt, 2.35vw, 17pt); }
+    .copy-fill-md .body { font-size: 9.6pt; line-height: 1.22; }
+    .copy-fill-md .list-body { font-size: 9.8pt; line-height: 1.2; }
+    .copy-fill-lg { justify-content:center; }
+    .copy-fill-lg .section-heading { font-size: clamp(13pt, 2.7vw, 19pt); margin-bottom:4pt; }
+    .copy-fill-lg .script-heading { font-size: clamp(15pt, 3vw, 21pt); margin-bottom:4pt; }
+    .copy-fill-lg .body { font-size: 10.4pt; line-height: 1.2; }
+    .copy-fill-lg .list-body { font-size: 10.6pt; line-height: 1.16; }
+    .copy-fill-xl { justify-content:center; }
+    .copy-fill-xl .section-heading { font-size: clamp(15pt, 3.1vw, 22pt); margin-bottom:5pt; }
+    .copy-fill-xl .script-heading { font-size: clamp(17pt, 3.4vw, 24pt); margin-bottom:5pt; }
+    .copy-fill-xl .body { font-size: 11.2pt; line-height: 1.18; }
+    .copy-fill-xl .list-body { font-size: 11.4pt; line-height: 1.12; }
     .photo-collage .photo-frame { border-radius: 10px; }
     .photo-wide .photo-frame { border-radius: 12px; }
     .photo-portrait .photo-frame { border-radius: 12px; }
     .personality-panel-garden .masthead { min-height:34px; padding-bottom:5pt; border-bottom:2px solid ${input.brandKit.secondaryColor}; }
     .personality-panel-garden .masthead h1 { font-size:20pt; letter-spacing:0.03em; text-transform:uppercase; }
-    .personality-panel-garden .content { gap:8px; }
-    .personality-panel-garden .block-inner.panel { padding:11px 12px; border-radius:4px !important; }
+    .personality-panel-garden .content { gap:5px; }
+    .personality-panel-garden .block-inner.panel { padding:8px 10px; border-radius:4px !important; }
     .personality-panel-garden .photo-frame { border-radius:4px; outline:2px solid rgba(21,27,43,0.12); outline-offset:-2px; }
     .personality-panel-garden .section-heading { font-size:clamp(10pt,1.9vw,13pt); letter-spacing:0.08em; }
     .personality-photo-festival .masthead { min-height:36px; padding:7pt 9pt; border-radius:0; background:${input.brandKit.primaryColor}; color:#F7F5EF; }
@@ -269,7 +312,7 @@ export function renderRunHtml(input: RenderInput): string {
     .personality-photo-festival .block-inner.panel { padding:8px 10px; border-radius:2px !important; }
     .personality-resident-feature .masthead { min-height:50px; border-left:9px solid ${input.brandKit.accentColor}; padding-left:10pt; }
     .personality-resident-feature .masthead h1 { font-size:24pt; }
-    .personality-resident-feature .content { gap:7px; }
+    .personality-resident-feature .content { gap:5px; }
     .personality-resident-feature .photo-portrait .photo-frame,
     .personality-resident-feature .photo-wide .photo-frame { border-radius:16px; }
     .personality-resident-feature .role-spotlightRail.panel,
@@ -278,15 +321,15 @@ export function renderRunHtml(input: RenderInput): string {
     .personality-editorial-light .masthead { min-height:32px; border-bottom:1px solid rgba(21,27,43,0.18); }
     .personality-editorial-light .masthead h1 { font-size:19pt; font-weight:700; letter-spacing:0; }
     .personality-editorial-light .masthead .kicker { letter-spacing:0.12em; }
-    .personality-editorial-light .content { gap:9px; }
-    .personality-editorial-light .block-inner.panel { padding:12px 14px; border-radius:0 !important; }
+    .personality-editorial-light .content { gap:5px; }
+    .personality-editorial-light .block-inner.panel { padding:8px 10px; border-radius:0 !important; }
     .personality-editorial-light .section-heading { font-size:clamp(10pt,1.8vw,13pt); letter-spacing:0.02em; }
-    .personality-editorial-light .body { font-size:9pt; line-height:1.38; }
+    .personality-editorial-light .body { font-size:9.2pt; line-height:1.22; }
     .personality-editorial-light .photo-frame { border-radius:0; }
     .personality-garden-warmth .masthead { min-height:36px; padding-bottom:5pt; border-bottom:2px solid ${input.brandKit.secondaryColor}; }
     .personality-garden-warmth .masthead h1 { font-size:21pt; letter-spacing:0.02em; }
-    .personality-garden-warmth .content { gap:8px; }
-    .personality-garden-warmth .block-inner.panel { padding:11px 12px; }
+    .personality-garden-warmth .content { gap:5px; }
+    .personality-garden-warmth .block-inner.panel { padding:8px 10px; }
     .personality-garden-warmth .photo-frame { outline:2px solid rgba(21,27,43,0.10); outline-offset:-2px; }
     .personality-photo-journal .masthead { min-height:36px; padding:7pt 9pt; border-radius:0; background:${input.brandKit.primaryColor}; color:#F7F5EF; }
     .personality-photo-journal .masthead .kicker,
@@ -301,8 +344,8 @@ export function renderRunHtml(input: RenderInput): string {
     .personality-resident-spotlight .section-heading { text-transform:none; letter-spacing:0.01em; }
     .personality-editorial-calm .masthead { min-height:32px; border-bottom:1px solid rgba(21,27,43,0.18); }
     .personality-editorial-calm .masthead h1 { font-size:19pt; font-weight:700; letter-spacing:0; }
-    .personality-editorial-calm .content { gap:9px; }
-    .personality-editorial-calm .block-inner.panel { padding:12px 14px; border-radius:0 !important; }
+    .personality-editorial-calm .content { gap:5px; }
+    .personality-editorial-calm .block-inner.panel { padding:8px 10px; border-radius:0 !important; }
     .personality-editorial-calm .photo-frame { border-radius:0; }
     .personality-celebration-pop .masthead { min-height:38px; padding:7pt 10pt; background:${input.brandKit.accentColor}; color:#151B2B; }
     .personality-celebration-pop .masthead .kicker,
@@ -316,12 +359,12 @@ export function renderRunHtml(input: RenderInput): string {
       background-image: radial-gradient(circle, rgba(21,27,43,0.22) 0 2px, transparent 2.4px);
       background-size: 18px 18px;
     }
-    .role-birthday.panel { padding: 12px 14px 8px; border-bottom: 8px solid #D85C2A; }
+    .role-birthday.panel { padding: 8px 10px 6px; border-bottom: 6px solid #D85C2A; }
     .role-birthday .script-heading { font-size: 18pt; text-align:left; margin-bottom:3pt; }
     .role-birthday .list-body { font-size: 8.2pt; line-height: 1.06; }
     .role-birthday .list-group { color:#D85C2A; font-size: 8.2pt; margin-top: 4pt; }
     .role-birthday .list-row { border-bottom: 0; }
-    .role-directorCorner.panel { padding: 17px 20px; }
+    .role-directorCorner.panel { padding: 11px 14px; }
     .role-directorCorner .script-heading { font-size: clamp(17pt, 3vw, 23pt); font-style: normal; text-transform: uppercase; letter-spacing:0.02em; }
     .role-directorCorner .body { font-weight: 700; font-size: 9.4pt; line-height:1.2; }
     .role-happyHour .section-heading,
@@ -336,19 +379,19 @@ export function renderRunHtml(input: RenderInput): string {
     .role-happyHour .list-body,
     .role-upcomingEvents .list-body,
     .role-outingList .list-body { font-size: 10pt; line-height:1.32; }
-    .role-featureBand.panel { padding: 16px 22px; }
+    .role-featureBand.panel { padding: 10px 14px; }
     .role-featureBand .script-heading,
     .role-featureBand .section-heading { font-size: clamp(14pt, 2.6vw, 20pt); text-transform:none; letter-spacing:0; }
     .role-featureBand .body { font-size: 9.4pt; font-weight: 700; line-height:1.2; }
-    .role-spotlightRail.panel { padding: 17px 20px; }
+    .role-spotlightRail.panel { padding: 10px 13px; }
     .role-spotlightRail .script-heading,
     .role-spotlightRail .section-heading { font-size: clamp(14pt, 2.4vw, 18pt); text-transform:none; letter-spacing:0; }
     .role-spotlightRail .body { font-size: 9.4pt; font-weight: 700; line-height:1.2; }
-    .role-infoFooter.panel { padding: 14px 22px; }
+    .role-infoFooter.panel { padding: 8px 14px; }
     .role-infoFooter .script-heading,
     .role-infoFooter .section-heading { font-size: 18pt; text-transform:none; letter-spacing:0; margin-bottom:5pt; }
     .role-infoFooter .body { font-size: 8.6pt; font-weight: 700; line-height:1.22; }
-    .pagefoot { margin-top: 0.08in; padding-top: 4pt; border-top: 2px solid; display:flex; justify-content:space-between; font-size: 7.4pt; letter-spacing: 0.1em; text-transform: uppercase; color:#666; }
+    .pagefoot { margin-top: 0.05in; padding-top: 3pt; border-top: 2px solid; display:flex; justify-content:space-between; font-size: 7.2pt; letter-spacing: 0.1em; text-transform: uppercase; color:#666; }
 </style>
 </head>
 <body>
