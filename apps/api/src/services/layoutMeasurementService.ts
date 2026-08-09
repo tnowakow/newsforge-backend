@@ -63,15 +63,14 @@ async function measureCandidate(input: Omit<MeasureInput, "candidates"> & {
     const blocks = Array.from(doc.querySelectorAll(".block")) as any[];
     const clippedBlockSet = new Set<any>();
     const clipTargets = Array.from(doc.querySelectorAll(
-      ".body,.list-body,figcaption",
+      ".body,.list-body",
     )) as any[];
     for (const target of clipTargets) {
-      const isCaption = target.tagName?.toLowerCase() === "figcaption";
       const clipsVertically = target.scrollHeight > target.clientHeight + 1;
       const clipsHorizontally = target.scrollWidth > target.clientWidth + 1;
-      if (clipsVertically || (!isCaption && clipsHorizontally)) {
+      if (clipsVertically || clipsHorizontally) {
         const owner = target.closest(".block");
-        if (owner) clippedBlockSet.add(owner);
+        if (owner && !owner.querySelector(".photo")) clippedBlockSet.add(owner);
       }
     }
     const clippedBlocks = clippedBlockSet.size;
