@@ -426,6 +426,18 @@ function scorePhoto(
   }
   const slotHay = roleTokens(slot);
   const slotRole = `${slot.id} ${slot.styleTag ?? ""}`.toLowerCase();
+  if (/p2-photo-|out[- ]?and[- ]?about|outing|trip/.test(slotRole)) {
+    score += photo.topicKey === "outings" ? 28 : -12;
+  }
+  if (/smile|spotlight|portrait/.test(slotRole)) {
+    score += photo.topicKey === "resident-story" || photo.topicKey === "staff" ? 18 : -8;
+  }
+  if (/volunteer|make[- ]?the[- ]?difference/.test(slotRole)) {
+    score += photo.topicKey === "volunteer" ? 18 : -6;
+  }
+  if (/feature-band|scrubbly|car[- ]?wash/.test(slotRole)) {
+    score += photo.topicKey === "games" || photo.topicKey === "crafts" || photo.topicKey === "happy-hour" ? 10 : -6;
+  }
   for (const tag of photo.tags) {
     const normalized = tag.replace(/\s+/g, "-");
     if (slotHay.has(tag) || slotHay.has(normalized)) score += 5;

@@ -354,10 +354,15 @@ export function applyVibrancyPass(input: VibrancyInput): AssembledLayout {
         const nearbyArticle = isRealUpload
           ? undefined
           : findNearbyNarrativeArticle(next, input.layout.blocks, articleById);
+        const stockOwnCaption =
+          img?.source === "STOCK" && /p2-photo-|photo-stack|outing|out[- ]?and[- ]?about/i.test(`${next.slotId} ${next.styleTag ?? ""}`)
+            ? img.caption
+            : undefined;
         next.caption =
           (isRealUpload ? img?.caption : undefined) ??
+          stockOwnCaption ??
           (nearbyArticle ? captionFromArticle(nearbyArticle) : undefined) ??
-          img?.caption ??
+          (img?.source === "STOCK" ? img.caption : undefined) ??
           (img?.alt ? firstSentence(img.alt) : undefined) ??
           "A wonderful moment around campus!";
       }
