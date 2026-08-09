@@ -98,23 +98,50 @@ const WRAP_BOTTOM_ROWSPAN = WRAP_ROWS - WRAP_TOP_ROWSPAN; // 9
 
 function compactGatewayInnerBlocks(blocks: LayoutBlock[]): LayoutBlock[] {
   return blocks.map((block) => {
+    if (block.page === 2) {
+      if (block.slotId === "cl-p2-outings") {
+        return {
+          ...block,
+          position: { ...block.position, row: 1, rowSpan: 5 },
+        };
+      }
+      if (block.slotId === "cl-p2-feature-band") {
+        return {
+          ...block,
+          position: { ...block.position, row: 6, rowSpan: 4 },
+        };
+      }
+      if (block.slotId === "cl-p2-volunteer") {
+        return {
+          ...block,
+          position: { ...block.position, row: 10, rowSpan: 3 },
+        };
+      }
+      if (block.slotId === "cl-p2-trust-funds") {
+        return {
+          ...block,
+          position: { ...block.position, row: 14, rowSpan: 3 },
+        };
+      }
+      return block;
+    }
     if (block.page !== 1) return block;
     if (block.slotId === "cl-p1-bday" || block.slotId === "cl-p1-exec") {
       return {
         ...block,
-        position: { ...block.position, row: 1, rowSpan: 6 },
+        position: { ...block.position, row: 1, rowSpan: 5 },
       };
     }
     if (block.slotId === "cl-p1-happy-hour" || block.slotId === "cl-p1-upcoming-events") {
       return {
         ...block,
-        position: { ...block.position, row: 7, rowSpan: 2 },
+        position: { ...block.position, row: 6, rowSpan: 2 },
       };
     }
     if (/^cl-p1-(hh|event)-img-/.test(block.slotId)) {
       return {
         ...block,
-        position: { ...block.position, row: 9, rowSpan: 8 },
+        position: { ...block.position, row: 8, rowSpan: 9 },
       };
     }
     return block;
