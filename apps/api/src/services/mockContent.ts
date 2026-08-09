@@ -269,6 +269,7 @@ export async function generateMockContentWithAi(
   const fallback = generateMockContent(input);
   const targetArticles = fallback.articles.length;
   const targetImages = fallback.images.length;
+  const isTrilogy = (input.clientName ?? "").toLowerCase().includes("trilogy");
 
   const systemPrompt = [
     `You are the senior editor for ${input.clientName ?? "a senior-living community"}'s monthly community newsletter.`,
@@ -279,8 +280,11 @@ export async function generateMockContentWithAi(
     `Do not invent real private resident medical details, full names, quotations, or promises. Initial-plus-last-name birthday/demo names are acceptable only when they already appear in the source draft.`,
     `Do not repeat the same story angle or opening across articles.`,
     `Keep article lengths close to the source drafts because the copy will be placed into a fixed print layout.`,
+    isTrilogy
+      ? `For Trilogy/PorterOne demo content, preserve dense print modules: birthday and outing lists must keep their rows; happy-hour schedules need 5-8 dated rows; upcoming-events and director notes should stay substantial, not summary-short; spotlight rails need enough body copy to fill a tall sidebar; do not compress large modules into tiny fragments.`
+      : "",
     `Always respond with valid JSON matching the schema. No prose outside JSON.`,
-  ].join(" ");
+  ].filter(Boolean).join(" ");
 
   const userPrompt = JSON.stringify(
     {
@@ -304,6 +308,19 @@ export async function generateMockContentWithAi(
         articles: targetArticles,
         images: targetImages,
       },
+      porterOneSlotTargets: isTrilogy
+        ? {
+            birthday: "keep all resident/staff rows from source; do not summarize",
+            director: "170-230 words",
+            happyHour: "5-8 dated list rows plus one short intro sentence",
+            upcomingEvents: "150-230 words or 4-6 concrete event rows",
+            outings: "8-10 dated outing rows",
+            spotlightRail: "220-300 words",
+            featureBand: "90-130 words",
+            volunteer: "80-120 words",
+            infoFooter: "45-70 words",
+          }
+        : undefined,
       sourceDrafts: fallback.articles.map((article) => ({
         sourceId: article.id,
         title: article.title,
