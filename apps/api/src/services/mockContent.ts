@@ -206,6 +206,21 @@ const AiMockContentResponseSchema = z.object({
   articles: z.array(AiMockArticleSchema).min(1),
 });
 
+function enforceTrilogyArticleDensity(article: Article, body: string): string {
+  const count = wordCount(body);
+  if (article.articleType === "executive-note" && count < 260) {
+    return article.body;
+  }
+  if (article.articleType === "resident-story" && count < 280) {
+    return paragraphs({} as GenerateMockContentInput, [
+      body,
+      `Robyn's presence is the kind of steady encouragement that residents, families, and fellow team members remember long after a busy day is done. She brings patience to routine moments, warmth to introductions, and a dependable sense of calm when someone needs extra support.`,
+      `We are grateful for the way she helps create a welcoming rhythm throughout the campus. Her kindness shows up in conversations, celebrations, daily care, and the little moments that make our community feel personal.`,
+    ]);
+  }
+  return body;
+}
+
 export function generateMockContent(
   input: GenerateMockContentInput,
 ): GenerateMockContentResult {
@@ -356,7 +371,9 @@ export async function generateMockContentWithAi(
   const articles = fallback.articles.map((article) => {
     const generated = bySourceId.get(article.id);
     if (!generated) return article;
-    const body = generated.body.trim();
+    const body = isTrilogy
+      ? enforceTrilogyArticleDensity(article, generated.body.trim())
+      : generated.body.trim();
     return {
       ...article,
       title: generated.title.trim(),
