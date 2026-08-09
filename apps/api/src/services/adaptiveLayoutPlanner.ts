@@ -696,7 +696,7 @@ function rebalanceTextPhoto(layout: AssembledLayout, plan: EditorialPlan): Assem
   return resizePair(layout, pair, rebalanceTarget(plan));
 }
 
-function expandPhotoBand(layout: AssembledLayout): AssembledLayout {
+export function expandPhotoBand(layout: AssembledLayout): AssembledLayout {
   const imageBands = new Map<string, LayoutBlock[]>();
   for (const block of layout.blocks) {
     if (!block.imageId) continue;

@@ -32,6 +32,7 @@ import {
   applyCandidateMeasurements,
   buildAdaptiveLayout,
   chooseAdaptiveCandidate,
+  expandPhotoBand,
   type AdaptiveLayoutCandidate,
   type EditorialPlan,
 } from "./adaptiveLayoutPlanner.js";
@@ -364,7 +365,7 @@ export async function designLayout(
   }
   blocks = reattachMissingImages(blocks, input);
 
-  const layout: AssembledLayout = applyVibrancyPass({
+  const layout: AssembledLayout = expandPhotoBand(applyVibrancyPass({
     layout: {
       ...skeleton,
       blocks,
@@ -379,7 +380,7 @@ export async function designLayout(
     articles: input.articles,
     images: input.images,
     visualPersonality: adaptive.plan.visualPersonality,
-  });
+  }));
 
   try {
     const [measurement] = await measureAdaptiveCandidates({
@@ -420,7 +421,8 @@ export async function designLayout(
       measurement.missingImages > 0 ||
       missingPlacements > 0 ||
       geometricCoverage < 0.9 ||
-      measurement.usefulOccupancy < 0.45 ||
+      measurement.usefulOccupancy < 0.72 ||
+      (measurement.minPageUtility ?? 0) < 0.55 ||
       largestEmptyBandRatio > 0.22;
     if (aiFailsDensityGate) {
       return {
