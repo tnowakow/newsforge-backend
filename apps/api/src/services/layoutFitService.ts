@@ -415,6 +415,9 @@ export function buildLayoutFitReport(input: {
   const pick =
     input.pickResult ??
     pickBestTemplate(input.articles, input.images, input.candidates);
+  const selectedAdaptive = input.design?.adaptiveCandidates?.find((candidate) => candidate.selected);
+  const selectedMeasurement = selectedAdaptive?.measurement;
+  const selectedSubscores = selectedAdaptive?.subscores;
 
   return {
     chosenTemplateId: input.chosen.id,
@@ -424,6 +427,15 @@ export function buildLayoutFitReport(input: {
     designMode: input.design?.mode,
     designNotes: input.design?.designNotes,
     fallbackReason: input.design?.fallbackReason,
+    renderFit: selectedSubscores?.renderFit,
+    usefulOccupancy: selectedSubscores?.usefulOccupancy ?? selectedMeasurement?.usefulOccupancy,
+    geometricCoverage: selectedSubscores?.geometricCoverage ?? selectedMeasurement?.geometricCoverage,
+    minPageUtility: selectedMeasurement?.minPageUtility,
+    largestEmptyBandRatio: selectedMeasurement?.largestEmptyBandRatio,
+    clippedBlocks: selectedMeasurement?.clippedBlocks,
+    overflowBlocks: selectedMeasurement?.overflowBlocks,
+    missingImages: selectedMeasurement?.missingImages,
+    renderedImages: selectedMeasurement?.renderedImages,
     editorialPlan: input.design?.editorialPlan,
     adaptiveCandidates: input.design?.adaptiveCandidates,
     candidates: pick.candidates,

@@ -56,7 +56,7 @@ function imageBlock(
   };
 }
 
-function articleTeasers(articles: Article[], max = 4): string {
+function articleTeasers(articles: Article[], max = 5): string {
   const titles = articles
     .slice(0, max)
     .map((article) => article.title.trim())
@@ -68,6 +68,20 @@ function articleTeasers(articles: Article[], max = 4): string {
 
 function closingCopy(): string {
   return "Thank you for being part of this month's community story. Watch for upcoming events, resident celebrations, and new ways to connect with neighbors and the team.";
+}
+
+function firstArticleMatching(articles: Article[], pattern: RegExp): Article | undefined {
+  return articles.find((article) =>
+    article.articleType !== "birthday" &&
+    pattern.test(`${article.title}\n${article.body}\n${article.articleType ?? ""}`),
+  );
+}
+
+function shortBody(article: Article | undefined, fallback: string, maxChars = 260): string {
+  const raw = article?.body?.trim() || fallback;
+  const clean = raw.replace(/\s+/g, " ").trim();
+  if (clean.length <= maxChars) return clean;
+  return `${clean.slice(0, maxChars).replace(/\s+\S*$/, "")}.`;
 }
 
 /**
@@ -106,12 +120,15 @@ export function wrapV3InnerSpreadForDemo({
   const wrapperImages = images.filter((image) => !innerImageIds.has(image.id));
   const hero = wrapperImages[0];
   const secondary = wrapperImages.find((image) => image.id !== hero?.id);
-
-  // Text column spans the full grid width when there is no photo to share
-  // the page with; otherwise it yields WRAP_IMG_COL_SPAN columns on the
-  // right to the photo, and the two always sum to WRAP_COLS (no gutter gap).
-  const coverTextColSpan = hero ? WRAP_COLS - WRAP_IMG_COL_SPAN : WRAP_COLS;
-  const backTextColSpan = secondary ? WRAP_COLS - WRAP_IMG_COL_SPAN : WRAP_COLS;
+  const tertiary = wrapperImages.find(
+    (image) => image.id !== hero?.id && image.id !== secondary?.id,
+  );
+  const birthday = articles.find((article) =>
+    article.articleType === "birthday" || /birthday/i.test(`${article.title}\n${article.body}`),
+  );
+  const executive = firstArticleMatching(articles, /executive|director/i);
+  const events = firstArticleMatching(articles, /event|happy hour|outing|campus|calendar/i);
+  const feature = firstArticleMatching(articles, /recap|spotlight|resident|volunteer|scrubbly|campus/i);
 
   const coverBlocks: LayoutBlock[] = [
     textBlock(
@@ -119,24 +136,68 @@ export function wrapV3InnerSpreadForDemo({
       1,
       `${clientName}`,
       `${monthLabel}\nCommunity Newsletter`,
-      { col: 1, row: 1, colSpan: coverTextColSpan, rowSpan: WRAP_TOP_ROWSPAN },
+      { col: 1, row: 1, colSpan: 8, rowSpan: 4 },
       {
         bg: "cream",
         headerColor: "primary",
         panelRole: "featureBand",
         cornerRadius: 0,
         centered: true,
+        compact: true,
       },
     ),
     textBlock(
-      "demo-cover-teasers",
+      "demo-cover-birthday",
+      1,
+      birthday?.title || "Happy Birthday!",
+      shortBody(birthday, "Residents and team members celebrating this month.", 210),
+      { col: 1, row: 5, colSpan: 8, rowSpan: 5 },
+      {
+        bg: "sun",
+        headerColor: "coral",
+        panelRole: "birthday",
+        cornerRadius: 0,
+        compact: true,
+      },
+    ),
+    textBlock(
+      "demo-cover-inside",
       1,
       "Inside This Issue",
       articleTeasers(articles),
-      { col: 1, row: 1 + WRAP_TOP_ROWSPAN, colSpan: coverTextColSpan, rowSpan: WRAP_BOTTOM_ROWSPAN },
+      { col: 1, row: 10, colSpan: 8, rowSpan: 7 },
+      {
+        bg: "navy",
+        headerColor: "paper",
+        invertText: true,
+        panelRole: "infoFooter",
+        cornerRadius: 0,
+        compact: true,
+      },
+    ),
+    textBlock(
+      "demo-cover-director",
+      1,
+      "Executive Director Corner",
+      shortBody(executive, `${clientName} shares a warm note on the month ahead.`, 330),
+      { col: 9, row: 1, colSpan: 8, rowSpan: 7 },
+      {
+        bg: "cream",
+        headerColor: "primary",
+        panelRole: "directorCorner",
+        cornerRadius: 10,
+        compact: true,
+      },
+    ),
+    textBlock(
+      "demo-cover-events",
+      1,
+      events?.title || "Upcoming Events",
+      shortBody(events, "A quick look at upcoming campus moments and ways to connect.", 260),
+      { col: 9, row: 12, colSpan: 8, rowSpan: 5 },
       {
         bg: "sky",
-        headerColor: "navy",
+        headerColor: "coral",
         panelRole: "upcomingEvents",
         cornerRadius: 0,
         compact: true,
@@ -150,10 +211,10 @@ export function wrapV3InnerSpreadForDemo({
         1,
         hero.id,
         {
-          col: WRAP_COLS - WRAP_IMG_COL_SPAN + 1,
+          col: 17,
           row: 1,
-          colSpan: WRAP_IMG_COL_SPAN,
-          rowSpan: WRAP_ROWS,
+          colSpan: 8,
+          rowSpan: 11,
         },
         hero.caption ?? hero.alt,
       ),
@@ -164,15 +225,16 @@ export function wrapV3InnerSpreadForDemo({
     textBlock(
       "demo-back-note",
       4,
-      "Stay Connected",
-      `${clientName} closes ${monthLabel} with gratitude for the residents, families, and team members who make every gathering feel personal.`,
-      { col: 1, row: 1, colSpan: backTextColSpan, rowSpan: WRAP_TOP_ROWSPAN },
+      feature?.title || "Stay Connected",
+      shortBody(feature, `${clientName} closes ${monthLabel} with gratitude for the residents, families, and team members who make every gathering feel personal.`, 360),
+      { col: 1, row: 1, colSpan: 10, rowSpan: 8 },
       {
-        bg: "cream",
-        headerColor: "primary",
-        panelRole: "directorCorner",
+        bg: "sky",
+        headerColor: "navy",
+        panelRole: "featureBand",
         scriptHeading: true,
-        cornerRadius: 18,
+        cornerRadius: 0,
+        compact: true,
       },
     ),
     textBlock(
@@ -180,7 +242,7 @@ export function wrapV3InnerSpreadForDemo({
       4,
       "Looking Ahead",
       closingCopy(),
-      { col: 1, row: 1 + WRAP_TOP_ROWSPAN, colSpan: backTextColSpan, rowSpan: WRAP_BOTTOM_ROWSPAN },
+      { col: 1, row: 9, colSpan: 10, rowSpan: 8 },
       {
         bg: "navy",
         headerColor: "paper",
@@ -188,6 +250,20 @@ export function wrapV3InnerSpreadForDemo({
         panelRole: "infoFooter",
         cornerRadius: 0,
         centered: true,
+        compact: true,
+      },
+    ),
+    textBlock(
+      "demo-back-contact",
+      4,
+      "Out and About",
+      shortBody(events, "Fresh events, outings, and campus moments continue next month.", 270),
+      { col: 11, row: 10, colSpan: 7, rowSpan: 7 },
+      {
+        bg: "cream",
+        headerColor: "coral",
+        panelRole: "outingList",
+        cornerRadius: 0,
         compact: true,
       },
     ),
@@ -199,12 +275,42 @@ export function wrapV3InnerSpreadForDemo({
         4,
         secondary.id,
         {
-          col: WRAP_COLS - WRAP_IMG_COL_SPAN + 1,
+          col: 11,
           row: 1,
-          colSpan: WRAP_IMG_COL_SPAN,
-          rowSpan: WRAP_ROWS,
+          colSpan: 14,
+          rowSpan: 9,
         },
         secondary.caption ?? secondary.alt,
+      ),
+    );
+  }
+  if (tertiary) {
+    backBlocks.push(
+      imageBlock(
+        "demo-back-small-photo",
+        4,
+        tertiary.id,
+        { col: 18, row: 10, colSpan: 7, rowSpan: 7 },
+        tertiary.caption ?? tertiary.alt,
+      ),
+    );
+  } else {
+    backBlocks.push(
+      textBlock(
+        "demo-back-save-date",
+        4,
+        "Save the Date",
+        "Watch for next month's celebrations, outings, and campus updates.",
+        { col: 18, row: 10, colSpan: 7, rowSpan: 7 },
+        {
+          bg: "coral",
+          headerColor: "paper",
+          invertText: true,
+          panelRole: "upcomingEvents",
+          cornerRadius: 0,
+          compact: true,
+          centered: true,
+        },
       ),
     );
   }

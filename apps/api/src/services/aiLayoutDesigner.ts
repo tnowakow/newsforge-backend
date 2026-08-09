@@ -139,14 +139,19 @@ function sanitizeBlocks(
   return kept.map((b) => {
     const colSpan = Math.min(Math.max(1, b.position.colSpan), cols);
     const col = Math.min(Math.max(1, b.position.col), cols - colSpan + 1);
+    const rowSpan = Math.min(Math.max(1, b.position.rowSpan), input.gridSpec.rowsPerPage);
+    const row = Math.min(
+      Math.max(1, b.position.row),
+      input.gridSpec.rowsPerPage - rowSpan + 1,
+    );
     return {
       ...b,
       position: {
         ...b.position,
         col,
         colSpan,
-        row: Math.max(1, b.position.row),
-        rowSpan: Math.max(1, b.position.rowSpan),
+        row,
+        rowSpan,
       },
     };
   });
@@ -162,7 +167,45 @@ function reattachMissingImages(
   if (missing.length === 0) return blocks;
 
   const out = [...blocks];
-  // First reuse empty/needsFiller image slots, then stack at page bottoms.
+  const findOpenRect = (page: number, preferredColSpan: number, preferredRowSpan: number) => {
+    const occupied = new Set<string>();
+    for (const block of out.filter((b) => b.page === page)) {
+      const colEnd = Math.min(input.gridSpec.columns, block.position.col + block.position.colSpan - 1);
+      const rowEnd = Math.min(input.gridSpec.rowsPerPage, block.position.row + block.position.rowSpan - 1);
+      for (let col = block.position.col; col <= colEnd; col++) {
+        for (let row = block.position.row; row <= rowEnd; row++) {
+          occupied.add(`${col}:${row}`);
+        }
+      }
+    }
+    const sizes = [
+      [preferredColSpan, preferredRowSpan],
+      [Math.min(6, input.gridSpec.columns), 3],
+      [Math.min(8, input.gridSpec.columns), 2],
+      [Math.min(5, input.gridSpec.columns), 2],
+    ];
+    for (const [colSpan, rowSpan] of sizes) {
+      for (let row = 1; row <= input.gridSpec.rowsPerPage - rowSpan + 1; row++) {
+        for (let col = 1; col <= input.gridSpec.columns - colSpan + 1; col++) {
+          let open = true;
+          for (let c = col; c < col + colSpan && open; c++) {
+            for (let r = row; r < row + rowSpan; r++) {
+              if (occupied.has(`${c}:${r}`)) {
+                open = false;
+                break;
+              }
+            }
+          }
+          if (open) return { col, row, colSpan, rowSpan };
+        }
+      }
+    }
+    return null;
+  };
+
+  // First reuse empty/needsFiller image slots, then use actual open grid space.
+  // Never append below the page grid; that looked "placed" in data while
+  // rendering as overflow and dead whitespace.
   for (const img of missing) {
     const idx = out.findIndex(
       (b) => !b.imageId && !b.articleId && (b.kind === "empty" || b.needsFiller),
@@ -171,16 +214,15 @@ function reattachMissingImages(
       out[idx] = { ...out[idx], kind: "image", imageId: img.id, needsFiller: false };
       continue;
     }
-    const page = input.pageCount;
-    const maxRow = Math.max(
-      0,
-      ...out.filter((b) => b.page === page).map((b) => b.position.row + b.position.rowSpan),
-    );
+    const placement = Array.from({ length: input.pageCount }, (_, i) => i + 1)
+      .map((page) => ({ page, position: findOpenRect(page, Math.min(8, input.gridSpec.columns), 3) }))
+      .find((candidate) => candidate.position);
+    if (!placement?.position) continue;
     out.push({
       blockId: `reattach-${img.id}`,
       slotId: `reattach-${img.id}`,
-      page,
-      position: { col: 1, row: maxRow, colSpan: Math.min(8, input.gridSpec.columns), rowSpan: 3 },
+      page: placement.page,
+      position: placement.position,
       kind: "image",
       imageId: img.id,
       needsFiller: false,
@@ -338,6 +380,73 @@ export async function designLayout(
     images: input.images,
     visualPersonality: adaptive.plan.visualPersonality,
   });
+
+  try {
+    const [measurement] = await measureAdaptiveCandidates({
+      clientName: input.clientName,
+      monthLabel: input.monthLabel ?? "Newsletter",
+      brandKit: input.brandKit,
+      gridSpec: input.gridSpec,
+      articles: input.articles,
+      images: input.images,
+      recurringSections: input.recurringSections,
+      candidates: [{
+        id: "ai-returned-layout",
+        label: "AI returned layout",
+        geometryVariant: "fixed",
+        layout,
+        score: 0,
+        subscores: {
+          occupancy: 0,
+          contentCoverage: 0,
+          requiredCoverage: 0,
+          balance: 0,
+          clippingRisk: 0,
+          geometryValidity: 0,
+          photoImpact: 0,
+          grammarAffinity: 0,
+        },
+        warnings: [],
+      }],
+    });
+    const placedImageIds = new Set(layout.blocks.map((block) => block.imageId).filter(Boolean));
+    const missingPlacements = input.images.filter((image) => !placedImageIds.has(image.id)).length;
+    const geometricCoverage = measurement?.geometricCoverage ?? 0;
+    const largestEmptyBandRatio = measurement?.largestEmptyBandRatio ?? 1;
+    const aiFailsDensityGate =
+      !measurement ||
+      measurement.clippedBlocks > 0 ||
+      measurement.overflowBlocks > 0 ||
+      measurement.missingImages > 0 ||
+      missingPlacements > 0 ||
+      geometricCoverage < 0.9 ||
+      measurement.usefulOccupancy < 0.45 ||
+      largestEmptyBandRatio > 0.22;
+    if (aiFailsDensityGate) {
+      return {
+        layout: fallbackLayout,
+        mode: "deterministic",
+        fallbackReason: `ai_layout_failed_density_gate:${[
+          measurement ? `clips=${measurement.clippedBlocks}` : "unmeasured",
+          measurement ? `overflow=${measurement.overflowBlocks}` : undefined,
+          measurement ? `missing=${measurement.missingImages + missingPlacements}` : undefined,
+          measurement ? `coverage=${geometricCoverage.toFixed(3)}` : undefined,
+          measurement ? `utility=${measurement.usefulOccupancy.toFixed(3)}` : undefined,
+        ].filter(Boolean).join(",")}`,
+        editorialPlan: adaptive.plan,
+        adaptiveCandidates: adaptiveCandidateReport,
+        promptAudit: {
+          systemPrompt,
+          userPrompt,
+          provider: result.provider,
+          model: result.model,
+          durationMs: result.durationMs,
+        },
+      };
+    }
+  } catch (err) {
+    console.warn("[layout-measurement] AI returned layout measurement skipped:", err);
+  }
 
   return {
     layout,
