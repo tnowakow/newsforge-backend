@@ -279,7 +279,9 @@ export async function generateMockContentWithAi(
     `Return exactly ${targetArticles} articles. Keep each sourceId from the input and do not add or remove IDs.`,
     `Do not invent real private resident medical details, full names, quotations, or promises. Initial-plus-last-name birthday/demo names are acceptable only when they already appear in the source draft.`,
     `Do not repeat the same story angle or opening across articles.`,
-    `Keep article lengths close to the source drafts because the copy will be placed into a fixed print layout.`,
+    isTrilogy
+      ? `For Trilogy/PorterOne demo content, treat the slot targets as stricter than the source draft lengths so oversized Porter-style panels are filled with useful copy instead of air.`
+      : `Keep article lengths close to the source drafts because the copy will be placed into a fixed print layout.`,
     isTrilogy
       ? `For Trilogy/PorterOne demo content, preserve dense print modules: birthday and outing lists must keep their rows; happy-hour schedules need 5-8 dated rows; upcoming-events and director notes should stay substantial, not summary-short; spotlight rails need enough body copy to fill a tall sidebar; do not compress large modules into tiny fragments.`
       : "",
@@ -311,11 +313,11 @@ export async function generateMockContentWithAi(
       porterOneSlotTargets: isTrilogy
         ? {
             birthday: "keep all resident/staff rows from source; do not summarize",
-            director: "170-230 words",
+            director: "280-340 words across 4 short paragraphs plus signoff",
             happyHour: "5-8 dated list rows plus one short intro sentence",
             upcomingEvents: "150-230 words or 4-6 concrete event rows",
             outings: "8-10 dated outing rows",
-            spotlightRail: "220-300 words",
+            spotlightRail: "280-360 words",
             featureBand: "90-130 words",
             volunteer: "80-120 words",
             infoFooter: "45-70 words",
@@ -415,9 +417,10 @@ function generateTrilogyMockContent(
       sectionMatch: /director|executive|welcome/i,
       body: () =>
         paragraphs(input, [
-          `Happy ${monthName}, everyone! It has been an amazing summer so far of cookouts, evenings with friends, and refreshing happy hours to help us cool down.`,
-          `Around this time of year, many of us remember looking toward the return to school, but here on campus the middle of summer means the fun is just getting started. Live entertainment, themed events, and afternoons outside have brought residents, families, and team members together in the best way.`,
-          `Thank you for continuing to join us for the laughter, visits, and small daily rhythms that make this community feel like home. Have a wonderful month.`,
+          `Happy ${monthName}, everyone! As summer continues, our community has been full of the warm, familiar rhythms that make each day feel special. From cookouts and porch visits to refreshing happy hours, music programs, and simple conversations in the hallway, there has been so much joy to notice and celebrate.`,
+          `This time of year often brings memories of back-to-school routines, family vacations, and long evenings outside. Here on campus, it also reminds us how meaningful it is to keep trying new things together. Our life enrichment team has planned outings, themed socials, creative activities, and entertainment that give residents, families, and team members many ways to connect.`,
+          `I am especially grateful for the kindness I see in small moments: a neighbor saving a seat for a friend, a family member joining an activity, a team member taking extra time to listen, or residents encouraging one another to join the fun. These daily gestures are what turn a calendar of events into a true community.`,
+          `Thank you for sharing your laughter, ideas, visits, and support with us. We are excited for the month ahead and hope you find something in these pages that brings you into the next gathering, outing, or conversation.`,
           `Yours in service,\nThe Executive Director`,
         ]),
     },
