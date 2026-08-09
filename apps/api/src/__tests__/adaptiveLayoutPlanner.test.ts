@@ -646,9 +646,9 @@ describe("adaptiveLayoutPlanner.buildAdaptiveLayout", () => {
     const imageA = expanded.layout.blocks.find((block) => block.slotId === "band-a");
     assert.ok(topLeft);
     assert.ok(imageA);
-    assert.equal(topLeft.position.rowSpan, 3);
-    assert.equal(imageA.position.row, 4);
-    assert.equal(imageA.position.rowSpan, 5);
+    assert.equal(topLeft.position.rowSpan, 2);
+    assert.equal(imageA.position.row, 3);
+    assert.equal(imageA.position.rowSpan, 6);
     assert.ok(expanded.subscores.geometryValidity > 0.99);
   });
 });

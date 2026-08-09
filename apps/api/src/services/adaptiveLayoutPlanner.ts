@@ -728,8 +728,8 @@ function expandPhotoBand(layout: AssembledLayout): AssembledLayout {
   });
   if (blockers.length === 0) return layout;
 
-  const blockerRoom = Math.min(...blockers.map((block) => block.position.rowSpan - 3));
-  const delta = Math.min(2, Math.max(0, blockerRoom), bandTop - 1);
+  const blockerRoom = Math.min(...blockers.map((block) => block.position.rowSpan - 2));
+  const delta = Math.min(3, Math.max(0, blockerRoom), bandTop - 1);
   if (delta <= 0) return layout;
 
   const bandIds = new Set(band.map((block) => block.blockId));
