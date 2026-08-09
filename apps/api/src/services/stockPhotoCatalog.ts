@@ -464,6 +464,9 @@ function scorePhoto(
 function captionFor(photo: StockPhoto, article: Article | undefined, slot: TemplateSlot): string {
   const title = article?.title?.trim();
   const role = `${slot.id} ${slot.styleTag ?? ""}`.toLowerCase();
+  if (photo.topicKey === "volunteer" || photo.topicKey === "staff") {
+    return photo.caption;
+  }
   if (title && /birthday|anniversar|milestone/.test(role)) {
     return `${title} celebrated with a little extra color`;
   }
