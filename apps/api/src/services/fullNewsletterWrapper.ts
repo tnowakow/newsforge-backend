@@ -108,13 +108,13 @@ function compactGatewayInnerBlocks(blocks: LayoutBlock[]): LayoutBlock[] {
     if (block.slotId === "cl-p1-happy-hour" || block.slotId === "cl-p1-upcoming-events") {
       return {
         ...block,
-        position: { ...block.position, row: 7, rowSpan: 4 },
+        position: { ...block.position, row: 7, rowSpan: 2 },
       };
     }
     if (/^cl-p1-(hh|event)-img-/.test(block.slotId)) {
       return {
         ...block,
-        position: { ...block.position, row: 11, rowSpan: 6 },
+        position: { ...block.position, row: 9, rowSpan: 8 },
       };
     }
     return block;
