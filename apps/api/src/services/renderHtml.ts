@@ -48,8 +48,9 @@ interface RenderInput {
    * "print" adds the bleed-fill wrapper, @page landscape spread size, and
    * crop-marks SVG per V2-PRINT-VALIDATION §2/§3 — used only by the
    * Puppeteer print-PDF render pass (pdf.ts variant="print").
+   * "spread" renders a PorterOne-style 17x11 inner spread on one sheet.
    */
-  variant?: "web" | "print";
+  variant?: "web" | "print" | "spread";
 }
 
 function esc(s: string): string {
@@ -220,10 +221,25 @@ export function renderRunHtml(input: RenderInput): string {
     pages.get(b.page)!.push(renderBlock(input, b));
   }
 
-  const pageSections = [...pages.entries()]
-    .sort(([a], [b]) => a - b)
-    .map(
-      ([page, blocks]) => `
+  const sortedPages = [...pages.entries()].sort(([a], [b]) => a - b);
+  const isSpread = input.variant === "spread" && input.layout.pageCount === 2;
+  const pageSections = isSpread
+    ? `
+    <section class="spread-sheet ${personality}" data-spread="inner">
+      ${sortedPages
+        .map(
+          ([page, blocks]) => `
+      <section class="page spread-panel ${personality}" data-page="${page}">
+        <div class="content" style="grid-template-columns:repeat(${cols},minmax(0,1fr));grid-template-rows:repeat(${rows},minmax(0,1fr));">
+          ${blocks.join("\n")}
+        </div>
+      </section>`,
+        )
+        .join("\n")}
+    </section>`
+    : sortedPages
+      .map(
+        ([page, blocks]) => `
     <section class="page ${personality}" data-page="${page}">
       ${masthead(input, page)}
       <div class="content" style="grid-template-columns:repeat(${cols},minmax(0,1fr));grid-template-rows:repeat(${rows},minmax(0,1fr));">
@@ -233,8 +249,32 @@ export function renderRunHtml(input: RenderInput): string {
         <span>${esc(input.clientName)}</span><span>${esc(input.monthLabel)} · Page ${page}</span>
       </footer>
     </section>`,
-    )
-    .join("\n");
+      )
+      .join("\n");
+
+  const pageCss =
+    input.variant === "spread"
+      ? `
+  @page { size: 17in 11in; margin: 0; }
+  .spread-sheet {
+    width: 17in; height: 11in; display:grid; grid-template-columns:1fr 1fr;
+    background:#fff; overflow:hidden; page-break-after: always;
+  }
+  .spread-sheet .page {
+    width: 8.5in; height: 11in; padding: 0.12in 0.13in 0.13in;
+    page-break-after: auto; overflow:hidden; display:flex; flex-direction:column;
+  }
+  .spread-sheet .page + .page { border-left: 1px solid rgba(21,27,43,0.08); }
+  .spread-sheet .content { flex:1; min-height:0; display:grid; gap: 3px; }
+  .spread-sheet .block-inner.panel { padding: 6px 8px; }
+  .spread-sheet .section-heading { font-size: clamp(10pt, 1.6vw, 14pt); margin-bottom:2pt; }
+  .spread-sheet .script-heading { font-size: clamp(12pt, 1.85vw, 17pt); margin-bottom:2pt; }
+  .spread-sheet .body { font-size: 8.2pt; line-height: 1.16; }
+  .spread-sheet .body.compact { font-size: 7.9pt; line-height: 1.12; }
+  .spread-sheet .list-body { font-size: 8.4pt; line-height: 1.12; }
+  .spread-sheet .photo figcaption { font-size: 5.9pt; line-height:1.0; max-height: 12pt; }
+`
+      : "";
 
   return `<!doctype html>
 <html>
@@ -391,7 +431,8 @@ export function renderRunHtml(input: RenderInput): string {
     .role-infoFooter .script-heading,
     .role-infoFooter .section-heading { font-size: 18pt; text-transform:none; letter-spacing:0; margin-bottom:5pt; }
     .role-infoFooter .body { font-size: 8.6pt; font-weight: 700; line-height:1.22; }
-    .pagefoot { margin-top: 0.05in; padding-top: 3pt; border-top: 2px solid; display:flex; justify-content:space-between; font-size: 7.2pt; letter-spacing: 0.1em; text-transform: uppercase; color:#666; }
+  .pagefoot { margin-top: 0.05in; padding-top: 3pt; border-top: 2px solid; display:flex; justify-content:space-between; font-size: 7.2pt; letter-spacing: 0.1em; text-transform: uppercase; color:#666; }
+  ${pageCss}
 </style>
 </head>
 <body>

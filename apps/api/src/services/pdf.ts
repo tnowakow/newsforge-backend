@@ -15,7 +15,7 @@ import { getPage } from "../browser.js";
 import { env } from "../env.js";
 import { prisma } from "../db.js";
 
-export type PdfVariant = "web" | "print";
+export type PdfVariant = "web" | "print" | "spread";
 
 export interface PdfGenerationResult {
   pdfPath: string;
@@ -31,7 +31,7 @@ export async function generatePdfForRun(
   const filename = `${runId}-${variant}-${Date.now()}.pdf`;
   const fullPath = path.resolve(env.PDF_DIR, filename);
 
-  const variantQs = variant === "print" ? "&variant=print" : "";
+  const variantQs = variant === "print" || variant === "spread" ? `&variant=${variant}` : "";
   const renderUrl =
     `http://127.0.0.1:${env.PORT}/render/${encodeURIComponent(runId)}` +
     `?key=${encodeURIComponent(env.INTERNAL_RENDER_KEY)}${variantQs}`;
@@ -48,6 +48,15 @@ export async function generatePdfForRun(
       // required 1242×810 pts landscape spread.
       width: "17.25in",
       height: "11.25in",
+      printBackground: true,
+      preferCSSPageSize: true,
+      margin: { top: 0, right: 0, bottom: 0, left: 0 },
+    });
+  } else if (variant === "spread") {
+    await page.pdf({
+      path: fullPath,
+      width: "17in",
+      height: "11in",
       printBackground: true,
       preferCSSPageSize: true,
       margin: { top: 0, right: 0, bottom: 0, left: 0 },

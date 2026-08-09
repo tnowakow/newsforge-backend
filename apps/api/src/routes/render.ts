@@ -13,7 +13,11 @@ import { buildRunHtml } from "../services/runHtml.js";
 export const renderRouter: Router = Router();
 
 renderRouter.get("/:runId", internalOnly, async (req, res) => {
-  const result = await buildRunHtml(String(req.params.runId));
+  const variant =
+    req.query.variant === "print" || req.query.variant === "spread"
+      ? req.query.variant
+      : "web";
+  const result = await buildRunHtml(String(req.params.runId), variant);
   if (!result.ok) {
     res.status(result.status).send(result.reason);
     return;

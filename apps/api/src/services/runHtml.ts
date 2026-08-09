@@ -15,6 +15,7 @@ import { renderRunHtml } from "./renderHtml.js";
 import {
   ArticlesSchema,
   AssembledLayoutSchema,
+  type AssembledLayout,
   GridSpecSchema,
   ImagesSchema,
   RecurringSectionsSchema,
@@ -24,6 +25,8 @@ import {
 export type RunHtmlResult =
   | { ok: true; html: string }
   | { ok: false; status: 404 | 500; reason: string };
+
+export type RunHtmlVariant = "web" | "print" | "spread";
 
 function svgFallbackDataUri(image: NewsImage): string {
   const label = (image.alt ?? image.caption ?? "Newsletter photo")
@@ -59,7 +62,30 @@ async function inlineRemoteImages(images: NewsImage[]): Promise<NewsImage[]> {
   return Promise.all(images.map(inlineRemoteImage));
 }
 
-export async function buildRunHtml(runId: string): Promise<RunHtmlResult> {
+function innerSpreadLayout(layout: AssembledLayout): AssembledLayout {
+  if (!layout.templateId.startsWith("v3-") || layout.pageCount < 4) {
+    return layout;
+  }
+  const blocks = layout.blocks
+    .filter((block) => block.page === 2 || block.page === 3)
+    .map((block) => ({ ...block, page: block.page - 1 }));
+  return {
+    ...layout,
+    pageCount: 2,
+    blocks,
+    stats: {
+      placedArticles: blocks.filter((block) => block.articleId).length,
+      placedImages: blocks.filter((block) => block.imageId).length,
+      fillerBlocks: blocks.filter((block) => block.kind === "filler" || block.needsFiller).length,
+      emptySlots: blocks.filter((block) => block.kind === "empty").length,
+    },
+  };
+}
+
+export async function buildRunHtml(
+  runId: string,
+  variant: RunHtmlVariant = "web",
+): Promise<RunHtmlResult> {
   const run = await prisma.newsletterRun.findUnique({
     where: { id: runId },
     include: { client: true, template: true },
@@ -90,10 +116,11 @@ export async function buildRunHtml(runId: string): Promise<RunHtmlResult> {
       logoUrl: run.client.logoUrl,
     },
     gridSpec: grid.data,
-    layout: layout.data,
+    layout: variant === "spread" ? innerSpreadLayout(layout.data) : layout.data,
     articles: articles.data,
     images: await inlineRemoteImages(images.data),
     recurringSections: recurring.success ? recurring.data : [],
+    variant,
   });
 
   return { ok: true, html };

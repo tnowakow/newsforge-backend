@@ -1094,7 +1094,7 @@ runsRouter.post("/:id/pdf", async (req, res) => {
   }
 
   const variantParsed = z
-    .enum(["web", "print"])
+    .enum(["web", "print", "spread"])
     .default("web")
     .safeParse(req.query.variant ?? req.body?.variant ?? "web");
   const variant: PdfVariant = variantParsed.success ? variantParsed.data : "web";
