@@ -102,13 +102,13 @@ function compactGatewayInnerBlocks(blocks: LayoutBlock[]): LayoutBlock[] {
       if (block.slotId === "cl-p2-outings") {
         return {
           ...block,
-          position: { ...block.position, row: 1, rowSpan: 5 },
+          position: { ...block.position, row: 1, rowSpan: 4 },
         };
       }
       if (block.slotId === "cl-p2-feature-band") {
         return {
           ...block,
-          position: { ...block.position, row: 6, rowSpan: 4 },
+          position: { ...block.position, row: 5, rowSpan: 5 },
         };
       }
       if (block.slotId === "cl-p2-volunteer") {
@@ -129,19 +129,19 @@ function compactGatewayInnerBlocks(blocks: LayoutBlock[]): LayoutBlock[] {
     if (block.slotId === "cl-p1-bday" || block.slotId === "cl-p1-exec") {
       return {
         ...block,
-        position: { ...block.position, row: 1, rowSpan: 5 },
+        position: { ...block.position, row: 1, rowSpan: 4 },
       };
     }
     if (block.slotId === "cl-p1-happy-hour" || block.slotId === "cl-p1-upcoming-events") {
       return {
         ...block,
-        position: { ...block.position, row: 6, rowSpan: 2 },
+        position: { ...block.position, row: 5, rowSpan: 2 },
       };
     }
     if (/^cl-p1-(hh|event)-img-/.test(block.slotId)) {
       return {
         ...block,
-        position: { ...block.position, row: 8, rowSpan: 9 },
+        position: { ...block.position, row: 7, rowSpan: 10 },
       };
     }
     return block;
