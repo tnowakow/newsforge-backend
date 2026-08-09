@@ -273,6 +273,22 @@ export function renderRunHtml(input: RenderInput): string {
   .spread-sheet .body.compact { font-size: 7.9pt; line-height: 1.12; }
   .spread-sheet .list-body { font-size: 8.4pt; line-height: 1.12; }
   .spread-sheet .photo figcaption { font-size: 5.9pt; line-height:1.0; max-height: 12pt; }
+  .spread-sheet .copy-fill-md .section-heading { font-size: clamp(12pt, 1.9vw, 16pt); }
+  .spread-sheet .copy-fill-md .script-heading { font-size: clamp(13pt, 2vw, 17pt); }
+  .spread-sheet .copy-fill-md .body { font-size: 9.1pt; line-height: 1.16; }
+  .spread-sheet .copy-fill-md .list-body { font-size: 9pt; line-height: 1.1; }
+  .spread-sheet .copy-fill-lg .section-heading { font-size: clamp(13pt, 2.1vw, 18pt); }
+  .spread-sheet .copy-fill-lg .script-heading { font-size: clamp(15pt, 2.25vw, 20pt); }
+  .spread-sheet .copy-fill-lg .body { font-size: 10.2pt; line-height: 1.14; }
+  .spread-sheet .copy-fill-lg .list-body { font-size: 10pt; line-height: 1.08; }
+  .spread-sheet .copy-fill-xl .section-heading { font-size: clamp(15pt, 2.35vw, 21pt); }
+  .spread-sheet .copy-fill-xl .script-heading { font-size: clamp(17pt, 2.6vw, 24pt); }
+  .spread-sheet .copy-fill-xl .body { font-size: 11.4pt; line-height: 1.12; }
+  .spread-sheet .copy-fill-xl .list-body { font-size: 10.8pt; line-height: 1.06; }
+  .spread-sheet .role-directorCorner .body { font-size: 9.4pt; line-height: 1.15; }
+  .spread-sheet .role-spotlightRail .body { font-size: 10.3pt; line-height: 1.15; }
+  .spread-sheet .role-featureBand .body { font-size: 9.5pt; line-height: 1.14; }
+  .spread-sheet .role-infoFooter .body { font-size: 8.5pt; line-height: 1.08; }
 `
       : "";
 
