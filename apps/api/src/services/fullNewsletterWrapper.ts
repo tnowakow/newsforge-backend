@@ -138,10 +138,34 @@ function compactGatewayInnerBlocks(blocks: LayoutBlock[]): LayoutBlock[] {
         position: { ...block.position, row: 6, rowSpan: 2 },
       };
     }
-    if (/^cl-p1-(hh|event)-img-/.test(block.slotId)) {
+    if (block.slotId === "cl-p1-hh-img-a") {
       return {
         ...block,
-        position: { ...block.position, row: 8, rowSpan: 9 },
+        position: { ...block.position, col: 1, row: 8, colSpan: 8, rowSpan: 9 },
+      };
+    }
+    if (block.slotId === "cl-p1-hh-img-b") {
+      return {
+        ...block,
+        position: { ...block.position, col: 9, row: 8, colSpan: 5, rowSpan: 5 },
+      };
+    }
+    if (block.slotId === "cl-p1-hh-img-c") {
+      return {
+        ...block,
+        position: { ...block.position, col: 9, row: 13, colSpan: 5, rowSpan: 4 },
+      };
+    }
+    if (block.slotId === "cl-p1-event-img-a") {
+      return {
+        ...block,
+        position: { ...block.position, col: 14, row: 8, colSpan: 6, rowSpan: 9 },
+      };
+    }
+    if (block.slotId === "cl-p1-event-img-b") {
+      return {
+        ...block,
+        position: { ...block.position, col: 20, row: 8, colSpan: 5, rowSpan: 9 },
       };
     }
     return block;

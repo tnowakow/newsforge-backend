@@ -156,7 +156,9 @@ function renderBlock(input: RenderInput, b: LayoutBlock): string {
     (invert ? "color:#F7F5EF;" : "");
 
   const headingHtml = (text: string) =>
-    b.style?.scriptHeading
+    b.style?.panelRole === "directorCorner" && /executive director|director corner|from (our )?executive director/i.test(text)
+      ? `<h2 class="director-heading" style="color:${invert ? "#F7F5EF" : headerColor}"><span>EXECUTIVE DIRECTOR</span> <em>Corner</em></h2>`
+      : b.style?.scriptHeading
       ? `<h2 class="script-heading" style="color:${invert ? "#F7F5EF" : headerColor}">${esc(text)}</h2>`
       : `<h2 class="section-heading" style="color:${invert ? "#F7F5EF" : headerColor}">${esc(text)}</h2>`;
 
@@ -272,7 +274,8 @@ export function renderRunHtml(input: RenderInput): string {
   .spread-sheet .body { font-size: 8.2pt; line-height: 1.16; }
   .spread-sheet .body.compact { font-size: 7.9pt; line-height: 1.12; }
   .spread-sheet .list-body { font-size: 8.4pt; line-height: 1.12; }
-  .spread-sheet .photo figcaption { font-size: 5.9pt; line-height:1.0; max-height: 12pt; }
+  .spread-sheet .photo figcaption { font-size: 5.4pt; line-height:0.95; max-height: 10pt; letter-spacing:0.04em; }
+  .spread-sheet .role-photoCluster .photo figcaption { display:none; }
   .spread-sheet .copy-fill-lg,
   .spread-sheet .copy-fill-xl { justify-content:flex-start; }
   .spread-sheet .copy-fill-md .section-heading { font-size: clamp(12pt, 1.9vw, 16pt); }
@@ -287,10 +290,12 @@ export function renderRunHtml(input: RenderInput): string {
   .spread-sheet .copy-fill-xl .script-heading { font-size: clamp(17pt, 2.6vw, 24pt); }
   .spread-sheet .copy-fill-xl .body { font-size: 11.4pt; line-height: 1.12; }
   .spread-sheet .copy-fill-xl .list-body { font-size: 10.8pt; line-height: 1.06; }
-  .spread-sheet .role-directorCorner .body { font-size: 8.9pt; line-height: 1.13; column-count:2; column-gap:12px; }
-  .spread-sheet .role-spotlightRail .body { font-size: 10.3pt; line-height: 1.15; }
-  .spread-sheet .role-featureBand .body { font-size: 9.5pt; line-height: 1.14; }
-  .spread-sheet .role-infoFooter .body { font-size: 8.5pt; line-height: 1.08; }
+  .spread-sheet .role-directorCorner .body { font-size: 8.5pt; line-height: 1.12; column-count:2; column-gap:12px; font-weight:500; }
+  .spread-sheet .role-spotlightRail .body { font-size: 9.2pt; line-height: 1.13; text-align:left; font-weight:600; }
+  .spread-sheet .role-featureBand .body { font-size: 8.8pt; line-height: 1.12; text-align:left; font-weight:600; }
+  .spread-sheet .role-infoFooter .body { font-size: 7.4pt; line-height: 1.04; font-weight:600; }
+  .spread-sheet .role-infoFooter .section-heading,
+  .spread-sheet .role-infoFooter .script-heading { font-size: 14pt; margin-bottom:2pt; }
 `
       : "";
 
@@ -424,7 +429,10 @@ export function renderRunHtml(input: RenderInput): string {
     .role-birthday .list-row { border-bottom: 0; }
     .role-directorCorner.panel { padding: 11px 14px; }
     .role-directorCorner .script-heading { font-size: clamp(17pt, 3vw, 23pt); font-style: normal; text-transform: uppercase; letter-spacing:0.02em; }
-    .role-directorCorner .body { font-weight: 700; font-size: 9.4pt; line-height:1.2; }
+    .director-heading { font-family: var(--heading-font); font-size: clamp(17pt, 3vw, 23pt); line-height:0.95; letter-spacing:0.01em; margin-bottom:3pt; }
+    .director-heading span { font-weight:900; text-transform:uppercase; }
+    .director-heading em { font-family: Georgia, "Times New Roman", serif; font-size:0.76em; font-style:italic; font-weight:500; text-transform:none; letter-spacing:0; }
+    .role-directorCorner .body { font-weight: 600; font-size: 9.1pt; line-height:1.18; }
     .role-happyHour .section-heading,
     .role-upcomingEvents .section-heading,
     .role-outingList .section-heading,
@@ -440,15 +448,15 @@ export function renderRunHtml(input: RenderInput): string {
     .role-featureBand.panel { padding: 10px 14px; }
     .role-featureBand .script-heading,
     .role-featureBand .section-heading { font-size: clamp(14pt, 2.6vw, 20pt); text-transform:none; letter-spacing:0; }
-    .role-featureBand .body { font-size: 9.4pt; font-weight: 700; line-height:1.2; }
+    .role-featureBand .body { font-size: 9.2pt; font-weight: 600; line-height:1.18; }
     .role-spotlightRail.panel { padding: 10px 13px; }
     .role-spotlightRail .script-heading,
     .role-spotlightRail .section-heading { font-size: clamp(14pt, 2.4vw, 18pt); text-transform:none; letter-spacing:0; }
-    .role-spotlightRail .body { font-size: 9.4pt; font-weight: 700; line-height:1.2; }
+    .role-spotlightRail .body { font-size: 9.1pt; font-weight: 600; line-height:1.18; }
     .role-infoFooter.panel { padding: 8px 14px; }
     .role-infoFooter .script-heading,
     .role-infoFooter .section-heading { font-size: 18pt; text-transform:none; letter-spacing:0; margin-bottom:5pt; }
-    .role-infoFooter .body { font-size: 8.6pt; font-weight: 700; line-height:1.22; }
+    .role-infoFooter .body { font-size: 8.1pt; font-weight: 600; line-height:1.12; }
   .pagefoot { margin-top: 0.05in; padding-top: 3pt; border-top: 2px solid; display:flex; justify-content:space-between; font-size: 7.2pt; letter-spacing: 0.1em; text-transform: uppercase; color:#666; }
   ${pageCss}
 </style>
