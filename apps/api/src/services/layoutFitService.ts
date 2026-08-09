@@ -269,9 +269,7 @@ export function fitContent(
       }
       continue;
     }
-    const cap = semanticCap
-      ? Math.min(slot.capacity?.maxWords ?? semanticCap, semanticCap)
-      : slot.capacity?.maxWords;
+    const cap = semanticCap ?? slot.capacity?.maxWords;
     if (!cap || article.wordCount <= cap) {
       trimmedArticles.push(article);
       articleFit.push({
