@@ -94,7 +94,6 @@ function repairClippedBlocks(
   if (clipped.size === 0) return { layout, articles, changed: false };
 
   let changed = false;
-  const articlesById = new Map(articles.map((article) => [article.id, article]));
   const nextArticles = articles.map((article) => ({ ...article }));
   const mutableArticlesById = new Map(nextArticles.map((article) => [article.id, article]));
   const nextBlocks = layout.blocks.map((block) => {
@@ -107,10 +106,10 @@ function repairClippedBlocks(
       };
     }
     if (block.articleId) {
-      const original = articlesById.get(block.articleId);
       const article = mutableArticlesById.get(block.articleId);
-      if (original && article) {
-        article.body = trimWords(original.body);
+      if (article) {
+        const ratio = block.position.rowSpan <= 2 ? 0.45 : block.position.rowSpan <= 3 ? 0.62 : 0.76;
+        article.body = trimWords(article.body, ratio);
         article.wordCount = wordCount(article.body);
       }
     }
@@ -321,6 +320,10 @@ runsRouter.post("/", async (req, res) => {
   const fitResult = fitContent(articles, images, scoreableChosen);
   articles = fitResult.articles;
   images = fitResult.keptImages;
+  const innerImageSlotCount = gridSpecParsed.data.slots.filter((slot) => slot.type === "image").length;
+  const innerImages = template.id.startsWith("v3-")
+    ? images.slice(0, innerImageSlotCount)
+    : images;
   const runId = createId();
   const brandKit = {
     primaryColor: client.primaryColor,
@@ -339,7 +342,7 @@ runsRouter.post("/", async (req, res) => {
     pageCount: template.pageCount,
     gridSpec: gridSpecParsed.data,
     articles,
-    images,
+    images: innerImages,
     recurringSections,
     brandVoice: client.brandVoice,
     brandKit,
@@ -421,7 +424,7 @@ runsRouter.post("/", async (req, res) => {
       };
 
       let finalMeasurement = await measureSelected();
-      for (let attempt = 0; attempt < 2 && finalMeasurement?.clippedBlocks > 0; attempt++) {
+      for (let attempt = 0; attempt < 3 && finalMeasurement?.clippedBlocks > 0; attempt++) {
         const repaired = repairClippedBlocks(layout, articles, finalMeasurement);
         if (!repaired.changed) break;
         layout = repaired.layout;
