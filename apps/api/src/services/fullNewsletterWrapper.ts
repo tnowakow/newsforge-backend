@@ -96,6 +96,31 @@ const WRAP_IMG_COL_SPAN = 9;
 const WRAP_TOP_ROWSPAN = 7;
 const WRAP_BOTTOM_ROWSPAN = WRAP_ROWS - WRAP_TOP_ROWSPAN; // 9
 
+function compactGatewayInnerBlocks(blocks: LayoutBlock[]): LayoutBlock[] {
+  return blocks.map((block) => {
+    if (block.page !== 1) return block;
+    if (block.slotId === "cl-p1-bday" || block.slotId === "cl-p1-exec") {
+      return {
+        ...block,
+        position: { ...block.position, row: 1, rowSpan: 6 },
+      };
+    }
+    if (block.slotId === "cl-p1-happy-hour" || block.slotId === "cl-p1-upcoming-events") {
+      return {
+        ...block,
+        position: { ...block.position, row: 7, rowSpan: 4 },
+      };
+    }
+    if (/^cl-p1-(hh|event)-img-/.test(block.slotId)) {
+      return {
+        ...block,
+        position: { ...block.position, row: 11, rowSpan: 6 },
+      };
+    }
+    return block;
+  });
+}
+
 export function wrapV3InnerSpreadForDemo({
   layout,
   articles,
@@ -107,7 +132,11 @@ export function wrapV3InnerSpreadForDemo({
     return layout;
   }
 
-  const shiftedInnerBlocks = layout.blocks.map((block) => ({
+  const innerBlocks = layout.templateId === "v3-spread-classic"
+    ? compactGatewayInnerBlocks(layout.blocks)
+    : layout.blocks;
+
+  const shiftedInnerBlocks = innerBlocks.map((block) => ({
     ...block,
     page: block.page + 1,
   }));
