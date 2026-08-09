@@ -349,6 +349,12 @@ export function applyVibrancyPass(input: VibrancyInput): AssembledLayout {
     // --- Every image gets a caption, grounded in nearby story context ---
     if (next.kind === "image" && next.imageId) {
       const img = imageById.get(next.imageId);
+      if (
+        img?.source === "STOCK" &&
+        !/p2-photo-|photo-stack|outing|out[- ]?and[- ]?about/i.test(`${next.slotId} ${next.styleTag ?? ""}`)
+      ) {
+        next.caption = undefined;
+      }
       if (!next.caption) {
         const isRealUpload = img?.source === "UPLOAD" && !!img.caption;
         const nearbyArticle = isRealUpload
