@@ -333,7 +333,7 @@ export async function generateMockContentWithAi(
             upcomingEvents: "150-230 words or 4-6 concrete event rows",
             outings: "8-10 dated outing rows",
             spotlightRail: "280-360 words",
-            featureBand: "90-130 words",
+            featureBand: "160-220 words",
             volunteer: "80-120 words",
             infoFooter: "45-70 words",
           }
@@ -450,6 +450,7 @@ function generateTrilogyMockContent(
         paragraphs(input, [
           `Residents recently rolled into our Scrubbly Bubbly Car Wash, a special event dedicated to giving wheelchairs, walkers, and mobility devices a fresh shine.`,
           `While waiting for their vehicle to receive the VIP treatment, residents gathered for an ice cream social, shared stories, and spent time visiting with one another throughout the afternoon.`,
+          `Team members created a cheerful wash station with towels, music, cool treats, and plenty of conversation. Residents enjoyed watching each vehicle sparkle while neighbors caught up, laughed together, and remembered favorite summer drives.`,
           `Thank you to everyone who helped make this event possible. Whether you came for the car wash, the ice cream, or the good company, we hope you had a wheel-y great time!`,
         ]),
     },

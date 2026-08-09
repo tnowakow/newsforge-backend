@@ -120,7 +120,7 @@ function compactGatewayInnerBlocks(blocks: LayoutBlock[]): LayoutBlock[] {
       if (block.slotId === "cl-p2-trust-funds") {
         return {
           ...block,
-          position: { ...block.position, row: 14, rowSpan: 3 },
+          position: { ...block.position, row: 15, rowSpan: 2 },
         };
       }
       return block;
