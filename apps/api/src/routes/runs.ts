@@ -376,6 +376,7 @@ runsRouter.post("/", async (req, res) => {
     monthLabel: body.monthLabel,
     variationSeed: runId,
   });
+  if (designed.articles) articles = designed.articles;
   let layout = designed.layout;
 
   const monthLabel =

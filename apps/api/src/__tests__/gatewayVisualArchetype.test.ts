@@ -261,7 +261,7 @@ test("generic recurring fallbacks do not steal semantic articles", () => {
   assert.equal(bySlot.get("spotlight")?.needsFiller, true);
 });
 
-test("compact birthday modules limit rows before render measurement", () => {
+test("birthday modules preserve the full roster for layout repair", () => {
   const body = [
     "RESIDENTS",
     "Mary A. 7/3",
@@ -313,7 +313,7 @@ test("compact birthday modules limit rows before render measurement", () => {
   });
 
   assert.equal(layout.blocks[0]?.kind, "list");
-  assert.ok((layout.blocks[0]?.listItems?.length ?? 0) <= 10);
+  assert.equal(layout.blocks[0]?.listItems?.length, 13);
 });
 
 test("vibrancy pass applies selected visual personality to panel and image defaults", () => {

@@ -83,27 +83,11 @@ export function parseListItems(body: string): ListItem[] {
 
 function compactBirthdayItems(items: ListItem[], block: LayoutBlock): ListItem[] {
   const area = block.position.colSpan * block.position.rowSpan;
-  if (area > 32 || items.length <= 12) return items;
-
-  const compact: ListItem[] = [];
-  let rows = 0;
-  let activeGroup = "";
-  const maxRowsByGroup: Record<string, number> = { RESIDENTS: 4, STAFF: 4 };
-  for (const item of items) {
-    if (item.isGroupHeader) {
-      activeGroup = item.label.toUpperCase();
-      if (!compact.some((existing) => existing.isGroupHeader && existing.label === item.label)) {
-        compact.push(item);
-      }
-      rows = 0;
-      continue;
-    }
-    const maxRows = maxRowsByGroup[activeGroup] ?? 8;
-    if (rows >= maxRows) continue;
-    compact.push(item);
-    rows += 1;
-  }
-  return compact;
+  // Porter treats birthdays as a signature content module. Never silently
+  // delete residents/staff to make a too-small box look clean; the layout
+  // planner/repair pass must give this block enough room instead.
+  if (area > 20 || items.length <= 12) return items;
+  return items;
 }
 
 function firstSentence(text: string, max = 90): string {

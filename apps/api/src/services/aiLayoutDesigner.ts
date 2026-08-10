@@ -37,6 +37,10 @@ import {
   type EditorialPlan,
 } from "./adaptiveLayoutPlanner.js";
 import { measureAdaptiveCandidates } from "./layoutMeasurementService.js";
+import {
+  scorePorterOneReferenceAffinity,
+} from "./porterOneReferenceScorer.js";
+import type { CandidateMeasurement } from "./adaptiveLayoutPlanner.js";
 
 /** Layout design returns full spread JSON; production smokes can take 30-75s. */
 const DESIGN_TIMEOUT_MS = 90_000;
@@ -65,6 +69,8 @@ export interface DesignLayoutInput {
 
 export interface DesignLayoutResult {
   layout: AssembledLayout;
+  /** Articles may be sentence-trimmed by measured AI repair before persistence. */
+  articles?: Article[];
   mode: "ai" | "deterministic";
   designNotes?: string;
   fallbackReason?: string;
@@ -156,6 +162,61 @@ function sanitizeBlocks(
       },
     };
   });
+}
+
+function trimArticleForRepair(text: string, ratio: number): string {
+  const words = text.trim().split(/\s+/).filter(Boolean);
+  const keep = Math.max(12, Math.floor(words.length * ratio));
+  const trimmed = words.slice(0, keep).join(" ").replace(/[,:;—-]\s*$/, "");
+  return /[.!?]$/.test(trimmed) ? trimmed : `${trimmed}.`;
+}
+
+/** Repair only the measured offenders; never throw away the whole AI spread
+ * because a few text boxes are one step too tall. */
+function repairClippedAiLayout(
+  layout: AssembledLayout,
+  articles: Article[],
+  measurement: CandidateMeasurement,
+  attempt: number,
+): { layout: AssembledLayout; articles: Article[]; changed: boolean } {
+  const clipped = new Set(measurement.clippedBlockIds ?? []);
+  if (clipped.size === 0) return { layout, articles, changed: false };
+  const nextArticles = articles.map((article) => ({ ...article }));
+  const byId = new Map(nextArticles.map((article) => [article.id, article]));
+  let changed = false;
+  const blocks = layout.blocks.map((block) => {
+    if (!clipped.has(block.blockId)) return block;
+    const style = { ...(block.style ?? {}), copyFit: "sm" as const };
+    if (attempt >= 1 && block.articleId) {
+      const article = byId.get(block.articleId);
+      if (article && article.body.split(/\s+/).length > 18) {
+        article.body = trimArticleForRepair(article.body, 0.9);
+        article.wordCount = article.body.split(/\s+/).filter(Boolean).length;
+      }
+    }
+    changed = true;
+    return { ...block, style };
+  });
+  return { layout: { ...layout, blocks }, articles: nextArticles, changed };
+}
+
+function qualityScore(
+  layout: AssembledLayout,
+  measurement: CandidateMeasurement | undefined,
+  gridSpec: GridSpec,
+): number {
+  const reference = scorePorterOneReferenceAffinity(layout, gridSpec);
+  const useful = measurement?.usefulOccupancy ?? 0;
+  const coverage = measurement?.geometricCoverage ?? 0;
+  const pageUtility = measurement?.minPageUtility ?? 0;
+  const renderFit = measurement
+    ? Math.max(0, 1 - measurement.clippedBlocks * 0.015 - measurement.overflowBlocks * 0.2 - measurement.missingImages * 0.2)
+    : 0;
+  const clipPenalty = Math.min(0.12, (measurement?.clippedBlocks ?? 0) * 0.015);
+  const emptyPenalty = Math.max(0, (measurement?.largestEmptyBandRatio ?? 0) - 0.28) * 0.35;
+  return Math.max(0, Math.min(1,
+    reference.affinity * 0.45 + useful * 0.2 + coverage * 0.15 + pageUtility * 0.1 + renderFit * 0.1 - clipPenalty - emptyPenalty,
+  ));
 }
 
 /** Append any images the AI forgot into remaining image-ish space. */
@@ -376,7 +437,7 @@ export async function designLayout(
   }
   blocks = reattachMissingImages(blocks, input);
 
-  const layout: AssembledLayout = expandPhotoBand(applyVibrancyPass({
+  let layout: AssembledLayout = expandPhotoBand(applyVibrancyPass({
     layout: {
       ...skeleton,
       blocks,
@@ -394,57 +455,78 @@ export async function designLayout(
   }));
 
   try {
-    const [measurement] = await measureAdaptiveCandidates({
-      clientName: input.clientName,
-      monthLabel: input.monthLabel ?? "Newsletter",
-      brandKit: input.brandKit,
-      gridSpec: input.gridSpec,
-      articles: input.articles,
-      images: input.images,
-      recurringSections: input.recurringSections,
-      candidates: [{
-        id: "ai-returned-layout",
-        label: "AI returned layout",
-        geometryVariant: "fixed",
-        layout,
-        score: 0,
-        subscores: {
-          occupancy: 0,
-          contentCoverage: 0,
-          requiredCoverage: 0,
-          balance: 0,
-          clippingRisk: 0,
-          geometryValidity: 0,
-          photoImpact: 0,
-          grammarAffinity: 0,
-        },
-        warnings: [],
-      }],
-    });
+    const measureAi = async (
+      candidateLayout: AssembledLayout,
+      candidateArticles: Article[],
+    ): Promise<CandidateMeasurement | undefined> => {
+      const [measurement] = await measureAdaptiveCandidates({
+        clientName: input.clientName,
+        monthLabel: input.monthLabel ?? "Newsletter",
+        brandKit: input.brandKit,
+        gridSpec: input.gridSpec,
+        articles: candidateArticles,
+        images: input.images,
+        recurringSections: input.recurringSections,
+        candidates: [{
+          id: "ai-returned-layout",
+          label: "AI returned layout",
+          geometryVariant: "fixed",
+          layout: candidateLayout,
+          score: 0,
+          subscores: {
+            occupancy: 0,
+            contentCoverage: 0,
+            requiredCoverage: 0,
+            balance: 0,
+            clippingRisk: 0,
+            geometryValidity: 0,
+            photoImpact: 0,
+            grammarAffinity: 0,
+          },
+          warnings: [],
+        }],
+      });
+      return measurement;
+    };
+
+    let repairedArticles = input.articles.map((article) => ({ ...article }));
+    let measurement = await measureAi(layout, repairedArticles);
+    let repairAttempts = 0;
+    while (measurement?.clippedBlocks && repairAttempts < 2) {
+      const repaired = repairClippedAiLayout(layout, repairedArticles, measurement, repairAttempts);
+      if (!repaired.changed) break;
+      layout = repaired.layout;
+      repairedArticles = repaired.articles;
+      repairAttempts += 1;
+      measurement = await measureAi(layout, repairedArticles);
+    }
+
     const placedImageIds = new Set(layout.blocks.map((block) => block.imageId).filter(Boolean));
     const missingPlacements = input.images.filter((image) => !placedImageIds.has(image.id)).length;
     const geometricCoverage = measurement?.geometricCoverage ?? 0;
-    const largestEmptyBandRatio = measurement?.largestEmptyBandRatio ?? 1;
-    const aiFailsDensityGate =
+    const hardFailure =
       !measurement ||
-      measurement.clippedBlocks > 0 ||
       measurement.overflowBlocks > 0 ||
       measurement.missingImages > 0 ||
       missingPlacements > 0 ||
-      geometricCoverage < 0.9 ||
-      measurement.usefulOccupancy < 0.72 ||
-      (measurement.minPageUtility ?? 0) < 0.55 ||
-      largestEmptyBandRatio > 0.22;
-    if (aiFailsDensityGate) {
+      geometricCoverage < 0.85;
+    const aiAffinity = scorePorterOneReferenceAffinity(layout, input.gridSpec);
+    const fallbackMeasurement = adaptiveChosen.measurement;
+    const aiScore = qualityScore(layout, measurement, input.gridSpec);
+    const fallbackScore = qualityScore(adaptiveChosen.layout, fallbackMeasurement, input.gridSpec);
+    if (hardFailure || aiScore + 0.015 < fallbackScore) {
       return {
         layout: fallbackLayout,
         mode: "deterministic",
-        fallbackReason: `ai_layout_failed_density_gate:${[
+        articles: input.articles,
+        fallbackReason: `ai_layout_rejected_weighted_gate:${[
           measurement ? `clips=${measurement.clippedBlocks}` : "unmeasured",
           measurement ? `overflow=${measurement.overflowBlocks}` : undefined,
           measurement ? `missing=${measurement.missingImages + missingPlacements}` : undefined,
           measurement ? `coverage=${geometricCoverage.toFixed(3)}` : undefined,
           measurement ? `utility=${measurement.usefulOccupancy.toFixed(3)}` : undefined,
+          `aiScore=${aiScore.toFixed(3)}`,
+          `fallbackScore=${fallbackScore.toFixed(3)}`,
         ].filter(Boolean).join(",")}`,
         editorialPlan: adaptive.plan,
         adaptiveCandidates: adaptiveCandidateReport,
@@ -457,12 +539,28 @@ export async function designLayout(
         },
       };
     }
+    return {
+      layout,
+      articles: repairedArticles,
+      mode: "ai",
+      designNotes: `${result.data.designNotes ?? "AI returned the styled V3 layout."} Accepted after ${repairAttempts} measured repair pass${repairAttempts === 1 ? "" : "es"}; PorterOne affinity ${aiAffinity.affinity.toFixed(3)} (${aiAffinity.referenceId}).`,
+      editorialPlan: adaptive.plan,
+      adaptiveCandidates: adaptiveCandidateReport,
+      promptAudit: {
+        systemPrompt,
+        userPrompt,
+        provider: result.provider,
+        model: result.model,
+        durationMs: result.durationMs,
+      },
+    };
   } catch (err) {
     console.warn("[layout-measurement] AI returned layout measurement skipped:", err);
   }
 
   return {
     layout,
+    articles: input.articles,
     mode: "ai",
     designNotes:
       result.data.designNotes ??

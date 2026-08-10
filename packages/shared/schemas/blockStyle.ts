@@ -87,6 +87,8 @@ export const BlockStyleSchema = z.object({
   photoTreatment: PhotoTreatmentSchema.optional(),
   /** Compact dense editorial text for inner-spread feature blocks. */
   compact: z.boolean().optional(),
+  /** Repair-only downward copy step used when a measured text block clips. */
+  copyFit: z.enum(["sm"]).optional(),
 });
 export type BlockStyle = z.infer<typeof BlockStyleSchema>;
 

@@ -192,7 +192,8 @@ function renderBlock(input: RenderInput, b: LayoutBlock): string {
   }
 
   const densityClass = copyDensityClass(b, article);
-  return `<div class="block${roleClass(b)}${densityClass}" data-block-id="${esc(b.blockId)}" data-slot-id="${esc(b.slotId)}" style="${outerStyle}"><div class="block-inner${bg ? " panel" : ""}${roleClass(b)}${densityClass}" style="${panelStyle}">${inner}</div></div>`;
+  const copyFitClass = b.style?.copyFit === "sm" ? " copy-fit-sm" : "";
+  return `<div class="block${roleClass(b)}${densityClass}${copyFitClass}" data-block-id="${esc(b.blockId)}" data-slot-id="${esc(b.slotId)}" style="${outerStyle}"><div class="block-inner${bg ? " panel" : ""}${roleClass(b)}${densityClass}${copyFitClass}" style="${panelStyle}">${inner}</div></div>`;
 }
 
 function masthead(input: RenderInput, page: number): string {
@@ -362,7 +363,13 @@ export function renderRunHtml(input: RenderInput): string {
     .copy-fill-xl .section-heading { font-size: clamp(15pt, 3.1vw, 22pt); margin-bottom:5pt; }
     .copy-fill-xl .script-heading { font-size: clamp(17pt, 3.4vw, 24pt); margin-bottom:5pt; }
     .copy-fill-xl .body { font-size: 11.2pt; line-height: 1.18; }
-    .copy-fill-xl .list-body { font-size: 11.4pt; line-height: 1.12; }
+  .copy-fill-xl .list-body { font-size: 11.4pt; line-height: 1.12; }
+  /* Measured clip repair: a deliberate small step down, applied only to the
+     offending block after the AI layout has rendered once. */
+  .copy-fit-sm .section-heading { font-size: clamp(10pt, 1.8vw, 13pt) !important; }
+  .copy-fit-sm .script-heading { font-size: clamp(11pt, 2vw, 15pt) !important; }
+  .copy-fit-sm .body { font-size: 7.65pt !important; line-height: 1.08 !important; }
+  .copy-fit-sm .list-body { font-size: 7.7pt !important; line-height: 1.02 !important; }
     .photo-collage .photo-frame { border-radius: 10px; }
     .photo-wide .photo-frame { border-radius: 12px; }
     .photo-portrait .photo-frame { border-radius: 12px; }
