@@ -330,9 +330,29 @@ const PEXELS_PHOTO_IDS = [
   7088524, 7088530, 5637731, 5637733, 5637735, 6647037, 6647040,
 ];
 
+const TOPIC_PHOTO_IDS: Record<string, number[]> = {
+  "happy-hour": [7551668, 3768131, 3768136, 7551617, 3768114, 3768146],
+  outings: [5637731, 5637733, 5637735, 4148842, 4148843, 7551752],
+  birthdays: [5637731, 7551752, 3768136, 7551617],
+  dining: [7551648, 7551668, 3768131, 3768136],
+  wellness: [7551667, 7551608, 7551611, 7551672, 7551681, 3768114, 3768146],
+  garden: [7551752, 4148842, 4148843, 5637731, 5637735],
+  music: [7551752, 3768136, 7551617, 3768114],
+  "resident-story": [3768131, 3768136, 7551617, 3768114, 5637731, 7551668],
+  volunteer: [6646918, 6646917, 6646919, 6646878, 6647037, 6647040],
+  reading: [7551668, 3768136, 7551617, 3768131],
+  family: [7551668, 3768131, 3768136, 7551617, 7551752, 4148842, 4148843],
+  crafts: [6647037, 3768146, 7551668, 6646918, 6646917],
+  games: [3768146, 7551668, 3768131, 3768136, 6646918],
+  holiday: [5637731, 7551752, 4148842, 4148843, 3768136],
+  staff: [7551667, 7551681, 3768138, 6646918, 7551668],
+  campus: [5637733, 5637735, 7551668, 3768131],
+  technology: [7088524, 7088530, 7551668, 3768136],
+};
+
 function photoUrl(topic: string, aspect: StockAspect, index: number): string {
-  void topic;
-  const id = PEXELS_PHOTO_IDS[index % PEXELS_PHOTO_IDS.length];
+  const pool = TOPIC_PHOTO_IDS[topic] ?? PEXELS_PHOTO_IDS;
+  const id = pool[index % pool.length];
   const width = aspect === "portrait" ? 1200 : aspect === "square" ? 1400 : 1600;
   return `https://images.pexels.com/photos/${id}/pexels-photo-${id}.jpeg?auto=compress&cs=tinysrgb&w=${width}`;
 }
@@ -351,7 +371,8 @@ const STOCK_PHOTOS: StockPhoto[] = PHOTO_TOPICS.flatMap((topic, topicIndex) =>
   Array.from({ length: CATALOG_VARIANTS_PER_TOPIC }, (_, variant) => {
     const aspect = topic.aspects[variant % topic.aspects.length];
     const caption = variantCaption(topic.captions, variant);
-    const url = photoUrl(topic.key, aspect, topicIndex * 10 + variant);
+    void topicIndex;
+    const url = photoUrl(topic.key, aspect, variant);
     return {
       id: `stock-${topic.key}-${variant + 1}`,
       topicKey: topic.key,
