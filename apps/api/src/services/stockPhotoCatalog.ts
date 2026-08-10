@@ -482,6 +482,21 @@ function captionFor(photo: StockPhoto, article: Article | undefined, slot: Templ
   return photo.caption;
 }
 
+function cropFor(photo: StockPhoto, slot: TemplateSlot): Pick<NewsImage, "focalX" | "focalY" | "zoom"> {
+  const role = `${slot.id} ${slot.styleTag ?? ""}`.toLowerCase();
+  const desired = slot.capacity?.aspect;
+  let zoom = /collage|photo-cluster|photo-stack/.test(role) ? 1.06 : 1.03;
+  if (desired && desired !== "any" && desired !== photo.aspect) zoom += 0.08;
+  if (photo.aspect === "portrait" && desired === "landscape") zoom += 0.05;
+  if (photo.aspect === "landscape" && desired === "portrait") zoom += 0.05;
+  const focalY = /portrait|spotlight|staff|resident/.test(role) ? 42 : 48;
+  return {
+    focalX: 50,
+    focalY,
+    zoom: Math.min(1.22, Number(zoom.toFixed(2))),
+  };
+}
+
 interface SelectStockPhotosInput {
   articles: Article[];
   images: NewsImage[];
@@ -541,9 +556,7 @@ export function selectStockPhotosForRun(input: SelectStockPhotosInput): NewsImag
       description: best.photo.description,
       tags: best.photo.tags,
       aspect: best.photo.aspect,
-      focalX: 50,
-      focalY: 50,
-      zoom: 1,
+      ...cropFor(best.photo, slot),
       isPlaceholder: false,
       source: "STOCK",
     });
