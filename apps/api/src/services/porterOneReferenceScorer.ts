@@ -181,6 +181,11 @@ export function scorePorterOneReferenceAffinity(
   const darkAccentArea = contentBlocks
     .filter(tokenIsDark)
     .reduce((sum, block) => sum + area(block), 0);
+  // Reference fingerprints describe the largest block as a fraction of one
+  // page, not the entire two-page spread. Using the spread denominator made a
+  // 30% page slab look like a harmless 15% block and hid the exact failure the
+  // Porter examples are meant to prevent.
+  const pageArea = Math.max(1, gridSpec.columns * gridSpec.rowsPerPage);
   const largestBlock = Math.max(0, ...contentBlocks.map(area));
   const diagnostics: PorterOneReferenceScore["diagnostics"] = {
     photoAreaRatio: photoArea / totalArea,
@@ -189,7 +194,7 @@ export function scorePorterOneReferenceAffinity(
     imageBlockCount: imageBlocks.length,
     contentBlockCount: contentBlocks.length,
     narrowRailCount: narrowRailCount(contentBlocks, gridSpec),
-    largestBlockRatio: largestBlock / totalArea,
+    largestBlockRatio: largestBlock / pageArea,
     bottomBandAreaRatio: bottomBandArea(contentBlocks, gridSpec) / totalArea,
   };
   const scored = PORTER_ONE_REFERENCES

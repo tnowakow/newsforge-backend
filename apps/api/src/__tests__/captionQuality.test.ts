@@ -169,3 +169,80 @@ test("captions never pull from a nearby birthday/schedule list block", () => {
   // generic default rather than pulling "RESIDENTS / Mary Ann F. 7/3" nonsense.
   assert.equal(photo?.caption, "A wonderful moment around campus!");
 });
+
+test("photo clusters suppress captions and standalone photos de-duplicate captions per page", () => {
+  const articles: Article[] = [{
+    id: "a-story",
+    title: "Summer Gathering",
+    body: "Residents gathered outside for music and conversation. Staff shared refreshments and welcomed every neighbor.",
+    wordCount: 14,
+    articleType: "event-recap",
+    isFiller: false,
+    source: "MOCK",
+  }];
+  const images: NewsImage[] = [
+    { id: "i-1", url: "https://example.com/1.jpg", caption: "A shared summer gathering", aspect: "landscape", isPlaceholder: false, source: "STOCK" },
+    { id: "i-2", url: "https://example.com/2.jpg", caption: "A shared summer gathering", aspect: "landscape", isPlaceholder: false, source: "STOCK" },
+    { id: "i-3", url: "https://example.com/3.jpg", caption: "A shared summer gathering", aspect: "landscape", isPlaceholder: false, source: "STOCK" },
+  ];
+  const layout: AssembledLayout = {
+    templateId: "v3-spread-classic",
+    pageCount: 1,
+    version: 1,
+    unfilledSlotIds: [],
+    stats: { placedArticles: 1, placedImages: 3, fillerBlocks: 0, emptySlots: 0 },
+    blocks: [
+      articleBlock("story", 1, "a-story", { col: 1, row: 1, colSpan: 8, rowSpan: 4 }),
+      { ...imageBlock("cluster-1", 1, "i-1", { col: 9, row: 1, colSpan: 4, rowSpan: 4 }), styleTag: "photoCluster" },
+      { ...imageBlock("cluster-2", 1, "i-2", { col: 13, row: 1, colSpan: 4, rowSpan: 4 }), styleTag: "photoCluster" },
+      imageBlock("standalone", 1, "i-3", { col: 17, row: 1, colSpan: 4, rowSpan: 4 }),
+    ],
+  };
+  const out = applyVibrancyPass({ layout, articles, images });
+  assert.equal(out.blocks.find((b) => b.blockId === "cluster-1")?.caption, undefined);
+  assert.equal(out.blocks.find((b) => b.blockId === "cluster-2")?.caption, undefined);
+  assert.ok(out.blocks.find((b) => b.blockId === "standalone")?.caption);
+});
+
+test("short schedule lists become narrow rails and oversized articles split below the page ceiling", () => {
+  const articles: Article[] = [{
+    id: "a-long",
+    title: "Living Together",
+    body: "Residents built a stronger community through shared meals and thoughtful conversations. The team created new activities for neighbors to enjoy together. Families joined the celebration and made the afternoon memorable.",
+    wordCount: 40,
+    articleType: "resident-story",
+    isFiller: false,
+    source: "MOCK",
+  }, {
+    id: "a-happy",
+    title: "Happy Hour",
+    body: "7/1 Music and Mocktails\n7/8 Garden Social\n7/15 Patio Trivia\n7/22 Ice Cream Bar\n7/29 Summer Singalong",
+    wordCount: 15,
+    articleType: "announcement",
+    isFiller: false,
+    source: "MOCK",
+  }];
+  const layout: AssembledLayout = {
+    templateId: "v3-spread-classic",
+    pageCount: 1,
+    version: 1,
+    unfilledSlotIds: [],
+    stats: { placedArticles: 2, placedImages: 0, fillerBlocks: 0, emptySlots: 0 },
+    blocks: [
+      articleBlock("long", 1, "a-long", { col: 1, row: 1, colSpan: 24, rowSpan: 8 }),
+      { ...articleBlock("happy", 1, "a-happy", { col: 1, row: 9, colSpan: 20, rowSpan: 4 }), kind: "list", listItems: [
+        { label: "7/1", value: "Music and Mocktails" },
+        { label: "7/8", value: "Garden Social" },
+        { label: "7/15", value: "Patio Trivia" },
+        { label: "7/22", value: "Ice Cream Bar" },
+        { label: "7/29", value: "Summer Singalong" },
+      ], style: { panelRole: "happyHour" } },
+    ],
+  };
+  const out = applyVibrancyPass({ layout, articles, images: [], gridSpec: { columns: 24, rowsPerPage: 16 } });
+  const happy = out.blocks.find((b) => b.blockId === "happy");
+  assert.ok((happy?.position.colSpan ?? 99) <= 6);
+  const articlePieces = out.blocks.filter((b) => b.blockId.startsWith("long"));
+  assert.ok(articlePieces.length >= 2);
+  assert.ok(articlePieces.every((b) => b.position.colSpan * b.position.rowSpan <= 24 * 16 * 0.24));
+});

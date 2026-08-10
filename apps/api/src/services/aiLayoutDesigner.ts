@@ -240,6 +240,7 @@ function composeAiLayout(
     articles: input.articles,
     images: input.images,
     visualPersonality,
+    gridSpec: input.gridSpec,
   }));
 }
 
@@ -350,6 +351,7 @@ export async function designLayout(
       articles: input.articles,
       images: input.images,
       visualPersonality: adaptive.plan.visualPersonality,
+      gridSpec: input.gridSpec,
     });
 
   // Skeleton blocks from the template give the model stable blockIds to keep.
@@ -513,7 +515,7 @@ export async function designLayout(
     // Keep the expensive critique loop for genuinely off-target layouts. The
     // repair/weighted gate still evaluates every AI result; this trigger is
     // deliberately stricter so ordinary generations stay designer-fast.
-    if (initialAffinity.affinity < 0.60) {
+    if (initialAffinity.affinity < 0.75) {
       const revision = await callGeminiJson({
         schema: AiDesignResponseSchema,
         systemPrompt: `${systemPrompt}\n\nCLOSED-LOOP REVISION: This is a measured revision, not a new template choice. Keep the strongest parts of the supplied layout, but correct the listed PorterOne diagnostics and any measured text clips. Return the complete block array again.`,
@@ -524,7 +526,8 @@ export async function designLayout(
           clippedBlocks: measurement?.clippedBlockIds ?? [],
           clipDetails: measurement?.clipDetails ?? [],
           currentBlocks: layout.blocks,
-          instruction: "Raise content-module count toward 14-18, keep individual blocks under about 20% of a page, add purposeful rails/bands/panels and clustered story photos, and fix only the measured offenders without dropping required content.",
+          targetAffinity: 0.75,
+          instruction: "Raise content-module count toward 14-18, keep individual blocks under about 22% of a page and never above 24%, reshape short schedules into narrow rails, add purposeful rails/bands/panels and clustered story photos, and fix only the measured offenders without dropping required content.",
         })}`,
         timeoutMs: 20_000,
         maxRetries: 0,

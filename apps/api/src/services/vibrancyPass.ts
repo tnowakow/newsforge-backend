@@ -244,6 +244,103 @@ export interface VibrancyInput {
   articles: Article[];
   images: NewsImage[];
   visualPersonality?: VisualPersonality;
+  /** Optional grid dimensions used by the deterministic Porter geometry guard. */
+  gridSpec?: { columns: number; rowsPerPage: number };
+}
+
+const SCHEDULE_ROLES = new Set<PanelRole>(["happyHour", "outingList", "upcomingEvents"]);
+
+function narrativeContinuation(article: Article): string | undefined {
+  const sentences = article.body.replace(/\s+/g, " ").trim().split(/(?<=[.!?])\s+/).filter(Boolean);
+  if (sentences.length < 2) return undefined;
+  const continuation = sentences.slice(Math.ceil(sentences.length / 2)).join(" ").trim();
+  return continuation.length >= 20 ? continuation : undefined;
+}
+
+/**
+ * AI is good at choosing editorial order but can still choose physically
+ * impossible shapes. Correct the two high-signal Porter failures
+ * deterministically after AI/fallback assembly:
+ * - short dated lists become rails instead of wide dead bands;
+ * - long article slabs become a lead + continuation module, keeping the
+ *   supplied copy while bringing each measured block below the page ceiling.
+ */
+function applyPorterGeometryGuard(
+  layout: AssembledLayout,
+  articles: Map<string, Article>,
+  gridSpec?: { columns: number; rowsPerPage: number },
+): AssembledLayout {
+  const columns = gridSpec?.columns ?? Math.max(1, ...layout.blocks.map((b) => b.position.col + b.position.colSpan - 1));
+  const rowsPerPage = gridSpec?.rowsPerPage ?? Math.max(1, ...layout.blocks.map((b) => b.position.row + b.position.rowSpan - 1));
+  const pageArea = columns * rowsPerPage;
+  const nextBlocks: LayoutBlock[] = [];
+
+  for (const block of layout.blocks) {
+    const role = block.style?.panelRole;
+    const itemCount = (block.listItems ?? []).filter((item) => !item.isGroupHeader).length;
+    let next = { ...block, position: { ...block.position }, style: block.style ? { ...block.style } : block.style };
+
+    if (role && SCHEDULE_ROLES.has(role) && block.kind === "list" && itemCount > 0 && itemCount <= 6 && block.position.colSpan > 8) {
+      const railSpan = Math.min(6, Math.max(4, Math.ceil(columns * 0.25)));
+      const oldRight = block.position.col + block.position.colSpan - 1;
+      next.position.colSpan = Math.min(railSpan, columns - block.position.col + 1);
+
+      // If a sibling begins immediately after the schedule, let it reclaim
+      // the cells the wide list used to occupy. Never grow into an occupied
+      // block or beyond the grid.
+      const sibling = layout.blocks.find((candidate) =>
+        candidate.blockId !== block.blockId &&
+        candidate.page === block.page &&
+        candidate.position.row === block.position.row &&
+        candidate.position.col === oldRight + 1,
+      );
+      if (sibling) {
+        const gap = sibling.position.col - (block.position.col + next.position.colSpan);
+        const extra = Math.max(0, Math.min(gap, columns - (sibling.position.col + sibling.position.colSpan - 1)));
+        if (extra > 0) {
+          const siblingCopy = nextBlocks.find((candidate) => candidate.blockId === sibling.blockId);
+          if (siblingCopy) siblingCopy.position.colSpan += extra;
+        }
+      }
+    }
+
+    const isSplittableArticle = Boolean(next.articleId && next.kind !== "image");
+    const exceedsCeiling = next.position.colSpan * next.position.rowSpan > pageArea * 0.24;
+    const article = next.articleId ? articles.get(next.articleId) : undefined;
+    const continuation = article ? narrativeContinuation(article) : undefined;
+    if (isSplittableArticle && exceedsCeiling && continuation) {
+      const splitVertical = next.position.rowSpan >= next.position.colSpan;
+      const fixedSpan = splitVertical ? next.position.colSpan : next.position.rowSpan;
+      const maxChunk = Math.floor((pageArea * 0.24) / Math.max(1, fixedSpan));
+      const totalSpan = splitVertical ? next.position.rowSpan : next.position.colSpan;
+      if (maxChunk >= 2 && totalSpan > maxChunk) {
+        const chunks: number[] = [];
+        for (let remaining = totalSpan; remaining > 0; remaining -= maxChunk) {
+          chunks.push(Math.min(maxChunk, remaining));
+        }
+        let offset = 0;
+        chunks.forEach((span, index) => {
+          const isFirst = index === 0;
+          nextBlocks.push({
+            ...next,
+            blockId: isFirst ? next.blockId : `${next.blockId}-continuation-${index}`,
+            articleId: isFirst ? next.articleId : undefined,
+            kind: isFirst ? next.kind : "filler",
+            inlineText: isFirst ? next.inlineText : continuation,
+            heading: isFirst ? next.heading : "Continued",
+            position: splitVertical
+              ? { ...next.position, row: next.position.row + offset, rowSpan: span }
+              : { ...next.position, col: next.position.col + offset, colSpan: span },
+            style: isFirst ? next.style : { ...(next.style ?? {}), compact: true },
+          });
+          offset += span;
+        });
+        continue;
+      }
+    }
+    nextBlocks.push(next);
+  }
+  return { ...layout, blocks: nextBlocks };
 }
 
 export function applyVibrancyPass(input: VibrancyInput): AssembledLayout {
@@ -258,6 +355,7 @@ export function applyVibrancyPass(input: VibrancyInput): AssembledLayout {
   const defaultPhotoTreatment = personality?.photoTreatment ?? "rounded";
   let headerIdx = 0;
   let panelIdx = 0;
+  const usedCaptionsByPage = new Map<number, Set<string>>();
 
   const blocks: LayoutBlock[] = input.layout.blocks.map((block) => {
     const next: LayoutBlock = { ...block, style: { ...(block.style ?? {}) } };
@@ -339,7 +437,8 @@ export function applyVibrancyPass(input: VibrancyInput): AssembledLayout {
       ) {
         next.caption = undefined;
       }
-      if (!next.caption) {
+      const isCluster = next.style?.panelRole === "photoCluster" || /collage|photo[- ]?cluster/i.test(next.styleTag ?? "");
+      if (!next.caption && !isCluster) {
         const isRealUpload = img?.source === "UPLOAD" && !!img.caption;
         const nearbyArticle = isRealUpload
           ? undefined
@@ -348,15 +447,25 @@ export function applyVibrancyPass(input: VibrancyInput): AssembledLayout {
           img?.source === "STOCK" && /p2-photo-|photo-stack|outing|out[- ]?and[- ]?about/i.test(`${next.slotId} ${next.styleTag ?? ""}`)
             ? img.caption
             : undefined;
-        next.caption =
+        const proposedCaption =
           (isRealUpload ? img?.caption : undefined) ??
           stockOwnCaption ??
           (nearbyArticle ? captionFromArticle(nearbyArticle) : undefined) ??
           (img?.source === "STOCK" ? img.caption : undefined) ??
           (img?.alt ? firstSentence(img.alt) : undefined) ??
           "A wonderful moment around campus!";
+        const used = usedCaptionsByPage.get(next.page) ?? new Set<string>();
+        const candidates = [
+          proposedCaption,
+          ...(nearbyArticle ? nearbyArticle.body.replace(/\s+/g, " ").split(/(?<=[.!?])\s+/).filter((sentence) => sentence.length >= 15).slice(1, 4) : []),
+          img?.caption,
+          img?.alt ? firstSentence(img.alt) : undefined,
+        ].filter((caption): caption is string => Boolean(caption?.trim()));
+        next.caption = candidates.find((caption) => !used.has(caption.trim().toLowerCase())) ?? undefined;
+        if (next.caption) used.add(next.caption.trim().toLowerCase());
+        usedCaptionsByPage.set(next.page, used);
       }
-      if (/collage|photo[- ]?cluster/i.test(next.styleTag ?? "")) {
+      if (isCluster) {
         next.style!.panelRole = next.style!.panelRole ?? "photoCluster";
         next.style!.photoTreatment = next.style!.photoTreatment ?? "collage";
         next.caption = undefined;
@@ -383,5 +492,19 @@ export function applyVibrancyPass(input: VibrancyInput): AssembledLayout {
     return next;
   });
 
-  return { ...input.layout, visualPersonality, blocks };
+  const guarded = applyPorterGeometryGuard(
+    { ...input.layout, visualPersonality, blocks },
+    articleById,
+    input.gridSpec,
+  );
+  return {
+    ...guarded,
+    stats: {
+      ...guarded.stats,
+      placedArticles: guarded.blocks.filter((block) => block.articleId).length,
+      placedImages: guarded.blocks.filter((block) => block.imageId).length,
+      fillerBlocks: guarded.blocks.filter((block) => block.kind === "filler").length,
+      emptySlots: guarded.blocks.filter((block) => block.kind === "empty").length,
+    },
+  };
 }

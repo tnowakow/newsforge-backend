@@ -362,15 +362,15 @@ function scoreCandidate(
     porterReferenceId: reference.referenceId,
   };
   const score =
-    0.14 * subscores.occupancy +
-    0.14 * subscores.contentCoverage +
-    0.18 * subscores.requiredCoverage +
-    0.09 * subscores.balance +
+    0.13 * subscores.occupancy +
+    0.13 * subscores.contentCoverage +
+    0.17 * subscores.requiredCoverage +
+    0.08 * subscores.balance +
     0.13 * subscores.clippingRisk +
-    0.08 * subscores.geometryValidity +
-    0.05 * subscores.photoImpact +
-    0.04 * subscores.grammarAffinity +
-    0.15 * (subscores.porterReferenceAffinity ?? 0);
+    0.07 * subscores.geometryValidity +
+    0.04 * subscores.photoImpact +
+    0.03 * subscores.grammarAffinity +
+    0.22 * (subscores.porterReferenceAffinity ?? 0);
   return { score, subscores, warnings };
 }
 

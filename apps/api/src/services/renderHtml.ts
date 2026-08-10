@@ -438,7 +438,7 @@ export function renderRunHtml(input: RenderInput): string {
         radial-gradient(circle at 18% 78%, rgba(216,92,42,.72) 0 2px, transparent 2.5px),
         radial-gradient(circle at 82% 70%, rgba(86,184,213,.76) 0 2px, transparent 2.5px),
         radial-gradient(circle at 70% 88%, rgba(111,163,104,.75) 0 2px, transparent 2.5px),
-        radial-gradient(circle, rgba(21,27,43,0.18) 0 1.4px, transparent 1.8px);
+        radial-gradient(circle, rgba(255,255,255,0.5) 0 1.4px, transparent 1.8px);
       background-size: 38px 34px, 42px 36px, 48px 40px, 20px 20px;
     }
     .role-birthday.panel { padding: 8px 10px 6px; border-bottom: 6px solid #D85C2A; }
