@@ -253,6 +253,9 @@ export interface AdaptiveLayoutCandidateReport {
     grammarAffinity: number;
     usefulOccupancy?: number;
     renderFit?: number;
+    geometricCoverage?: number;
+    porterReferenceAffinity?: number;
+    porterReferenceId?: string;
   };
   warnings: string[];
   measurement?: {
@@ -263,6 +266,9 @@ export interface AdaptiveLayoutCandidateReport {
     renderedImages: number;
     totalImages: number;
     usefulOccupancy: number;
+    geometricCoverage?: number;
+    minPageUtility?: number;
+    largestEmptyBandRatio?: number;
     lowUtilityBlocks: number;
   };
 }
@@ -316,6 +322,17 @@ export interface LayoutFitReport {
   designMode?: "ai" | "deterministic";
   designNotes?: string;
   fallbackReason?: string;
+  renderFit?: number;
+  usefulOccupancy?: number;
+  geometricCoverage?: number;
+  minPageUtility?: number;
+  largestEmptyBandRatio?: number;
+  clippedBlocks?: number;
+  overflowBlocks?: number;
+  missingImages?: number;
+  renderedImages?: number;
+  porterReferenceAffinity?: number;
+  porterReferenceId?: string;
   editorialPlan?: EditorialPlanReport;
   adaptiveCandidates?: AdaptiveLayoutCandidateReport[];
   candidates: LayoutFitCandidate[];

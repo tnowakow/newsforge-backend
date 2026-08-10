@@ -60,6 +60,8 @@ export const AdaptiveLayoutCandidateReportSchema = z.object({
     usefulOccupancy: z.number().optional(),
     renderFit: z.number().optional(),
     geometricCoverage: z.number().optional(),
+    porterReferenceAffinity: z.number().optional(),
+    porterReferenceId: z.string().optional(),
   }),
   warnings: z.array(z.string()),
   measurement: z.object({
@@ -145,6 +147,8 @@ export const LayoutFitReportSchema = z.object({
   overflowBlocks: z.number().int().nonnegative().optional(),
   missingImages: z.number().int().nonnegative().optional(),
   renderedImages: z.number().int().nonnegative().optional(),
+  porterReferenceAffinity: z.number().optional(),
+  porterReferenceId: z.string().optional(),
   editorialPlan: EditorialPlanReportSchema.optional(),
   adaptiveCandidates: z.array(AdaptiveLayoutCandidateReportSchema).optional(),
   candidates: z.array(LayoutFitCandidateSchema),

@@ -13,6 +13,7 @@ import type {
   NewsImage,
   RunRecord,
   AiPromptAudit,
+  LayoutFitReport,
 } from "@/lib/types";
 import { normalizeApprovalStatus } from "@/lib/types";
 import { Button } from "@/components/ui/Button";
@@ -59,6 +60,7 @@ export default function Preview() {
   const [downloading, setDownloading] = useState(false);
   const [aiOpen, setAiOpen] = useState(false);
   const [promptLogOpen, setPromptLogOpen] = useState(false);
+  const [scoreDetailsOpen, setScoreDetailsOpen] = useState(false);
   const [aiRunning, setAiRunning] = useState(false);
   const [aiStage, setAiStage] =
     useState<"working" | "error" | "done">("working");
@@ -446,6 +448,7 @@ export default function Preview() {
           onEdit={enterEdit}
           onAi={() => setAiOpen(true)}
           onPromptLog={() => setPromptLogOpen(true)}
+          onScoreDetails={() => setScoreDetailsOpen(true)}
         />
       )}
 
@@ -614,6 +617,11 @@ export default function Preview() {
           );
         }}
       />
+      <ScoreDetailsModal
+        open={scoreDetailsOpen}
+        report={run?.layoutFitReport ?? null}
+        onClose={() => setScoreDetailsOpen(false)}
+      />
       <ProcessingOverlay
         open={aiRunning}
         stage={aiStage}
@@ -642,6 +650,7 @@ function PreviewTopBar({
   onEdit,
   onAi,
   onPromptLog,
+  onScoreDetails,
 }: {
   run: RunRecord | null;
   downloading: boolean;
@@ -653,6 +662,7 @@ function PreviewTopBar({
   onEdit: () => void;
   onAi: () => void;
   onPromptLog: () => void;
+  onScoreDetails: () => void;
 }) {
   return (
     <div className="h-16 border-b border-rule bg-surface flex items-center px-10 gap-6">
@@ -724,6 +734,9 @@ function PreviewTopBar({
         </Button>
         <Button variant="secondary" disabled={!run} onClick={onPromptLog}>
           Prompt Log
+        </Button>
+        <Button variant="secondary" disabled={!run} onClick={onScoreDetails}>
+          Why This Score?
         </Button>
       </div>
     </div>
@@ -819,6 +832,127 @@ function AiPromptLogModal({
       </div>
     </Modal>
   );
+}
+
+function ScoreDetailsModal({
+  open,
+  report,
+  onClose,
+}: {
+  open: boolean;
+  report: LayoutFitReport | null;
+  onClose: () => void;
+}) {
+  const selected = report?.adaptiveCandidates?.find((candidate) => candidate.selected)
+    ?? report?.adaptiveCandidates?.[0];
+  const measurement = selected?.measurement;
+  const sub = selected?.subscores;
+  const metricRows = [
+    ["PorterOne reference affinity", sub?.porterReferenceAffinity ?? report?.porterReferenceAffinity, "Reference-family resemblance; 15% static / 12% measured"],
+    ["Useful occupancy", sub?.usefulOccupancy ?? report?.usefulOccupancy, "Useful canvas after browser measurement; 19% measured"],
+    ["Render fit", sub?.renderFit ?? report?.renderFit, "No clipping, overflow, or missing images; 17% measured"],
+    ["Geometric coverage", sub?.geometricCoverage ?? report?.geometricCoverage ?? measurement?.geometricCoverage, "Canvas coverage after rendering; 14% measured"],
+    ["Content coverage", sub?.contentCoverage, "Required/article content placed; 14% static"],
+    ["Required coverage", sub?.requiredCoverage, "Priority content preserved; 18% static"],
+    ["Page balance", sub?.balance, "Even distribution across pages; 9% static"],
+    ["Photo impact", sub?.photoImpact, "Photo ratio against the issue goal; 5% static"],
+    ["Grammar affinity", sub?.grammarAffinity, "Composition grammar present; 4% static"],
+    ["Geometry validity", sub?.geometryValidity, "No overlaps or out-of-bounds blocks; 8% static"],
+  ] as Array<[string, number | undefined, string]>;
+  const warnings = [...(selected?.warnings ?? []), ...(report?.warnings ?? [])];
+  const alternatives = (report?.adaptiveCandidates ?? [])
+    .filter((candidate) => candidate.id !== selected?.id)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 4);
+
+  return (
+    <Modal open={open} onClose={onClose} widthClass="w-[860px]" labelledBy="score-details-title">
+      <ModalHeader
+        title={<span id="score-details-title">Why This Score?</span>}
+        subtitle="The stored scoring path for this newsletter—not a new AI opinion."
+        onClose={onClose}
+      />
+      {!report ? (
+        <div className="p-5 text-sm text-ink-muted">No scoring report is available for this newsletter.</div>
+      ) : (
+        <div className="p-5 space-y-5 text-sm">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <ScoreStat label="Final score" value={report.score} />
+            <ScoreStat label="Selected candidate" value={selected?.label ?? report.chosenTemplateId} text />
+            <ScoreStat label="Reference family" value={sub?.porterReferenceId ?? report.porterReferenceId ?? "Not recorded"} text />
+            <ScoreStat label="Design mode" value={report.designMode ?? "Not recorded"} text />
+          </div>
+
+          <section>
+            <h3 className="font-display font-semibold mb-2">How the score is calculated</h3>
+            <div className="border border-rule rounded-md divide-y divide-rule overflow-hidden">
+              <div className="px-3 py-2 bg-bg text-xs text-ink-muted">
+                Static candidate score = occupancy 14% + content coverage 14% + required coverage 18% + balance 9% + clipping risk 13% + geometry validity 8% + photo impact 5% + grammar affinity 4% + PorterOne affinity 15%.
+              </div>
+              <div className="px-3 py-2 bg-bg text-xs text-ink-muted">
+                Measured winner score = static score 38% + render fit 17% + useful occupancy 19% + geometric coverage 14% + reference affinity 12%, minus clipping, underfill, coverage, page-utility, empty-band, and low-utility deductions.
+              </div>
+            </div>
+          </section>
+
+          <section>
+            <h3 className="font-display font-semibold mb-2">Selected candidate inputs</h3>
+            <div className="border border-rule rounded-md divide-y divide-rule overflow-hidden">
+              {metricRows.map(([label, value, explanation]) => (
+                <div key={label} className="px-3 py-2 flex items-center gap-3">
+                  <span className="w-48 flex-none font-medium">{label}</span>
+                  <span className="w-16 flex-none text-right font-mono text-xs">{formatScoreValue(value)}</span>
+                  <div className="h-2 flex-1 rounded-full bg-bg overflow-hidden">
+                    <div className={`h-full ${scoreBarTone(value)}`} style={{ width: `${Math.max(0, Math.min(100, (value ?? 0) * 100))}%` }} />
+                  </div>
+                  <span className="w-64 flex-none text-xs text-ink-muted">{explanation}</span>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section className="grid md:grid-cols-2 gap-4">
+            <div>
+              <h3 className="font-display font-semibold mb-2">Render evidence</h3>
+              <div className="border border-rule rounded-md p-3 space-y-1 text-xs">
+                <div>Clipped blocks: <b>{measurement?.clippedBlocks ?? report.clippedBlocks ?? 0}</b></div>
+                <div>Overflow blocks: <b>{measurement?.overflowBlocks ?? report.overflowBlocks ?? 0}</b></div>
+                <div>Missing images: <b>{measurement?.missingImages ?? report.missingImages ?? 0}</b></div>
+                <div>Rendered images: <b>{measurement ? `${measurement.renderedImages}/${measurement.totalImages}` : report.renderedImages ?? "Not recorded"}</b></div>
+                <div>Min page utility: <b>{formatScoreValue(measurement?.minPageUtility ?? report.minPageUtility)}</b></div>
+                <div>Largest empty band: <b>{formatScoreValue(measurement?.largestEmptyBandRatio ?? report.largestEmptyBandRatio)}</b></div>
+              </div>
+            </div>
+            <div>
+              <h3 className="font-display font-semibold mb-2">Why this candidate won</h3>
+              <div className="border border-rule rounded-md p-3 space-y-2 text-xs">
+                <div>{selected ? `It scored ${formatScoreValue(selected.score)} after the measured candidate pass.` : "No adaptive candidate detail was stored."}</div>
+                {alternatives.length > 0 && <div>Nearest alternatives: {alternatives.map((candidate) => `${candidate.label} (${formatScoreValue(candidate.score)})`).join(" · ")}</div>}
+                {warnings.length > 0 ? <div className="text-amber-700">Deductions/warnings: {uniqueStrings(warnings).join(" · ")}</div> : <div className="text-emerald-700">No recorded warnings or deductions.</div>}
+              </div>
+            </div>
+          </section>
+        </div>
+      )}
+    </Modal>
+  );
+}
+
+function ScoreStat({ label, value, text = false }: { label: string; value: number | string; text?: boolean }) {
+  return <div className="border border-rule rounded-md p-3 bg-bg"><div className="text-2xs uppercase tracking-wide text-ink-muted">{label}</div><div className={`mt-1 font-display font-semibold ${text ? "text-sm truncate" : "text-xl"}`}>{text ? value : formatScoreValue(Number(value))}</div></div>;
+}
+
+function formatScoreValue(value: number | undefined): string {
+  return value == null || Number.isNaN(value) ? "—" : `${(value * 100).toFixed(1)}%`;
+}
+
+function scoreBarTone(value: number | undefined): string {
+  if (value == null) return "bg-rule";
+  return value >= 0.8 ? "bg-emerald-500" : value >= 0.6 ? "bg-amber-400" : "bg-rose-400";
+}
+
+function uniqueStrings(values: string[]): string[] {
+  return [...new Set(values)].slice(0, 6);
 }
 
 function promptStatusLabel(status: string): string {
