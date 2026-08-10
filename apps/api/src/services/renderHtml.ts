@@ -297,13 +297,13 @@ export function renderRunHtml(input: RenderInput): string {
   .spread-sheet .role-infoFooter .section-heading,
   .spread-sheet .role-infoFooter .script-heading { font-size: 14pt; margin-bottom:2pt; }
   .spread-sheet .role-directorCorner.copy-fill-lg .body,
-  .spread-sheet .role-directorCorner.copy-fill-xl .body { font-size: 9.6pt; line-height:1.12; }
+  .spread-sheet .role-directorCorner.copy-fill-xl .body { font-size: 10.1pt; line-height:1.1; }
   .spread-sheet .role-featureBand.copy-fill-lg .body,
-  .spread-sheet .role-featureBand.copy-fill-xl .body { font-size: 10.7pt; line-height:1.12; }
+  .spread-sheet .role-featureBand.copy-fill-xl .body { font-size: 11.8pt; line-height:1.08; }
   .spread-sheet .role-spotlightRail.copy-fill-lg .body,
-  .spread-sheet .role-spotlightRail.copy-fill-xl .body { font-size: 10.2pt; line-height:1.12; }
+  .spread-sheet .role-spotlightRail.copy-fill-xl .body { font-size: 11.2pt; line-height:1.09; }
   .spread-sheet .role-volunteerCallout.copy-fill-lg .body,
-  .spread-sheet .role-volunteerCallout.copy-fill-xl .body { font-size: 9.6pt; line-height:1.12; }
+  .spread-sheet .role-volunteerCallout.copy-fill-xl .body { font-size: 10.5pt; line-height:1.09; }
 `
       : "";
 
