@@ -10,6 +10,7 @@ import type {
 } from "@newsforge/shared/schemas";
 import { assembleLayout } from "./layoutAssembly.js";
 import { chooseVisualPersonality } from "./designLanguage.js";
+import { scorePorterOneReferenceAffinity } from "./porterOneReferenceScorer.js";
 
 type EditorialRole =
   | "lead"
@@ -64,6 +65,8 @@ export interface AdaptiveCandidateScore {
   geometryValidity: number;
   photoImpact: number;
   grammarAffinity: number;
+  porterReferenceAffinity?: number;
+  porterReferenceId?: string;
   usefulOccupancy?: number;
   renderFit?: number;
 }
@@ -337,6 +340,7 @@ function scoreCandidate(
     : plan.compositionGrammar === "mixed-briefs"
       ? 0.72
       : 0.48;
+  const reference = scorePorterOneReferenceAffinity(layout, input.gridSpec);
   const clippingRisks = layout.blocks.filter((block) => {
     if (!block.articleId) return false;
     const article = input.articles.find((a) => a.id === block.articleId);
@@ -353,16 +357,19 @@ function scoreCandidate(
     geometryValidity: warnings.length === 0 ? 1 : Math.max(0, 1 - warnings.length * 0.2),
     photoImpact: Math.max(0, 1 - Math.abs(actualPhotoRatio - desiredPhotoRatio) / 0.5),
     grammarAffinity,
+    porterReferenceAffinity: reference.affinity,
+    porterReferenceId: reference.referenceId,
   };
   const score =
-    0.18 * subscores.occupancy +
-    0.18 * subscores.contentCoverage +
-    0.20 * subscores.requiredCoverage +
-    0.11 * subscores.balance +
-    0.15 * subscores.clippingRisk +
-    0.09 * subscores.geometryValidity +
+    0.14 * subscores.occupancy +
+    0.14 * subscores.contentCoverage +
+    0.18 * subscores.requiredCoverage +
+    0.09 * subscores.balance +
+    0.13 * subscores.clippingRisk +
+    0.08 * subscores.geometryValidity +
     0.05 * subscores.photoImpact +
-    0.04 * subscores.grammarAffinity;
+    0.04 * subscores.grammarAffinity +
+    0.15 * (subscores.porterReferenceAffinity ?? 0);
   return { score, subscores, warnings };
 }
 
@@ -400,9 +407,14 @@ function scoreWithMeasurement(
   const emptyBandPenalty = Math.max(0, largestEmptyBandRatio - 0.18) * 0.2;
   const renderPenalty = (1 - renderFit) * 0.35;
   const lowUtilityPenalty = measurement.lowUtilityBlocks * 0.055;
+  const referenceAffinity = candidate.subscores.porterReferenceAffinity ?? 0;
   const score = Math.max(
     0,
-    candidate.score * 0.44 + renderFit * 0.18 + usefulOccupancy * 0.22 + geometricCoverage * 0.16 -
+    candidate.score * 0.38 +
+      renderFit * 0.17 +
+      usefulOccupancy * 0.19 +
+      geometricCoverage * 0.14 +
+      referenceAffinity * 0.12 -
       renderPenalty -
       underfillPenalty -
       coveragePenalty -
@@ -459,6 +471,7 @@ export function chooseAdaptiveCandidate(
   const bestUsefulOccupancy = best.subscores.usefulOccupancy;
   const bestRenderFit = best.subscores.renderFit;
   const bestLowUtilityWarnings = lowUtilityWarningCount(best);
+  const bestReferenceAffinity = best.subscores.porterReferenceAffinity;
   const nearBest = sorted.filter((candidate) => {
     if (best.score - candidate.score > 0.04) return false;
     if (
@@ -476,6 +489,13 @@ export function chooseAdaptiveCandidate(
       return false;
     }
     if (lowUtilityWarningCount(candidate) > bestLowUtilityWarnings) return false;
+    if (
+      bestReferenceAffinity != null &&
+      candidate.subscores.porterReferenceAffinity != null &&
+      bestReferenceAffinity - candidate.subscores.porterReferenceAffinity > 0.05
+    ) {
+      return false;
+    }
     return true;
   });
   if (nearBest.length <= 1) return best;

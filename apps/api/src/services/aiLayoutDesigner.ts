@@ -305,6 +305,17 @@ export async function designLayout(
       compositionGrammar: adaptive.plan.compositionGrammar,
       visualPersonality: adaptive.plan.visualPersonality,
     },
+    porterOneReferenceTarget: {
+      goal: "Maximize resemblance to the five real PorterOne originals; the template skeleton is a movable starting point, not the goal.",
+      desiredAffinity: 0.98,
+      selectionSignals: [
+        "many mid-sized editorial modules instead of a few giant boxes",
+        "purposeful PorterOne color panels: sun, cream, berry, sky, leaf/coral, navy",
+        "several smaller captioned real-life photos clustered near relevant stories",
+        "at least one rail, footer band, or feature band anchoring each spread",
+        "dense lists and compact copy with no obvious dead panel space",
+      ],
+    },
     images: input.images.map((i) => ({
       id: i.id,
       aspect: i.aspect,

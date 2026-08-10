@@ -1,0 +1,92 @@
+import { describe, it } from "node:test";
+import assert from "node:assert/strict";
+import type {
+  AssembledLayout,
+  GridSpec,
+  LayoutBlock,
+} from "@newsforge/shared/schemas";
+import { scorePorterOneReferenceAffinity } from "../services/porterOneReferenceScorer.js";
+
+const gridSpec: GridSpec = {
+  label: "porter-reference-test",
+  columns: 24,
+  rowsPerPage: 16,
+  slots: [],
+};
+
+function block(
+  id: string,
+  page: number,
+  col: number,
+  row: number,
+  colSpan: number,
+  rowSpan: number,
+  options: Partial<LayoutBlock> = {},
+): LayoutBlock {
+  return {
+    blockId: id,
+    slotId: id,
+    page,
+    position: { col, row, colSpan, rowSpan },
+    kind: options.imageId ? "image" : "article",
+    needsFiller: false,
+    zIndex: 0,
+    ...options,
+  };
+}
+
+function layout(blocks: LayoutBlock[]): AssembledLayout {
+  return {
+    templateId: "reference-test",
+    pageCount: 2,
+    blocks,
+    unfilledSlotIds: [],
+    stats: {
+      placedArticles: blocks.filter((candidate) => candidate.articleId).length,
+      placedImages: blocks.filter((candidate) => candidate.imageId).length,
+      fillerBlocks: 0,
+      emptySlots: 0,
+    },
+    version: 1,
+  };
+}
+
+describe("porterOneReferenceScorer", () => {
+  it("rewards dense colored PorterOne-style collage layouts", () => {
+    const score = scorePorterOneReferenceAffinity(layout([
+      block("photo-1", 1, 1, 1, 4, 7, { imageId: "i1", style: { photoTreatment: "portrait" } }),
+      block("director", 1, 5, 1, 8, 7, { articleId: "a1", style: { bg: "cream", panelRole: "directorCorner" } }),
+      block("birthday", 1, 13, 1, 5, 4, { articleId: "a2", kind: "list", style: { bg: "sun", panelRole: "birthday" } }),
+      block("events", 1, 18, 1, 7, 5, { articleId: "a3", style: { bg: "coral", panelRole: "upcomingEvents" } }),
+      block("photo-2", 1, 13, 5, 5, 5, { imageId: "i2", style: { photoTreatment: "rounded" } }),
+      block("happy", 1, 18, 6, 7, 4, { articleId: "a4", style: { bg: "navy", invertText: true, panelRole: "happyHour" } }),
+      block("photo-3", 1, 1, 8, 6, 9, { imageId: "i3", style: { photoTreatment: "collage" } }),
+      block("photo-4", 1, 7, 8, 6, 4, { imageId: "i4", style: { photoTreatment: "collage" } }),
+      block("feature", 1, 13, 10, 12, 7, { articleId: "a5", style: { bg: "sky", panelRole: "featureBand" } }),
+      block("rail", 2, 1, 1, 4, 16, { imageId: "i5", style: { photoTreatment: "stacked" } }),
+      block("outing", 2, 5, 1, 8, 9, { articleId: "a6", kind: "list", style: { bg: "berry", panelRole: "outingList" } }),
+      block("spotlight", 2, 13, 1, 7, 11, { articleId: "a7", style: { bg: "blush", panelRole: "spotlightRail" } }),
+      block("photo-5", 2, 20, 1, 5, 6, { imageId: "i6", style: { photoTreatment: "portrait" } }),
+      block("volunteer", 2, 20, 7, 5, 5, { articleId: "a8", style: { bg: "leaf", panelRole: "volunteerCallout" } }),
+      block("footer", 2, 5, 13, 20, 4, { articleId: "a9", style: { bg: "navy", invertText: true, panelRole: "infoFooter" } }),
+    ]), gridSpec);
+
+    assert.ok(score.affinity >= 0.78, `expected high affinity, got ${score.affinity}`);
+    assert.ok(score.referenceId.startsWith("example"));
+    assert.ok(score.diagnostics.imageBlockCount >= 6);
+    assert.ok(score.diagnostics.colorPanelAreaRatio > 0.35);
+  });
+
+  it("penalizes sparse template-like layouts even when they fill the page", () => {
+    const score = scorePorterOneReferenceAffinity(layout([
+      block("hero", 1, 1, 1, 24, 8, { articleId: "a1", style: { bg: "cream" } }),
+      block("photo", 1, 1, 9, 24, 8, { imageId: "i1", style: { photoTreatment: "wide" } }),
+      block("story", 2, 1, 1, 24, 12, { articleId: "a2", style: { bg: "paper" } }),
+      block("footer", 2, 1, 13, 24, 4, { articleId: "a3", style: { bg: "navy", invertText: true } }),
+    ]), gridSpec);
+
+    assert.ok(score.affinity < 0.6, `expected low affinity, got ${score.affinity}`);
+    assert.equal(score.diagnostics.imageBlockCount, 1);
+    assert.equal(score.diagnostics.narrowRailCount, 0);
+  });
+});

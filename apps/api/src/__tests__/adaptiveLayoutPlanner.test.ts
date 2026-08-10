@@ -184,6 +184,7 @@ describe("adaptiveLayoutPlanner.buildAdaptiveLayout", () => {
     assert.ok(result.chosen.score >= 0);
     assert.ok(result.chosen.subscores.geometryValidity > 0.99);
     assert.ok(result.chosen.subscores.grammarAffinity >= 0.48);
+    assert.ok(result.chosen.subscores.porterReferenceAffinity !== undefined);
     assert.ok(result.chosen.subscores.requiredCoverage > 0.99);
     assert.ok(result.chosen.layout.blocks.some((block) => block.articleId === "lead"));
   });
@@ -431,6 +432,39 @@ describe("adaptiveLayoutPlanner.buildAdaptiveLayout", () => {
         usefulOccupancy: index === 0 ? 0.9 : 0.72,
       },
       warnings: index === 0 ? [] : ["low-utility-blocks:1"],
+    }));
+
+    const chosenIds = new Set(
+      Array.from({ length: 20 }, (_, index) =>
+        chooseAdaptiveCandidate(candidates, `seed-${index}`).id,
+      ),
+    );
+
+    assert.deepEqual(chosenIds, new Set([candidates[0].id]));
+  });
+
+  it("does not vary into candidates with meaningfully worse PorterOne reference affinity", () => {
+    const result = buildAdaptiveLayout({
+      templateId: "v3-test",
+      pageCount: 2,
+      gridSpec,
+      recurringSections: [],
+      articles: [
+        article("lead", "Meet Dorothy", 220, "resident-story"),
+        article("event", "Summer Concert Recap", 125, "event-recap"),
+      ],
+      images: [image("upload-photo", "portrait", "UPLOAD")],
+    });
+    const candidates = result.candidates.slice(0, 2).map((candidate, index) => ({
+      ...candidate,
+      score: index === 0 ? 1 : 0.99,
+      subscores: {
+        ...candidate.subscores,
+        renderFit: 1,
+        usefulOccupancy: 0.9,
+        porterReferenceAffinity: index === 0 ? 0.86 : 0.72,
+      },
+      warnings: [],
     }));
 
     const chosenIds = new Set(
