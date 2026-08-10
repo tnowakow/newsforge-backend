@@ -114,7 +114,7 @@ function compactGatewayInnerBlocks(blocks: LayoutBlock[]): LayoutBlock[] {
       if (block.slotId === "cl-p2-feature-band") {
         return {
           ...block,
-          position: { ...block.position, row: 5, rowSpan: 3 },
+          position: { ...block.position, row: 5, rowSpan: 2 },
         };
       }
       if (block.slotId === "cl-p2-photo-b") {
@@ -126,13 +126,13 @@ function compactGatewayInnerBlocks(blocks: LayoutBlock[]): LayoutBlock[] {
       if (block.slotId === "cl-p2-volunteer-img") {
         return {
           ...block,
-          position: { ...block.position, row: 9, rowSpan: 5 },
+          position: { ...block.position, row: 8, rowSpan: 6 },
         };
       }
       if (block.slotId === "cl-p2-volunteer") {
         return {
           ...block,
-          position: { ...block.position, row: 8, rowSpan: 6 },
+          position: { ...block.position, row: 7, rowSpan: 7 },
         };
       }
       if (block.slotId === "cl-p2-trust-funds") {
@@ -157,7 +157,7 @@ function compactGatewayInnerBlocks(blocks: LayoutBlock[]): LayoutBlock[] {
     if (block.slotId === "cl-p1-bday") {
       return {
         ...block,
-        position: { ...block.position, row: 1, rowSpan: 7 },
+        position: { ...block.position, row: 1, rowSpan: 5 },
       };
     }
     if (block.slotId === "cl-p1-exec") {
@@ -166,7 +166,13 @@ function compactGatewayInnerBlocks(blocks: LayoutBlock[]): LayoutBlock[] {
         position: { ...block.position, col: 9, row: 1, colSpan: 12, rowSpan: 7 },
       };
     }
-    if (block.slotId === "cl-p1-happy-hour" || block.slotId === "cl-p1-upcoming-events") {
+    if (block.slotId === "cl-p1-happy-hour") {
+      return {
+        ...block,
+        position: { ...block.position, row: 6, rowSpan: 5 },
+      };
+    }
+    if (block.slotId === "cl-p1-upcoming-events") {
       return {
         ...block,
         position: { ...block.position, row: 8, rowSpan: 3 },
