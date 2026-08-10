@@ -14,6 +14,7 @@ import {
   RecurringSectionsSchema,
   type AssembledLayout,
   type Article,
+  type GridSpec,
   type NewsImage,
 } from "@newsforge/shared/schemas";
 import { assembleLayout } from "../services/layoutAssembly.js";
@@ -123,6 +124,25 @@ function repairClippedBlocks(
     layout: { ...layout, blocks: nextBlocks },
     articles: nextArticles,
     changed,
+  };
+}
+
+function porterSpreadGridSpec(templateId: string, gridSpec: GridSpec): GridSpec {
+  if (templateId !== "v3-spread-classic") return gridSpec;
+  return {
+    ...gridSpec,
+    slots: gridSpec.slots.map((slot) => {
+      const byId: Record<string, NonNullable<typeof slot.capacity>> = {
+        "cl-p1-exec": { minWords: 220, maxWords: 340 },
+        "cl-p1-upcoming-events": { minWords: 160, maxWords: 260 },
+        "cl-p2-smile": { minWords: 300, maxWords: 430 },
+        "cl-p2-feature-band": { minWords: 120, maxWords: 185 },
+        "cl-p2-volunteer": { minWords: 85, maxWords: 145 },
+        "cl-p2-trust-funds": { minWords: 55, maxWords: 90 },
+      };
+      const capacity = byId[slot.id];
+      return capacity ? { ...slot, capacity: { ...(slot.capacity ?? {}), ...capacity } } : slot;
+    }),
   };
 }
 
@@ -296,6 +316,7 @@ runsRouter.post("/", async (req, res) => {
     res.status(500).json({ error: "template_gridspec_invalid" });
     return;
   }
+  const effectiveGridSpec = porterSpreadGridSpec(template.id, gridSpecParsed.data);
   const recurringParsed = RecurringSectionsSchema.safeParse(
     client.recurringSections,
   );
@@ -308,19 +329,19 @@ runsRouter.post("/", async (req, res) => {
   images = selectStockPhotosForRun({
     articles,
     images,
-    gridSpec: gridSpecParsed.data,
+    gridSpec: effectiveGridSpec,
   });
 
   // Fit strategy — overflow/underflow trimming before assembly (Vitaly §7).
   const scoreableChosen: ScoreableTemplate = {
     id: template.id,
     pageCount: template.pageCount,
-    gridSpec: template.gridSpec,
+    gridSpec: effectiveGridSpec,
   };
   const fitResult = fitContent(articles, images, scoreableChosen);
   articles = fitResult.articles;
   images = fitResult.keptImages;
-  const innerImageSlotCount = gridSpecParsed.data.slots.filter((slot) => slot.type === "image").length;
+  const innerImageSlotCount = effectiveGridSpec.slots.filter((slot) => slot.type === "image").length;
   const innerImages = template.id.startsWith("v3-")
     ? images.slice(0, innerImageSlotCount)
     : images;
@@ -340,7 +361,7 @@ runsRouter.post("/", async (req, res) => {
   const designed = await designLayout({
     templateId: template.id,
     pageCount: template.pageCount,
-    gridSpec: gridSpecParsed.data,
+    gridSpec: effectiveGridSpec,
     articles,
     images: innerImages,
     recurringSections,
@@ -370,7 +391,7 @@ runsRouter.post("/", async (req, res) => {
   if (fillerMode === "GENERATE" && layout.blocks.some((b) => b.needsFiller)) {
     const filled = await generateFiller({
       layout,
-      gridSpec: gridSpecParsed.data,
+      gridSpec: effectiveGridSpec,
       recurringSections,
       articles,
       brandVoice: client.brandVoice,
@@ -406,7 +427,7 @@ runsRouter.post("/", async (req, res) => {
           clientName: client.name,
           monthLabel,
           brandKit,
-          gridSpec: gridSpecParsed.data,
+          gridSpec: effectiveGridSpec,
           articles: articles as Article[],
           images,
           recurringSections,
