@@ -5,7 +5,10 @@ import type {
   GridSpec,
   LayoutBlock,
 } from "@newsforge/shared/schemas";
-import { scorePorterOneReferenceAffinity } from "../services/porterOneReferenceScorer.js";
+import {
+  porterOneTemplateForScenario,
+  scorePorterOneReferenceAffinity,
+} from "../services/porterOneReferenceScorer.js";
 
 const gridSpec: GridSpec = {
   label: "porter-reference-test",
@@ -52,6 +55,15 @@ function layout(blocks: LayoutBlock[]): AssembledLayout {
 }
 
 describe("porterOneReferenceScorer", () => {
+  it("maps each supplied reference scenario to its matching PorterOne grammar", () => {
+    assert.equal(porterOneTemplateForScenario("community-classic"), "v3-spread-classic");
+    assert.equal(porterOneTemplateForScenario("panel-garden"), "v3-panel-garden");
+    assert.equal(porterOneTemplateForScenario("photo-festival"), "v3-photo-festival");
+    assert.equal(porterOneTemplateForScenario("resident-feature"), "v3-resident-feature");
+    assert.equal(porterOneTemplateForScenario("editorial-light"), "v3-editorial-light");
+    assert.equal(porterOneTemplateForScenario(), undefined);
+  });
+
   it("rewards dense colored PorterOne-style collage layouts", () => {
     const score = scorePorterOneReferenceAffinity(layout([
       block("photo-1", 1, 1, 1, 4, 7, { imageId: "i1", style: { photoTreatment: "portrait" } }),

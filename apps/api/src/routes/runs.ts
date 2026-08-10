@@ -52,6 +52,10 @@ import { buildBundle } from "../services/bundleExportService.js";
 import { callGeminiJson } from "../gemini.js";
 import { selectStockPhotosForRun } from "../services/stockPhotoCatalog.js";
 import { wrapV3InnerSpreadForDemo } from "../services/fullNewsletterWrapper.js";
+import {
+  porterOneTemplateForScenario,
+  type PorterOneScenario,
+} from "../services/porterOneReferenceScorer.js";
 import type { CandidateMeasurement } from "../services/adaptiveLayoutPlanner.js";
 
 export const runsRouter: Router = Router();
@@ -291,12 +295,12 @@ runsRouter.post("/", async (req, res) => {
   );
   let chosenTemplateId = body.templateId ?? client.defaultTemplateId;
   let pickResult: ReturnType<typeof pickBestTemplate> | null = null;
-  const preferredGatewaySpread =
-    client.name === "Trilogy Health Services" && (!body.scenario || body.scenario === "community-classic")
-      ? candidates.find((t) => t.id === "v3-spread-classic")
+  const preferredPorterSpread =
+    client.name === "Trilogy Health Services"
+      ? candidates.find((t) => t.id === porterOneTemplateForScenario(body.scenario as PorterOneScenario | undefined))
       : undefined;
-  if (!body.templateId && preferredGatewaySpread) {
-    chosenTemplateId = preferredGatewaySpread.id;
+  if (!body.templateId && preferredPorterSpread) {
+    chosenTemplateId = preferredPorterSpread.id;
   } else if (!body.templateId && candidates.length > 0) {
     pickResult = pickBestTemplate(articles, images, candidates);
     if (pickResult.chosenTemplateId) {

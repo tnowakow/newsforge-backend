@@ -31,6 +31,30 @@ export interface PorterOneReferenceScore {
   };
 }
 
+/**
+ * The five supplied PorterOne examples are composition families, not merely
+ * color palettes. Keep this mapping next to the reference scorer so the
+ * route cannot silently collapse every issue back into Classic geometry.
+ */
+export type PorterOneScenario =
+  | "community-classic"
+  | "panel-garden"
+  | "photo-festival"
+  | "resident-feature"
+  | "editorial-light";
+
+export const PORTER_ONE_TEMPLATE_BY_SCENARIO: Record<PorterOneScenario, string> = {
+  "community-classic": "v3-spread-classic",
+  "panel-garden": "v3-panel-garden",
+  "photo-festival": "v3-photo-festival",
+  "resident-feature": "v3-resident-feature",
+  "editorial-light": "v3-editorial-light",
+};
+
+export function porterOneTemplateForScenario(scenario?: PorterOneScenario): string | undefined {
+  return scenario ? PORTER_ONE_TEMPLATE_BY_SCENARIO[scenario] : undefined;
+}
+
 const PORTER_ONE_REFERENCES: ReferenceFingerprint[] = [
   {
     id: "example1-gateway-collage",
