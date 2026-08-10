@@ -166,10 +166,10 @@ async function candidateTemplatesForClient(
         notes?: string;
       };
       const notes = hints.notes ?? "";
+      const isV3SpreadTemplate = notes.includes("[v3-spread]");
+      if (isTrilogy) return isV3SpreadTemplate;
       const isTrilogyTemplate =
         notes.includes("[trilogy]") || t.name.startsWith("Trilogy ");
-      const isV3SpreadTemplate = notes.includes("[v3-spread]");
-      if (isTrilogy) return isV3SpreadTemplate || isTrilogyTemplate;
       if (isTrilogyTemplate) return false;
       return (hints.richness ?? []).includes(clientRichness);
     })
