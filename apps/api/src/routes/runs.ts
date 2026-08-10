@@ -290,13 +290,7 @@ runsRouter.post("/", async (req, res) => {
   );
   let chosenTemplateId = body.templateId ?? client.defaultTemplateId;
   let pickResult: ReturnType<typeof pickBestTemplate> | null = null;
-  const preferredGatewaySpread =
-    client.name === "Trilogy Health Services" && (!body.scenario || body.scenario === "community-classic")
-      ? candidates.find((t) => t.id === "v3-spread-classic")
-      : undefined;
-  if (!body.templateId && preferredGatewaySpread) {
-    chosenTemplateId = preferredGatewaySpread.id;
-  } else if (!body.templateId && candidates.length > 0) {
+  if (!body.templateId && candidates.length > 0) {
     pickResult = pickBestTemplate(articles, images, candidates);
     if (pickResult.chosenTemplateId) {
       chosenTemplateId = pickResult.chosenTemplateId;
