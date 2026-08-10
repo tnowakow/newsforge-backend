@@ -105,6 +105,12 @@ function compactGatewayInnerBlocks(blocks: LayoutBlock[]): LayoutBlock[] {
           position: { ...block.position, row: 1, rowSpan: 3 },
         };
       }
+      if (block.slotId === "cl-p2-smile") {
+        return {
+          ...block,
+          position: { ...block.position, row: 1, rowSpan: 12 },
+        };
+      }
       if (block.slotId === "cl-p2-feature-band") {
         return {
           ...block,
@@ -132,6 +138,16 @@ function compactGatewayInnerBlocks(blocks: LayoutBlock[]): LayoutBlock[] {
       if (block.slotId === "cl-p2-trust-funds") {
         return {
           ...block,
+          style: {
+            ...(block.style ?? {}),
+            bg: "navy",
+            headerColor: "paper",
+            invertText: true,
+            panelRole: "infoFooter",
+            centered: true,
+            compact: true,
+            cornerRadius: 0,
+          },
           position: { ...block.position, row: 13, rowSpan: 4 },
         };
       }
