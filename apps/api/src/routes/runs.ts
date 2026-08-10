@@ -83,7 +83,8 @@ function wordCount(text: string): number {
 function trimWords(text: string, ratio = 0.82): string {
   const words = text.trim().split(/\s+/).filter(Boolean);
   const keep = Math.max(8, Math.floor(words.length * ratio));
-  return words.slice(0, keep).join(" ");
+  const trimmed = words.slice(0, keep).join(" ").replace(/[,:;—-]\s*$/, "");
+  return /[.!?]$/.test(trimmed) ? trimmed : `${trimmed}.`;
 }
 
 function repairClippedBlocks(

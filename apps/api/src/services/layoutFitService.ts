@@ -187,6 +187,37 @@ function truncateWords(s: string, maxWords: number): string {
   return s.trim().split(/\s+/).filter(Boolean).slice(0, maxWords).join(" ");
 }
 
+function finishTruncatedText(text: string): string {
+  const clean = text.trim().replace(/\s+/g, " ");
+  if (!clean) return clean;
+  if (/[.!?]$/.test(clean)) return clean;
+  return `${clean.replace(/[,:;—-]\s*$/, "")}.`;
+}
+
+function truncateToSentenceCap(body: string, cap: number): { body: string; words: number } {
+  const sentences = splitSentences(body);
+  let acc = "";
+  let words = 0;
+  let took = 0;
+  for (const s of sentences) {
+    const sw = countWords(s);
+    if (words + sw > cap && took > 0) break;
+    acc = acc.length === 0 ? s : `${acc} ${s}`;
+    words += sw;
+    took += 1;
+    if (words >= cap) break;
+  }
+  if (words > cap) {
+    acc = finishTruncatedText(truncateWords(acc, cap));
+    words = countWords(acc);
+  }
+  if (acc.length === 0) {
+    acc = finishTruncatedText(truncateWords(body, cap));
+    words = countWords(acc);
+  }
+  return { body: finishTruncatedText(acc), words };
+}
+
 function articleMatchesSemanticSlot(article: Article, slot: TemplateSlot): boolean {
   const tag = slot.styleTag ?? "";
   const title = article.title;
@@ -258,8 +289,7 @@ export function fitContent(
       // No positional slot, but semantic sections may still claim a later
       // targeted region during assembly. Keep those articles within that cap.
       if (semanticCap && article.wordCount > semanticCap) {
-        const body = truncateWords(article.body, semanticCap);
-        const words = countWords(body);
+        const { body, words } = truncateToSentenceCap(article.body, semanticCap);
         trimmedArticles.push({ ...article, body, wordCount: words });
         warnings.push(
           `content-trimmed: ${article.id} (${article.wordCount}→${words} words)`,
@@ -281,30 +311,10 @@ export function fitContent(
       });
       continue;
     }
-    // Truncate at sentence boundary.
-    const sentences = splitSentences(article.body);
-    let acc = "";
-    let words = 0;
-    let took = 0;
-    for (const s of sentences) {
-      const sw = countWords(s);
-      if (words + sw > cap && took > 0) break;
-      acc = acc.length === 0 ? s : `${acc} ${s}`;
-      words += sw;
-      took += 1;
-      if (words >= cap) break;
-    }
-    if (words > cap) {
-      acc = truncateWords(acc, cap);
-      words = countWords(acc);
-    }
-    if (acc.length === 0) {
-      acc = article.body.slice(0, Math.max(0, cap * 6)); // fallback char slice
-      words = countWords(acc);
-    }
+    const { body, words } = truncateToSentenceCap(article.body, cap);
     const newArticle: Article = {
       ...article,
-      body: acc,
+      body,
       wordCount: words,
     };
     trimmedArticles.push(newArticle);
