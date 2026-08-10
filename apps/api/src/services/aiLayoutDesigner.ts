@@ -523,7 +523,8 @@ export async function designLayout(
           currentBlocks: layout.blocks,
           instruction: "Raise content-module count toward 14-18, keep individual blocks under about 20% of a page, add purposeful rails/bands/panels and clustered story photos, and fix only the measured offenders without dropping required content.",
         })}`,
-        timeoutMs: DESIGN_TIMEOUT_MS,
+        timeoutMs: 35_000,
+        maxRetries: 0,
         fallback: { blocks: layout.blocks, designNotes: "revision fallback" },
       });
       auditDurationMs += revision.durationMs;

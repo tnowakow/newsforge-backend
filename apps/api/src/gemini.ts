@@ -109,6 +109,8 @@ export interface GeminiCallOptions<T> {
   fallback: T;
   /** v3 — per-call timeout override (layout design needs more than 7s). */
   timeoutMs?: number;
+  /** Optional retry override for bounded critique/revision calls. */
+  maxRetries?: number;
 }
 
 type AiJsonSuccess<T> = {
@@ -151,7 +153,7 @@ export async function callGeminiJson<T>(
       systemInstruction: opts.systemPrompt,
     });
 
-    for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    for (let attempt = 0; attempt <= (opts.maxRetries ?? MAX_RETRIES); attempt++) {
       try {
         const result = await generateContentWithTimeout(
           model,
@@ -186,7 +188,7 @@ export async function callGeminiJson<T>(
   }
 
   if (env.OPENAI_API_KEY) {
-    for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    for (let attempt = 0; attempt <= (opts.maxRetries ?? MAX_RETRIES); attempt++) {
       try {
         const text = await callOpenAiWithTimeout(
           opts.systemPrompt,
