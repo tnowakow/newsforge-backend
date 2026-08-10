@@ -293,9 +293,9 @@ export function renderRunHtml(input: RenderInput): string {
   .spread-sheet .role-directorCorner .body { font-size: 8.5pt; line-height: 1.12; column-count:2; column-gap:12px; font-weight:500; }
   .spread-sheet .role-spotlightRail .body { font-size: 9.2pt; line-height: 1.13; text-align:left; font-weight:600; }
   .spread-sheet .role-featureBand .body { font-size: 8.8pt; line-height: 1.12; text-align:left; font-weight:600; }
-  .spread-sheet .role-infoFooter .body { font-size: 7.4pt; line-height: 1.04; font-weight:600; }
+  .spread-sheet .role-infoFooter .body { font-size: 8.6pt; line-height: 1.04; font-weight:600; }
   .spread-sheet .role-infoFooter .section-heading,
-  .spread-sheet .role-infoFooter .script-heading { font-size: 14pt; margin-bottom:2pt; }
+  .spread-sheet .role-infoFooter .script-heading { font-size: 18pt; margin-bottom:2pt; }
   .spread-sheet .role-directorCorner.copy-fill-lg .body,
   .spread-sheet .role-directorCorner.copy-fill-xl .body { font-size: 10.1pt; line-height:1.1; }
   .spread-sheet .role-featureBand.copy-fill-lg .body,
@@ -427,8 +427,12 @@ export function renderRunHtml(input: RenderInput): string {
     .personality-celebration-pop .photo-frame { border-radius:4px; }
     .personality-celebration-pop .photo figcaption { font-style:normal; font-weight:700; color:#333; }
     .role-birthday {
-      background-image: radial-gradient(circle, rgba(21,27,43,0.22) 0 2px, transparent 2.4px);
-      background-size: 18px 18px;
+      background-image:
+        radial-gradient(circle at 18% 78%, rgba(216,92,42,.72) 0 2px, transparent 2.5px),
+        radial-gradient(circle at 82% 70%, rgba(86,184,213,.76) 0 2px, transparent 2.5px),
+        radial-gradient(circle at 70% 88%, rgba(111,163,104,.75) 0 2px, transparent 2.5px),
+        radial-gradient(circle, rgba(21,27,43,0.18) 0 1.4px, transparent 1.8px);
+      background-size: 38px 34px, 42px 36px, 48px 40px, 20px 20px;
     }
     .role-birthday.panel { padding: 8px 10px 6px; border-bottom: 6px solid #D85C2A; }
     .role-birthday .script-heading { font-size: 18pt; text-align:left; margin-bottom:3pt; }

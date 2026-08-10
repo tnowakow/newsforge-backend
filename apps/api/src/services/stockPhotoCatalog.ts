@@ -426,6 +426,22 @@ function scorePhoto(
   }
   const slotHay = roleTokens(slot);
   const slotRole = `${slot.id} ${slot.styleTag ?? ""}`.toLowerCase();
+  const preferredTopicBySlot: Array<[RegExp, string[]]> = [
+    [/cl-p1-event-img-b/, ["family", "staff", "resident-story"]],
+    [/cl-p1-event-img-a/, ["resident-story", "family", "volunteer", "outings"]],
+    [/cl-p1-hh-img-a/, ["staff", "volunteer", "resident-story", "family"]],
+    [/cl-p1-hh-img-b|cl-p1-hh-img-c/, ["happy-hour", "games", "crafts", "outings"]],
+    [/p2-photo-a|p2-photo-b|out[- ]?and[- ]?about|outing|trip/, ["outings", "volunteer", "family"]],
+    [/p2-volunteer-img|volunteer|make[- ]?the[- ]?difference/, ["volunteer", "staff", "family"]],
+    [/smile|spotlight|portrait/, ["resident-story", "staff", "family"]],
+    [/feature-band|scrubbly|car[- ]?wash/, ["volunteer", "outings", "happy-hour", "games"]],
+  ];
+  for (const [pattern, topics] of preferredTopicBySlot) {
+    if (!pattern.test(slotRole)) continue;
+    const rank = topics.indexOf(photo.topicKey);
+    score += rank === -1 ? -18 : 34 - rank * 4;
+    break;
+  }
   if (/p2-photo-|out[- ]?and[- ]?about|outing|trip/.test(slotRole)) {
     score += photo.topicKey === "outings" ? 28 : -12;
   }
@@ -453,7 +469,7 @@ function scorePhoto(
   }
   if (/hero|portrait|spotlight|photo-cluster|collage/.test(slotRole)) {
     const detailOnlyHits = photo.tags.filter((tag) => DETAIL_ONLY_TAGS.has(tag)).length;
-    score -= Math.min(8, detailOnlyHits * 2);
+    score -= Math.min(18, detailOnlyHits * 5);
   }
   if (/birthday|holiday|dining|garden|feature-band/.test(slotRole)) {
     score += 2;
@@ -485,15 +501,16 @@ function captionFor(photo: StockPhoto, article: Article | undefined, slot: Templ
 function cropFor(photo: StockPhoto, slot: TemplateSlot): Pick<NewsImage, "focalX" | "focalY" | "zoom"> {
   const role = `${slot.id} ${slot.styleTag ?? ""}`.toLowerCase();
   const desired = slot.capacity?.aspect;
-  let zoom = /collage|photo-cluster|photo-stack/.test(role) ? 1.06 : 1.03;
-  if (desired && desired !== "any" && desired !== photo.aspect) zoom += 0.08;
-  if (photo.aspect === "portrait" && desired === "landscape") zoom += 0.05;
-  if (photo.aspect === "landscape" && desired === "portrait") zoom += 0.05;
-  const focalY = /portrait|spotlight|staff|resident/.test(role) ? 42 : 48;
+  const isStoryPhoto = /collage|photo-cluster|photo-stack/.test(role);
+  let zoom = isStoryPhoto ? 1.01 : 1.03;
+  if (desired && desired !== "any" && desired !== photo.aspect) zoom += isStoryPhoto ? 0.02 : 0.06;
+  if (photo.aspect === "portrait" && desired === "landscape") zoom += isStoryPhoto ? 0.01 : 0.04;
+  if (photo.aspect === "landscape" && desired === "portrait") zoom += isStoryPhoto ? 0.01 : 0.04;
+  const focalY = /portrait|spotlight|staff|resident|event-img-b/.test(role) ? 38 : 46;
   return {
     focalX: 50,
     focalY,
-    zoom: Math.min(1.22, Number(zoom.toFixed(2))),
+    zoom: Math.min(isStoryPhoto ? 1.08 : 1.16, Number(zoom.toFixed(2))),
   };
 }
 
@@ -537,7 +554,7 @@ export function selectStockPhotosForRun(input: SelectStockPhotosInput): NewsImag
         photo: p,
         score:
           scorePhoto(p, article, slot, newsletterContext) -
-          ((usedTopicCounts.get(p.topicKey) ?? 0) * 14),
+          ((usedTopicCounts.get(p.topicKey) ?? 0) * 24),
       }))
       .sort((a, b) => b.score - a.score || a.photo.id.localeCompare(b.photo.id));
     const best = candidates[0];
