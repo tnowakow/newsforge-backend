@@ -510,7 +510,10 @@ export async function designLayout(
     let auditDurationMs = result.durationMs;
     let revisionUsed = false;
     const initialAffinity = scorePorterOneReferenceAffinity(layout, input.gridSpec);
-    if (initialAffinity.affinity < 0.85) {
+    // Keep the expensive critique loop for genuinely off-target layouts. The
+    // repair/weighted gate still evaluates every AI result; this trigger is
+    // deliberately stricter so ordinary generations stay designer-fast.
+    if (initialAffinity.affinity < 0.70) {
       const revision = await callGeminiJson({
         schema: AiDesignResponseSchema,
         systemPrompt: `${systemPrompt}\n\nCLOSED-LOOP REVISION: This is a measured revision, not a new template choice. Keep the strongest parts of the supplied layout, but correct the listed PorterOne diagnostics and any measured text clips. Return the complete block array again.`,
@@ -523,7 +526,7 @@ export async function designLayout(
           currentBlocks: layout.blocks,
           instruction: "Raise content-module count toward 14-18, keep individual blocks under about 20% of a page, add purposeful rails/bands/panels and clustered story photos, and fix only the measured offenders without dropping required content.",
         })}`,
-        timeoutMs: 35_000,
+        timeoutMs: 20_000,
         maxRetries: 0,
         fallback: { blocks: layout.blocks, designNotes: "revision fallback" },
       });
