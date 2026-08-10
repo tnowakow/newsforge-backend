@@ -219,6 +219,30 @@ function qualityScore(
   ));
 }
 
+function composeAiLayout(
+  skeleton: AssembledLayout,
+  blocks: LayoutBlock[],
+  input: DesignLayoutInput,
+  visualPersonality: AssembledLayout["visualPersonality"],
+): AssembledLayout {
+  return expandPhotoBand(applyVibrancyPass({
+    layout: {
+      ...skeleton,
+      blocks,
+      unfilledSlotIds: blocks.filter((b) => b.needsFiller).map((b) => b.slotId),
+      stats: {
+        placedArticles: blocks.filter((b) => b.articleId).length,
+        placedImages: blocks.filter((b) => b.imageId).length,
+        fillerBlocks: blocks.filter((b) => b.needsFiller).length,
+        emptySlots: blocks.filter((b) => b.kind === "empty").length,
+      },
+    },
+    articles: input.articles,
+    images: input.images,
+    visualPersonality,
+  }));
+}
+
 /** Append any images the AI forgot into remaining image-ish space. */
 function reattachMissingImages(
   blocks: LayoutBlock[],
@@ -437,22 +461,12 @@ export async function designLayout(
   }
   blocks = reattachMissingImages(blocks, input);
 
-  let layout: AssembledLayout = expandPhotoBand(applyVibrancyPass({
-    layout: {
-      ...skeleton,
-      blocks,
-      unfilledSlotIds: blocks.filter((b) => b.needsFiller).map((b) => b.slotId),
-      stats: {
-        placedArticles: blocks.filter((b) => b.articleId).length,
-        placedImages: blocks.filter((b) => b.imageId).length,
-        fillerBlocks: blocks.filter((b) => b.needsFiller).length,
-        emptySlots: blocks.filter((b) => b.kind === "empty").length,
-      },
-    },
-    articles: input.articles,
-    images: input.images,
-    visualPersonality: adaptive.plan.visualPersonality,
-  }));
+  let layout: AssembledLayout = composeAiLayout(
+    skeleton,
+    blocks,
+    input,
+    adaptive.plan.visualPersonality,
+  );
 
   try {
     const measureAi = async (
@@ -491,6 +505,43 @@ export async function designLayout(
 
     let repairedArticles = input.articles.map((article) => ({ ...article }));
     let measurement = await measureAi(layout, repairedArticles);
+    let auditProvider: "gemini" | "openai" | "deterministic" = result.provider;
+    let auditModel = result.model;
+    let auditDurationMs = result.durationMs;
+    let revisionUsed = false;
+    const initialAffinity = scorePorterOneReferenceAffinity(layout, input.gridSpec);
+    if (initialAffinity.affinity < 0.85) {
+      const revision = await callGeminiJson({
+        schema: AiDesignResponseSchema,
+        systemPrompt: `${systemPrompt}\n\nCLOSED-LOOP REVISION: This is a measured revision, not a new template choice. Keep the strongest parts of the supplied layout, but correct the listed PorterOne diagnostics and any measured text clips. Return the complete block array again.`,
+        userPrompt: `${userPrompt}\n\nREVISION DIAGNOSTICS:\n${JSON.stringify({
+          currentAffinity: initialAffinity.affinity,
+          matchedReference: initialAffinity.referenceId,
+          diagnostics: initialAffinity.diagnostics,
+          clippedBlocks: measurement?.clippedBlockIds ?? [],
+          clipDetails: measurement?.clipDetails ?? [],
+          currentBlocks: layout.blocks,
+          instruction: "Raise content-module count toward 14-18, keep individual blocks under about 20% of a page, add purposeful rails/bands/panels and clustered story photos, and fix only the measured offenders without dropping required content.",
+        })}`,
+        timeoutMs: DESIGN_TIMEOUT_MS,
+        fallback: { blocks: layout.blocks, designNotes: "revision fallback" },
+      });
+      auditDurationMs += revision.durationMs;
+      auditProvider = revision.provider;
+      auditModel = revision.model;
+      if (!("usedFallback" in revision && revision.usedFallback)) {
+        const revisedBlocks = sanitizeBlocks(
+          normalizeAiLayoutBlocks(revision.data.blocks, skeleton),
+          input,
+        );
+        if (revisedBlocks.length > 0) {
+          blocks = reattachMissingImages(revisedBlocks, input);
+          layout = composeAiLayout(skeleton, blocks, input, adaptive.plan.visualPersonality);
+          measurement = await measureAi(layout, repairedArticles);
+          revisionUsed = true;
+        }
+      }
+    }
     let repairAttempts = 0;
     while (measurement?.clippedBlocks && repairAttempts < 2) {
       const repaired = repairClippedAiLayout(layout, repairedArticles, measurement, repairAttempts);
@@ -533,9 +584,9 @@ export async function designLayout(
         promptAudit: {
           systemPrompt,
           userPrompt,
-          provider: result.provider,
-          model: result.model,
-          durationMs: result.durationMs,
+          provider: auditProvider,
+          model: auditModel,
+          durationMs: auditDurationMs,
         },
       };
     }
@@ -543,15 +594,15 @@ export async function designLayout(
       layout,
       articles: repairedArticles,
       mode: "ai",
-      designNotes: `${result.data.designNotes ?? "AI returned the styled V3 layout."} Accepted after ${repairAttempts} measured repair pass${repairAttempts === 1 ? "" : "es"}; PorterOne affinity ${aiAffinity.affinity.toFixed(3)} (${aiAffinity.referenceId}).`,
+      designNotes: `${result.data.designNotes ?? "AI returned the styled V3 layout."}${revisionUsed ? " One measured PorterOne revision was applied." : ""} Accepted after ${repairAttempts} measured repair pass${repairAttempts === 1 ? "" : "es"}; PorterOne affinity ${aiAffinity.affinity.toFixed(3)} (${aiAffinity.referenceId}).`,
       editorialPlan: adaptive.plan,
       adaptiveCandidates: adaptiveCandidateReport,
       promptAudit: {
         systemPrompt,
         userPrompt,
-        provider: result.provider,
-        model: result.model,
-        durationMs: result.durationMs,
+        provider: auditProvider,
+        model: auditModel,
+        durationMs: auditDurationMs,
       },
     };
   } catch (err) {

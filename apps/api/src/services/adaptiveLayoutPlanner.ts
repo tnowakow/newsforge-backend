@@ -75,6 +75,7 @@ export interface CandidateMeasurement {
   candidateId: string;
   clippedBlocks: number;
   clippedBlockIds?: string[];
+  clipDetails?: Array<{ blockId: string; overflowPx: number }>;
   overflowBlocks: number;
   missingImages: number;
   renderedImages: number;

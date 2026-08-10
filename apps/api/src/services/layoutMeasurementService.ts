@@ -26,6 +26,7 @@ interface MeasureInput {
 interface DomMeasurement {
   clippedBlocks: number;
   clippedBlockIds: string[];
+  clipDetails: Array<{ blockId: string; overflowPx: number }>;
   overflowBlocks: number;
   missingImages: number;
   renderedImages: number;
@@ -62,6 +63,7 @@ async function measureCandidate(input: Omit<MeasureInput, "candidates"> & {
     const doc = (globalThis as any).document;
     const blocks = Array.from(doc.querySelectorAll(".block")) as any[];
     const clippedBlockSet = new Set<any>();
+    const clipDetails: Array<{ blockId: string; overflowPx: number }> = [];
     const clipTargets = Array.from(doc.querySelectorAll(
       ".body,.list-body",
     )) as any[];
@@ -70,7 +72,16 @@ async function measureCandidate(input: Omit<MeasureInput, "candidates"> & {
       const clipsHorizontally = target.scrollWidth > target.clientWidth + 1;
       if (clipsVertically || clipsHorizontally) {
         const owner = target.closest(".block");
-        if (owner && !owner.querySelector(".photo")) clippedBlockSet.add(owner);
+        if (owner && !owner.querySelector(".photo")) {
+          clippedBlockSet.add(owner);
+          const blockId = owner.getAttribute("data-block-id");
+          if (blockId) {
+            clipDetails.push({
+              blockId,
+              overflowPx: Math.max(target.scrollHeight - target.clientHeight, target.scrollWidth - target.clientWidth),
+            });
+          }
+        }
       }
     }
     const clippedBlocks = clippedBlockSet.size;
@@ -161,6 +172,7 @@ async function measureCandidate(input: Omit<MeasureInput, "candidates"> & {
     return {
       clippedBlocks,
       clippedBlockIds,
+      clipDetails,
       overflowBlocks,
       missingImages: images.length - renderedImages,
       renderedImages,

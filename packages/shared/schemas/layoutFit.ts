@@ -68,6 +68,7 @@ export const AdaptiveLayoutCandidateReportSchema = z.object({
     candidateId: z.string(),
     clippedBlocks: z.number().int().nonnegative(),
     clippedBlockIds: z.array(z.string()).optional(),
+    clipDetails: z.array(z.object({ blockId: z.string(), overflowPx: z.number().nonnegative() })).optional(),
     overflowBlocks: z.number().int().nonnegative(),
     missingImages: z.number().int().nonnegative(),
     renderedImages: z.number().int().nonnegative(),
