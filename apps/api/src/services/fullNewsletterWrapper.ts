@@ -114,22 +114,28 @@ function compactGatewayInnerBlocks(blocks: LayoutBlock[]): LayoutBlock[] {
       if (block.slotId === "cl-p2-volunteer") {
         return {
           ...block,
-          position: { ...block.position, row: 10, rowSpan: 3 },
+          position: { ...block.position, row: 10, rowSpan: 4 },
         };
       }
       if (block.slotId === "cl-p2-trust-funds") {
         return {
           ...block,
-          position: { ...block.position, row: 15, rowSpan: 2 },
+          position: { ...block.position, row: 14, rowSpan: 3 },
         };
       }
       return block;
     }
     if (block.page !== 1) return block;
-    if (block.slotId === "cl-p1-bday" || block.slotId === "cl-p1-exec") {
+    if (block.slotId === "cl-p1-bday") {
       return {
         ...block,
         position: { ...block.position, row: 1, rowSpan: 5 },
+      };
+    }
+    if (block.slotId === "cl-p1-exec") {
+      return {
+        ...block,
+        position: { ...block.position, col: 9, row: 1, colSpan: 11, rowSpan: 5 },
       };
     }
     if (block.slotId === "cl-p1-happy-hour" || block.slotId === "cl-p1-upcoming-events") {
@@ -159,13 +165,13 @@ function compactGatewayInnerBlocks(blocks: LayoutBlock[]): LayoutBlock[] {
     if (block.slotId === "cl-p1-event-img-a") {
       return {
         ...block,
-        position: { ...block.position, col: 14, row: 8, colSpan: 6, rowSpan: 9 },
+        position: { ...block.position, col: 14, row: 8, colSpan: 11, rowSpan: 9 },
       };
     }
     if (block.slotId === "cl-p1-event-img-b") {
       return {
         ...block,
-        position: { ...block.position, col: 20, row: 8, colSpan: 5, rowSpan: 9 },
+        position: { ...block.position, col: 20, row: 1, colSpan: 5, rowSpan: 5 },
       };
     }
     return block;

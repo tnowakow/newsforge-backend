@@ -133,7 +133,7 @@ function porterSpreadGridSpec(templateId: string, gridSpec: GridSpec): GridSpec 
     ...gridSpec,
     slots: gridSpec.slots.map((slot) => {
       const byId: Record<string, NonNullable<typeof slot.capacity>> = {
-        "cl-p1-exec": { minWords: 220, maxWords: 340 },
+        "cl-p1-exec": { minWords: 180, maxWords: 270 },
         "cl-p1-upcoming-events": { minWords: 160, maxWords: 260 },
         "cl-p2-smile": { minWords: 300, maxWords: 430 },
         "cl-p2-feature-band": { minWords: 120, maxWords: 185 },
