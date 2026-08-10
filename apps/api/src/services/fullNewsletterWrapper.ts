@@ -102,19 +102,19 @@ function compactGatewayInnerBlocks(blocks: LayoutBlock[]): LayoutBlock[] {
       if (block.slotId === "cl-p2-outings") {
         return {
           ...block,
-          position: { ...block.position, row: 1, rowSpan: 3 },
+          position: { ...block.position, row: 1, rowSpan: 4 },
         };
       }
       if (block.slotId === "cl-p2-smile") {
         return {
           ...block,
-          position: { ...block.position, row: 1, rowSpan: 12 },
+          position: { ...block.position, row: 1, rowSpan: 13 },
         };
       }
       if (block.slotId === "cl-p2-feature-band") {
         return {
           ...block,
-          position: { ...block.position, row: 4, rowSpan: 4 },
+          position: { ...block.position, row: 5, rowSpan: 3 },
         };
       }
       if (block.slotId === "cl-p2-photo-b") {
@@ -126,13 +126,13 @@ function compactGatewayInnerBlocks(blocks: LayoutBlock[]): LayoutBlock[] {
       if (block.slotId === "cl-p2-volunteer-img") {
         return {
           ...block,
-          position: { ...block.position, row: 9, rowSpan: 4 },
+          position: { ...block.position, row: 9, rowSpan: 5 },
         };
       }
       if (block.slotId === "cl-p2-volunteer") {
         return {
           ...block,
-          position: { ...block.position, row: 8, rowSpan: 5 },
+          position: { ...block.position, row: 8, rowSpan: 6 },
         };
       }
       if (block.slotId === "cl-p2-trust-funds") {
@@ -148,7 +148,7 @@ function compactGatewayInnerBlocks(blocks: LayoutBlock[]): LayoutBlock[] {
             compact: true,
             cornerRadius: 0,
           },
-          position: { ...block.position, row: 13, rowSpan: 4 },
+          position: { ...block.position, row: 14, rowSpan: 3 },
         };
       }
       return block;
@@ -169,31 +169,31 @@ function compactGatewayInnerBlocks(blocks: LayoutBlock[]): LayoutBlock[] {
     if (block.slotId === "cl-p1-happy-hour" || block.slotId === "cl-p1-upcoming-events") {
       return {
         ...block,
-        position: { ...block.position, row: 6, rowSpan: 2 },
+        position: { ...block.position, row: 6, rowSpan: 4 },
       };
     }
     if (block.slotId === "cl-p1-hh-img-a") {
       return {
         ...block,
-        position: { ...block.position, col: 1, row: 8, colSpan: 8, rowSpan: 9 },
+        position: { ...block.position, col: 1, row: 10, colSpan: 7, rowSpan: 7 },
       };
     }
     if (block.slotId === "cl-p1-hh-img-b") {
       return {
         ...block,
-        position: { ...block.position, col: 9, row: 8, colSpan: 5, rowSpan: 5 },
+        position: { ...block.position, col: 8, row: 10, colSpan: 6, rowSpan: 4 },
       };
     }
     if (block.slotId === "cl-p1-hh-img-c") {
       return {
         ...block,
-        position: { ...block.position, col: 9, row: 13, colSpan: 5, rowSpan: 4 },
+        position: { ...block.position, col: 8, row: 14, colSpan: 6, rowSpan: 3 },
       };
     }
     if (block.slotId === "cl-p1-event-img-a") {
       return {
         ...block,
-        position: { ...block.position, col: 14, row: 8, colSpan: 11, rowSpan: 9 },
+        position: { ...block.position, col: 14, row: 10, colSpan: 11, rowSpan: 7 },
       };
     }
     if (block.slotId === "cl-p1-event-img-b") {
