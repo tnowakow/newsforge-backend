@@ -342,6 +342,7 @@ runsRouter.post("/", async (req, res) => {
   });
 
   // Fit strategy — overflow/underflow trimming before assembly (Vitaly §7).
+  const originalWordCounts = new Map(articles.map((article) => [article.id, article.wordCount]));
   const scoreableChosen: ScoreableTemplate = {
     id: template.id,
     pageCount: template.pageCount,
@@ -433,7 +434,6 @@ runsRouter.post("/", async (req, res) => {
   let adaptiveCandidatesForReport = designed.adaptiveCandidates;
   const selectedAdaptive = adaptiveCandidatesForReport?.find((candidate) => candidate.selected);
   let finalMeasurement: CandidateMeasurement | undefined;
-  const originalWordCounts = new Map(articles.map((article) => [article.id, article.wordCount]));
   if (selectedAdaptive) {
     try {
       const measureSelected = async () => {
@@ -517,7 +517,8 @@ runsRouter.post("/", async (req, res) => {
     }
   }
 
-  const fullOutput = scoreFullNewsletterOutput(layout, innerReferenceScore.affinity, finalMeasurement);
+  const measuredInnerAffinity = selectedAdaptive?.subscores.porterReferenceAffinity ?? innerReferenceScore.affinity;
+  const fullOutput = scoreFullNewsletterOutput(layout, measuredInnerAffinity, finalMeasurement);
 
   // Build the fit report for persistence.
   const layoutFitReport = buildLayoutFitReport({
