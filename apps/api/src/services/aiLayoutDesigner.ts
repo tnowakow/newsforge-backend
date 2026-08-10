@@ -513,7 +513,7 @@ export async function designLayout(
     // Keep the expensive critique loop for genuinely off-target layouts. The
     // repair/weighted gate still evaluates every AI result; this trigger is
     // deliberately stricter so ordinary generations stay designer-fast.
-    if (initialAffinity.affinity < 0.70) {
+    if (initialAffinity.affinity < 0.60) {
       const revision = await callGeminiJson({
         schema: AiDesignResponseSchema,
         systemPrompt: `${systemPrompt}\n\nCLOSED-LOOP REVISION: This is a measured revision, not a new template choice. Keep the strongest parts of the supplied layout, but correct the listed PorterOne diagnostics and any measured text clips. Return the complete block array again.`,
