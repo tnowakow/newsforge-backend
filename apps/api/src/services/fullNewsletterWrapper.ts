@@ -114,7 +114,7 @@ function compactGatewayInnerBlocks(blocks: LayoutBlock[]): LayoutBlock[] {
       if (block.slotId === "cl-p2-feature-band") {
         return {
           ...block,
-          position: { ...block.position, row: 5, rowSpan: 2 },
+          position: { ...block.position, row: 5, rowSpan: 3 },
         };
       }
       if (block.slotId === "cl-p2-photo-b") {
@@ -132,7 +132,7 @@ function compactGatewayInnerBlocks(blocks: LayoutBlock[]): LayoutBlock[] {
       if (block.slotId === "cl-p2-volunteer") {
         return {
           ...block,
-          position: { ...block.position, row: 7, rowSpan: 7 },
+          position: { ...block.position, row: 8, rowSpan: 6 },
         };
       }
       if (block.slotId === "cl-p2-trust-funds") {
