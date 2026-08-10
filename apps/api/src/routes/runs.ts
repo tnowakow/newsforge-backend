@@ -54,6 +54,8 @@ import { selectStockPhotosForRun } from "../services/stockPhotoCatalog.js";
 import { wrapV3InnerSpreadForDemo } from "../services/fullNewsletterWrapper.js";
 import {
   porterOneTemplateForScenario,
+  scorePorterOneReferenceAffinity,
+  scoreFullNewsletterOutput,
   type PorterOneScenario,
 } from "../services/porterOneReferenceScorer.js";
 import type { CandidateMeasurement } from "../services/adaptiveLayoutPlanner.js";
@@ -84,9 +86,9 @@ function wordCount(text: string): number {
   return text.trim().split(/\s+/).filter(Boolean).length;
 }
 
-function trimWords(text: string, ratio = 0.82): string {
+function trimWords(text: string, ratio = 0.82, minimumWords = 8): string {
   const words = text.trim().split(/\s+/).filter(Boolean);
-  const keep = Math.max(8, Math.floor(words.length * ratio));
+  const keep = Math.min(words.length, Math.max(minimumWords, Math.floor(words.length * ratio)));
   const trimmed = words.slice(0, keep).join(" ").replace(/[,:;—-]\s*$/, "");
   return /[.!?]$/.test(trimmed) ? trimmed : `${trimmed}.`;
 }
@@ -95,6 +97,7 @@ function repairClippedBlocks(
   layout: AssembledLayout,
   articles: Article[],
   measurement: CandidateMeasurement,
+  originalWordCounts = new Map(articles.map((article) => [article.id, article.wordCount])),
 ): { layout: AssembledLayout; articles: Article[]; changed: boolean } {
   const clipped = new Set(measurement.clippedBlockIds ?? []);
   if (clipped.size === 0) return { layout, articles, changed: false };
@@ -115,7 +118,8 @@ function repairClippedBlocks(
       const article = mutableArticlesById.get(block.articleId);
       if (article) {
         const ratio = block.position.rowSpan <= 2 ? 0.62 : block.position.rowSpan <= 3 ? 0.72 : 0.86;
-        article.body = trimWords(article.body, ratio);
+        const minimumWords = Math.min(article.wordCount, Math.max(18, Math.ceil((originalWordCounts.get(article.id) ?? article.wordCount) * 0.6)));
+        article.body = trimWords(article.body, ratio, minimumWords);
         article.wordCount = wordCount(article.body);
       }
     }
@@ -416,6 +420,8 @@ runsRouter.post("/", async (req, res) => {
     }
   }
 
+  const innerSpreadLayout = layout;
+  const innerReferenceScore = scorePorterOneReferenceAffinity(innerSpreadLayout, effectiveGridSpec);
   layout = wrapV3InnerSpreadForDemo({
     layout,
     articles,
@@ -426,6 +432,8 @@ runsRouter.post("/", async (req, res) => {
 
   let adaptiveCandidatesForReport = designed.adaptiveCandidates;
   const selectedAdaptive = adaptiveCandidatesForReport?.find((candidate) => candidate.selected);
+  let finalMeasurement: CandidateMeasurement | undefined;
+  const originalWordCounts = new Map(articles.map((article) => [article.id, article.wordCount]));
   if (selectedAdaptive) {
     try {
       const measureSelected = async () => {
@@ -450,9 +458,9 @@ runsRouter.post("/", async (req, res) => {
         return measurement;
       };
 
-      let finalMeasurement = await measureSelected();
+      finalMeasurement = await measureSelected();
       for (let attempt = 0; attempt < 5 && finalMeasurement?.clippedBlocks > 0; attempt++) {
-        const repaired = repairClippedBlocks(layout, articles, finalMeasurement);
+        const repaired = repairClippedBlocks(layout, articles, finalMeasurement, originalWordCounts);
         if (!repaired.changed) break;
         layout = repaired.layout;
         articles = repaired.articles;
@@ -460,14 +468,15 @@ runsRouter.post("/", async (req, res) => {
       }
 
       if (finalMeasurement) {
+        const measuredFinal = finalMeasurement;
         const totalBlocks = Math.max(layout.blocks.length, 1);
-        const totalImages = Math.max(finalMeasurement.totalImages, 1);
+        const totalImages = Math.max(measuredFinal.totalImages, 1);
         const renderFit = Math.max(
           0,
           1 -
-            finalMeasurement.clippedBlocks / totalBlocks -
-            finalMeasurement.overflowBlocks / totalBlocks -
-            finalMeasurement.missingImages / totalImages,
+            measuredFinal.clippedBlocks / totalBlocks -
+            measuredFinal.overflowBlocks / totalBlocks -
+            measuredFinal.missingImages / totalImages,
         );
         adaptiveCandidatesForReport = adaptiveCandidatesForReport?.map((candidate) => {
           if (candidate.id !== selectedAdaptive.id) return candidate;
@@ -478,26 +487,26 @@ runsRouter.post("/", async (req, res) => {
           );
           return {
             ...candidate,
-            measurement: finalMeasurement,
+            measurement: measuredFinal,
             subscores: {
               ...candidate.subscores,
               renderFit,
-              usefulOccupancy: finalMeasurement.usefulOccupancy,
-              geometricCoverage: finalMeasurement.geometricCoverage,
+              usefulOccupancy: measuredFinal.usefulOccupancy,
+              geometricCoverage: measuredFinal.geometricCoverage,
             },
             warnings: [
               ...baseWarnings,
-              ...(finalMeasurement.clippedBlocks > 0
-                ? [`render-clipped-blocks:${finalMeasurement.clippedBlocks}`]
+              ...(measuredFinal.clippedBlocks > 0
+                ? [`render-clipped-blocks:${measuredFinal.clippedBlocks}`]
                 : []),
-              ...(finalMeasurement.overflowBlocks > 0
-                ? [`render-overflow-blocks:${finalMeasurement.overflowBlocks}`]
+              ...(measuredFinal.overflowBlocks > 0
+                ? [`render-overflow-blocks:${measuredFinal.overflowBlocks}`]
                 : []),
-              ...(finalMeasurement.missingImages > 0
-                ? [`render-missing-images:${finalMeasurement.missingImages}`]
+              ...(measuredFinal.missingImages > 0
+                ? [`render-missing-images:${measuredFinal.missingImages}`]
                 : []),
-              ...(finalMeasurement.lowUtilityBlocks > 0
-                ? [`low-utility-blocks:${finalMeasurement.lowUtilityBlocks}`]
+              ...(measuredFinal.lowUtilityBlocks > 0
+                ? [`low-utility-blocks:${measuredFinal.lowUtilityBlocks}`]
                 : []),
             ],
           };
@@ -507,6 +516,8 @@ runsRouter.post("/", async (req, res) => {
       console.warn("[layout-measurement] final selected measurement skipped:", err);
     }
   }
+
+  const fullOutput = scoreFullNewsletterOutput(layout, innerReferenceScore.affinity, finalMeasurement);
 
   // Build the fit report for persistence.
   const layoutFitReport = buildLayoutFitReport({
@@ -523,6 +534,7 @@ runsRouter.post("/", async (req, res) => {
       editorialPlan: designed.editorialPlan,
       adaptiveCandidates: adaptiveCandidatesForReport,
     },
+    fullOutput,
   });
 
   // Run compliance sync detectors (Vitaly rule 18 seeded on create).

@@ -22,6 +22,7 @@ import {
   type NewsImage,
   type TemplateSlot,
 } from "@newsforge/shared/schemas";
+import type { FullOutputScore } from "./porterOneReferenceScorer.js";
 
 // A template shape we can score. Matches the Prisma Template row we pass in.
 export interface ScoreableTemplate {
@@ -245,6 +246,18 @@ function semanticSlotCap(article: Article, slots: TemplateSlot[]): number | unde
   return caps.length > 0 ? Math.min(...caps) : undefined;
 }
 
+function readableTrimFloor(article: Article, slot?: TemplateSlot): number {
+  // Headline slots are intentionally allowed to become short decks. Body and
+  // list modules must remain readable; a 69-word story becoming 13 words is
+  // a layout failure, not a successful fit.
+  if (slot?.type === "headline") return Math.min(article.wordCount, 18);
+  return Math.min(article.wordCount, Math.max(18, Math.ceil(article.wordCount * 0.6)));
+}
+
+function safeTrimCap(article: Article, requestedCap: number, slot?: TemplateSlot): number {
+  return Math.min(article.wordCount, Math.max(requestedCap, readableTrimFloor(article, slot)));
+}
+
 export interface FitContentResult {
   articles: Article[]; // possibly trimmed
   articleFit: LayoutFitArticleFit[];
@@ -289,7 +302,8 @@ export function fitContent(
       // No positional slot, but semantic sections may still claim a later
       // targeted region during assembly. Keep those articles within that cap.
       if (semanticCap && article.wordCount > semanticCap) {
-        const { body, words } = truncateToSentenceCap(article.body, semanticCap);
+        const cap = safeTrimCap(article, semanticCap);
+        const { body, words } = truncateToSentenceCap(article.body, cap);
         trimmedArticles.push({ ...article, body, wordCount: words });
         warnings.push(
           `content-trimmed: ${article.id} (${article.wordCount}→${words} words)`,
@@ -299,7 +313,8 @@ export function fitContent(
       }
       continue;
     }
-    const cap = semanticCap ?? slot.capacity?.maxWords;
+    const requestedCap = semanticCap ?? slot.capacity?.maxWords;
+    const cap = requestedCap ? safeTrimCap(article, requestedCap, slot) : undefined;
     if (!cap || article.wordCount <= cap) {
       trimmedArticles.push(article);
       articleFit.push({
@@ -419,6 +434,7 @@ export function buildLayoutFitReport(input: {
     editorialPlan?: LayoutFitReport["editorialPlan"];
     adaptiveCandidates?: LayoutFitReport["adaptiveCandidates"];
   };
+  fullOutput?: FullOutputScore;
 }): LayoutFitReport {
   const pick =
     input.pickResult ??
@@ -429,7 +445,7 @@ export function buildLayoutFitReport(input: {
 
   return {
     chosenTemplateId: input.chosen.id,
-    score:
+    score: input.fullOutput?.fullOutputScore ??
       pick.candidates.find((c) => c.templateId === input.chosen.id)?.score ??
       pick.chosenScore,
     designMode: input.design?.mode,
@@ -446,6 +462,16 @@ export function buildLayoutFitReport(input: {
     renderedImages: selectedMeasurement?.renderedImages,
     porterReferenceAffinity: selectedSubscores?.porterReferenceAffinity,
     porterReferenceId: selectedSubscores?.porterReferenceId,
+    innerSpreadAffinity: input.fullOutput?.innerSpreadAffinity ?? selectedSubscores?.porterReferenceAffinity,
+    fullOutputScore: input.fullOutput?.fullOutputScore,
+    coverScore: input.fullOutput?.coverScore,
+    coverRenderFit: input.fullOutput?.coverRenderFit,
+    coverClippedBlocks: input.fullOutput?.coverClippedBlocks,
+    coverOverflowBlocks: input.fullOutput?.coverOverflowBlocks,
+    coverMissingImages: input.fullOutput?.coverMissingImages,
+    coverContentBlocks: input.fullOutput?.coverContentBlocks,
+    coverImageBlocks: input.fullOutput?.coverImageBlocks,
+    coverDuplicateBirthdayBlocks: input.fullOutput?.coverDuplicateBirthdayBlocks,
     editorialPlan: input.design?.editorialPlan,
     adaptiveCandidates: input.design?.adaptiveCandidates,
     candidates: pick.candidates,

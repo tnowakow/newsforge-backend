@@ -31,6 +31,19 @@ export interface PorterOneReferenceScore {
   };
 }
 
+export interface FullOutputScore {
+  fullOutputScore: number;
+  innerSpreadAffinity: number;
+  coverScore: number;
+  coverRenderFit: number;
+  coverClippedBlocks: number;
+  coverOverflowBlocks: number;
+  coverMissingImages: number;
+  coverContentBlocks: number;
+  coverImageBlocks: number;
+  coverDuplicateBirthdayBlocks: number;
+}
+
 /**
  * The five supplied PorterOne examples are composition families, not merely
  * color palettes. Keep this mapping next to the reference scorer so the
@@ -208,5 +221,60 @@ export function scorePorterOneReferenceAffinity(
     affinity: Math.max(0, Math.min(1, best?.score ?? 0)),
     referenceId: best?.reference.id ?? "unknown",
     diagnostics,
+  };
+}
+
+/**
+ * Score the actual four-page demo artifact. Porter affinity remains an
+ * inner-spread signal, while this wrapper score makes cover/back regressions
+ * visible without pretending they are one of the five two-page references.
+ */
+export function scoreFullNewsletterOutput(
+  layout: AssembledLayout,
+  innerSpreadAffinity: number,
+  measurement?: {
+    pageMetrics?: Array<{
+      page: number;
+      clippedBlocks: number;
+      overflowBlocks: number;
+      missingImages: number;
+      renderFit: number;
+      usefulOccupancy: number;
+    }>;
+  },
+): FullOutputScore {
+  const coverPages = new Set([1, 4]);
+  const coverBlocks = layout.blocks.filter((block) => coverPages.has(block.page) && block.kind !== "empty");
+  const coverContentBlocks = coverBlocks.filter((block) => Boolean(block.heading || block.inlineText || block.articleId || block.listItems?.length)).length;
+  const coverImageBlocks = coverBlocks.filter((block) => Boolean(block.imageId)).length;
+  const birthdayBlocks = layout.blocks.filter((block) =>
+    block.style?.panelRole === "birthday" || Boolean(block.listItems?.length && /birthday/i.test(`${block.heading ?? ""} ${block.inlineText ?? ""}`)),
+  );
+  const coverDuplicateBirthdayBlocks = birthdayBlocks.filter((block) => coverPages.has(block.page)).length;
+  const pageMetrics = measurement?.pageMetrics ?? [];
+  const coverMetrics = pageMetrics.filter((metric) => coverPages.has(metric.page));
+  const coverRenderFit = coverMetrics.length
+    ? coverMetrics.reduce((sum, metric) => sum + metric.renderFit, 0) / coverMetrics.length
+    : 1;
+  const coverClippedBlocks = coverMetrics.reduce((sum, metric) => sum + metric.clippedBlocks, 0);
+  const coverOverflowBlocks = coverMetrics.reduce((sum, metric) => sum + metric.overflowBlocks, 0);
+  const coverMissingImages = coverMetrics.reduce((sum, metric) => sum + metric.missingImages, 0);
+  const structureScore = Math.min(1, coverContentBlocks / 8);
+  const photoScore = coverImageBlocks >= 2 ? 1 : coverImageBlocks > 0 ? 0.75 : 0.35;
+  const dedupeScore = coverDuplicateBirthdayBlocks === 0 ? 1 : 0;
+  const coverScore = Math.max(0, Math.min(1,
+    coverRenderFit * 0.45 + structureScore * 0.25 + photoScore * 0.15 + dedupeScore * 0.15,
+  ));
+  return {
+    fullOutputScore: Math.max(0, Math.min(1, innerSpreadAffinity * 0.75 + coverScore * 0.25)),
+    innerSpreadAffinity,
+    coverScore,
+    coverRenderFit,
+    coverClippedBlocks,
+    coverOverflowBlocks,
+    coverMissingImages,
+    coverContentBlocks,
+    coverImageBlocks,
+    coverDuplicateBirthdayBlocks,
   };
 }

@@ -175,7 +175,9 @@ describe("layoutFitService.fitContent", () => {
     const result = fitContent([article], [], template);
 
     assert.equal(result.articleFit[0].trimmed, true);
-    assert.ok(result.articles[0].wordCount <= 12);
+    // Headline slots are intentionally allowed to become short decks; the
+    // readable trim floor applies to body/list modules.
+    assert.ok(result.articles[0].wordCount <= 20);
   });
 
   it("uses semantic slot capacity when final assembly can move the article", () => {
@@ -190,7 +192,7 @@ describe("layoutFitService.fitContent", () => {
 
     const result = fitContent([carWash], [], semanticTemplate);
 
-    assert.equal(result.articles[0].wordCount, 40);
+    assert.ok(result.articles[0].wordCount >= 57);
     assert.equal(result.articleFit[0].trimmed, true);
   });
 

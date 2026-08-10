@@ -36,6 +36,17 @@ interface DomMeasurement {
   minPageUtility: number;
   largestEmptyBandRatio: number;
   lowUtilityBlocks: number;
+  pageMetrics: Array<{
+    page: number;
+    blockCount: number;
+    contentBlockCount: number;
+    imageBlocks: number;
+    clippedBlocks: number;
+    overflowBlocks: number;
+    missingImages: number;
+    renderFit: number;
+    usefulOccupancy: number;
+  }>;
 }
 
 async function measureCandidate(input: Omit<MeasureInput, "candidates"> & {
@@ -108,7 +119,9 @@ async function measureCandidate(input: Omit<MeasureInput, "candidates"> & {
     let largestEmptyBandRatio = 0;
     let lowUtilityBlocks = 0;
     const pages = Array.from(doc.querySelectorAll(".page")) as any[];
-    for (const page of pages) {
+    const pageMetrics: DomMeasurement["pageMetrics"] = [];
+    for (let pageIndex = 0; pageIndex < pages.length; pageIndex++) {
+      const page = pages[pageIndex];
       const content = page.querySelector(".content") as any;
       if (!content) continue;
       const contentRect = content.getBoundingClientRect();
@@ -119,6 +132,13 @@ async function measureCandidate(input: Omit<MeasureInput, "candidates"> & {
       let pageCoveredArea = 0;
       const rowBuckets = Array.from({ length: 16 }, () => false);
       const pageBlocks = blocks.filter((block) => block.closest(".page") === page);
+      const pageClipped = pageBlocks.filter((block) => clippedBlockSet.has(block)).length;
+      const pageOverflow = pageBlocks.filter((block) => {
+        const rect = block.getBoundingClientRect();
+        const pageRect = block.closest(".page")?.getBoundingClientRect();
+        return Boolean(pageRect && (rect.left < pageRect.left - 1 || rect.top < pageRect.top - 1 || rect.right > pageRect.right + 1 || rect.bottom > pageRect.bottom + 1));
+      }).length;
+      const pageImages = pageBlocks.filter((block) => block.querySelector(".photo img")).length;
       for (const block of pageBlocks) {
         const rect = block.getBoundingClientRect();
         const width = Math.max(0, Math.min(rect.right, contentRect.right) - Math.max(rect.left, contentRect.left));
@@ -156,6 +176,15 @@ async function measureCandidate(input: Omit<MeasureInput, "candidates"> & {
         if (utility < 0.42 && area > 32_000) lowUtilityBlocks += 1;
       }
       minPageUtility = Math.min(minPageUtility, pageWeightedUtility / contentArea);
+      const pageTotalImages = pageBlocks.reduce((sum, block) => sum + (block.querySelector(".photo img") ? 1 : 0), 0);
+      const pageRenderedImages = pageBlocks.filter((block) => {
+        const image = block.querySelector(".photo img") as any;
+        return image && image.complete && image.naturalWidth > 0;
+      }).length;
+      const pageContentBlocks = pageBlocks.filter((block) => {
+        const kind = block.getAttribute("data-kind");
+        return kind !== "empty" && (block.querySelector(".body,.list-body,.section-heading,.script-heading") || block.querySelector(".photo img"));
+      }).length;
       let emptyRun = 0;
       let maxEmptyRun = 0;
       for (const occupied of rowBuckets) {
@@ -168,6 +197,19 @@ async function measureCandidate(input: Omit<MeasureInput, "candidates"> & {
       }
       maxEmptyRun = Math.max(maxEmptyRun, emptyRun);
       largestEmptyBandRatio = Math.max(largestEmptyBandRatio, maxEmptyRun / rowBuckets.length);
+      const pageUtility = pageWeightedUtility / contentArea;
+      const pageRenderFit = Math.max(0, 1 - pageClipped / Math.max(pageBlocks.length, 1) - pageOverflow / Math.max(pageBlocks.length, 1) - (pageTotalImages - pageRenderedImages) / Math.max(pageTotalImages, 1));
+      pageMetrics.push({
+        page: pageIndex + 1,
+        blockCount: pageBlocks.length,
+        contentBlockCount: pageContentBlocks,
+        imageBlocks: pageImages,
+        clippedBlocks: pageClipped,
+        overflowBlocks: pageOverflow,
+        missingImages: pageTotalImages - pageRenderedImages,
+        renderFit: pageRenderFit,
+        usefulOccupancy: pageUtility,
+      });
     }
     return {
       clippedBlocks,
@@ -182,6 +224,7 @@ async function measureCandidate(input: Omit<MeasureInput, "candidates"> & {
       minPageUtility: minPageUtility === 1 ? 0 : minPageUtility,
       largestEmptyBandRatio,
       lowUtilityBlocks,
+      pageMetrics,
     };
   });
   return {

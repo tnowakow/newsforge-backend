@@ -81,7 +81,28 @@ function shortBody(article: Article | undefined, fallback: string, maxChars = 26
   const raw = article?.body?.trim() || fallback;
   const clean = raw.replace(/\s+/g, " ").trim();
   if (clean.length <= maxChars) return clean;
-  return `${clean.slice(0, maxChars).replace(/\s+\S*$/, "")}.`;
+  const window = clean.slice(0, maxChars);
+  const sentenceEnd = [...window.matchAll(/[.!?](?=\s|$)/g)].pop()?.index;
+  if (sentenceEnd !== undefined && sentenceEnd >= Math.min(80, maxChars * 0.45)) {
+    return window.slice(0, sentenceEnd + 1).trim();
+  }
+  return `${window.replace(/\s+\S*$/, "").replace(/[,:;—-]\s*$/, "")}.`;
+}
+
+function dedupeBirthdayBlocks(blocks: LayoutBlock[], articles: Article[]): LayoutBlock[] {
+  const birthdayIds = new Set(
+    articles
+      .filter((article) => article.articleType === "birthday" || /birthday/i.test(`${article.title}\n${article.body}`))
+      .map((article) => article.id),
+  );
+  let kept = false;
+  return blocks.filter((block) => {
+    const isBirthday = block.style?.panelRole === "birthday" || Boolean(block.articleId && birthdayIds.has(block.articleId));
+    if (!isBirthday) return true;
+    if (kept) return false;
+    kept = true;
+    return true;
+  });
 }
 
 /**
@@ -223,9 +244,9 @@ export function wrapV3InnerSpreadForDemo({
     return layout;
   }
 
-  const innerBlocks = layout.templateId === "v3-spread-classic"
+  const innerBlocks = dedupeBirthdayBlocks(layout.templateId === "v3-spread-classic"
     ? compactGatewayInnerBlocks(layout.blocks)
-    : layout.blocks;
+    : layout.blocks, articles);
 
   const shiftedInnerBlocks = innerBlocks.map((block) => ({
     ...block,
@@ -242,9 +263,6 @@ export function wrapV3InnerSpreadForDemo({
   const secondary = wrapperImages.find((image) => image.id !== hero?.id);
   const tertiary = wrapperImages.find(
     (image) => image.id !== hero?.id && image.id !== secondary?.id,
-  );
-  const birthday = articles.find((article) =>
-    article.articleType === "birthday" || /birthday/i.test(`${article.title}\n${article.body}`),
   );
   const executive = firstArticleMatching(articles, /executive|director/i);
   const events = firstArticleMatching(articles, /event|happy hour|outing|campus|calendar/i);
@@ -269,13 +287,15 @@ export function wrapV3InnerSpreadForDemo({
     textBlock(
       "demo-cover-birthday",
       1,
-      birthday?.title || "Happy Birthday!",
-      shortBody(birthday, "Residents and team members celebrating this month.", 210),
+      "Happy Birthday!",
+      "Residents and team members celebrating this month.",
       { col: 1, row: 5, colSpan: 8, rowSpan: 5 },
       {
         bg: "sun",
         headerColor: "coral",
-        panelRole: "birthday",
+        // The cover is a teaser only. The full birthday roster lives once on
+        // the inner spread, matching the Porter references.
+        panelRole: "featureBand",
         cornerRadius: 0,
         compact: true,
       },
@@ -299,7 +319,7 @@ export function wrapV3InnerSpreadForDemo({
       "demo-cover-director",
       1,
       "Executive Director Corner",
-      shortBody(executive, `${clientName} shares a warm note on the month ahead.`, 330),
+      shortBody(executive, `${clientName} shares a warm note on the month ahead.`, 180),
       { col: 9, row: 1, colSpan: 8, rowSpan: 7 },
       {
         bg: "cream",

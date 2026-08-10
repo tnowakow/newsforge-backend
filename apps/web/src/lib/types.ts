@@ -270,6 +270,17 @@ export interface AdaptiveLayoutCandidateReport {
     minPageUtility?: number;
     largestEmptyBandRatio?: number;
     lowUtilityBlocks: number;
+    pageMetrics?: Array<{
+      page: number;
+      blockCount: number;
+      contentBlockCount: number;
+      imageBlocks: number;
+      clippedBlocks: number;
+      overflowBlocks: number;
+      missingImages: number;
+      renderFit: number;
+      usefulOccupancy: number;
+    }>;
   };
 }
 
@@ -333,6 +344,16 @@ export interface LayoutFitReport {
   renderedImages?: number;
   porterReferenceAffinity?: number;
   porterReferenceId?: string;
+  innerSpreadAffinity?: number;
+  fullOutputScore?: number;
+  coverScore?: number;
+  coverRenderFit?: number;
+  coverClippedBlocks?: number;
+  coverOverflowBlocks?: number;
+  coverMissingImages?: number;
+  coverContentBlocks?: number;
+  coverImageBlocks?: number;
+  coverDuplicateBirthdayBlocks?: number;
   editorialPlan?: EditorialPlanReport;
   adaptiveCandidates?: AdaptiveLayoutCandidateReport[];
   candidates: LayoutFitCandidate[];

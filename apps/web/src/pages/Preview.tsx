@@ -878,10 +878,22 @@ function ScoreDetailsModal({
         <div className="p-5 space-y-5 text-sm">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <ScoreStat label="Final score" value={report.score} />
+            <ScoreStat label="Inner spread" value={report.innerSpreadAffinity ?? report.porterReferenceAffinity ?? 0} />
+            <ScoreStat label="Cover / back" value={report.coverScore ?? 0} />
             <ScoreStat label="Selected candidate" value={selected?.label ?? report.chosenTemplateId} text />
             <ScoreStat label="Reference family" value={sub?.porterReferenceId ?? report.porterReferenceId ?? "Not recorded"} text />
             <ScoreStat label="Design mode" value={report.designMode ?? "Not recorded"} text />
           </div>
+
+          <section>
+            <h3 className="font-display font-semibold mb-2">Full-output quality gate</h3>
+            <div className="border border-rule rounded-md divide-y divide-rule overflow-hidden">
+              <div className="px-3 py-2 flex justify-between"><span>Four-page final score</span><span className="font-mono">{formatScoreValue(report.fullOutputScore ?? report.score)}</span></div>
+              <div className="px-3 py-2 flex justify-between"><span>Cover render fit / clipping / overflow</span><span className="font-mono">{formatScoreValue(report.coverRenderFit)} / {report.coverClippedBlocks ?? 0} / {report.coverOverflowBlocks ?? 0}</span></div>
+              <div className="px-3 py-2 flex justify-between"><span>Cover modules / images</span><span className="font-mono">{report.coverContentBlocks ?? 0} / {report.coverImageBlocks ?? 0}</span></div>
+              <div className="px-3 py-2 flex justify-between"><span>Duplicate birthday blocks</span><span className="font-mono">{report.coverDuplicateBirthdayBlocks ?? 0}</span></div>
+            </div>
+          </section>
 
           <section>
             <h3 className="font-display font-semibold mb-2">How the score is calculated</h3>

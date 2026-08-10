@@ -85,6 +85,17 @@ export interface CandidateMeasurement {
   minPageUtility?: number;
   largestEmptyBandRatio?: number;
   lowUtilityBlocks: number;
+  pageMetrics?: Array<{
+    page: number;
+    blockCount: number;
+    contentBlockCount: number;
+    imageBlocks: number;
+    clippedBlocks: number;
+    overflowBlocks: number;
+    missingImages: number;
+    renderFit: number;
+    usefulOccupancy: number;
+  }>;
 }
 
 export interface AdaptiveLayoutCandidate {

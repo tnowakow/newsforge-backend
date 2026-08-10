@@ -170,5 +170,10 @@ describe("wrapV3InnerSpreadForDemo", () => {
       .map((block) => block.imageId)
       .filter(Boolean);
     assert.equal(wrapperImageIds.includes("i1"), false);
+
+    const coverBirthday = wrapped.blocks.find((block) => block.blockId === "demo-cover-birthday");
+    assert.equal(coverBirthday?.inlineText, "Residents and team members celebrating this month.");
+    assert.equal(/Mary Ann|Shirley|7\/3|7\/10/.test(`${coverBirthday?.heading ?? ""}\n${coverBirthday?.inlineText ?? ""}`), false);
+    assert.equal(wrapped.blocks.filter((block) => block.articleId === "birthday").length, 1);
   });
 });
