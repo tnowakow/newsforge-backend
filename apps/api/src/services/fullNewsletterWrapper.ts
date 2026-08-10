@@ -102,25 +102,37 @@ function compactGatewayInnerBlocks(blocks: LayoutBlock[]): LayoutBlock[] {
       if (block.slotId === "cl-p2-outings") {
         return {
           ...block,
-          position: { ...block.position, row: 1, rowSpan: 4 },
+          position: { ...block.position, row: 1, rowSpan: 3 },
         };
       }
       if (block.slotId === "cl-p2-feature-band") {
         return {
           ...block,
-          position: { ...block.position, row: 5, rowSpan: 5 },
+          position: { ...block.position, row: 4, rowSpan: 4 },
+        };
+      }
+      if (block.slotId === "cl-p2-photo-b") {
+        return {
+          ...block,
+          position: { ...block.position, row: 5, rowSpan: 4 },
+        };
+      }
+      if (block.slotId === "cl-p2-volunteer-img") {
+        return {
+          ...block,
+          position: { ...block.position, row: 9, rowSpan: 4 },
         };
       }
       if (block.slotId === "cl-p2-volunteer") {
         return {
           ...block,
-          position: { ...block.position, row: 10, rowSpan: 4 },
+          position: { ...block.position, row: 8, rowSpan: 5 },
         };
       }
       if (block.slotId === "cl-p2-trust-funds") {
         return {
           ...block,
-          position: { ...block.position, row: 14, rowSpan: 3 },
+          position: { ...block.position, row: 13, rowSpan: 4 },
         };
       }
       return block;
@@ -135,7 +147,7 @@ function compactGatewayInnerBlocks(blocks: LayoutBlock[]): LayoutBlock[] {
     if (block.slotId === "cl-p1-exec") {
       return {
         ...block,
-        position: { ...block.position, col: 9, row: 1, colSpan: 11, rowSpan: 5 },
+        position: { ...block.position, col: 9, row: 1, colSpan: 12, rowSpan: 5 },
       };
     }
     if (block.slotId === "cl-p1-happy-hour" || block.slotId === "cl-p1-upcoming-events") {
@@ -171,7 +183,7 @@ function compactGatewayInnerBlocks(blocks: LayoutBlock[]): LayoutBlock[] {
     if (block.slotId === "cl-p1-event-img-b") {
       return {
         ...block,
-        position: { ...block.position, col: 20, row: 1, colSpan: 5, rowSpan: 5 },
+        position: { ...block.position, col: 21, row: 1, colSpan: 4, rowSpan: 5 },
       };
     }
     return block;
