@@ -110,7 +110,7 @@ function repairClippedBlocks(
     if (block.articleId) {
       const article = mutableArticlesById.get(block.articleId);
       if (article) {
-        const ratio = block.position.rowSpan <= 2 ? 0.45 : block.position.rowSpan <= 3 ? 0.58 : 0.68;
+        const ratio = block.position.rowSpan <= 2 ? 0.62 : block.position.rowSpan <= 3 ? 0.72 : 0.86;
         article.body = trimWords(article.body, ratio);
         article.wordCount = wordCount(article.body);
       }
