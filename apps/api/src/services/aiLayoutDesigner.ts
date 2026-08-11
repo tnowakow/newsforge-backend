@@ -68,6 +68,7 @@ export interface DesignLayoutInput {
   monthLabel?: string;
   previousVersion?: number;
   variationSeed?: string;
+  porterRetrievalPrompt?: string;
 }
 
 export interface DesignLayoutResult {
@@ -410,6 +411,7 @@ export async function designLayout(
       ],
       familyGuardrail: "Stay faithful to the assigned family’s composition grammar. Do not trade a family-specific rail, collage, feature band, or sparse editorial rhythm for a generic dense layout.",
     },
+    retrievedPorterExamples: input.porterRetrievalPrompt ?? null,
     images: input.images.map((i) => ({
       id: i.id,
       aspect: i.aspect,

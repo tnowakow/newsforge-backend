@@ -1,0 +1,21 @@
+example_id,family,photo_count,dated_rows,word_volume,density_band,has_spotlight,has_event_recap,has_footer_band,dominant_content,notes
+01,editorial-light,5,0,low,low,false,false,false,text-forward,single-page scan
+02,community-collage,12,0,med,med,true,true,false,balanced,Gateway-style collage
+03,photo-mosaic,11,0,med,med,true,true,false,photo-led,photo mosaic
+04,editorial-light,4,0,low,low,false,false,true,text-forward,single-page scan
+05,dense-lavender-grid,9,0,high,high,true,false,true,dense-modules,single-page scan
+06,community-collage,11,34,med,med,false,true,true,balanced,long dated list
+07,feature-band,9,24,high,high,true,true,false,feature-led,wide feature band
+08,editorial-light,6,52,low,low,false,false,true,birthday-led,long birthday list
+09,feature-band,8,26,high,high,true,false,true,feature-led,wide feature band
+10,community-collage,10,14,med,med,false,true,false,balanced,event recap
+11,dense-lavender-grid,14,21,low,low,true,false,true,dense-modules,lavender spotlight
+12,photo-mosaic,11,13,low,low,false,true,false,photo-led,photo mosaic
+13,dense-lavender-grid,13,17,high,high,true,true,true,dense-modules,lavender spotlight
+14,editorial-light,4,18,high,high,false,false,false,text-forward,single-page scan
+15,feature-band,8,22,high,high,true,true,false,feature-led,wide feature band
+16,community-collage,11,11,med,med,true,false,true,balanced,Gateway-style collage
+17,dense-lavender-grid,12,20,med,med,true,true,true,dense-modules,lavender spotlight
+18,feature-band,8,17,v-high,v-high,true,true,false,feature-led,highest word volume
+19,photo-mosaic,14,12,med,med,false,true,false,photo-led,photo mosaic
+20,feature-band,6,20,high,high,true,false,false,feature-led,wide feature band

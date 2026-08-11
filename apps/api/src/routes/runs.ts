@@ -61,6 +61,7 @@ import {
   scoreFullNewsletterOutput,
   type PorterOneScenario,
 } from "../services/porterOneReferenceScorer.js";
+import { retrievePorterExamples } from "../services/porterRetrieval.js";
 import type { CandidateMeasurement } from "../services/adaptiveLayoutPlanner.js";
 
 export const runsRouter: Router = Router();
@@ -361,6 +362,15 @@ runsRouter.post("/", async (req, res) => {
     };
   }
 
+  // Track 2: use the seeded Porter signature index for Trilogy runs when the
+  // caller did not explicitly choose a scenario. Explicit scenario choices
+  // remain authoritative; retrieval supplies the few-shot context either way.
+  const porterRetrieval =
+    client.name === "Trilogy Health Services"
+      ? retrievePorterExamples(articles, images)
+      : undefined;
+  const effectivePorterScenario = body.scenario ?? porterRetrieval?.scenario;
+
   // ---- v2: auto-arrange template selection (deterministic scoring) ----
   const candidates = await candidateTemplatesForClient(
     client.richnessLevel,
@@ -370,7 +380,7 @@ runsRouter.post("/", async (req, res) => {
   let pickResult: ReturnType<typeof pickBestTemplate> | null = null;
   const preferredPorterSpread =
     client.name === "Trilogy Health Services"
-      ? candidates.find((t) => t.id === porterOneTemplateForScenario(body.scenario as PorterOneScenario | undefined))
+      ? candidates.find((t) => t.id === porterOneTemplateForScenario(effectivePorterScenario as PorterOneScenario | undefined))
       : undefined;
   if (!body.templateId && preferredPorterSpread) {
     chosenTemplateId = preferredPorterSpread.id;
@@ -449,6 +459,7 @@ runsRouter.post("/", async (req, res) => {
     clientName: client.name,
     monthLabel: body.monthLabel,
     variationSeed: runId,
+    porterRetrievalPrompt: porterRetrieval?.prompt,
   });
   if (designed.articles) articles = designed.articles;
   let layout = designed.layout;
@@ -668,6 +679,15 @@ runsRouter.post("/", async (req, res) => {
     },
     fullOutput,
     fitReport,
+    porterRetrieval: porterRetrieval
+      ? {
+          family: porterRetrieval.family,
+          exampleIds: porterRetrieval.examples.map((example) => example.exampleId),
+          photoCount: porterRetrieval.signature.photoCount,
+          datedRows: porterRetrieval.signature.datedRows,
+          wordVolume: porterRetrieval.signature.wordVolume,
+        }
+      : undefined,
   });
 
   // Run compliance sync detectors (Vitaly rule 18 seeded on create).

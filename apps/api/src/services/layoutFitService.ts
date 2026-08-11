@@ -437,6 +437,7 @@ export function buildLayoutFitReport(input: {
   };
   fullOutput?: FullOutputScore;
   fitReport?: FitReport;
+  porterRetrieval?: LayoutFitReport["porterRetrieval"];
 }): LayoutFitReport {
   const pick =
     input.pickResult ??
@@ -466,6 +467,7 @@ export function buildLayoutFitReport(input: {
     renderedImages: selectedMeasurement?.renderedImages,
     porterReferenceAffinity: selectedSubscores?.porterReferenceAffinity,
     porterReferenceId: selectedSubscores?.porterReferenceId,
+    porterRetrieval: input.porterRetrieval,
     innerSpreadAffinity: input.fullOutput?.innerSpreadAffinity ?? selectedSubscores?.porterReferenceAffinity,
     fullOutputScore: input.fullOutput?.fullOutputScore,
     coverScore: input.fullOutput?.coverScore,

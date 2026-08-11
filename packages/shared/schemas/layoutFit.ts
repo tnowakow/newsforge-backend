@@ -195,6 +195,13 @@ export const LayoutFitReportSchema = z.object({
   renderedImages: z.number().int().nonnegative().optional(),
   porterReferenceAffinity: z.number().optional(),
   porterReferenceId: z.string().optional(),
+  porterRetrieval: z.object({
+    family: z.string(),
+    exampleIds: z.array(z.string()),
+    photoCount: z.number().int().nonnegative(),
+    datedRows: z.number().int().nonnegative(),
+    wordVolume: z.number().int().nonnegative(),
+  }).optional(),
   innerSpreadAffinity: z.number().optional(),
   fullOutputScore: z.number().optional(),
   coverScore: z.number().optional(),
