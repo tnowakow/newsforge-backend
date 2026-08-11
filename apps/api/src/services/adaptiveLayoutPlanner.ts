@@ -121,7 +121,8 @@ export interface AdaptiveLayoutResult {
 /**
  * Keep family-defining geometry anchored after an AI layout is normalized.
  * Panel Garden's identity is its flanking rails and paired photo features;
- * allowing the model to turn those seeded slots into generic wide bands makes
+ * Photo Festival's identity is its collage zones and compact callouts.
+ * Allowing the model to turn those seeded slots into generic wide bands makes
  * the result look like a template filler instead of the Porter reference.
  * Content, order, colors, and new blocks remain AI-owned.
  */
@@ -130,17 +131,26 @@ export function applyPorterFamilyGeometryGuard(
   templateId: string,
   skeleton: AssembledLayout,
 ): AssembledLayout {
-  if (templateId !== "v3-panel-garden") return layout;
+  const familyPrefix = templateId === "v3-panel-garden"
+    ? "pg-"
+    : templateId === "v3-photo-festival"
+      ? "pf-"
+      : undefined;
+  if (!familyPrefix) return layout;
   const seeded = new Map(skeleton.blocks.map((block) => [block.slotId, block]));
   const blocks = layout.blocks.map((block) => {
     const source = seeded.get(block.slotId);
     if (!source) return block;
     const style = { ...(block.style ?? {}) };
-    if (/^pg-p[12]-(?:bday|brunch|hh|events|anniv|legacy)$/.test(block.slotId)) {
+    if (familyPrefix === "pg-" && /^pg-p[12]-(?:bday|brunch|hh|events|anniv|legacy)$/.test(block.slotId)) {
       style.panelRole = style.panelRole ?? "featureBand";
     }
-    if (/^pg-p[12]-img/.test(block.slotId)) {
+    if (familyPrefix === "pg-" && /^pg-p[12]-img/.test(block.slotId)) {
       style.photoTreatment = style.photoTreatment ?? "collage";
+    }
+    if (familyPrefix === "pf-" && /^pf-p[12]-img(?:[1-4]|[7-9]|10)$/.test(block.slotId)) {
+      style.photoTreatment = style.photoTreatment ?? "collage";
+      style.panelRole = style.panelRole ?? "photoCluster";
     }
     return {
       ...block,
