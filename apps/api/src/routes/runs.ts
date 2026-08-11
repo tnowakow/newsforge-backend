@@ -179,6 +179,32 @@ function applyGuaranteedFitFloor(
   };
 }
 
+function applyUnderfillFloor(
+  layout: AssembledLayout,
+  articles: Article[],
+  measurement: CandidateMeasurement,
+): { layout: AssembledLayout; actions: FitAction[] } {
+  const ratios = new Map((measurement.fillRatios ?? []).map((entry) => [entry.blockId, entry.fillRatio]));
+  const actions: FitAction[] = [];
+  const blocks = layout.blocks.map((block) => {
+    const fillRatio = ratios.get(block.blockId);
+    if (fillRatio == null || fillRatio >= 0.8 || block.imageId || block.position.rowSpan <= 1) return block;
+    const nextRowSpan = Math.max(1, Math.min(block.position.rowSpan, Math.ceil(block.position.rowSpan * Math.max(fillRatio, 0.25))));
+    if (nextRowSpan >= block.position.rowSpan) return block;
+    const article = block.articleId ? articles.find((item) => item.id === block.articleId) : undefined;
+    actions.push({
+      blockId: block.blockId,
+      label: block.heading ?? block.slotId,
+      rung: 3,
+      action: `shrink box rowSpan ${block.position.rowSpan}→${nextRowSpan} to close ${Math.round((1 - fillRatio) * 100)}% in-box whitespace`,
+      wordsIn: article?.wordCount,
+      wordsOut: article?.wordCount,
+    });
+    return { ...block, position: { ...block.position, rowSpan: nextRowSpan } };
+  });
+  return { layout: { ...layout, blocks }, actions };
+}
+
 function porterSpreadGridSpec(templateId: string, gridSpec: GridSpec): GridSpec {
   if (templateId !== "v3-spread-classic") return gridSpec;
   return {
@@ -482,6 +508,7 @@ runsRouter.post("/", async (req, res) => {
   const selectedAdaptive = adaptiveCandidatesForReport?.find((candidate) => candidate.selected);
   let finalMeasurement: CandidateMeasurement | undefined;
   let fitFloorActions: FitAction[] = [];
+  let underfillActions: FitAction[] = [];
   if (selectedAdaptive) {
     try {
       const measureSelected = async () => {
@@ -525,6 +552,17 @@ runsRouter.post("/", async (req, res) => {
         articles = floored.articles;
         fitFloorActions = floored.actions;
         finalMeasurement = await measureSelected();
+      }
+
+      // Underfill is the bidirectional counterpart to clipping: shrink a text
+      // box once, bounded by its measured content height, then re-measure.
+      if ((finalMeasurement?.underfilledBlocks ?? 0) > 0) {
+        const underfilled = applyUnderfillFloor(layout, articles, finalMeasurement);
+        if (underfilled.actions.length > 0) {
+          layout = underfilled.layout;
+          underfillActions = underfilled.actions;
+          finalMeasurement = await measureSelected();
+        }
       }
 
       if (finalMeasurement) {
@@ -588,18 +626,19 @@ runsRouter.post("/", async (req, res) => {
   const originalRequiredWords = [...originalWordCounts.values()].reduce((sum, words) => sum + words, 0);
   const fittedWords = fitResult.articleFit.reduce((sum, fit) => sum + fit.wordsOut, 0);
   const floorByBlock = new Map(fitFloorActions.map((action) => [action.blockId, action]));
+  const underfillByBlock = new Map(underfillActions.map((action) => [action.blockId, action]));
   const fitActions: FitAction[] = layout.blocks
     .filter((block) => block.articleId || block.kind === "list" || block.inlineText)
-    .map((block) => floorByBlock.get(block.blockId) ?? {
+    .map((block) => floorByBlock.get(block.blockId) ?? underfillByBlock.get(block.blockId) ?? {
       blockId: block.blockId,
       label: block.heading ?? block.slotId,
       rung: block.style?.copyFit === "sm" ? 3 as const : 1 as const,
       action: block.style?.copyFit === "sm" ? "typography auto-fit" : "fit as written",
     });
   const fitReport: FitReport = {
-    summary: fitFloorActions.length > 0
-      ? `⚠ ${fitFloorActions.length} block${fitFloorActions.length === 1 ? "" : "s"} truncated · ${fitActions.filter((action) => action.rung === 3).length} blocks auto-fit`
-      : "All measured blocks fit without deterministic truncation.",
+    summary: fitFloorActions.length > 0 || underfillActions.length > 0
+      ? `${fitFloorActions.length > 0 ? `⚠ ${fitFloorActions.length} block${fitFloorActions.length === 1 ? "" : "s"} truncated` : ""}${fitFloorActions.length > 0 && underfillActions.length > 0 ? " · " : ""}${underfillActions.length > 0 ? `${underfillActions.length} boxes reshaped to close underfill` : ""}`
+      : "All measured blocks fit within the Porter-like 0.80–1.00 fill band.",
     templatePath: [{ templateId: template.id, action: "selected" }],
     feasibility: {
       status: "fit",

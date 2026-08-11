@@ -455,6 +455,8 @@ export function buildLayoutFitReport(input: {
     fallbackReason: input.design?.fallbackReason,
     renderFit: selectedSubscores?.renderFit,
     usefulOccupancy: selectedSubscores?.usefulOccupancy ?? selectedMeasurement?.usefulOccupancy,
+    underfilledBlocks: selectedMeasurement?.underfilledBlocks,
+    fillRatios: selectedMeasurement?.fillRatios,
     geometricCoverage: selectedSubscores?.geometricCoverage ?? selectedMeasurement?.geometricCoverage,
     minPageUtility: selectedMeasurement?.minPageUtility,
     largestEmptyBandRatio: selectedMeasurement?.largestEmptyBandRatio,

@@ -359,6 +359,8 @@ export interface LayoutFitReport {
   fallbackReason?: string;
   renderFit?: number;
   usefulOccupancy?: number;
+  underfilledBlocks?: number;
+  fillRatios?: Array<{ blockId: string; fillRatio: number }>;
   geometricCoverage?: number;
   minPageUtility?: number;
   largestEmptyBandRatio?: number;

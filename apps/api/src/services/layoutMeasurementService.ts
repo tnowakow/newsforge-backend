@@ -26,6 +26,8 @@ interface MeasureInput {
 interface DomMeasurement {
   clippedBlocks: number;
   clippedBlockIds: string[];
+  underfilledBlocks: number;
+  fillRatios: Array<{ blockId: string; fillRatio: number }>;
   clipDetails: Array<{ blockId: string; overflowPx: number }>;
   overflowBlocks: number;
   missingImages: number;
@@ -99,6 +101,32 @@ async function measureCandidate(input: Omit<MeasureInput, "candidates"> & {
     const clippedBlockIds = Array.from(clippedBlockSet)
       .map((block) => block.getAttribute("data-block-id"))
       .filter((id): id is string => typeof id === "string" && id.length > 0);
+    const fillRatios: Array<{ blockId: string; fillRatio: number }> = [];
+    for (const block of blocks) {
+      const rect = block.getBoundingClientRect();
+      if (rect.width <= 1 || rect.height <= 1) continue;
+      const id = block.getAttribute("data-block-id");
+      if (!id) continue;
+      const image = block.querySelector(".photo img") as any;
+      let fillRatio = 0;
+      if (image) {
+        fillRatio = image.complete && image.naturalWidth > 0 ? 1 : 0;
+      } else {
+        const contentNodes = Array.from(block.querySelectorAll(
+          ".section-heading,.script-heading,.byline,.body p,.list-row,.list-group,figcaption",
+        )) as any[];
+        const contentRects = contentNodes
+          .map((node) => node.getBoundingClientRect())
+          .filter((r) => r.width > 1 && r.height > 1);
+        if (contentRects.length > 0) {
+          const top = Math.min(...contentRects.map((r) => r.top));
+          const bottom = Math.max(...contentRects.map((r) => r.bottom));
+          fillRatio = Math.max(0, Math.min(1, (bottom - rect.top) / Math.max(rect.height, 1)));
+        }
+      }
+      fillRatios.push({ blockId: id, fillRatio });
+    }
+    const underfilledBlocks = fillRatios.filter((entry) => entry.fillRatio < 0.8).length;
     const overflowBlocks = blocks.filter((block) => {
       const rect = block.getBoundingClientRect();
       const pageRect = block.closest(".page")?.getBoundingClientRect();
@@ -214,6 +242,8 @@ async function measureCandidate(input: Omit<MeasureInput, "candidates"> & {
     return {
       clippedBlocks,
       clippedBlockIds,
+      underfilledBlocks,
+      fillRatios,
       clipDetails,
       overflowBlocks,
       missingImages: images.length - renderedImages,

@@ -78,6 +78,8 @@ export interface CandidateMeasurement {
   candidateId: string;
   clippedBlocks: number;
   clippedBlockIds?: string[];
+  underfilledBlocks?: number;
+  fillRatios?: Array<{ blockId: string; fillRatio: number }>;
   clipDetails?: Array<{ blockId: string; overflowPx: number }>;
   overflowBlocks: number;
   missingImages: number;
@@ -451,6 +453,9 @@ function scoreWithMeasurement(
     ...(measurement.overflowBlocks > 0 ? [`render-overflow-blocks:${measurement.overflowBlocks}`] : []),
     ...(measurement.missingImages > 0 ? [`render-missing-images:${measurement.missingImages}`] : []),
     ...(measurement.lowUtilityBlocks > 0 ? [`low-utility-blocks:${measurement.lowUtilityBlocks}`] : []),
+    ...(measurement.underfilledBlocks && measurement.underfilledBlocks > 0
+      ? [`underfilled-blocks:${measurement.underfilledBlocks}`]
+      : []),
   ];
   const usefulOccupancy = Math.max(0, Math.min(1, measurement.usefulOccupancy));
   const geometricCoverage = measurement.geometricCoverage == null
@@ -463,7 +468,11 @@ function scoreWithMeasurement(
     ? 0
     : Math.max(0, Math.min(1, measurement.largestEmptyBandRatio));
   const subscores = { ...candidate.subscores, renderFit, usefulOccupancy };
-  const underfillPenalty = Math.max(0, 0.86 - usefulOccupancy) * 0.18;
+  const fillRatios = measurement.fillRatios ?? [];
+  const averageFillDeficit = fillRatios.length > 0
+    ? fillRatios.reduce((sum, entry) => sum + Math.max(0, 0.8 - entry.fillRatio), 0) / fillRatios.length
+    : 0;
+  const underfillPenalty = Math.max(0, 0.86 - usefulOccupancy) * 0.18 + averageFillDeficit * 0.22;
   const coveragePenalty = Math.max(0, 0.9 - geometricCoverage) * 0.3;
   const pageUtilityPenalty = Math.max(0, 0.72 - minPageUtility) * 0.24;
   const emptyBandPenalty = Math.max(0, largestEmptyBandRatio - 0.18) * 0.2;

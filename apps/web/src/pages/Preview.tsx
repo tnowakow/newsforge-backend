@@ -956,6 +956,7 @@ function ScoreDetailsModal({
                   <div>Feasibility: <b className="text-ink">{report.fitReport.feasibility.status}</b></div>
                   <div>Required words: <b className="text-ink">{report.fitReport.feasibility.requiredWords}</b></div>
                   <div>Measured capacity: <b className="text-ink">{report.fitReport.feasibility.measuredCapacityWords}</b></div>
+                  <div>Underfilled boxes: <b className="text-ink">{report.underfilledBlocks ?? 0}</b></div>
                 </div>
                 <div className="space-y-1">
                   {report.fitReport.actions.map((action) => (
