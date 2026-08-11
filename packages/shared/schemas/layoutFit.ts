@@ -143,6 +143,36 @@ export const LayoutFitPhotoFitSchema = z.object({
 });
 export type LayoutFitPhotoFit = z.infer<typeof LayoutFitPhotoFitSchema>;
 
+export const FitActionSchema = z.object({
+  blockId: z.string(),
+  label: z.string(),
+  rung: z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4)]),
+  action: z.string(),
+  wordsIn: z.number().int().nonnegative().optional(),
+  wordsOut: z.number().int().nonnegative().optional(),
+  warning: z.boolean().optional(),
+});
+export type FitAction = z.infer<typeof FitActionSchema>;
+
+export const FitReportSchema = z.object({
+  summary: z.string(),
+  templatePath: z.array(z.object({
+    templateId: z.string(),
+    action: z.string(),
+    reason: z.string().optional(),
+  })),
+  feasibility: z.object({
+    status: z.enum(["fit", "upgraded", "optional-module-dropped", "page-added"]),
+    requiredWords: z.number().int().nonnegative(),
+    measuredCapacityWords: z.number().int().nonnegative(),
+    minimumCapacityWords: z.number().int().nonnegative(),
+  }),
+  actions: z.array(FitActionSchema),
+  truncations: z.array(FitActionSchema),
+  hardOverflowGate: z.boolean(),
+});
+export type FitReport = z.infer<typeof FitReportSchema>;
+
 export const LayoutFitReportSchema = z.object({
   chosenTemplateId: z.string(),
   score: z.number(),
@@ -171,6 +201,7 @@ export const LayoutFitReportSchema = z.object({
   coverContentBlocks: z.number().int().nonnegative().optional(),
   coverImageBlocks: z.number().int().nonnegative().optional(),
   coverDuplicateBirthdayBlocks: z.number().int().nonnegative().optional(),
+  fitReport: FitReportSchema.optional(),
   editorialPlan: EditorialPlanReportSchema.optional(),
   adaptiveCandidates: z.array(AdaptiveLayoutCandidateReportSchema).optional(),
   candidates: z.array(LayoutFitCandidateSchema),

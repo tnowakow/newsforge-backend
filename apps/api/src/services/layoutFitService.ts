@@ -19,6 +19,7 @@ import {
   type LayoutFitCandidate,
   type LayoutFitArticleFit,
   type LayoutFitPhotoFit,
+  type FitReport,
   type NewsImage,
   type TemplateSlot,
 } from "@newsforge/shared/schemas";
@@ -435,6 +436,7 @@ export function buildLayoutFitReport(input: {
     adaptiveCandidates?: LayoutFitReport["adaptiveCandidates"];
   };
   fullOutput?: FullOutputScore;
+  fitReport?: FitReport;
 }): LayoutFitReport {
   const pick =
     input.pickResult ??
@@ -472,6 +474,7 @@ export function buildLayoutFitReport(input: {
     coverContentBlocks: input.fullOutput?.coverContentBlocks,
     coverImageBlocks: input.fullOutput?.coverImageBlocks,
     coverDuplicateBirthdayBlocks: input.fullOutput?.coverDuplicateBirthdayBlocks,
+    fitReport: input.fitReport,
     editorialPlan: input.design?.editorialPlan,
     adaptiveCandidates: input.design?.adaptiveCandidates,
     candidates: pick.candidates,

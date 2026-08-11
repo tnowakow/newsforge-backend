@@ -327,6 +327,30 @@ export interface LayoutFitPhotoFit {
   reason?: "fit" | "photo-unused" | "photos-under-supplied";
 }
 
+export interface FitAction {
+  blockId: string;
+  label: string;
+  rung: 1 | 2 | 3 | 4;
+  action: string;
+  wordsIn?: number;
+  wordsOut?: number;
+  warning?: boolean;
+}
+
+export interface FitReport {
+  summary: string;
+  templatePath: Array<{ templateId: string; action: string; reason?: string }>;
+  feasibility: {
+    status: "fit" | "upgraded" | "optional-module-dropped" | "page-added";
+    requiredWords: number;
+    measuredCapacityWords: number;
+    minimumCapacityWords: number;
+  };
+  actions: FitAction[];
+  truncations: FitAction[];
+  hardOverflowGate: boolean;
+}
+
 export interface LayoutFitReport {
   chosenTemplateId: string;
   score: number;
@@ -354,6 +378,7 @@ export interface LayoutFitReport {
   coverContentBlocks?: number;
   coverImageBlocks?: number;
   coverDuplicateBirthdayBlocks?: number;
+  fitReport?: FitReport;
   editorialPlan?: EditorialPlanReport;
   adaptiveCandidates?: AdaptiveLayoutCandidateReport[];
   candidates: LayoutFitCandidate[];

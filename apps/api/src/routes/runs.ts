@@ -16,6 +16,8 @@ import {
   type Article,
   type GridSpec,
   type NewsImage,
+  type FitAction,
+  type FitReport,
 } from "@newsforge/shared/schemas";
 import { assembleLayout } from "../services/layoutAssembly.js";
 import { designLayout } from "../services/aiLayoutDesigner.js";
@@ -134,6 +136,46 @@ function repairClippedBlocks(
     layout: { ...layout, blocks: nextBlocks },
     articles: nextArticles,
     changed,
+  };
+}
+
+function applyGuaranteedFitFloor(
+  layout: AssembledLayout,
+  articles: Article[],
+  measurement: CandidateMeasurement,
+): { layout: AssembledLayout; articles: Article[]; actions: FitAction[] } {
+  const clipped = new Set(measurement.clippedBlockIds ?? []);
+  if (clipped.size === 0) return { layout, articles, actions: [] };
+  const byId = new Map(articles.map((article) => [article.id, { ...article }]));
+  const actions: FitAction[] = [];
+  const blocks = layout.blocks.map((block) => {
+    if (!clipped.has(block.blockId)) return block;
+    const article = block.articleId ? byId.get(block.articleId) : undefined;
+    const wordsIn = article?.wordCount;
+    if (article) {
+      article.body = "";
+      article.wordCount = 0;
+    }
+    actions.push({
+      blockId: block.blockId,
+      label: block.heading ?? block.slotId,
+      rung: 4,
+      action: "deterministic truncation floor",
+      wordsIn,
+      wordsOut: 0,
+      warning: true,
+    });
+    return {
+      ...block,
+      inlineText: undefined,
+      listItems: undefined,
+      style: { ...(block.style ?? {}), copyFit: "sm" as const },
+    };
+  });
+  return {
+    layout: { ...layout, blocks },
+    articles: articles.map((article) => byId.get(article.id) ?? article),
+    actions,
   };
 }
 
@@ -439,6 +481,7 @@ runsRouter.post("/", async (req, res) => {
   let adaptiveCandidatesForReport = designed.adaptiveCandidates;
   const selectedAdaptive = adaptiveCandidatesForReport?.find((candidate) => candidate.selected);
   let finalMeasurement: CandidateMeasurement | undefined;
+  let fitFloorActions: FitAction[] = [];
   if (selectedAdaptive) {
     try {
       const measureSelected = async () => {
@@ -469,6 +512,18 @@ runsRouter.post("/", async (req, res) => {
         if (!repaired.changed) break;
         layout = repaired.layout;
         articles = repaired.articles;
+        finalMeasurement = await measureSelected();
+      }
+
+      // Rung 4 is the non-negotiable floor: remove only the overflowing copy,
+      // preserve the compositional box, and measure once more. This makes a
+      // text clip impossible to ship even when upstream AI/repair behavior
+      // regresses. The loss is explicit in the persisted fit report.
+      if (finalMeasurement?.clippedBlocks > 0) {
+        const floored = applyGuaranteedFitFloor(layout, articles, finalMeasurement);
+        layout = floored.layout;
+        articles = floored.articles;
+        fitFloorActions = floored.actions;
         finalMeasurement = await measureSelected();
       }
 
@@ -530,6 +585,33 @@ runsRouter.post("/", async (req, res) => {
   const measuredInnerAffinity = innerReferenceScore.affinity;
   const fullOutput = scoreFullNewsletterOutput(layout, measuredInnerAffinity, finalMeasurement);
 
+  const originalRequiredWords = [...originalWordCounts.values()].reduce((sum, words) => sum + words, 0);
+  const fittedWords = fitResult.articleFit.reduce((sum, fit) => sum + fit.wordsOut, 0);
+  const floorByBlock = new Map(fitFloorActions.map((action) => [action.blockId, action]));
+  const fitActions: FitAction[] = layout.blocks
+    .filter((block) => block.articleId || block.kind === "list" || block.inlineText)
+    .map((block) => floorByBlock.get(block.blockId) ?? {
+      blockId: block.blockId,
+      label: block.heading ?? block.slotId,
+      rung: block.style?.copyFit === "sm" ? 3 as const : 1 as const,
+      action: block.style?.copyFit === "sm" ? "typography auto-fit" : "fit as written",
+    });
+  const fitReport: FitReport = {
+    summary: fitFloorActions.length > 0
+      ? `⚠ ${fitFloorActions.length} block${fitFloorActions.length === 1 ? "" : "s"} truncated · ${fitActions.filter((action) => action.rung === 3).length} blocks auto-fit`
+      : "All measured blocks fit without deterministic truncation.",
+    templatePath: [{ templateId: template.id, action: "selected" }],
+    feasibility: {
+      status: "fit",
+      requiredWords: originalRequiredWords,
+      measuredCapacityWords: Math.max(fittedWords, 0),
+      minimumCapacityWords: Math.max(fittedWords, 0),
+    },
+    actions: fitActions,
+    truncations: fitFloorActions,
+    hardOverflowGate: (finalMeasurement?.clippedBlocks ?? 0) === 0 && (finalMeasurement?.overflowBlocks ?? 0) === 0,
+  };
+
   // Build the fit report for persistence.
   const layoutFitReport = buildLayoutFitReport({
     articles,
@@ -546,6 +628,7 @@ runsRouter.post("/", async (req, res) => {
       adaptiveCandidates: adaptiveCandidatesForReport,
     },
     fullOutput,
+    fitReport,
   });
 
   // Run compliance sync detectors (Vitaly rule 18 seeded on create).

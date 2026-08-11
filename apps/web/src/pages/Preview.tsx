@@ -944,6 +944,32 @@ function ScoreDetailsModal({
               </div>
             </div>
           </section>
+
+          {report.fitReport && (
+            <section>
+              <h3 className="font-display font-semibold mb-2">How this layout was fit</h3>
+              <div className="border border-rule rounded-md p-3 space-y-3 text-xs">
+                <div className={report.fitReport.truncations.length > 0 ? "text-amber-700 font-medium" : "text-emerald-700 font-medium"}>
+                  {report.fitReport.summary}
+                </div>
+                <div className="grid md:grid-cols-3 gap-2 text-ink-muted">
+                  <div>Feasibility: <b className="text-ink">{report.fitReport.feasibility.status}</b></div>
+                  <div>Required words: <b className="text-ink">{report.fitReport.feasibility.requiredWords}</b></div>
+                  <div>Measured capacity: <b className="text-ink">{report.fitReport.feasibility.measuredCapacityWords}</b></div>
+                </div>
+                <div className="space-y-1">
+                  {report.fitReport.actions.map((action) => (
+                    <div key={`${action.blockId}-${action.rung}`} className={action.warning ? "text-amber-700" : "text-ink-muted"}>
+                      {action.warning ? "⚠ " : ""}{action.label}: rung {action.rung} — {action.action}{action.wordsIn != null ? ` (${action.wordsIn}→${action.wordsOut ?? action.wordsIn} words)` : ""}
+                    </div>
+                  ))}
+                </div>
+                <div className={report.fitReport.hardOverflowGate ? "text-emerald-700" : "text-rose-700"}>
+                  {report.fitReport.hardOverflowGate ? "✓ Hard no-overflow gate passed." : "⚠ Hard no-overflow gate needs attention."}
+                </div>
+              </div>
+            </section>
+          )}
         </div>
       )}
     </Modal>
