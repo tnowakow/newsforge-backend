@@ -54,6 +54,7 @@ import { selectStockPhotosForRun } from "../services/stockPhotoCatalog.js";
 import { wrapV3InnerSpreadForDemo } from "../services/fullNewsletterWrapper.js";
 import {
   porterOneTemplateForScenario,
+  porterOneReferenceIdForTemplate,
   scorePorterOneReferenceAffinity,
   scoreFullNewsletterOutput,
   type PorterOneScenario,
@@ -422,7 +423,11 @@ runsRouter.post("/", async (req, res) => {
   }
 
   const innerSpreadLayout = layout;
-  const innerReferenceScore = scorePorterOneReferenceAffinity(innerSpreadLayout, effectiveGridSpec);
+  const innerReferenceScore = scorePorterOneReferenceAffinity(
+    innerSpreadLayout,
+    effectiveGridSpec,
+    porterOneReferenceIdForTemplate(template.id),
+  );
   layout = wrapV3InnerSpreadForDemo({
     layout,
     articles,

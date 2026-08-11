@@ -10,7 +10,10 @@ import type {
 } from "@newsforge/shared/schemas";
 import { assembleLayout } from "./layoutAssembly.js";
 import { chooseVisualPersonality } from "./designLanguage.js";
-import { scorePorterOneReferenceAffinity } from "./porterOneReferenceScorer.js";
+import {
+  porterOneReferenceIdForTemplate,
+  scorePorterOneReferenceAffinity,
+} from "./porterOneReferenceScorer.js";
 
 type EditorialRole =
   | "lead"
@@ -352,7 +355,11 @@ function scoreCandidate(
     : plan.compositionGrammar === "mixed-briefs"
       ? 0.72
       : 0.48;
-  const reference = scorePorterOneReferenceAffinity(layout, input.gridSpec);
+  const reference = scorePorterOneReferenceAffinity(
+    layout,
+    input.gridSpec,
+    porterOneReferenceIdForTemplate(input.templateId),
+  );
   const clippingRisks = layout.blocks.filter((block) => {
     if (!block.articleId) return false;
     const article = input.articles.find((a) => a.id === block.articleId);

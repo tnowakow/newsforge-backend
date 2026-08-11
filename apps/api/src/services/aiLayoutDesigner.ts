@@ -38,6 +38,7 @@ import {
 } from "./adaptiveLayoutPlanner.js";
 import { measureAdaptiveCandidates } from "./layoutMeasurementService.js";
 import {
+  porterOneReferenceIdForTemplate,
   scorePorterOneReferenceAffinity,
 } from "./porterOneReferenceScorer.js";
 import type { CandidateMeasurement } from "./adaptiveLayoutPlanner.js";
@@ -204,8 +205,9 @@ function qualityScore(
   layout: AssembledLayout,
   measurement: CandidateMeasurement | undefined,
   gridSpec: GridSpec,
+  templateId: string,
 ): number {
-  const reference = scorePorterOneReferenceAffinity(layout, gridSpec);
+  const reference = scorePorterOneReferenceAffinity(layout, gridSpec, porterOneReferenceIdForTemplate(templateId));
   const useful = measurement?.usefulOccupancy ?? 0;
   const coverage = measurement?.geometricCoverage ?? 0;
   const pageUtility = measurement?.minPageUtility ?? 0;
@@ -393,6 +395,7 @@ export async function designLayout(
       visualPersonality: adaptive.plan.visualPersonality,
     },
     porterOneReferenceTarget: {
+      assignedReferenceFamily: porterOneReferenceIdForTemplate(input.templateId) ?? "best-fit-PorterOne-family",
       goal: "Maximize resemblance to the five real PorterOne originals; the template skeleton is a movable starting point, not the goal.",
       desiredAffinity: 0.98,
       selectionSignals: [
@@ -402,6 +405,7 @@ export async function designLayout(
         "at least one rail, footer band, or feature band anchoring each spread",
         "dense lists and compact copy with no obvious dead panel space",
       ],
+      familyGuardrail: "Stay faithful to the assigned family’s composition grammar. Do not trade a family-specific rail, collage, feature band, or sparse editorial rhythm for a generic dense layout.",
     },
     images: input.images.map((i) => ({
       id: i.id,
@@ -511,7 +515,11 @@ export async function designLayout(
     let auditModel = result.model;
     let auditDurationMs = result.durationMs;
     let revisionUsed = false;
-    const initialAffinity = scorePorterOneReferenceAffinity(layout, input.gridSpec);
+    const initialAffinity = scorePorterOneReferenceAffinity(
+      layout,
+      input.gridSpec,
+      porterOneReferenceIdForTemplate(input.templateId),
+    );
     // Keep the expensive critique loop for genuinely off-target layouts. The
     // repair/weighted gate still evaluates every AI result; this trigger is
     // deliberately stricter so ordinary generations stay designer-fast.
@@ -568,10 +576,14 @@ export async function designLayout(
       measurement.missingImages > 0 ||
       missingPlacements > 0 ||
       geometricCoverage < 0.85;
-    const aiAffinity = scorePorterOneReferenceAffinity(layout, input.gridSpec);
+    const aiAffinity = scorePorterOneReferenceAffinity(
+      layout,
+      input.gridSpec,
+      porterOneReferenceIdForTemplate(input.templateId),
+    );
     const fallbackMeasurement = adaptiveChosen.measurement;
-    const aiScore = qualityScore(layout, measurement, input.gridSpec);
-    const fallbackScore = qualityScore(adaptiveChosen.layout, fallbackMeasurement, input.gridSpec);
+    const aiScore = qualityScore(layout, measurement, input.gridSpec, input.templateId);
+    const fallbackScore = qualityScore(adaptiveChosen.layout, fallbackMeasurement, input.gridSpec, input.templateId);
     if (hardFailure || aiScore + 0.015 < fallbackScore) {
       return {
         layout: fallbackLayout,

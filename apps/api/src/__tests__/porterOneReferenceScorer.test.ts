@@ -6,6 +6,7 @@ import type {
   LayoutBlock,
 } from "@newsforge/shared/schemas";
 import {
+  porterOneReferenceIdForTemplate,
   porterOneTemplateForScenario,
   scorePorterOneReferenceAffinity,
 } from "../services/porterOneReferenceScorer.js";
@@ -62,6 +63,14 @@ describe("porterOneReferenceScorer", () => {
     assert.equal(porterOneTemplateForScenario("resident-feature"), "v3-resident-feature");
     assert.equal(porterOneTemplateForScenario("editorial-light"), "v3-editorial-light");
     assert.equal(porterOneTemplateForScenario(), undefined);
+  });
+
+  it("assigns each seeded spread to its intended reference family", () => {
+    assert.equal(porterOneReferenceIdForTemplate("v3-spread-classic"), "example1-gateway-collage");
+    assert.equal(porterOneReferenceIdForTemplate("v3-panel-garden"), "example3-dense-lavender-grid");
+    assert.equal(porterOneReferenceIdForTemplate("v3-resident-feature"), "example2-photo-rails");
+    assert.equal(porterOneReferenceIdForTemplate("v3-photo-festival"), "example5-feature-band");
+    assert.equal(porterOneReferenceIdForTemplate("v3-editorial-light"), "example4-editorial-rail");
   });
 
   it("rewards dense colored PorterOne-style collage layouts", () => {

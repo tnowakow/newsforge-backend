@@ -64,6 +64,19 @@ export const PORTER_ONE_TEMPLATE_BY_SCENARIO: Record<PorterOneScenario, string> 
   "editorial-light": "v3-editorial-light",
 };
 
+/** The reference family each seeded V3 spread is intended to reproduce. */
+export const PORTER_ONE_REFERENCE_BY_TEMPLATE: Record<string, string> = {
+  "v3-spread-classic": "example1-gateway-collage",
+  "v3-panel-garden": "example3-dense-lavender-grid",
+  "v3-resident-feature": "example2-photo-rails",
+  "v3-photo-festival": "example5-feature-band",
+  "v3-editorial-light": "example4-editorial-rail",
+};
+
+export function porterOneReferenceIdForTemplate(templateId?: string): string | undefined {
+  return templateId ? PORTER_ONE_REFERENCE_BY_TEMPLATE[templateId] : undefined;
+}
+
 export function porterOneTemplateForScenario(scenario?: PorterOneScenario): string | undefined {
   return scenario ? PORTER_ONE_TEMPLATE_BY_SCENARIO[scenario] : undefined;
 }
@@ -181,6 +194,7 @@ function scoreReference(
 export function scorePorterOneReferenceAffinity(
   layout: AssembledLayout,
   gridSpec: GridSpec,
+  targetReferenceId?: string,
 ): PorterOneReferenceScore {
   const contentBlocks = layout.blocks.filter(
     (block) => block.kind !== "empty" && (block.articleId || block.imageId || block.kind === "list"),
@@ -210,7 +224,10 @@ export function scorePorterOneReferenceAffinity(
     largestBlockRatio: largestBlock / pageArea,
     bottomBandAreaRatio: bottomBandArea(contentBlocks, gridSpec) / totalArea,
   };
-  const scored = PORTER_ONE_REFERENCES
+  const references = targetReferenceId
+    ? PORTER_ONE_REFERENCES.filter((reference) => reference.id === targetReferenceId)
+    : PORTER_ONE_REFERENCES;
+  const scored = references
     .map((reference) => ({
       reference,
       score: scoreReference(diagnostics, reference),
