@@ -118,6 +118,39 @@ export interface AdaptiveLayoutResult {
   candidates: AdaptiveLayoutCandidate[];
 }
 
+/**
+ * Keep family-defining geometry anchored after an AI layout is normalized.
+ * Panel Garden's identity is its flanking rails and paired photo features;
+ * allowing the model to turn those seeded slots into generic wide bands makes
+ * the result look like a template filler instead of the Porter reference.
+ * Content, order, colors, and new blocks remain AI-owned.
+ */
+export function applyPorterFamilyGeometryGuard(
+  layout: AssembledLayout,
+  templateId: string,
+  skeleton: AssembledLayout,
+): AssembledLayout {
+  if (templateId !== "v3-panel-garden") return layout;
+  const seeded = new Map(skeleton.blocks.map((block) => [block.slotId, block]));
+  const blocks = layout.blocks.map((block) => {
+    const source = seeded.get(block.slotId);
+    if (!source) return block;
+    const style = { ...(block.style ?? {}) };
+    if (/^pg-p[12]-(?:bday|brunch|hh|events|anniv|legacy)$/.test(block.slotId)) {
+      style.panelRole = style.panelRole ?? "featureBand";
+    }
+    if (/^pg-p[12]-img/.test(block.slotId)) {
+      style.photoTreatment = style.photoTreatment ?? "collage";
+    }
+    return {
+      ...block,
+      position: { ...source.position },
+      style,
+    };
+  });
+  return { ...layout, blocks };
+}
+
 interface AdaptiveLayoutInput {
   templateId: string;
   pageCount: number;

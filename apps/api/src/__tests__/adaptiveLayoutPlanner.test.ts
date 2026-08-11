@@ -2,16 +2,29 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import type {
   Article,
+  AssembledLayout,
   GridSpec,
   NewsImage,
   TemplateSlot,
 } from "@newsforge/shared/schemas";
 import {
   applyCandidateMeasurements,
+  applyPorterFamilyGeometryGuard,
   buildAdaptiveLayout,
   chooseAdaptiveCandidate,
   createEditorialPlan,
 } from "../services/adaptiveLayoutPlanner.js";
+
+function simpleLayout(templateId: string, blocks: AssembledLayout["blocks"]): AssembledLayout {
+  return {
+    templateId,
+    pageCount: 2,
+    version: 1,
+    blocks,
+    unfilledSlotIds: [],
+    stats: { placedArticles: 0, placedImages: 0, fillerBlocks: 0, emptySlots: 0 },
+  };
+}
 import type {
   AdaptiveLayoutCandidate,
   CandidateMeasurement,
@@ -108,6 +121,27 @@ const gridSpec: GridSpec = {
 };
 
 describe("adaptiveLayoutPlanner.createEditorialPlan", () => {
+  it("anchors Panel Garden family rails and photo pairs to seeded geometry", () => {
+    const skeleton = simpleLayout("v3-panel-garden", [
+      {
+        blockId: "bday", slotId: "pg-p1-bday", page: 1, position: { col: 1, row: 1, colSpan: 6, rowSpan: 9 },
+        kind: "list", needsFiller: false, zIndex: 0,
+      },
+      {
+        blockId: "img", slotId: "pg-p1-img1", page: 1, position: { col: 16, row: 5, colSpan: 9, rowSpan: 5 },
+        kind: "image", imageId: "image-1", needsFiller: false, zIndex: 0,
+      },
+    ]);
+    const moved = simpleLayout("v3-panel-garden", [
+      { ...skeleton.blocks[0], position: { col: 7, row: 1, colSpan: 18, rowSpan: 4 } },
+      { ...skeleton.blocks[1], position: { col: 1, row: 1, colSpan: 24, rowSpan: 16 } },
+    ]);
+    const guarded = applyPorterFamilyGeometryGuard(moved, "v3-panel-garden", skeleton);
+    assert.deepEqual(guarded.blocks.map((block) => block.position), skeleton.blocks.map((block) => block.position));
+    assert.equal(guarded.blocks[0].style?.panelRole, "featureBand");
+    assert.equal(guarded.blocks[1].style?.photoTreatment, "collage");
+  });
+
   it("promotes resident stories and uploaded content into required editorial items", () => {
     const articles = [
       article("birthday", "July Birthdays", 60, "birthday"),

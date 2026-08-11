@@ -30,6 +30,7 @@ import { applyVibrancyPass } from "./vibrancyPass.js";
 import { DESIGN_LANGUAGE_PROMPT } from "./designLanguage.js";
 import {
   applyCandidateMeasurements,
+  applyPorterFamilyGeometryGuard,
   buildAdaptiveLayout,
   chooseAdaptiveCandidate,
   expandPhotoBand,
@@ -227,7 +228,7 @@ function composeAiLayout(
   input: DesignLayoutInput,
   visualPersonality: AssembledLayout["visualPersonality"],
 ): AssembledLayout {
-  return expandPhotoBand(applyVibrancyPass({
+  const vibrant = expandPhotoBand(applyVibrancyPass({
     layout: {
       ...skeleton,
       blocks,
@@ -244,6 +245,7 @@ function composeAiLayout(
     visualPersonality,
     gridSpec: input.gridSpec,
   }));
+  return applyPorterFamilyGeometryGuard(vibrant, input.templateId, skeleton);
 }
 
 /** Append any images the AI forgot into remaining image-ish space. */
