@@ -12,7 +12,6 @@ import type {
   RecurringSection,
   Richness,
 } from "@newsforge/shared/schemas";
-import { env } from "../env.js";
 
 export type MockTone = "warm" | "formal" | "playful" | "civic";
 export type MockScenario =
@@ -195,7 +194,7 @@ export interface GenerateMockContentAudit {
   fallbackReason?: string;
 }
 
-const AI_MOCK_CONTENT_TIMEOUT_MS = env.AI_PROVIDER === "local" ? 300_000 : 90_000;
+const AI_MOCK_CONTENT_TIMEOUT_MS = process.env.AI_PROVIDER === "local" ? 300_000 : 90_000;
 
 const AiMockArticleSchema = z.object({
   sourceId: z.string(),
@@ -357,7 +356,7 @@ export async function generateMockContentWithAi(
     systemPrompt,
     userPrompt,
     timeoutMs: AI_MOCK_CONTENT_TIMEOUT_MS,
-    maxRetries: env.AI_PROVIDER === "local" ? 0 : undefined,
+    maxRetries: process.env.AI_PROVIDER === "local" ? 0 : undefined,
     fallback: {
       articles: fallback.articles.map((article) => ({
         sourceId: article.id,

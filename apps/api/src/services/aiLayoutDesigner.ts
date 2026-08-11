@@ -28,7 +28,7 @@ import { callGeminiJson } from "../gemini.js";
 import { env } from "../env.js";
 import { assembleLayout } from "./layoutAssembly.js";
 import { applyVibrancyPass } from "./vibrancyPass.js";
-import { DESIGN_LANGUAGE_PROMPT } from "./designLanguage.js";
+import { DESIGN_LANGUAGE_PROMPT, PORTER_GRAMMAR_INSTRUCTION } from "./designLanguage.js";
 import {
   applyCandidateMeasurements,
   applyPorterFamilyGeometryGuard,
@@ -370,7 +370,7 @@ export async function designLayout(
     previousVersion: input.previousVersion,
   });
 
-  const systemPrompt = DESIGN_LANGUAGE_PROMPT.replace(
+  const systemPrompt = `${DESIGN_LANGUAGE_PROMPT}\n\n${PORTER_GRAMMAR_INSTRUCTION}`.replace(
     /\{columns\}/g,
     String(input.gridSpec.columns),
   ).replace(/\{rows\}/g, String(input.gridSpec.rowsPerPage));

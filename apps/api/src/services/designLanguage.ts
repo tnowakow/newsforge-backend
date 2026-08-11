@@ -11,6 +11,7 @@
  * change a value here, change it there (Riley: assert parity in tests).
  */
 import type { PanelToken, VisualPersonality } from "@newsforge/shared/schemas";
+import { PORTER_GRAMMAR_PROMPT } from "./porterGrammar.js";
 
 export interface BrandColors {
   primaryColor: string;
@@ -172,3 +173,5 @@ STRICT OUTPUT RULES:
 - Grid is {columns} columns x {rows} rows per page; col + colSpan - 1 must not exceed {columns}.
 - Only reference provided articleId / imageId values. Every provided image must appear exactly once.
 - Do not invent facts. Headings and captions must derive from the provided content.`;
+
+export const PORTER_GRAMMAR_INSTRUCTION = PORTER_GRAMMAR_PROMPT;

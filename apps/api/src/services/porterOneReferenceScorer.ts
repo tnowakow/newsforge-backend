@@ -3,6 +3,7 @@ import type {
   GridSpec,
   LayoutBlock,
 } from "@newsforge/shared/schemas";
+import { PORTER_SCORER_RANGES } from "./porterGrammar.js";
 
 interface ReferenceFingerprint {
   id: string;
@@ -87,11 +88,11 @@ const PORTER_ONE_REFERENCES: ReferenceFingerprint[] = [
     photoArea: [0.18, 0.32],
     colorPanelArea: [0.42, 0.68],
     darkAccentArea: [0.02, 0.1],
-    imageBlocks: [6, 11],
-    contentBlocks: [11, 20],
-    narrowRails: [2, 6],
-    largestBlockArea: [0.12, 0.24],
-    bottomBandArea: [0.08, 0.28],
+    imageBlocks: PORTER_SCORER_RANGES.photos,
+    contentBlocks: PORTER_SCORER_RANGES.contentBlocks,
+    narrowRails: PORTER_SCORER_RANGES.narrowRails,
+    largestBlockArea: [0.12, PORTER_SCORER_RANGES.largestBlock[1]],
+    bottomBandArea: PORTER_SCORER_RANGES.bottomBand,
   },
   {
     id: "example2-photo-rails",
@@ -100,7 +101,7 @@ const PORTER_ONE_REFERENCES: ReferenceFingerprint[] = [
     darkAccentArea: [0.03, 0.12],
     imageBlocks: [5, 9],
     contentBlocks: [12, 22],
-    narrowRails: [3, 7],
+    narrowRails: PORTER_SCORER_RANGES.narrowRails,
     largestBlockArea: [0.09, 0.2],
     bottomBandArea: [0.06, 0.22],
   },

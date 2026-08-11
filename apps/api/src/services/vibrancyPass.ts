@@ -239,6 +239,31 @@ function applyRoleDefaults(block: LayoutBlock, role: PanelRole): void {
   }
 }
 
+/** Apply the elastic behaviors visible across the Porter reference set. */
+function applyElasticPorterRules(
+  layout: AssembledLayout,
+  articles: Map<string, Article>,
+  gridSpec: { columns: number; rowsPerPage: number },
+): AssembledLayout {
+  const blocks = layout.blocks.map((block) => {
+    const article = block.articleId ? articles.get(block.articleId) : undefined;
+    const isBirthday = block.style?.panelRole === "birthday" || article?.articleType === "birthday";
+    const itemCount = block.listItems?.length ?? 0;
+    if (!isBirthday || itemCount < 18) return block;
+    const horizontalOverlap = (other: LayoutBlock) =>
+      other.position.col < block.position.col + block.position.colSpan &&
+      block.position.col < other.position.col + other.position.colSpan;
+    const firstBelow = layout.blocks
+      .filter((other) => other !== block && other.page === block.page && other.position.row > block.position.row && horizontalOverlap(other))
+      .map((other) => other.position.row - 1)
+      .reduce((min, row) => Math.min(min, row), gridSpec.rowsPerPage);
+    const available = Math.max(1, firstBelow - block.position.row + 1);
+    if (available <= block.position.rowSpan) return block;
+    return { ...block, position: { ...block.position, rowSpan: available } };
+  });
+  return { ...layout, blocks };
+}
+
 export interface VibrancyInput {
   layout: AssembledLayout;
   articles: Article[];
@@ -492,8 +517,16 @@ export function applyVibrancyPass(input: VibrancyInput): AssembledLayout {
     return next;
   });
 
-  const guarded = applyPorterGeometryGuard(
+  const elastic = applyElasticPorterRules(
     { ...input.layout, visualPersonality, blocks },
+    articleById,
+    input.gridSpec ?? {
+      columns: Math.max(1, ...blocks.map((block) => block.position.col + block.position.colSpan - 1)),
+      rowsPerPage: Math.max(1, ...blocks.map((block) => block.position.row + block.position.rowSpan - 1)),
+    },
+  );
+  const guarded = applyPorterGeometryGuard(
+    elastic,
     articleById,
     input.gridSpec,
   );
