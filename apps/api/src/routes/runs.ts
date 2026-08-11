@@ -517,7 +517,12 @@ runsRouter.post("/", async (req, res) => {
     }
   }
 
-  const measuredInnerAffinity = selectedAdaptive?.subscores.porterReferenceAffinity ?? innerReferenceScore.affinity;
+  // Score the layout that is actually being wrapped and delivered. The
+  // selected adaptive candidate is only the deterministic starting point;
+  // Gemini may replace its geometry, so using that candidate's affinity here
+  // can under-report a stronger final AI layout (and make the full-output
+  // acceptance score disagree with the design notes).
+  const measuredInnerAffinity = innerReferenceScore.affinity;
   const fullOutput = scoreFullNewsletterOutput(layout, measuredInnerAffinity, finalMeasurement);
 
   // Build the fit report for persistence.
