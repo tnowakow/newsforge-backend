@@ -6,6 +6,7 @@ import mammoth from "mammoth";
 import { createId } from "@paralleldrive/cuid2";
 import { prisma } from "../db.js";
 import { env } from "../env.js";
+import { extractImageMeta, parsePorterSubmissionText } from "../services/uploadService.js";
 
 export const uploadsRouter: Router = Router();
 
@@ -51,6 +52,7 @@ uploadsRouter.post("/", upload.array("files", 30), async (req, res) => {
     try {
       if (IMAGE_EXTS.has(ext)) {
         const url = `/uploads/${path.basename(file.path)}`;
+        const dimensions = await extractImageMeta({ filePath: file.path, originalName: file.originalname, mime: file.mimetype });
         const asset = await prisma.assetLibrary.create({
           data: {
             id: createId(),
@@ -62,6 +64,9 @@ uploadsRouter.post("/", upload.array("files", 30), async (req, res) => {
               originalFilename: file.originalname,
               mime: file.mimetype,
               size: file.size,
+              width: dimensions.width,
+              height: dimensions.height,
+              format: dimensions.format,
             },
           },
         });
@@ -89,18 +94,39 @@ uploadsRouter.post("/", upload.array("files", 30), async (req, res) => {
       } else if (DOCX_EXTS.has(ext)) {
         const result = await mammoth.extractRawText({ path: file.path });
         const text = result.value;
+        const porterParse = parsePorterSubmissionText(text);
+        const cleanedText = porterParse.fallbackRequired
+          ? text
+          : porterParse.articles
+              .map((article) => `${article.title}\n${article.body}`)
+              .concat(
+                porterParse.lists.flatMap((list) => [
+                  list.label,
+                  ...list.rows.map((row) => `${row.value} ${row.label}`),
+                ]),
+              )
+              .join("\n\n");
         const asset = await prisma.assetLibrary.create({
           data: {
             id: createId(),
             clientId,
             type: "ARTICLE",
-            contentOrUrl: text,
+            contentOrUrl: cleanedText,
             source: "UPLOAD",
             meta: {
               originalFilename: file.originalname,
               mime: file.mimetype,
               size: file.size,
               wordCount: wordCount(text),
+              porterParse: {
+                markers: porterParse.markers,
+                fallbackRequired: porterParse.fallbackRequired,
+                articleCount: porterParse.articles.length,
+                listCount: porterParse.lists.length,
+                datedRowCount: porterParse.lists.reduce((sum, list) => sum + list.rows.length, 0),
+                warnings: porterParse.warnings,
+                imageAssociations: porterParse.imageAssociations,
+              },
               // mammoth Message[] is a class instance array — stringify
               // so Prisma's JsonValue accepts it. Downstream reads treat
               // this as opaque debug metadata.

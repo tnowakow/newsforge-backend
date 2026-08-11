@@ -47,6 +47,9 @@ export const ImageSchema = z.object({
   /** True if this image is a placeholder rather than real content. */
   isPlaceholder: z.boolean().default(false),
   source: z.enum(["MOCK", "UPLOAD", "GENERATED", "STOCK"]).default("MOCK"),
+  /** Source dimensions for non-blocking print-resolution guidance. */
+  width: z.number().int().positive().optional(),
+  height: z.number().int().positive().optional(),
 });
 export type NewsImage = z.infer<typeof ImageSchema>;
 export const ImagesSchema = z.array(ImageSchema);

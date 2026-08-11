@@ -32,6 +32,222 @@ export interface ParsedArticleBlock {
   body: string;
   wordCount: number;
   articleType?: ArticleType;
+  sectionId?: string;
+  byline?: string;
+  imageRefs?: string[];
+}
+
+export interface ParsedListRow {
+  value: string;
+  label: string;
+}
+
+export interface ParsedSubmissionList {
+  label: string;
+  panelRole: "happyHour" | "upcomingEvents" | "infoFooter";
+  rows: ParsedListRow[];
+}
+
+export interface ParsedPorterSubmission {
+  articles: ParsedArticleBlock[];
+  lists: ParsedSubmissionList[];
+  captions: Record<string, string>;
+  imageAssociations: Record<string, string[]>;
+  warnings: string[];
+  markers: { start: boolean; end: boolean };
+  fallbackRequired: boolean;
+  birthdayPresent: boolean;
+}
+
+interface SubmissionParagraph {
+  text: string;
+}
+
+function cleanSubmissionText(value: string): string {
+  return value
+    .replace(/\u0000/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function paragraphsFromSubmission(rawText: string): SubmissionParagraph[] {
+  return rawText
+    .replace(/\r\n/g, "\n")
+    .split(/\n[ \t]*\n/)
+    .map((text) => ({ text: text.split("\n").map(cleanSubmissionText).filter(Boolean).join("\n") }))
+    .filter((paragraph) => paragraph.text.length > 0);
+}
+
+function isInstructionLine(text: string): boolean {
+  return /^(?:you must complete|list the file names|also include which photos|fill in a minimum|please only include|be sure to review|include which photos|do not insert photos|submit(?:ted)? separately)/i.test(text);
+}
+
+function sectionIdForHeader(header: string): string {
+  if (/executive director/i.test(header)) return "director";
+  if (/legacy news/i.test(header)) return "legacy";
+  if (/upcoming campus events/i.test(header)) return "events";
+  if (/photo captions/i.test(header)) return "captions";
+  if (/interesting and newsworthy/i.test(header)) return "features";
+  if (/department heads/i.test(header)) return "deptheads";
+  return "custom";
+}
+
+function sectionHeaderRemainder(header: string, sectionId: string): string {
+  const withoutPrefix = header.replace(/^REQUIRED\s*[-–—]\s*/i, "");
+  const known = {
+    director: /executive directors? corner/i,
+    legacy: /legacy news/i,
+    events: /upcoming campus events/i,
+    captions: /photo captions/i,
+    features: /interesting and newsworthy/i,
+    deptheads: /department heads/i,
+  }[sectionId as "director" | "legacy" | "events" | "captions" | "features" | "deptheads"];
+  return known ? withoutPrefix.replace(known, "").trim() : withoutPrefix.trim();
+}
+
+function addPhotoAssociations(
+  refs: string[],
+  sectionTitle: string,
+  associations: Record<string, string[]>,
+): void {
+  for (const ref of refs) {
+    const filename = ref.replace(/^['"]|['"]$/g, "").trim();
+    if (!filename) continue;
+    associations[filename] = [...new Set([...(associations[filename] ?? []), sectionTitle])];
+  }
+}
+
+function parsePhotoRefs(text: string): { body: string; refs: string[] } {
+  const match = text.match(/^Photos?:\s*(.+)$/i);
+  if (!match) return { body: text, refs: [] };
+  return {
+    body: "",
+    refs: match[1].split(/,|\band\b/i).map((ref) => ref.trim()).filter(Boolean),
+  };
+}
+
+/**
+ * Parse the filled Porter/Trilogy Word submission using its two hard
+ * boundaries. The returned object never contains preamble, optional-menu, or
+ * department-head content. Missing markers are an explicit fallback state;
+ * raw submission text is never returned as parsed article content.
+ */
+export function parsePorterSubmissionText(rawText: string): ParsedPorterSubmission {
+  const paragraphs = paragraphsFromSubmission(rawText);
+  const startIndex = paragraphs.findIndex((p) => /^required articles$/i.test(p.text.trim()));
+  const endIndex = paragraphs.findIndex(
+    (p, index) => index > startIndex && /^optional article suggestions$/i.test(p.text.trim()),
+  );
+  const markers = { start: startIndex >= 0, end: endIndex > startIndex };
+  if (!markers.start || !markers.end) {
+    const missing = [!markers.start ? "start" : "", !markers.end ? "end" : ""].filter(Boolean).join(",");
+    console.warn(`deterministic-markers-missing: ${missing}`);
+    return {
+      articles: [],
+      lists: [],
+      captions: {},
+      imageAssociations: {},
+      warnings: [`deterministic-markers-missing: ${missing}`],
+      markers,
+      fallbackRequired: true,
+      birthdayPresent: false,
+    };
+  }
+
+  const window = paragraphs.slice(startIndex + 1, endIndex);
+  const sections: Array<{ id: string; header: string; paragraphs: string[] }> = [];
+  for (const paragraph of window) {
+    const headerMatch = paragraph.text.match(/^REQUIRED\s*[-–—]\s*(.*)$/i);
+    if (headerMatch) {
+      sections.push({ id: sectionIdForHeader(headerMatch[1]), header: headerMatch[1], paragraphs: [] });
+      const remainder = sectionHeaderRemainder(paragraph.text, sectionIdForHeader(headerMatch[1]));
+      if (remainder && !isInstructionLine(remainder) && sectionIdForHeader(headerMatch[1]) !== "events") {
+        sections.at(-1)?.paragraphs.push(remainder);
+      }
+    } else if (sections.length > 0) {
+      sections.at(-1)?.paragraphs.push(...paragraph.text.split("\n").map(cleanSubmissionText).filter(Boolean));
+    }
+  }
+
+  const articles: ParsedArticleBlock[] = [];
+  const lists: ParsedSubmissionList[] = [];
+  const captions: Record<string, string> = {};
+  const imageAssociations: Record<string, string[]> = {};
+  const warnings: string[] = [];
+
+  for (const section of sections) {
+    if (section.id === "deptheads") continue;
+    if (section.id === "captions") {
+      for (const line of section.paragraphs) {
+        if (isInstructionLine(line)) continue;
+        const match = line.match(/^([^:]+):\s*(.+)$/);
+        if (match) captions[match[1].trim()] = match[2].trim();
+      }
+      continue;
+    }
+    if (section.id === "events") {
+      let current: ParsedSubmissionList | undefined;
+      const allLines = [section.header, ...section.paragraphs];
+      for (const rawLine of allLines) {
+        const line = rawLine.trim();
+        const labels: Array<[RegExp, ParsedSubmissionList["label"], ParsedSubmissionList["panelRole"]]> = [
+          [/happy hours?:/i, "Happy Hours", "happyHour"],
+          [/socials?:/i, "Socials", "upcomingEvents"],
+          [/brunch:?/i, "Brunch", "infoFooter"],
+        ];
+        const label = labels.find(([pattern]) =>
+          pattern.test(line) && (rawLine === section.header || /^(?:happy hours?|socials?|brunch)/i.test(line)),
+        );
+        if (label) {
+          current = { label: label[1], panelRole: label[2], rows: [] };
+          lists.push(current);
+          const after = line.replace(label[0], "").trim();
+          const row = after.match(/^(\d{1,2}\/\d{1,2})\s+(.+)$/);
+          if (row) current.rows.push({ value: row[1], label: row[2].trim() });
+          continue;
+        }
+        const row = line.match(/^(\d{1,2}\/\d{1,2})\s+(.+)$/);
+        if (row && current) current.rows.push({ value: row[1], label: row[2].trim() });
+      }
+      continue;
+    }
+
+    const content: string[] = [];
+    const refs: string[] = [];
+    for (const line of section.paragraphs) {
+      if (isInstructionLine(line) || /^\d+\.\s*\(optional\)\s*$/i.test(line)) continue;
+      const photo = parsePhotoRefs(line);
+      refs.push(...photo.refs);
+      if (photo.body) content.push(photo.body);
+    }
+    if (refs.length) addPhotoAssociations(refs, section.id, imageAssociations);
+    if (section.id === "features") {
+      for (const body of content) {
+        if (body.length < 20) continue;
+        const title = body.split(/[.!?]/, 1)[0].trim().slice(0, 120) || "Interesting and Newsworthy";
+        articles.push({ title, body, wordCount: wordCount(body), articleType: /anniversary|color|chef/i.test(body) ? "announcement" : "other", sectionId: "features", imageRefs: refs });
+      }
+      continue;
+    }
+    if (section.id === "director" || section.id === "legacy" || section.id === "custom") {
+      if (content.length === 0) continue;
+      const title = section.id === "director" ? "Executive Director Corner" : section.id === "legacy" ? "Legacy News" : section.header;
+      articles.push({
+        title,
+        body: content.join("\n\n"),
+        wordCount: wordCount(content.join(" ")),
+        articleType: section.id === "director" ? "executive-note" : section.id === "legacy" ? "resident-story" : "other",
+        sectionId: section.id,
+        byline: section.id === "director" ? "From the Executive Director" : undefined,
+        imageRefs: refs,
+      });
+    }
+  }
+
+  const birthdayPresent = sections.some((section) => /birthday/i.test(`${section.id} ${section.header}`));
+  if (!birthdayPresent) warnings.push("birthday-source-missing: use recurring roster or evergreen teaser");
+  if (sections.some((section) => section.id === "custom")) warnings.push("custom-section-preserved");
+  return { articles, lists, captions, imageAssociations, warnings, markers, fallbackRequired: false, birthdayPresent };
 }
 
 /**
@@ -140,7 +356,15 @@ export async function parseArticleFile(
   if (ext === ".docx") text = await parseDocx(filePath);
   else if (ext === ".txt") text = await parseTxt(filePath);
   else throw new Error(`unsupported_extension:${ext}`);
+  if (ext === ".docx") {
+    const porter = parsePorterSubmissionText(text);
+    if (!porter.fallbackRequired) return porter.articles;
+  }
   return splitSubmissionTemplate(text);
+}
+
+export async function parsePorterSubmissionFile(filePath: string): Promise<ParsedPorterSubmission> {
+  return parsePorterSubmissionText(await parseDocx(filePath));
 }
 
 /**
@@ -251,6 +475,33 @@ export async function extractImageMeta(input: ImageMetaInput): Promise<ImageMeta
   }
 }
 
+export interface PrintDpiAssessment {
+  effectiveDpi?: number;
+  belowMinimum: boolean;
+  note?: string;
+}
+
+/** Informational only: low-resolution photos are always accepted and placed. */
+export function assessPrintDpi(input: {
+  width?: number;
+  height?: number;
+  placementWidthInches: number;
+  placementHeightInches?: number;
+  minimumDpi?: number;
+  label?: string;
+}): PrintDpiAssessment {
+  if (!input.width || !input.height || input.placementWidthInches <= 0) return { belowMinimum: false };
+  const widthDpi = input.width / input.placementWidthInches;
+  const heightDpi = input.placementHeightInches && input.placementHeightInches > 0
+    ? input.height / input.placementHeightInches
+    : widthDpi;
+  const effectiveDpi = Math.round(Math.min(widthDpi, heightDpi));
+  const minimumDpi = input.minimumDpi ?? 200;
+  return effectiveDpi < minimumDpi
+    ? { effectiveDpi, belowMinimum: true, note: `${input.label ?? "Photo"} placed below ${minimumDpi} DPI at print size` }
+    : { effectiveDpi, belowMinimum: false };
+}
+
 /**
  * Utility for routes/runs.ts: given a list of uploaded asset ids (Article
  * type), return typed Article DTOs. Callers separately fetch images by id.
@@ -295,5 +546,7 @@ export function assetImageToNewsImage(row: {
         : "landscape",
     isPlaceholder: false,
     source: "UPLOAD",
+    width: typeof meta.width === "number" ? meta.width : undefined,
+    height: typeof meta.height === "number" ? meta.height : undefined,
   };
 }
