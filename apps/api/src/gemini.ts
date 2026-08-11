@@ -12,7 +12,6 @@ import { z } from "zod";
 import { env } from "./env.js";
 
 export const GEMINI_MODEL = "gemini-2.5-flash";
-const OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
 const TIMEOUT_MS = 20_000;
 const MAX_RETRIES = 1;
 
@@ -59,7 +58,7 @@ async function callOpenAiWithTimeout(
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), ms);
   try {
-    const response = await fetch(OPENAI_API_URL, {
+    const response = await fetch(`${env.OPENAI_BASE_URL.replace(/\/$/, "")}/chat/completions`, {
       method: "POST",
       signal: controller.signal,
       headers: {
@@ -69,7 +68,7 @@ async function callOpenAiWithTimeout(
       body: JSON.stringify({
         model: env.OPENAI_MODEL,
         temperature: 0.4,
-        response_format: { type: "json_object" },
+        response_format: env.AI_PROVIDER === "local" ? { type: "text" } : { type: "json_object" },
         messages: [
           {
             role: "system",
@@ -143,7 +142,7 @@ export async function callGeminiJson<T>(
   const c = getClient();
   let lastErr: unknown = null;
 
-  if (c) {
+  if (c && env.AI_PROVIDER !== "local") {
     const model = c.getGenerativeModel({
       model: GEMINI_MODEL,
       generationConfig: {
@@ -187,7 +186,7 @@ export async function callGeminiJson<T>(
     lastErr = new Error("GEMINI_API_KEY not configured");
   }
 
-  if (env.OPENAI_API_KEY) {
+  if (env.AI_PROVIDER === "local" || env.OPENAI_API_KEY) {
     for (let attempt = 0; attempt <= (opts.maxRetries ?? MAX_RETRIES); attempt++) {
       try {
         const text = await callOpenAiWithTimeout(

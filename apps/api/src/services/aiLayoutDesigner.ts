@@ -25,6 +25,7 @@ import {
   type RecurringSection,
 } from "@newsforge/shared/schemas";
 import { callGeminiJson } from "../gemini.js";
+import { env } from "../env.js";
 import { assembleLayout } from "./layoutAssembly.js";
 import { applyVibrancyPass } from "./vibrancyPass.js";
 import { DESIGN_LANGUAGE_PROMPT } from "./designLanguage.js";
@@ -45,7 +46,7 @@ import {
 import type { CandidateMeasurement } from "./adaptiveLayoutPlanner.js";
 
 /** Layout design returns full spread JSON; production smokes can take 30-75s. */
-const DESIGN_TIMEOUT_MS = 90_000;
+const DESIGN_TIMEOUT_MS = env.AI_PROVIDER === "local" ? 300_000 : 90_000;
 
 const AiDesignResponseSchema = z.object({
   // Parse Gemini's layout response loosely first. We normalize/validate every
@@ -427,6 +428,7 @@ export async function designLayout(
     systemPrompt,
     userPrompt,
     timeoutMs: DESIGN_TIMEOUT_MS,
+    maxRetries: env.AI_PROVIDER === "local" ? 0 : undefined,
     fallback: { blocks: fallbackLayout.blocks, designNotes: "deterministic" },
   });
 

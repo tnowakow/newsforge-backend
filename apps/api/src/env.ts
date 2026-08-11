@@ -9,6 +9,8 @@ const EnvSchema = z.object({
   GEMINI_API_KEY: z.string().optional().default(""),
   OPENAI_API_KEY: z.string().optional().default(""),
   OPENAI_MODEL: z.string().optional().default("gpt-4o-mini"),
+  OPENAI_BASE_URL: z.string().url().optional().default("https://api.openai.com/v1"),
+  AI_PROVIDER: z.enum(["auto", "cloud", "local"]).optional().default("auto"),
   // Canonical (v2): AI_UNLOCK_PASSWORD. Legacy: AI_EDIT_PASSWORD.
   AI_UNLOCK_PASSWORD: z.string().min(1).optional(),
   AI_EDIT_PASSWORD: z.string().min(1).optional(),
