@@ -41,3 +41,18 @@ test("retrieves three nearest Porter exemplars and a plurality family", () => {
   assert.ok(result.examples.every((example) => example.exampleId.length === 2));
   assert.ok(result.prompt.includes("Retrieved Porter exemplars"));
 });
+
+test("routes the July Trilogy signature to the dense lavender family", () => {
+  const result = retrievePorterExamples(
+    [
+      article({ title: "Legacy News", wordCount: 30 }),
+      article({ title: "Resident spotlight", wordCount: 180, articleType: "resident-story" }),
+      article({ title: "Chef Circle", wordCount: 80 }),
+      article({ title: "Event lists", body: "7/3 event 7/8 event 7/10 event 7/12 event 7/15 event 7/17 event 7/22 event 7/24 event 7/29 event 7/31 event", wordCount: 120 }),
+    ],
+    Array.from({ length: 7 }, (_, index) => image(String(index))),
+  );
+  assert.equal(result.signature.datedRows, 10);
+  assert.equal(result.family, "dense-lavender-grid");
+  assert.equal(result.scenario, "panel-garden");
+});
