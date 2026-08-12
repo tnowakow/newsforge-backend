@@ -24,7 +24,7 @@ function textBlock(
     slotId: id,
     page,
     position,
-    kind: "filler",
+    kind: "article",
     inlineText,
     heading,
     needsFiller: false,

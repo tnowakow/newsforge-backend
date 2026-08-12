@@ -72,7 +72,7 @@ describe("wrapV3InnerSpreadForDemo", () => {
     assert.ok(wrapped.blocks.some((block) => block.page === 1 && block.blockId === "demo-cover-title"));
     assert.ok(wrapped.blocks.some((block) => block.page === 4 && block.blockId === "demo-back-looking-ahead"));
     assert.equal(wrapped.stats.placedImages, 0);
-    assert.equal(wrapped.stats.fillerBlocks, 12);
+    assert.equal(wrapped.stats.fillerBlocks, 0);
   });
 
   it("does not wrap an already full-size run twice", () => {
