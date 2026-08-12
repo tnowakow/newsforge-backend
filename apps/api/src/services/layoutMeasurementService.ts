@@ -6,6 +6,7 @@ import type {
   RecurringSection,
 } from "@newsforge/shared/schemas";
 import { getPage } from "../browser.js";
+import { env } from "../env.js";
 import { renderRunHtml } from "./renderHtml.js";
 import type {
   AdaptiveLayoutCandidate,
@@ -51,6 +52,14 @@ interface DomMeasurement {
   }>;
 }
 
+function htmlWithMeasurementBase(html: string): string {
+  const baseHref = `${env.PUBLIC_BASE_URL.replace(/\/$/, "")}/`;
+  const baseTag = `<base href="${baseHref}">`;
+  return html.includes("<head>")
+    ? html.replace("<head>", `<head>${baseTag}`)
+    : `${baseTag}${html}`;
+}
+
 async function measureCandidate(input: Omit<MeasureInput, "candidates"> & {
   candidate: AdaptiveLayoutCandidate;
 }): Promise<CandidateMeasurement> {
@@ -65,7 +74,7 @@ async function measureCandidate(input: Omit<MeasureInput, "candidates"> & {
     images: input.images,
     recurringSections: input.recurringSections,
   });
-  await page.setContent(html, { waitUntil: "domcontentloaded", timeout: 8_000 });
+  await page.setContent(htmlWithMeasurementBase(html), { waitUntil: "domcontentloaded", timeout: 8_000 });
   await page.waitForNetworkIdle({ idleTime: 500, timeout: 5_000 }).catch(() => {
     // Broken/slow remote photos should be measured as missing, not fail the run.
   });
