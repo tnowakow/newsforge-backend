@@ -675,34 +675,25 @@ runsRouter.post("/", async (req, res) => {
         finalMeasurement = await measureSelected();
       }
 
-      // Underfill is the bidirectional counterpart to clipping: shrink a text
-      // box once, bounded by its measured content height, then re-measure.
-      if ((finalMeasurement?.underfilledBlocks ?? 0) > 0) {
+      // Underfill is the bidirectional counterpart to clipping. Evaluate the
+      // shrink + photo-grow rungs together: shrinking a short text box can look
+      // worse until the reclaimed cells are reflowed into nearby photos.
+      if ((finalMeasurement?.underfilledBlocks ?? 0) > 0 || (finalMeasurement?.minPageUtility ?? 1) < 0.72) {
         const beforeLayout = layout;
         const beforeMeasurement = finalMeasurement;
-        const underfilled = applyUnderfillFloor(layout, articles, finalMeasurement);
-        if (underfilled.actions.length > 0) {
-          layout = underfilled.layout;
-          const measuredUnderfill = await measureSelected();
-          if (isMeasuredRecoveryBetter(beforeMeasurement, measuredUnderfill)) {
-            underfillActions = underfilled.actions;
-            finalMeasurement = measuredUnderfill;
-          } else {
-            layout = beforeLayout;
-            finalMeasurement = beforeMeasurement;
-          }
-        }
-      }
-      if ((finalMeasurement?.minPageUtility ?? 1) < 0.72) {
-        const beforeLayout = layout;
-        const beforeMeasurement = finalMeasurement;
-        const photoGrown = growPhotosIntoWhitespace(layout, effectiveGridSpec, finalMeasurement);
-        if (photoGrown.actions.length > 0) {
+        const underfilled = (finalMeasurement?.underfilledBlocks ?? 0) > 0
+          ? applyUnderfillFloor(layout, articles, finalMeasurement)
+          : { layout, actions: [] as FitAction[] };
+        const photoGrown = (finalMeasurement?.minPageUtility ?? 1) < 0.72
+          ? growPhotosIntoWhitespace(underfilled.layout, effectiveGridSpec, finalMeasurement)
+          : { layout: underfilled.layout, actions: [] as FitAction[] };
+        const candidateActions = [...underfilled.actions, ...photoGrown.actions];
+        if (candidateActions.length > 0) {
           layout = photoGrown.layout;
-          const measuredPhotoGrowth = await measureSelected();
-          if (isMeasuredRecoveryBetter(beforeMeasurement, measuredPhotoGrowth)) {
-            underfillActions = [...underfillActions, ...photoGrown.actions];
-            finalMeasurement = measuredPhotoGrowth;
+          const measuredRecovery = await measureSelected();
+          if (isMeasuredRecoveryBetter(beforeMeasurement, measuredRecovery)) {
+            underfillActions = candidateActions;
+            finalMeasurement = measuredRecovery;
           } else {
             layout = beforeLayout;
             finalMeasurement = beforeMeasurement;
