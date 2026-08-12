@@ -248,7 +248,7 @@ function growPhotosIntoWhitespace(
     if (!block.imageId || !sparsePages.has(block.page)) continue;
     const original = { ...block.position };
     const maxColSpan = Math.min(columns - block.position.col + 1, Math.max(block.position.colSpan, 12));
-    const maxRowSpan = Math.min(rows - block.position.row + 1, Math.max(block.position.rowSpan, 8));
+    const maxRowSpan = rows - block.position.row + 1;
 
     while (
       block.position.colSpan < maxColSpan &&
@@ -277,6 +277,43 @@ function growPhotosIntoWhitespace(
   }
 
   return { layout: { ...layout, blocks }, actions };
+}
+
+function measuredDensityScore(measurement: CandidateMeasurement | undefined): number {
+  if (!measurement) return 0;
+  const renderFit = Math.max(
+    0,
+    1 -
+      measurement.clippedBlocks * 0.12 -
+      measurement.overflowBlocks * 0.25 -
+      measurement.missingImages * 0.2,
+  );
+  const pageUtility = measurement.minPageUtility ?? measurement.usefulOccupancy;
+  const fillPenalty = Math.min(0.35, (measurement.underfilledBlocks ?? 0) * 0.025);
+  return Math.max(
+    0,
+    measurement.usefulOccupancy * 0.38 +
+      pageUtility * 0.32 +
+      (measurement.geometricCoverage ?? 0) * 0.18 +
+      renderFit * 0.12 -
+      fillPenalty,
+  );
+}
+
+function isMeasuredRecoveryBetter(
+  before: CandidateMeasurement | undefined,
+  after: CandidateMeasurement | undefined,
+): boolean {
+  if (!before || !after) return false;
+  if (after.overflowBlocks > before.overflowBlocks) return false;
+  if (after.clippedBlocks > before.clippedBlocks) return false;
+  if (after.missingImages > before.missingImages) return false;
+  const beforePageUtility = before.minPageUtility ?? before.usefulOccupancy;
+  const afterPageUtility = after.minPageUtility ?? after.usefulOccupancy;
+  const densityImproved = measuredDensityScore(after) >= measuredDensityScore(before) + 0.025;
+  const utilityImproved = afterPageUtility >= beforePageUtility + 0.035;
+  const underfillImproved = (after.underfilledBlocks ?? 0) < (before.underfilledBlocks ?? 0);
+  return densityImproved || (utilityImproved && underfillImproved);
 }
 
 function porterSpreadGridSpec(templateId: string, gridSpec: GridSpec): GridSpec {
@@ -641,19 +678,35 @@ runsRouter.post("/", async (req, res) => {
       // Underfill is the bidirectional counterpart to clipping: shrink a text
       // box once, bounded by its measured content height, then re-measure.
       if ((finalMeasurement?.underfilledBlocks ?? 0) > 0) {
+        const beforeLayout = layout;
+        const beforeMeasurement = finalMeasurement;
         const underfilled = applyUnderfillFloor(layout, articles, finalMeasurement);
         if (underfilled.actions.length > 0) {
           layout = underfilled.layout;
-          underfillActions = underfilled.actions;
-          finalMeasurement = await measureSelected();
+          const measuredUnderfill = await measureSelected();
+          if (isMeasuredRecoveryBetter(beforeMeasurement, measuredUnderfill)) {
+            underfillActions = underfilled.actions;
+            finalMeasurement = measuredUnderfill;
+          } else {
+            layout = beforeLayout;
+            finalMeasurement = beforeMeasurement;
+          }
         }
       }
       if ((finalMeasurement?.minPageUtility ?? 1) < 0.72) {
+        const beforeLayout = layout;
+        const beforeMeasurement = finalMeasurement;
         const photoGrown = growPhotosIntoWhitespace(layout, effectiveGridSpec, finalMeasurement);
         if (photoGrown.actions.length > 0) {
           layout = photoGrown.layout;
-          underfillActions = [...underfillActions, ...photoGrown.actions];
-          finalMeasurement = await measureSelected();
+          const measuredPhotoGrowth = await measureSelected();
+          if (isMeasuredRecoveryBetter(beforeMeasurement, measuredPhotoGrowth)) {
+            underfillActions = [...underfillActions, ...photoGrown.actions];
+            finalMeasurement = measuredPhotoGrowth;
+          } else {
+            layout = beforeLayout;
+            finalMeasurement = beforeMeasurement;
+          }
         }
       }
 
