@@ -587,8 +587,7 @@ export async function designLayout(
       !measurement ||
       measurement.overflowBlocks > 0 ||
       measurement.missingImages > 0 ||
-      missingPlacements > 0 ||
-      geometricCoverage < 0.85;
+      missingPlacements > 0;
     const aiAffinity = scorePorterOneReferenceAffinity(
       layout,
       input.gridSpec,
@@ -597,7 +596,9 @@ export async function designLayout(
     const fallbackMeasurement = adaptiveChosen.measurement;
     const aiScore = qualityScore(layout, measurement, input.gridSpec, input.templateId);
     const fallbackScore = qualityScore(adaptiveChosen.layout, fallbackMeasurement, input.gridSpec, input.templateId);
-    if (hardFailure || aiScore + 0.015 < fallbackScore) {
+    const fallbackCoverage = fallbackMeasurement?.geometricCoverage ?? 0;
+    const coverageCollapse = geometricCoverage < Math.max(0.62, fallbackCoverage - 0.08);
+    if (hardFailure || coverageCollapse || aiScore + 0.015 < fallbackScore) {
       return {
         layout: fallbackLayout,
         mode: "deterministic",
@@ -607,6 +608,7 @@ export async function designLayout(
           measurement ? `overflow=${measurement.overflowBlocks}` : undefined,
           measurement ? `missing=${measurement.missingImages + missingPlacements}` : undefined,
           measurement ? `coverage=${geometricCoverage.toFixed(3)}` : undefined,
+          measurement ? `coverageCollapse=${coverageCollapse}` : undefined,
           measurement ? `utility=${measurement.usefulOccupancy.toFixed(3)}` : undefined,
           `aiScore=${aiScore.toFixed(3)}`,
           `fallbackScore=${fallbackScore.toFixed(3)}`,
