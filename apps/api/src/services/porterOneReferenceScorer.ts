@@ -251,6 +251,9 @@ export function scoreFullNewsletterOutput(
   layout: AssembledLayout,
   innerSpreadAffinity: number,
   measurement?: {
+    usefulOccupancy?: number;
+    geometricCoverage?: number;
+    underfilledBlocks?: number;
     pageMetrics?: Array<{
       page: number;
       clippedBlocks: number;
@@ -283,8 +286,36 @@ export function scoreFullNewsletterOutput(
   const coverScore = Math.max(0, Math.min(1,
     coverRenderFit * 0.45 + structureScore * 0.25 + photoScore * 0.15 + dedupeScore * 0.15,
   ));
+  const innerMetrics = pageMetrics.filter((metric) => !coverPages.has(metric.page));
+  const innerRenderFit = innerMetrics.length
+    ? innerMetrics.reduce((sum, metric) => sum + metric.renderFit, 0) / innerMetrics.length
+    : 1;
+  const innerUtilityAverage = innerMetrics.length
+    ? innerMetrics.reduce((sum, metric) => sum + metric.usefulOccupancy, 0) / innerMetrics.length
+    : measurement?.usefulOccupancy ?? 1;
+  const innerUtilityMinimum = innerMetrics.length
+    ? Math.min(...innerMetrics.map((metric) => metric.usefulOccupancy))
+    : measurement?.usefulOccupancy ?? 1;
+  const densityScore = Math.max(
+    0,
+    Math.min(innerUtilityAverage, innerUtilityMinimum * 1.2),
+  );
+  const geometricCoverage = measurement?.geometricCoverage ?? 1;
+  const sparsePagePenalty = Math.max(0, 0.72 - innerUtilityMinimum) * 0.6;
+  const underfillPenalty = Math.min(0.18, (measurement?.underfilledBlocks ?? 0) * 0.018);
+  const renderPenalty = Math.max(0, 1 - innerRenderFit) * 0.18;
+  const fullOutputScore = Math.max(0, Math.min(1,
+    innerSpreadAffinity * 0.35 +
+      coverScore * 0.12 +
+      densityScore * 0.28 +
+      innerRenderFit * 0.1 +
+      geometricCoverage * 0.15 -
+      sparsePagePenalty -
+      underfillPenalty -
+      renderPenalty,
+  ));
   return {
-    fullOutputScore: Math.max(0, Math.min(1, innerSpreadAffinity * 0.75 + coverScore * 0.25)),
+    fullOutputScore,
     innerSpreadAffinity,
     coverScore,
     coverRenderFit,
