@@ -134,6 +134,13 @@ function sanitizeBlocks(
 
   const kept = blocks.filter((b) => {
     if (b.page < 1 || b.page > input.pageCount) return false;
+    const hasRenderableContent = Boolean(
+      b.articleId ||
+        b.imageId ||
+        b.inlineText?.trim() ||
+        b.listItems?.length,
+    );
+    if (!hasRenderableContent) return false;
     if (b.articleId) {
       if (!articleIds.has(b.articleId)) return false;
       if (seenArticles.has(b.articleId)) return false;

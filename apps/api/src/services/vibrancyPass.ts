@@ -343,6 +343,10 @@ function applyPorterGeometryGuard(
         for (let remaining = totalSpan; remaining > 0; remaining -= maxChunk) {
           chunks.push(Math.min(maxChunk, remaining));
         }
+        if (chunks.some((span) => span < 2)) {
+          nextBlocks.push(next);
+          continue;
+        }
         let offset = 0;
         chunks.forEach((span, index) => {
           const isFirst = index === 0;
