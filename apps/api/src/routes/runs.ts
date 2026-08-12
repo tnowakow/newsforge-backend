@@ -147,6 +147,28 @@ async function expandCollapsedPorterUploadArticles(articles: Article[] | undefin
   return articles.flatMap((article) => expandedByAssetId.get(article.id) ?? [article]);
 }
 
+function stripUnfilledSourceBlocks(layout: AssembledLayout, sourceOnly: boolean): AssembledLayout {
+  if (!sourceOnly) return layout;
+  const blocks = layout.blocks.filter((block) =>
+    !block.needsFiller &&
+    block.kind !== "empty" &&
+    block.kind !== "placeholder" &&
+    (block.articleId || block.imageId || block.kind === "list" || block.inlineText),
+  );
+  return {
+    ...layout,
+    blocks,
+    unfilledSlotIds: [],
+    stats: {
+      ...layout.stats,
+      fillerBlocks: 0,
+      emptySlots: 0,
+      placedArticles: blocks.filter((block) => block.articleId || block.kind === "list").length,
+      placedImages: blocks.filter((block) => block.imageId).length,
+    },
+  };
+}
+
 function trimWords(text: string, ratio = 0.82, minimumWords = 8): string {
   const words = text.trim().split(/\s+/).filter(Boolean);
   const keep = Math.min(words.length, Math.max(minimumWords, Math.floor(words.length * ratio)));
@@ -470,6 +492,7 @@ runsRouter.post("/", async (req, res) => {
   const hasUploadedArticleContent = (articles ?? []).some(
     (article) => article.source === "UPLOAD",
   );
+  const sourceOnlyUploadedRun = hasUploadedArticleContent;
   const fillerMode = hasUploadedArticleContent ? "PLACEHOLDER" : body.fillerMode ?? "GENERATE";
 
   if (fillerMode === "GENERATE" && !hasAiUnlockCookie(req)) {
@@ -577,17 +600,21 @@ runsRouter.post("/", async (req, res) => {
   const recurringParsed = RecurringSectionsSchema.safeParse(
     client.recurringSections,
   );
-  const recurringSections = recurringParsed.success ? recurringParsed.data : [];
+  const recurringSections = sourceOnlyUploadedRun
+    ? []
+    : recurringParsed.success ? recurringParsed.data : [];
 
   // Demo-quality stock matching: uploaded photos are preserved, while mock /
   // generated placeholders get replaced or topped up from the described stock
   // catalog. The matcher ranks per image slot using article text, slot role,
   // aspect hints, and senior-living tags.
-  images = selectStockPhotosForRun({
-    articles,
-    images,
-    gridSpec: effectiveGridSpec,
-  });
+  if (!sourceOnlyUploadedRun) {
+    images = selectStockPhotosForRun({
+      articles,
+      images,
+      gridSpec: effectiveGridSpec,
+    });
+  }
 
   // Fit strategy — overflow/underflow trimming before assembly (Vitaly §7).
   const originalWordCounts = new Map(articles.map((article) => [article.id, article.wordCount]));
@@ -631,7 +658,7 @@ runsRouter.post("/", async (req, res) => {
     porterRetrievalPrompt: porterRetrieval?.prompt,
   });
   if (designed.articles) articles = designed.articles;
-  let layout = designed.layout;
+  let layout = stripUnfilledSourceBlocks(designed.layout, sourceOnlyUploadedRun);
 
   const monthLabel =
     body.monthLabel ??

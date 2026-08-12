@@ -25,6 +25,7 @@ type EditorialRole =
 
 type GeometryVariant =
   | "fixed"
+  | "source-topology"
   | "lead-photo-swap"
   | "photo-lead-swap"
   | "brief-rail-swap"
@@ -605,6 +606,156 @@ function makeCandidate(
   };
 }
 
+function listRowsForArticle(article: Article): LayoutBlock["listItems"] {
+  return article.body
+    .split(/\n+/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => {
+      const match = line.match(/^(\d{1,2}\/\d{1,2})\s+(.+)$/);
+      return match
+        ? { label: match[1], value: match[2].trim() }
+        : { label: line };
+    });
+}
+
+function isScheduleArticle(article: Article): boolean {
+  return (
+    /happy hours?|socials?|brunch|events?|outings?/i.test(article.title) ||
+    article.body.split(/\n+/).filter((line) => /^\d{1,2}\/\d{1,2}\s+/.test(line.trim())).length >= 2
+  );
+}
+
+function styleForSourceArticle(article: Article, index: number): LayoutBlock["style"] {
+  if (/executive director|director corner/i.test(article.title)) {
+    return { bg: "cream", headerColor: "berry", panelRole: "directorCorner", compact: true, cornerRadius: 8 };
+  }
+  if (isScheduleArticle(article)) {
+    const role = /happy/i.test(article.title)
+      ? "happyHour"
+      : /brunch/i.test(article.title)
+        ? "infoFooter"
+        : "upcomingEvents";
+    return { bg: index % 2 === 0 ? "navy" : "sky", headerColor: "coral", invertText: role === "happyHour", panelRole: role, compact: true, cornerRadius: 8 };
+  }
+  if (/legacy/i.test(article.title)) {
+    return { bg: "berry", headerColor: "cream", invertText: true, panelRole: "spotlightRail", compact: true, cornerRadius: 8 };
+  }
+  const headerColors: Array<NonNullable<LayoutBlock["style"]>["headerColor"]> = ["coral", "sky", "leaf", "berry"];
+  return { bg: index % 2 === 0 ? "paper" : "cream", headerColor: headerColors[index % headerColors.length], panelRole: "featureBand", compact: true, cornerRadius: 8 };
+}
+
+function sourceTopologyCandidate(input: AdaptiveLayoutInput, plan: EditorialPlan): AdaptiveLayoutCandidate | undefined {
+  if (!input.articles.some((article) => article.source === "UPLOAD")) return undefined;
+  const articles = orderArticles(input.articles, plan, "source");
+  const schedules = articles.filter(isScheduleArticle);
+  const stories = articles.filter((article) => !isScheduleArticle(article));
+  const orderedArticles = [
+    ...stories.filter((article) => /executive director|director corner/i.test(article.title)),
+    ...stories.filter((article) => /legacy/i.test(article.title)),
+    ...schedules,
+    ...stories.filter((article) => !/executive director|director corner|legacy/i.test(article.title)),
+  ];
+  const images = orderImages(input.images, "uploadedFirst");
+  const blocks: LayoutBlock[] = [];
+  const articleBlock = (
+    article: Article,
+    page: number,
+    col: number,
+    row: number,
+    colSpan: number,
+    rowSpan: number,
+    index: number,
+  ) => {
+    const schedule = isScheduleArticle(article);
+    blocks.push({
+      blockId: `source-${blocks.length + 1}`,
+      slotId: `source-${article.id}`,
+      page,
+      position: { col, row, colSpan, rowSpan },
+      kind: schedule ? "list" : (/executive director|legacy/i.test(article.title) ? "recurring" : "article"),
+      articleId: schedule ? undefined : article.id,
+      needsFiller: false,
+      heading: article.title,
+      listItems: schedule ? listRowsForArticle(article) : undefined,
+      style: styleForSourceArticle(article, index),
+      zIndex: 0,
+    });
+  };
+  const imageBlock = (
+    image: NewsImage | undefined,
+    page: number,
+    col: number,
+    row: number,
+    colSpan: number,
+    rowSpan: number,
+  ) => {
+    if (!image) return;
+    blocks.push({
+      blockId: `source-${blocks.length + 1}`,
+      slotId: `source-${image.id}`,
+      page,
+      position: { col, row, colSpan, rowSpan },
+      kind: "image",
+      imageId: image.id,
+      caption: image.caption,
+      needsFiller: false,
+      style: { panelRole: "photoCluster", photoTreatment: "collage", cornerRadius: 8 },
+      zIndex: 0,
+    });
+  };
+
+  if (orderedArticles.length === 0) return undefined;
+  const [director, legacy, firstSchedule, secondSchedule, thirdSchedule, featureA, featureB, featureC] = orderedArticles;
+  articleBlock(director, 1, 1, 1, 13, 5, 0);
+  imageBlock(images[0], 1, 14, 1, 11, 5);
+  if (firstSchedule) articleBlock(firstSchedule, 1, 1, 6, 8, 4, 2);
+  if (secondSchedule) articleBlock(secondSchedule, 1, 9, 6, 8, 4, 3);
+  if (thirdSchedule) articleBlock(thirdSchedule, 1, 17, 6, 8, 4, 4);
+  imageBlock(images[1], 1, 1, 10, 8, 7);
+  imageBlock(images[2], 1, 9, 10, 8, 7);
+  imageBlock(images[3], 1, 17, 10, 8, 7);
+
+  if (legacy) articleBlock(legacy, 2, 1, 1, 12, 5, 1);
+  imageBlock(images[4], 2, 13, 1, 12, 5);
+  if (featureA) articleBlock(featureA, 2, 1, 6, 12, 5, 5);
+  imageBlock(images[5], 2, 13, 6, 12, 5);
+  if (featureB) articleBlock(featureB, 2, 1, 11, 8, 6, 6);
+  imageBlock(images[6], 2, 9, 11, 8, 6);
+  if (featureC) articleBlock(featureC, 2, 17, 11, 8, 6, 7);
+
+  const overflowArticles = orderedArticles.filter((article) => !blocks.some((block) => block.articleId === article.id || block.slotId === `source-${article.id}`));
+  for (const [index, article] of overflowArticles.entries()) {
+    const col = 1 + (index % 3) * 8;
+    articleBlock(article, 2, col, 13, 8, 4, index + 8);
+  }
+
+  const layout: AssembledLayout = {
+    templateId: input.templateId,
+    pageCount: input.pageCount,
+    visualPersonality: plan.visualPersonality,
+    blocks,
+    unfilledSlotIds: [],
+    stats: {
+      placedArticles: new Set(blocks.map((block) => block.articleId).filter(Boolean)).size + blocks.filter((block) => block.kind === "list").length,
+      placedImages: blocks.filter((block) => block.imageId).length,
+      fillerBlocks: 0,
+      emptySlots: 0,
+    },
+    version: (input.previousVersion ?? 0) + 1,
+  };
+  const scored = scoreCandidate(layout, { ...input, articles: orderedArticles, images }, plan);
+  return {
+    id: "source-topology",
+    label: "Uploaded source topology",
+    geometryVariant: "source-topology",
+    layout,
+    score: scored.score + 0.08,
+    subscores: scored.subscores,
+    warnings: scored.warnings,
+  };
+}
+
 function largestBlock(blocks: LayoutBlock[]): LayoutBlock | undefined {
   return [...blocks].sort((a, b) => blockArea(b) - blockArea(a))[0];
 }
@@ -995,7 +1146,9 @@ export function buildAdaptiveLayout(input: AdaptiveLayoutInput): AdaptiveLayoutR
     brandVoice: input.brandVoice,
     clientName: input.clientName,
   });
+  const sourceTopology = sourceTopologyCandidate(input, plan);
   const candidates = [
+    ...(sourceTopology ? [sourceTopology] : []),
     makeCandidate("source-order", "Source order", input, plan, "source", "source", "fixed"),
     makeCandidate("editorial-priority", "Editorial priority", input, plan, "editorial", "uploadedFirst", "lead-photo-swap"),
     makeCandidate("photo-impact", "Photo impact", input, plan, "editorial", "landscapeFirst", "photo-lead-swap"),

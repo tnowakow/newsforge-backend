@@ -358,6 +358,7 @@ export async function designLayout(
   }
   const adaptiveCandidateReport = adaptiveCandidates.map(({ layout: _layout, ...candidate }) => ({
     ...candidate,
+    geometryVariant: candidate.geometryVariant === "source-topology" ? "fixed" as const : candidate.geometryVariant,
     selected: candidate.id === adaptiveChosen.id,
   }));
   const deterministic = () =>

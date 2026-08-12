@@ -39,6 +39,7 @@ export const AdaptiveLayoutCandidateReportSchema = z.object({
   selected: z.boolean().optional(),
   geometryVariant: z.enum([
     "fixed",
+    "source-topology",
     "lead-photo-swap",
     "photo-lead-swap",
     "brief-rail-swap",
