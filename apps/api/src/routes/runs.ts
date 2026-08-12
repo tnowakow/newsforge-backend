@@ -91,6 +91,62 @@ function wordCount(text: string): number {
   return text.trim().split(/\s+/).filter(Boolean).length;
 }
 
+function porterParsedArticlesFromMeta(meta: unknown): Article[] {
+  const porterParse =
+    meta && typeof meta === "object" && "porterParse" in meta
+      ? (meta as { porterParse?: unknown }).porterParse
+      : undefined;
+  const parsedArticles =
+    porterParse && typeof porterParse === "object" && "parsedArticles" in porterParse
+      ? (porterParse as { parsedArticles?: unknown }).parsedArticles
+      : undefined;
+  if (!Array.isArray(parsedArticles) || parsedArticles.length === 0) return [];
+
+  const normalized = parsedArticles
+    .map((item): Article | null => {
+      if (!item || typeof item !== "object") return null;
+      const raw = item as Partial<Article>;
+      const body = typeof raw.body === "string" ? raw.body : "";
+      const title = typeof raw.title === "string" ? raw.title : "";
+      if (!title.trim() || !body.trim()) return null;
+      return {
+        id: typeof raw.id === "string" && raw.id.trim() ? raw.id : createId(),
+        title,
+        body,
+        wordCount: typeof raw.wordCount === "number" ? raw.wordCount : wordCount(body),
+        byline: typeof raw.byline === "string" ? raw.byline : undefined,
+        sectionId: typeof raw.sectionId === "string" ? raw.sectionId : undefined,
+        isFiller: false,
+        source: "UPLOAD",
+        articleType: raw.articleType,
+      };
+    })
+    .filter((article): article is Article => !!article);
+
+  return ArticlesSchema.safeParse(normalized).success ? normalized : [];
+}
+
+async function expandCollapsedPorterUploadArticles(articles: Article[] | undefined): Promise<Article[] | undefined> {
+  if (!articles?.length) return articles;
+  const collapsedIds = articles
+    .filter((article) => article.source === "UPLOAD" && /\.docx(?:$|[\s_-])/i.test(article.title))
+    .map((article) => article.id);
+  if (collapsedIds.length === 0) return articles;
+
+  const assets = await prisma.assetLibrary.findMany({
+    where: { id: { in: collapsedIds }, type: "ARTICLE" },
+    select: { id: true, meta: true },
+  });
+  const expandedByAssetId = new Map(
+    assets
+      .map((asset) => [asset.id, porterParsedArticlesFromMeta(asset.meta)] as const)
+      .filter(([, expanded]) => expanded.length > 0),
+  );
+  if (expandedByAssetId.size === 0) return articles;
+
+  return articles.flatMap((article) => expandedByAssetId.get(article.id) ?? [article]);
+}
+
 function trimWords(text: string, ratio = 0.82, minimumWords = 8): string {
   const words = text.trim().split(/\s+/).filter(Boolean);
   const keep = Math.min(words.length, Math.max(minimumWords, Math.floor(words.length * ratio)));
@@ -410,7 +466,8 @@ runsRouter.post("/", async (req, res) => {
     return;
   }
   const body = parsed.data;
-  const hasUploadedArticleContent = (body.articles ?? []).some(
+  let articles = await expandCollapsedPorterUploadArticles(body.articles);
+  const hasUploadedArticleContent = (articles ?? []).some(
     (article) => article.source === "UPLOAD",
   );
   const fillerMode = hasUploadedArticleContent ? "PLACEHOLDER" : body.fillerMode ?? "GENERATE";
@@ -432,7 +489,6 @@ runsRouter.post("/", async (req, res) => {
   }
 
   // Use supplied content, or generate mock content for this client.
-  let articles = body.articles;
   let images = body.images;
   let generatedContentAudit:
     | {
