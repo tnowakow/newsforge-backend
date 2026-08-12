@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import type { Article, AssembledLayout, NewsImage } from "@newsforge/shared/schemas";
+import type { Article, AssembledLayout } from "@newsforge/shared/schemas";
 import { wrapV3InnerSpreadForDemo } from "../services/fullNewsletterWrapper.js";
 
 const articles: Article[] = [
@@ -21,25 +21,6 @@ const articles: Article[] = [
     isFiller: false,
     source: "MOCK",
     articleType: "event-recap",
-  },
-];
-
-const images: NewsImage[] = [
-  {
-    id: "i1",
-    url: "https://example.com/hero.jpg",
-    caption: "Residents at a summer gathering",
-    aspect: "landscape",
-    isPlaceholder: false,
-    source: "STOCK",
-  },
-  {
-    id: "i2",
-    url: "https://example.com/back.jpg",
-    caption: "A community activity",
-    aspect: "landscape",
-    isPlaceholder: false,
-    source: "STOCK",
   },
 ];
 
@@ -79,7 +60,6 @@ describe("wrapV3InnerSpreadForDemo", () => {
     const wrapped = wrapV3InnerSpreadForDemo({
       layout: innerSpread(),
       articles,
-      images,
       clientName: "Trilogy Health Services",
       monthLabel: "August 2026",
     });
@@ -90,23 +70,21 @@ describe("wrapV3InnerSpreadForDemo", () => {
       [2, 3],
     );
     assert.ok(wrapped.blocks.some((block) => block.page === 1 && block.blockId === "demo-cover-title"));
-    assert.ok(wrapped.blocks.some((block) => block.page === 4 && block.blockId === "demo-back-events"));
-    assert.equal(wrapped.stats.placedImages, 2);
-    assert.equal(wrapped.stats.fillerBlocks, 9);
+    assert.ok(wrapped.blocks.some((block) => block.page === 4 && block.blockId === "demo-back-looking-ahead"));
+    assert.equal(wrapped.stats.placedImages, 0);
+    assert.equal(wrapped.stats.fillerBlocks, 12);
   });
 
   it("does not wrap an already full-size run twice", () => {
     const once = wrapV3InnerSpreadForDemo({
       layout: innerSpread(),
       articles,
-      images,
       clientName: "Trilogy Health Services",
       monthLabel: "August 2026",
     });
     const twice = wrapV3InnerSpreadForDemo({
       layout: once,
       articles,
-      images,
       clientName: "Trilogy Health Services",
       monthLabel: "August 2026",
     });
@@ -115,7 +93,7 @@ describe("wrapV3InnerSpreadForDemo", () => {
     assert.deepEqual(twice.blocks.map((block) => block.page), once.blocks.map((block) => block.page));
   });
 
-  it("does not repeat inner-spread articles or images on wrapper pages", () => {
+  it("does not repeat inner-spread articles, story bodies, filenames, or images on wrapper pages", () => {
     const birthdayArticles: Article[] = [
       {
         id: "birthday",
@@ -125,6 +103,15 @@ describe("wrapV3InnerSpreadForDemo", () => {
         isFiller: false,
         source: "MOCK",
         articleType: "birthday",
+      },
+      {
+        id: "filename",
+        title: "July Newsletter Content.docx",
+        body: "This filename must not appear as a real newsletter headline.",
+        wordCount: 9,
+        isFiller: false,
+        source: "UPLOAD",
+        articleType: "other",
       },
       ...articles,
     ];
@@ -153,26 +140,23 @@ describe("wrapV3InnerSpreadForDemo", () => {
     const wrapped = wrapV3InnerSpreadForDemo({
       layout,
       articles: birthdayArticles,
-      images,
       clientName: "Trilogy Health Services",
       monthLabel: "June 2026",
     });
 
-    const backText = wrapped.blocks
-      .filter((block) => block.page === 4)
+    const wrapperBlocks = wrapped.blocks.filter((block) => block.page === 1 || block.page === 4);
+    const wrapperText = wrapperBlocks
       .flatMap((block) => [block.heading, block.inlineText, block.caption])
       .filter(Boolean)
       .join("\n");
-    assert.equal(/Happy Birthday|Mary Ann|Shirley/.test(backText), false);
+    assert.equal(/Mary Ann|Shirley|7\/3|7\/10/.test(wrapperText), false);
+    assert.equal(/A warm note for residents|8\/10: Music social|July Newsletter Content\.docx|filename must not appear/.test(wrapperText), false);
 
-    const wrapperImageIds = wrapped.blocks
-      .filter((block) => block.page === 1 || block.page === 4)
-      .map((block) => block.imageId)
-      .filter(Boolean);
-    assert.equal(wrapperImageIds.includes("i1"), false);
+    assert.equal(wrapperBlocks.some((block) => block.articleId), false);
+    assert.equal(wrapperBlocks.some((block) => block.imageId), false);
 
     const coverBirthday = wrapped.blocks.find((block) => block.blockId === "demo-cover-birthday");
-    assert.equal(coverBirthday?.inlineText, "Residents and team members celebrating this month.");
+    assert.equal(coverBirthday?.inlineText, "Residents and team members celebrating this month are recognized on the posted community calendar.");
     assert.equal(/Mary Ann|Shirley|7\/3|7\/10/.test(`${coverBirthday?.heading ?? ""}\n${coverBirthday?.inlineText ?? ""}`), false);
     assert.equal(wrapped.blocks.filter((block) => block.articleId === "birthday").length, 1);
   });

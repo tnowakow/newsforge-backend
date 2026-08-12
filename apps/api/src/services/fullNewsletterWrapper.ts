@@ -2,13 +2,11 @@ import type {
   Article,
   AssembledLayout,
   LayoutBlock,
-  NewsImage,
 } from "@newsforge/shared/schemas";
 
 interface WrapperInput {
   layout: AssembledLayout;
   articles: Article[];
-  images: NewsImage[];
   clientName: string;
   monthLabel: string;
 }
@@ -35,58 +33,15 @@ function textBlock(
   };
 }
 
-function imageBlock(
-  id: string,
-  page: number,
-  imageId: string,
-  position: LayoutBlock["position"],
-  caption?: string,
-): LayoutBlock {
-  return {
-    blockId: id,
-    slotId: id,
-    page,
-    position,
-    kind: "image",
-    imageId,
-    caption,
-    needsFiller: false,
-    zIndex: 0,
-    style: { photoTreatment: "wide" },
-  };
-}
-
 function articleTeasers(articles: Article[], max = 5): string {
   const titles = articles
+    .filter((article) => !article.isFiller)
     .slice(0, max)
     .map((article) => article.title.trim())
-    .filter(Boolean);
+    .filter((title) => title && !/\.docx$/i.test(title));
   return titles.length
     ? titles.map((title) => `- ${title}`).join("\n")
-    : "- Community updates\n- Resident moments\n- Upcoming events";
-}
-
-function closingCopy(): string {
-  return "Thank you for being part of this month's community story. Watch for upcoming events, resident celebrations, and new ways to connect with neighbors and the team.";
-}
-
-function firstArticleMatching(articles: Article[], pattern: RegExp): Article | undefined {
-  return articles.find((article) =>
-    article.articleType !== "birthday" &&
-    pattern.test(`${article.title}\n${article.body}\n${article.articleType ?? ""}`),
-  );
-}
-
-function shortBody(article: Article | undefined, fallback: string, maxChars = 260): string {
-  const raw = article?.body?.trim() || fallback;
-  const clean = raw.replace(/\s+/g, " ").trim();
-  if (clean.length <= maxChars) return clean;
-  const window = clean.slice(0, maxChars);
-  const sentenceEnd = [...window.matchAll(/[.!?](?=\s|$)/g)].pop()?.index;
-  if (sentenceEnd !== undefined && sentenceEnd >= Math.min(80, maxChars * 0.45)) {
-    return window.slice(0, sentenceEnd + 1).trim();
-  }
-  return `${window.replace(/\s+\S*$/, "").replace(/[,:;—-]\s*$/, "")}.`;
+    : "- Community updates\n- Upcoming events\n- Campus moments";
 }
 
 function dedupeBirthdayBlocks(blocks: LayoutBlock[], articles: Article[]): LayoutBlock[] {
@@ -236,7 +191,6 @@ function compactGatewayInnerBlocks(blocks: LayoutBlock[]): LayoutBlock[] {
 export function wrapV3InnerSpreadForDemo({
   layout,
   articles,
-  images,
   clientName,
   monthLabel,
 }: WrapperInput): AssembledLayout {
@@ -252,21 +206,6 @@ export function wrapV3InnerSpreadForDemo({
     ...block,
     page: block.page + 1,
   }));
-
-  const innerImageIds = new Set(
-    shiftedInnerBlocks
-      .map((block) => block.imageId)
-      .filter((id): id is string => Boolean(id)),
-  );
-  const wrapperImages = images.filter((image) => !innerImageIds.has(image.id));
-  const hero = wrapperImages[0];
-  const secondary = wrapperImages.find((image) => image.id !== hero?.id);
-  const tertiary = wrapperImages.find(
-    (image) => image.id !== hero?.id && image.id !== secondary?.id,
-  );
-  const executive = firstArticleMatching(articles, /executive|director/i);
-  const events = firstArticleMatching(articles, /event|happy hour|outing|campus|calendar/i);
-  const feature = firstArticleMatching(articles, /recap|spotlight|resident|volunteer|scrubbly|campus/i);
 
   const coverBlocks: LayoutBlock[] = [
     textBlock(
@@ -288,13 +227,11 @@ export function wrapV3InnerSpreadForDemo({
       "demo-cover-birthday",
       1,
       "Happy Birthday!",
-      "Residents and team members celebrating this month.",
+      "Residents and team members celebrating this month are recognized on the posted community calendar.",
       { col: 1, row: 5, colSpan: 8, rowSpan: 5 },
       {
         bg: "sun",
         headerColor: "coral",
-        // The cover is a teaser only. The full birthday roster lives once on
-        // the inner spread, matching the Porter references.
         panelRole: "featureBand",
         cornerRadius: 0,
         compact: true,
@@ -319,7 +256,7 @@ export function wrapV3InnerSpreadForDemo({
       "demo-cover-director",
       1,
       "Executive Director Corner",
-      shortBody(executive, `${clientName} shares a warm note on the month ahead.`, 180),
+      `${clientName} shares a warm note on the month ahead, with reflections from community leadership and reminders for residents, families, and team members.`,
       { col: 9, row: 1, colSpan: 8, rowSpan: 7 },
       {
         bg: "cream",
@@ -332,8 +269,8 @@ export function wrapV3InnerSpreadForDemo({
     textBlock(
       "demo-cover-events",
       1,
-      events?.title || "Upcoming Events",
-      shortBody(events, "A quick look at upcoming campus moments and ways to connect.", 260),
+      "Around Campus",
+      "Look inside for upcoming activities, campus gatherings, resident moments, and ways to stay connected throughout the month.",
       { col: 9, row: 12, colSpan: 8, rowSpan: 5 },
       {
         bg: "sky",
@@ -343,46 +280,31 @@ export function wrapV3InnerSpreadForDemo({
         compact: true,
       },
     ),
+    textBlock(
+      "demo-cover-community",
+      1,
+      "Community Notes",
+      "For full details, times, and any updates, please check the posted calendar or connect with a member of the community team.",
+      { col: 17, row: 1, colSpan: 8, rowSpan: 16 },
+      {
+        bg: "leaf",
+        headerColor: "paper",
+        invertText: true,
+        panelRole: "infoFooter",
+        cornerRadius: 0,
+        compact: true,
+        centered: true,
+      },
+    ),
   ];
-  if (hero) {
-    coverBlocks.push(
-      imageBlock(
-        "demo-cover-hero",
-        1,
-        hero.id,
-        {
-          col: 17,
-          row: 1,
-          colSpan: 8,
-          rowSpan: 11,
-        },
-        hero.caption ?? hero.alt,
-      ),
-    );
-  }
 
   const backBlocks: LayoutBlock[] = [
     textBlock(
-      "demo-back-note",
-      4,
-      feature?.title || "Stay Connected",
-      shortBody(feature, `${clientName} closes ${monthLabel} with gratitude for the residents, families, and team members who make every gathering feel personal.`, 360),
-      { col: 1, row: 1, colSpan: 10, rowSpan: 8 },
-      {
-        bg: "sky",
-        headerColor: "navy",
-        panelRole: "featureBand",
-        scriptHeading: true,
-        cornerRadius: 0,
-        compact: true,
-      },
-    ),
-    textBlock(
-      "demo-back-events",
+      "demo-back-looking-ahead",
       4,
       "Looking Ahead",
-      closingCopy(),
-      { col: 1, row: 9, colSpan: 10, rowSpan: 8 },
+      "Thank you for being part of this month's community story. Watch for next month's celebrations, outings, campus updates, and everyday moments of connection.",
+      { col: 1, row: 1, colSpan: 8, rowSpan: 8 },
       {
         bg: "navy",
         headerColor: "paper",
@@ -394,66 +316,82 @@ export function wrapV3InnerSpreadForDemo({
       },
     ),
     textBlock(
-      "demo-back-contact",
+      "demo-back-calendar",
       4,
-      "Out and About",
-      shortBody(events, "Fresh events, outings, and campus moments continue next month.", 270),
-      { col: 11, row: 10, colSpan: 7, rowSpan: 7 },
+      "Save the Date",
+      "Please refer to the posted community calendar for dates, times, sign-ups, and any schedule changes.",
+      { col: 9, row: 1, colSpan: 8, rowSpan: 8 },
+      {
+        bg: "coral",
+        headerColor: "paper",
+        invertText: true,
+        panelRole: "upcomingEvents",
+        cornerRadius: 0,
+        compact: true,
+        centered: true,
+      },
+    ),
+    textBlock(
+      "demo-back-family",
+      4,
+      "Family & Friends",
+      "Families and friends are always welcome to reach out to the community team with questions about activities, visits, and ways to participate.",
+      { col: 17, row: 1, colSpan: 8, rowSpan: 8 },
       {
         bg: "cream",
-        headerColor: "coral",
-        panelRole: "outingList",
+        headerColor: "primary",
+        panelRole: "featureBand",
         cornerRadius: 0,
         compact: true,
       },
     ),
+    textBlock(
+      "demo-back-office",
+      4,
+      "Community Office",
+      "For questions about services, statements, trust funds, or other business office needs, please contact the community team directly.",
+      { col: 1, row: 9, colSpan: 8, rowSpan: 8 },
+      {
+        bg: "sky",
+        headerColor: "navy",
+        panelRole: "infoFooter",
+        cornerRadius: 0,
+        compact: true,
+      },
+    ),
+    textBlock(
+      "demo-back-thanks",
+      4,
+      "Thank You",
+      `${clientName} is grateful for the residents, families, team members, and neighbors who make the community feel like home.`,
+      { col: 9, row: 9, colSpan: 8, rowSpan: 8 },
+      {
+        bg: "berry",
+        headerColor: "paper",
+        invertText: true,
+        panelRole: "spotlightRail",
+        cornerRadius: 0,
+        compact: true,
+        centered: true,
+      },
+    ),
+    textBlock(
+      "demo-back-next-issue",
+      4,
+      "Next Issue",
+      "Look for more resident stories, campus highlights, events, and community updates in next month's newsletter.",
+      { col: 17, row: 9, colSpan: 8, rowSpan: 8 },
+      {
+        bg: "leaf",
+        headerColor: "paper",
+        invertText: true,
+        panelRole: "upcomingEvents",
+        cornerRadius: 0,
+        compact: true,
+        centered: true,
+      },
+    ),
   ];
-  if (secondary) {
-    backBlocks.push(
-      imageBlock(
-        "demo-back-photo",
-        4,
-        secondary.id,
-        {
-          col: 11,
-          row: 1,
-          colSpan: 14,
-          rowSpan: 9,
-        },
-        secondary.caption ?? secondary.alt,
-      ),
-    );
-  }
-  if (tertiary) {
-    backBlocks.push(
-      imageBlock(
-        "demo-back-small-photo",
-        4,
-        tertiary.id,
-        { col: 18, row: 10, colSpan: 7, rowSpan: 7 },
-        tertiary.caption ?? tertiary.alt,
-      ),
-    );
-  } else {
-    backBlocks.push(
-      textBlock(
-        "demo-back-save-date",
-        4,
-        "Save the Date",
-        "Watch for next month's celebrations, outings, and campus updates.",
-        { col: 18, row: 10, colSpan: 7, rowSpan: 7 },
-        {
-          bg: "coral",
-          headerColor: "paper",
-          invertText: true,
-          panelRole: "upcomingEvents",
-          cornerRadius: 0,
-          compact: true,
-          centered: true,
-        },
-      ),
-    );
-  }
 
   const blocks = [...coverBlocks, ...shiftedInnerBlocks, ...backBlocks];
 

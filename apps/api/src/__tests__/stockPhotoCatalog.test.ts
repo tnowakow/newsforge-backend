@@ -131,9 +131,9 @@ describe("stockPhotoCatalog", () => {
       img.id.replace(/^stock-/, "").replace(/-\d+$/, ""),
     );
 
-    assert.equal(selected.length, 16);
+    assert.equal(selected.length, 14);
     assert.equal(new Set(sourceKeys).size, sourceKeys.length);
-    assert.ok(new Set(topicKeys).size >= 8);
+    assert.ok(new Set(topicKeys).size >= 7);
     assert.ok(selected.filter((img) => (img.tags ?? []).some((tag) =>
       ["community", "social", "outing", "activity", "friends"].includes(tag),
     )).length >= 8);

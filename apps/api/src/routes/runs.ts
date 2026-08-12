@@ -623,7 +623,6 @@ runsRouter.post("/", async (req, res) => {
   layout = wrapV3InnerSpreadForDemo({
     layout,
     articles,
-    images,
     clientName: client.name,
     monthLabel,
   });
@@ -1577,7 +1576,6 @@ runsRouter.post("/:id/ai-arrange", aiRateLimit, async (req, res) => {
     ...wrapV3InnerSpreadForDemo({
       layout: newLayout,
       articles: fitResult.articles,
-      images: fitResult.keptImages,
       clientName: run.client.name,
       monthLabel: run.monthLabel,
     }),

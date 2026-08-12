@@ -552,8 +552,7 @@ export function selectStockPhotosForRun(input: SelectStockPhotosInput): NewsImag
   if (imageSlots.length === 0) return input.images;
 
   const userImages = input.images.filter((img) => !shouldReplaceGeneratedPhoto(img));
-  const wrapperPhotoReserve = input.gridSpec.label.startsWith("v3-") ? 2 : 0;
-  const targetCount = Math.max(imageSlots.length + wrapperPhotoReserve, input.images.length, 8);
+  const targetCount = Math.max(imageSlots.length, input.images.length, 8);
   const needed = Math.max(0, targetCount - userImages.length);
   const used = new Set(userImages.map((img) => img.id));
   const usedSources = new Set(userImages.map((img) => sourceKey(img.url)));

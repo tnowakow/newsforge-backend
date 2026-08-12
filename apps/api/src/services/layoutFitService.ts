@@ -352,8 +352,7 @@ export function fitContent(
   let keptImages: NewsImage[] = images;
   if (images.length > imageSlots.length) {
     // Order by array position; newest = highest index. Drop from tail.
-    const wrapperPhotoReserve = template.id.startsWith("v3-") ? 2 : 0;
-    const toKeep = imageSlots.length + wrapperPhotoReserve;
+    const toKeep = imageSlots.length;
     keptImages = images.slice(0, toKeep);
     const dropped = images.slice(toKeep);
     for (const img of dropped) {
