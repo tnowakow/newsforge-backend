@@ -771,10 +771,13 @@ runsRouter.post("/", async (req, res) => {
       rung: block.style?.copyFit === "sm" ? 3 as const : 1 as const,
       action: block.style?.copyFit === "sm" ? "typography auto-fit" : "fit as written",
     });
+  const remainingUnderfilled = finalMeasurement?.underfilledBlocks ?? 0;
   const fitReport: FitReport = {
-    summary: fitFloorActions.length > 0 || underfillActions.length > 0
-      ? `${fitFloorActions.length > 0 ? `⚠ ${fitFloorActions.length} block${fitFloorActions.length === 1 ? "" : "s"} truncated` : ""}${fitFloorActions.length > 0 && underfillActions.length > 0 ? " · " : ""}${underfillActions.length > 0 ? `${underfillActions.length} boxes reshaped to close underfill` : ""}`
-      : "All measured blocks fit within the Porter-like 0.80–1.00 fill band.",
+    summary: [
+      fitFloorActions.length > 0 ? `⚠ ${fitFloorActions.length} block${fitFloorActions.length === 1 ? "" : "s"} truncated` : undefined,
+      underfillActions.length > 0 ? `${underfillActions.length} boxes reshaped to close underfill` : undefined,
+      remainingUnderfilled > 0 ? `⚠ ${remainingUnderfilled} boxes remain below the Porter-like 0.80 fill target` : undefined,
+    ].filter(Boolean).join(" · ") || "All measured blocks fit within the Porter-like 0.80–1.00 fill band.",
     templatePath: [{ templateId: template.id, action: "selected" }],
     feasibility: {
       status: "fit",

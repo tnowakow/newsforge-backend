@@ -221,13 +221,15 @@ function qualityScore(
   const useful = measurement?.usefulOccupancy ?? 0;
   const coverage = measurement?.geometricCoverage ?? 0;
   const pageUtility = measurement?.minPageUtility ?? 0;
+  const underfilledBlocks = measurement?.underfilledBlocks ?? 0;
   const renderFit = measurement
     ? Math.max(0, 1 - measurement.clippedBlocks * 0.015 - measurement.overflowBlocks * 0.2 - measurement.missingImages * 0.2)
     : 0;
   const clipPenalty = Math.min(0.12, (measurement?.clippedBlocks ?? 0) * 0.015);
   const emptyPenalty = Math.max(0, (measurement?.largestEmptyBandRatio ?? 0) - 0.28) * 0.35;
+  const underfillPenalty = Math.min(0.24, underfilledBlocks * 0.02);
   return Math.max(0, Math.min(1,
-    reference.affinity * 0.45 + useful * 0.2 + coverage * 0.15 + pageUtility * 0.1 + renderFit * 0.1 - clipPenalty - emptyPenalty,
+    reference.affinity * 0.38 + useful * 0.22 + coverage * 0.15 + pageUtility * 0.15 + renderFit * 0.1 - clipPenalty - emptyPenalty - underfillPenalty,
   ));
 }
 
@@ -597,8 +599,14 @@ export async function designLayout(
     const aiScore = qualityScore(layout, measurement, input.gridSpec, input.templateId);
     const fallbackScore = qualityScore(adaptiveChosen.layout, fallbackMeasurement, input.gridSpec, input.templateId);
     const fallbackCoverage = fallbackMeasurement?.geometricCoverage ?? 0;
+    const aiUtility = measurement?.usefulOccupancy ?? 0;
+    const fallbackUtility = fallbackMeasurement?.usefulOccupancy ?? 0;
+    const aiMinPageUtility = measurement?.minPageUtility ?? aiUtility;
+    const fallbackMinPageUtility = fallbackMeasurement?.minPageUtility ?? fallbackUtility;
     const coverageCollapse = geometricCoverage < Math.max(0.62, fallbackCoverage - 0.08);
-    if (hardFailure || coverageCollapse || aiScore + 0.015 < fallbackScore) {
+    const utilityCollapse = aiUtility < Math.max(0.58, fallbackUtility - 0.05);
+    const pageUtilityCollapse = aiMinPageUtility < Math.max(0.42, fallbackMinPageUtility - 0.04);
+    if (hardFailure || coverageCollapse || utilityCollapse || pageUtilityCollapse || aiScore + 0.015 < fallbackScore) {
       return {
         layout: fallbackLayout,
         mode: "deterministic",
@@ -610,6 +618,10 @@ export async function designLayout(
           measurement ? `coverage=${geometricCoverage.toFixed(3)}` : undefined,
           measurement ? `coverageCollapse=${coverageCollapse}` : undefined,
           measurement ? `utility=${measurement.usefulOccupancy.toFixed(3)}` : undefined,
+          measurement ? `utilityCollapse=${utilityCollapse}` : undefined,
+          measurement ? `minPageUtility=${aiMinPageUtility.toFixed(3)}` : undefined,
+          measurement ? `pageUtilityCollapse=${pageUtilityCollapse}` : undefined,
+          measurement ? `underfilled=${measurement.underfilledBlocks}` : undefined,
           `aiScore=${aiScore.toFixed(3)}`,
           `fallbackScore=${fallbackScore.toFixed(3)}`,
         ].filter(Boolean).join(",")}`,
