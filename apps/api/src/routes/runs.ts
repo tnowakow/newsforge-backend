@@ -15,6 +15,7 @@ import {
   type AssembledLayout,
   type Article,
   type GridSpec,
+  type LayoutBlock,
   type NewsImage,
   type FitAction,
   type FitReport,
@@ -203,6 +204,78 @@ function applyUnderfillFloor(
     });
     return { ...block, position: { ...block.position, rowSpan: nextRowSpan } };
   });
+  return { layout: { ...layout, blocks }, actions };
+}
+
+function overlaps(a: LayoutBlock["position"], b: LayoutBlock["position"]): boolean {
+  return !(
+    a.col + a.colSpan - 1 < b.col ||
+    b.col + b.colSpan - 1 < a.col ||
+    a.row + a.rowSpan - 1 < b.row ||
+    b.row + b.rowSpan - 1 < a.row
+  );
+}
+
+function growPhotosIntoWhitespace(
+  layout: AssembledLayout,
+  gridSpec: GridSpec,
+  measurement: CandidateMeasurement,
+): { layout: AssembledLayout; actions: FitAction[] } {
+  const sparsePages = new Set(
+    (measurement.pageMetrics ?? [])
+      .filter((page) => page.usefulOccupancy < 0.72)
+      .map((page) => page.page),
+  );
+  if (sparsePages.size === 0) return { layout, actions: [] };
+
+  const columns = gridSpec.columns;
+  const rows = gridSpec.rowsPerPage;
+  const blocks = layout.blocks.map((block) => ({ ...block, position: { ...block.position } }));
+  const actions: FitAction[] = [];
+
+  const canUse = (blockId: string, page: number, position: LayoutBlock["position"]) =>
+    position.col >= 1 &&
+    position.row >= 1 &&
+    position.col + position.colSpan - 1 <= columns &&
+    position.row + position.rowSpan - 1 <= rows &&
+    !blocks.some((other) =>
+      other.blockId !== blockId &&
+      other.page === page &&
+      overlaps(position, other.position),
+    );
+
+  for (const block of blocks) {
+    if (!block.imageId || !sparsePages.has(block.page)) continue;
+    const original = { ...block.position };
+    const maxColSpan = Math.min(columns - block.position.col + 1, Math.max(block.position.colSpan, 12));
+    const maxRowSpan = Math.min(rows - block.position.row + 1, Math.max(block.position.rowSpan, 8));
+
+    while (
+      block.position.colSpan < maxColSpan &&
+      canUse(block.blockId, block.page, { ...block.position, colSpan: block.position.colSpan + 1 })
+    ) {
+      block.position.colSpan += 1;
+    }
+    while (
+      block.position.rowSpan < maxRowSpan &&
+      canUse(block.blockId, block.page, { ...block.position, rowSpan: block.position.rowSpan + 1 })
+    ) {
+      block.position.rowSpan += 1;
+    }
+
+    if (
+      block.position.colSpan !== original.colSpan ||
+      block.position.rowSpan !== original.rowSpan
+    ) {
+      actions.push({
+        blockId: block.blockId,
+        label: block.caption ?? block.slotId,
+        rung: 2,
+        action: `grow adjacent photo into whitespace ${original.colSpan}×${original.rowSpan}→${block.position.colSpan}×${block.position.rowSpan}`,
+      });
+    }
+  }
+
   return { layout: { ...layout, blocks }, actions };
 }
 
@@ -572,6 +645,14 @@ runsRouter.post("/", async (req, res) => {
         if (underfilled.actions.length > 0) {
           layout = underfilled.layout;
           underfillActions = underfilled.actions;
+          finalMeasurement = await measureSelected();
+        }
+      }
+      if ((finalMeasurement?.minPageUtility ?? 1) < 0.72) {
+        const photoGrown = growPhotosIntoWhitespace(layout, effectiveGridSpec, finalMeasurement);
+        if (photoGrown.actions.length > 0) {
+          layout = photoGrown.layout;
+          underfillActions = [...underfillActions, ...photoGrown.actions];
           finalMeasurement = await measureSelected();
         }
       }
