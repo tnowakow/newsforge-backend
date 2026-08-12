@@ -301,8 +301,8 @@ export function scoreFullNewsletterOutput(
     Math.min(innerUtilityAverage, innerUtilityMinimum * 1.2),
   );
   const geometricCoverage = measurement?.geometricCoverage ?? 1;
-  const sparsePagePenalty = Math.max(0, 0.72 - innerUtilityMinimum) * 0.6;
-  const underfillPenalty = Math.min(0.18, (measurement?.underfilledBlocks ?? 0) * 0.018);
+  const sparsePagePenalty = Math.max(0, 0.72 - innerUtilityMinimum) * 0.8;
+  const underfillPenalty = Math.min(0.24, (measurement?.underfilledBlocks ?? 0) * 0.025);
   const renderPenalty = Math.max(0, 1 - innerRenderFit) * 0.18;
   const fullOutputScore = Math.max(0, Math.min(1,
     innerSpreadAffinity * 0.35 +
