@@ -48,6 +48,14 @@ if (!renderSecret) {
   );
 }
 const appBaseUrl = raw.APP_BASE_URL ?? raw.PUBLIC_BASE_URL;
+const uploadDir =
+  raw.NODE_ENV === "production" && raw.UPLOAD_DIR === "./storage/uploads"
+    ? "/data/uploads"
+    : raw.UPLOAD_DIR;
+const pdfDir =
+  raw.NODE_ENV === "production" && raw.PDF_DIR === "./storage/pdfs"
+    ? "/data/pdfs"
+    : raw.PDF_DIR;
 
 export const env = {
   ...raw,
@@ -60,4 +68,6 @@ export const env = {
   AI_EDIT_PASSWORD: unlockPassword,
   INTERNAL_RENDER_KEY: renderSecret,
   PUBLIC_BASE_URL: appBaseUrl,
+  UPLOAD_DIR: uploadDir,
+  PDF_DIR: pdfDir,
 };
