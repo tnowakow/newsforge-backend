@@ -60,6 +60,61 @@ test("Porter parser strips scaffolding, optional menu, and department heads", ()
   assert.doesNotMatch(text, /Private staff roster|Chef's Corner|Vitality|Instructions and setup/);
 });
 
+test("Porter parse expands into uploaded run articles instead of one filename article", () => {
+  const parsed = service.parsePorterSubmissionText(`
+    Required Articles
+
+    REQUIRED - Executive Directors Corner
+
+    A director note with useful content.
+
+    REQUIRED - Legacy News
+
+    Legacy story body.
+
+    REQUIRED - Upcoming Campus EventsHappy Hours:
+
+    7/3 Community Bash
+    7/10 Summer Camp
+
+    Socials:
+    7/8 Watermelon Wednesday
+
+    Brunch
+    7/12 July Brunch
+
+    REQUIRED - PHOTO CAPTIONS
+
+    REQUIRED - INTERESTING AND NEWSWORTHY
+
+    Chef Circle brings neighbors together for a shared meal.
+    Campus in Color celebrates creativity and community.
+    Oaks anniversary marks two years together.
+
+    REQUIRED - DEPARTMENT HEADS
+
+    Private staff roster that must not become content.
+
+    Optional Article Suggestions
+  `);
+  const articles = service.porterParseToArticles(parsed);
+  const titles = articles.map((article) => article.title);
+  const output = JSON.stringify(articles);
+  assert.deepEqual(titles, [
+    "Executive Director Corner",
+    "Legacy News",
+    "Chef Circle brings neighbors together for a shared meal",
+    "Campus in Color celebrates creativity and community",
+    "Oaks anniversary marks two years together",
+    "Happy Hours",
+    "Socials",
+    "Brunch",
+  ]);
+  assert.equal(articles.every((article) => article.source === "UPLOAD"), true);
+  assert.equal(articles.every((article) => article.isFiller === false), true);
+  assert.doesNotMatch(output, /\.docx|Private staff roster|Optional Article Suggestions/);
+});
+
 test("missing Porter markers enters explicit fallback state", () => {
   const parsed = service.parsePorterSubmissionText("A loose document with no structural markers.");
   assert.equal(parsed.fallbackRequired, true);
@@ -86,6 +141,11 @@ if (fs.existsSync(realSubmission)) {
     assert.equal(parsed.imageAssociations["Legacy.jpg"]?.[0], "legacy");
     assert.doesNotMatch(output, /Optional Article Suggestions|Department Heads|Chef's Corner|Vitality/);
     assert.equal(parsed.birthdayPresent, false);
+    const runArticles = service.porterParseToArticles(parsed);
+    assert.equal(runArticles.length, 8);
+    assert.equal(runArticles.some((article) => /\.docx$/i.test(article.title)), false);
+    assert.equal(runArticles.some((article) => article.title === "Happy Hours"), true);
+    assert.equal(runArticles.some((article) => /7\/31 Dog Days of Summer/.test(article.body)), true);
   });
 } else {
   test("real July submission fixture is supplied in the demo workspace", { skip: "real submission asset is not present in this checkout" }, () => {});

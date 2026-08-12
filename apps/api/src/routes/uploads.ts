@@ -6,7 +6,7 @@ import mammoth from "mammoth";
 import { createId } from "@paralleldrive/cuid2";
 import { prisma } from "../db.js";
 import { env } from "../env.js";
-import { extractImageMeta, parsePorterSubmissionText } from "../services/uploadService.js";
+import { extractImageMeta, parsePorterSubmissionText, porterParseToArticles } from "../services/uploadService.js";
 
 export const uploadsRouter: Router = Router();
 
@@ -95,15 +95,14 @@ uploadsRouter.post("/", upload.array("files", 30), async (req, res) => {
         const result = await mammoth.extractRawText({ path: file.path });
         const text = result.value;
         const porterParse = parsePorterSubmissionText(text);
+        const parsedArticles = porterParse.fallbackRequired ? [] : porterParseToArticles(porterParse);
+        const parsedArticlesMeta = JSON.parse(JSON.stringify(parsedArticles));
         const cleanedText = porterParse.fallbackRequired
           ? text
-          : porterParse.articles
+          : parsedArticles
               .map((article) => `${article.title}\n${article.body}`)
               .concat(
-                porterParse.lists.flatMap((list) => [
-                  list.label,
-                  ...list.rows.map((row) => `${row.value} ${row.label}`),
-                ]),
+                Object.entries(porterParse.captions).map(([filename, caption]) => `${filename}: ${caption}`),
               )
               .join("\n\n");
         const asset = await prisma.assetLibrary.create({
@@ -126,6 +125,8 @@ uploadsRouter.post("/", upload.array("files", 30), async (req, res) => {
                 datedRowCount: porterParse.lists.reduce((sum, list) => sum + list.rows.length, 0),
                 warnings: porterParse.warnings,
                 imageAssociations: porterParse.imageAssociations,
+                captions: porterParse.captions,
+                parsedArticles: parsedArticlesMeta,
               },
               // mammoth Message[] is a class instance array — stringify
               // so Prisma's JsonValue accepts it. Downstream reads treat

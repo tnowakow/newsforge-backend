@@ -250,6 +250,40 @@ export function parsePorterSubmissionText(rawText: string): ParsedPorterSubmissi
   return { articles, lists, captions, imageAssociations, warnings, markers, fallbackRequired: false, birthdayPresent };
 }
 
+export function porterParseToArticles(parse: ParsedPorterSubmission): Article[] {
+  const articles: Article[] = parse.articles.map((article) => ({
+    id: createId(),
+    title: article.title,
+    body: article.body,
+    wordCount: article.wordCount,
+    byline: article.byline,
+    sectionId: article.sectionId,
+    isFiller: false,
+    source: "UPLOAD" as const,
+    articleType: article.articleType,
+  }));
+
+  const lists: Article[] = parse.lists
+    .filter((list) => list.rows.length > 0)
+    .map((list) => {
+      const body = list.rows.map((row) => `${row.value} ${row.label}`).join("\n");
+      return {
+        id: createId(),
+        title: list.label,
+        body,
+        wordCount: wordCount(body),
+        sectionId: list.panelRole,
+        isFiller: false,
+        source: "UPLOAD" as const,
+        articleType: list.panelRole === "happyHour" || list.panelRole === "upcomingEvents"
+          ? "event-recap" as const
+          : "announcement" as const,
+      };
+    });
+
+  return [...articles, ...lists];
+}
+
 /**
  * Split a submission-template body into per-article blocks.
  * Rules:

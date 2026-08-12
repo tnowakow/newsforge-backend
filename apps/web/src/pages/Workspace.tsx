@@ -338,14 +338,18 @@ export default function Workspace() {
           }
           const article: Article = {
             id: f.id,
-            title: f.title ?? f.originalName ?? "Uploaded text",
+            title: f.title ?? "Uploaded text",
             body: f.body ?? "",
-            wordCount: countWords(f.body ?? ""),
-            source: "UPLOAD",
+            wordCount: f.wordCount ?? countWords(f.body ?? ""),
+            byline: f.byline,
+            sectionId: f.sectionId,
+            isFiller: false,
+            source: f.source ?? "UPLOAD",
+            articleType: f.articleType,
           };
           return {
             id: f.id,
-            label: f.originalName ?? f.title ?? `doc-${i}`,
+            label: f.title ?? f.originalName ?? `doc-${i}`,
             kind: (f.originalName ?? "").toLowerCase().endsWith(".docx")
               ? "doc"
               : "text",
@@ -422,6 +426,8 @@ export default function Workspace() {
       ...generatedImages,
       ...uploads.map((u) => u.image).filter((i): i is NewsImage => !!i),
     ];
+    const hasUploadedArticleContent = uploads.some((u) => u.article?.source === "UPLOAD");
+    const fillerModeForRun: FillerMode = hasUploadedArticleContent ? "PLACEHOLDER" : filler;
 
     try {
       const newRun = await api.createRun({
@@ -432,7 +438,7 @@ export default function Workspace() {
             ? undefined
             : client.defaultTemplate?.id ?? undefined),
         monthLabel: month,
-        fillerMode: filler,
+        fillerMode: fillerModeForRun,
         ...(password ? { password } : {}),
         articles,
         images,
@@ -451,7 +457,7 @@ export default function Workspace() {
     } catch (err) {
       if (token !== cancelToken) return;
       if (
-        filler === "GENERATE" &&
+        fillerModeForRun === "GENERATE" &&
         err instanceof ApiError &&
         err.status === 401 &&
         err.message === "ai_locked"
@@ -467,7 +473,8 @@ export default function Workspace() {
   };
 
   const handleAssembleClick = () => {
-    if (filler === "GENERATE") {
+    const hasUploadedArticleContent = uploads.some((u) => u.article?.source === "UPLOAD");
+    if (filler === "GENERATE" && !hasUploadedArticleContent) {
       setAssembleUnlockOpen(true);
       return;
     }

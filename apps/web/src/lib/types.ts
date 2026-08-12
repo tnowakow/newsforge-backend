@@ -520,6 +520,11 @@ export interface UploadResult {
     url?: string;
     title?: string;
     body?: string;
+    wordCount?: number;
+    byline?: string;
+    sectionId?: string;
+    articleType?: ArticleType;
+    source?: "MOCK" | "UPLOAD" | "GENERATED";
     bytes?: number;
     originalName?: string;
   }>;

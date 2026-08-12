@@ -410,7 +410,10 @@ runsRouter.post("/", async (req, res) => {
     return;
   }
   const body = parsed.data;
-  const fillerMode = body.fillerMode ?? "GENERATE";
+  const hasUploadedArticleContent = (body.articles ?? []).some(
+    (article) => article.source === "UPLOAD",
+  );
+  const fillerMode = hasUploadedArticleContent ? "PLACEHOLDER" : body.fillerMode ?? "GENERATE";
 
   if (fillerMode === "GENERATE" && !hasAiUnlockCookie(req)) {
     if (!body.password || !checkAiPassword(body.password)) {

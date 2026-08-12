@@ -148,6 +148,17 @@ export const api = {
               originalFilename?: string;
               size?: number;
               wordCount?: number;
+              porterParse?: {
+                parsedArticles?: Array<{
+                  id?: string;
+                  title?: string;
+                  body?: string;
+                  wordCount?: number;
+                  byline?: string;
+                  sectionId?: string;
+                  articleType?: Article["articleType"];
+                }>;
+              };
             };
           }>;
           skipped?: Array<{ filename: string; reason: string }>;
@@ -172,15 +183,35 @@ export const api = {
             originalName,
           };
         }
+        const parsedArticles = Array.isArray(asset.meta?.porterParse?.parsedArticles)
+          ? asset.meta.porterParse.parsedArticles
+          : [];
+        if (parsedArticles.length > 0) {
+          return parsedArticles.map((article: any, index: number) => ({
+            id: article.id ?? `${asset.id}-article-${index}`,
+            kind: "article" as const,
+            title: article.title ?? `Uploaded article ${index + 1}`,
+            body: article.body ?? "",
+            wordCount: article.wordCount,
+            byline: article.byline,
+            sectionId: article.sectionId,
+            articleType: article.articleType,
+            source: "UPLOAD" as const,
+            bytes: asset.meta?.size,
+            originalName,
+          }));
+        }
         return {
           id: asset.id,
           kind: "article",
           title: originalName ?? "Uploaded text",
           body: asset.contentOrUrl ?? "",
+          wordCount: asset.meta?.wordCount,
+          source: "UPLOAD" as const,
           bytes: asset.meta?.size,
           originalName,
         };
-      }),
+      }).flat(),
     };
   },
 
