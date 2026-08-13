@@ -706,18 +706,34 @@ function sourceTopologyCandidate(input: AdaptiveLayoutInput, plan: EditorialPlan
     ...stories.filter((article) => /executive director|director corner/i.test(article.title)),
     ...stories.filter((article) => /legacy/i.test(article.title)),
     ...schedules,
-    ...stories.filter((article) => !/executive director|director corner|legacy/i.test(article.title)),
+    ...stories.filter(
+      (article) =>
+        !/executive director|director corner|legacy/i.test(article.title) &&
+        (article.imageRefs?.length ?? 0) > 0,
+    ),
+    ...stories.filter(
+      (article) =>
+        !/executive director|director corner|legacy/i.test(article.title) &&
+        (article.imageRefs?.length ?? 0) === 0,
+    ),
   ];
   const images = orderImages(input.images, "uploadedFirst");
   const usedImages = new Set<string>();
-  const takeImage = (article?: Article): NewsImage | undefined => {
+  const imageIsReferenced = (image: NewsImage): boolean =>
+    orderedArticles.some((article) =>
+      (article.imageRefs ?? []).some((ref) => imageMatchesRef(image, ref)),
+    );
+  const takeImage = (article?: Article, allowFallback = false): NewsImage | undefined => {
     const refs = article?.imageRefs ?? [];
     const matched = refs.length
       ? images.find((image) => !usedImages.has(image.id) && refs.some((ref) => imageMatchesRef(image, ref)))
       : undefined;
     const fallback = matched ??
-      images.find((image) => !usedImages.has(image.id) && !isScreenshotLikeImage(image)) ??
-      images.find((image) => !usedImages.has(image.id));
+      (allowFallback
+        ? images.find((image) => !usedImages.has(image.id) && !isScreenshotLikeImage(image) && !imageIsReferenced(image)) ??
+          images.find((image) => !usedImages.has(image.id) && !isScreenshotLikeImage(image)) ??
+          images.find((image) => !usedImages.has(image.id))
+        : undefined);
     if (fallback) usedImages.add(fallback.id);
     return fallback;
   };
@@ -800,6 +816,27 @@ function sourceTopologyCandidate(input: AdaptiveLayoutInput, plan: EditorialPlan
     }
     return undefined;
   };
+  const isOpen = (page: number, position: LayoutBlock["position"]) =>
+    position.col >= 1 &&
+    position.row >= 1 &&
+    position.col + position.colSpan - 1 <= input.gridSpec.columns &&
+    position.row + position.rowSpan - 1 <= input.gridSpec.rowsPerPage &&
+    !blocks.some((block) => block.page === page && positionsOverlap(block.position, position));
+  const findNeighborRect = (
+    page: number,
+    anchor: LayoutBlock["position"],
+    colSpan: number,
+    rowSpan: number,
+  ): { page: number; position: LayoutBlock["position"] } | undefined => {
+    const candidates: LayoutBlock["position"][] = [
+      { col: anchor.col + anchor.colSpan, row: anchor.row, colSpan, rowSpan },
+      { col: anchor.col - colSpan, row: anchor.row, colSpan, rowSpan },
+      { col: anchor.col, row: anchor.row + anchor.rowSpan, colSpan, rowSpan },
+      { col: anchor.col, row: anchor.row - rowSpan, colSpan, rowSpan },
+    ];
+    const position = candidates.find((candidate) => isOpen(page, candidate));
+    return position ? { page, position } : undefined;
+  };
   for (const [index, article] of overflowArticles.entries()) {
     const placement = findOpenRect(2, 8, 3) ?? findOpenRect(1, 8, 3);
     if (!placement) continue;
@@ -811,6 +848,32 @@ function sourceTopologyCandidate(input: AdaptiveLayoutInput, plan: EditorialPlan
       placement.position.colSpan,
       placement.position.rowSpan,
       index + 8,
+    );
+    const pairedImage = takeImage(article);
+    const imagePlacement = pairedImage
+      ? findNeighborRect(placement.page, placement.position, 8, 3) ?? findOpenRect(placement.page, 8, 3)
+      : undefined;
+    if (pairedImage && imagePlacement) {
+      imageBlock(
+        pairedImage,
+        imagePlacement.page,
+        imagePlacement.position.col,
+        imagePlacement.position.row,
+        imagePlacement.position.colSpan,
+        imagePlacement.position.rowSpan,
+      );
+    }
+  }
+  for (let image = takeImage(undefined, true); image; image = takeImage(undefined, true)) {
+    const placement = findOpenRect(1, 8, 3) ?? findOpenRect(2, 8, 3);
+    if (!placement) break;
+    imageBlock(
+      image,
+      placement.page,
+      placement.position.col,
+      placement.position.row,
+      placement.position.colSpan,
+      placement.position.rowSpan,
     );
   }
 

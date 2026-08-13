@@ -681,6 +681,49 @@ describe("adaptiveLayoutPlanner.buildAdaptiveLayout", () => {
     assert.ok(rebalanced.subscores.geometryValidity > 0.99);
   });
 
+  it("keeps uploaded photos next to the articles that reference their filenames", () => {
+    const result = buildAdaptiveLayout({
+      templateId: "v3-upload-source",
+      pageCount: 2,
+      gridSpec: { ...gridSpec, columns: 24, rowsPerPage: 16 },
+      recurringSections: [],
+      articles: [
+        article("director", "Executive Director Corner", 100, "executive-note", "UPLOAD"),
+        { ...article("legacy", "Legacy News", 29, "resident-story", "UPLOAD"), imageRefs: ["Legacy.jpg"] },
+        article("happy", "Happy Hours", 20, "event-recap", "UPLOAD"),
+        article("socials", "Socials", 16, "event-recap", "UPLOAD"),
+        article("brunch", "Brunch", 3, "announcement", "UPLOAD"),
+        { ...article("chef", "Chef Circle", 50, "announcement", "UPLOAD"), imageRefs: ["Chefs Circle.heic"] },
+        { ...article("music", "Music to My Ears", 17, "other", "UPLOAD"), imageRefs: ["Music to My Ears 2.heic"] },
+      ],
+      images: [
+        { ...image("chef-img", "landscape", "UPLOAD"), caption: "Chefs Circle.heic" },
+        { ...image("legacy-img", "landscape", "UPLOAD"), caption: "Legacy.jpg" },
+        { ...image("music-img", "landscape", "UPLOAD"), caption: "Music to My Ears 2.heic" },
+      ],
+    });
+    const source = result.candidates.find((candidate) => candidate.id === "source-topology");
+    assert.ok(source, "expected uploaded source topology candidate");
+
+    const chef = source.layout.blocks.find((block) => block.articleId === "chef");
+    const chefImage = source.layout.blocks.find((block) => block.imageId === "chef-img");
+    const music = source.layout.blocks.find((block) => block.articleId === "music");
+    const musicImage = source.layout.blocks.find((block) => block.imageId === "music-img");
+    const directorImage = source.layout.blocks.find(
+      (block) => block.page === 1 && block.position.row === 1 && block.imageId,
+    );
+
+    assert.ok(chef);
+    assert.ok(chefImage);
+    assert.equal(chefImage.page, chef.page);
+    assert.equal(chefImage.position.row, chef.position.row);
+    assert.ok(music);
+    assert.ok(musicImage);
+    assert.equal(musicImage.page, music.page);
+    assert.equal(musicImage.position.row, music.position.row);
+    assert.equal(directorImage, undefined);
+  });
+
   it("creates a photo band expansion candidate by compressing the band above it", () => {
     const bandGrid: GridSpec = {
       label: "photo-band-test",

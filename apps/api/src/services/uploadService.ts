@@ -127,8 +127,12 @@ function featureTitleAndBody(rawBody: string): { title: string; body: string } {
 
   const titleRules: Array<[RegExp, string]> = [
     [/chef circle/i, "Chef Circle"],
+    [/music to my ears/i, "Music to My Ears"],
     [/artisans?/i, "Artisans Group"],
     [/resident of the month|featured resident|resident spotlight/i, "Resident Spotlight"],
+    [/resident.?s council|courtyard beautification/i, "Resident Council"],
+    [/out\s*(?:&|and)\s*about/i, "Out & About"],
+    [/intergenerational fun/i, "Intergenerational Fun"],
     [/customer service/i, "Customer Service"],
     [/featured recipe|recipe from the chef|chef'?s recipe/i, "Chef's Recipe"],
   ];
@@ -155,11 +159,16 @@ function addPhotoAssociations(
 function parsePhotoRefs(text: string): { body: string; refs: string[] } {
   const match = text.match(/^(.*?)(?:\s*Photos?:\s*)(.+)$/i);
   if (!match) return { body: text, refs: [] };
-  const rawRefs = match[2]
-    .replace(/[.;]\s*$/g, "")
-    .split(/,|\band\b/i)
-    .map((ref) => ref.trim())
-    .filter(Boolean);
+  const raw = match[2].replace(/[.;]\s*$/g, "");
+  const fileRefs = Array.from(raw.matchAll(/(?:^|[,;]\s*|\s+and\s+)([^,;\n]+?\.(?:jpe?g|png|gif|webp|heic|heif|tiff?))/gi))
+    .map((ref) => ref[1]?.trim())
+    .filter((ref): ref is string => Boolean(ref));
+  const rawRefs = fileRefs.length > 0
+    ? fileRefs
+    : raw
+        .split(/[,;]\s*/)
+        .map((ref) => ref.trim())
+        .filter(Boolean);
   return {
     body: match[1].trim(),
     refs: rawRefs,
