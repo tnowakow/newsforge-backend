@@ -98,6 +98,10 @@ function firstSentence(text: string, max = 90): string {
   return s.length <= max ? s : `${s.slice(0, max).replace(/\s+\S*$/, "")}…`;
 }
 
+function isFilenameLikeCaption(value: string | undefined): boolean {
+  return Boolean(value && /\.(jpe?g|png|gif|webp|heic|heif|tiff?)$/i.test(value.trim()));
+}
+
 /** True when a body reads as prose (a caption-worthy excerpt exists) rather
  * than a structured list (birthdays, schedules, dated outings) that
  * parseListItems would already claim for a "list" block. */
@@ -463,6 +467,7 @@ export function applyVibrancyPass(input: VibrancyInput): AssembledLayout {
     // --- Every image gets a caption, grounded in nearby story context ---
     if (next.kind === "image" && next.imageId) {
       const img = imageById.get(next.imageId);
+      if (isFilenameLikeCaption(next.caption)) next.caption = undefined;
       if (
         img?.source === "STOCK" &&
         !/p2-photo-|photo-stack|outing|out[- ]?and[- ]?about/i.test(`${next.slotId} ${next.styleTag ?? ""}`)
@@ -471,7 +476,8 @@ export function applyVibrancyPass(input: VibrancyInput): AssembledLayout {
       }
       const isCluster = next.style?.panelRole === "photoCluster" || /collage|photo[- ]?cluster/i.test(next.styleTag ?? "");
       if (!next.caption && !isCluster) {
-        const isRealUpload = img?.source === "UPLOAD" && !!img.caption;
+        const uploadCaption = isFilenameLikeCaption(img?.caption) ? undefined : img?.caption;
+        const isRealUpload = img?.source === "UPLOAD" && !!uploadCaption;
         const nearbyArticle = isRealUpload
           ? undefined
           : findNearbyNarrativeArticle(next, input.layout.blocks, articleById);
@@ -480,7 +486,7 @@ export function applyVibrancyPass(input: VibrancyInput): AssembledLayout {
             ? img.caption
             : undefined;
         const proposedCaption =
-          (isRealUpload ? img?.caption : undefined) ??
+          (isRealUpload ? uploadCaption : undefined) ??
           stockOwnCaption ??
           (nearbyArticle ? captionFromArticle(nearbyArticle) : undefined) ??
           (img?.source === "STOCK" ? img.caption : undefined) ??
@@ -490,7 +496,7 @@ export function applyVibrancyPass(input: VibrancyInput): AssembledLayout {
         const candidates = [
           proposedCaption,
           ...(nearbyArticle ? nearbyArticle.body.replace(/\s+/g, " ").split(/(?<=[.!?])\s+/).filter((sentence) => sentence.length >= 15).slice(1, 4) : []),
-          img?.caption,
+          uploadCaption,
           img?.alt ? firstSentence(img.alt) : undefined,
         ].filter((caption): caption is string => Boolean(caption?.trim()));
         next.caption = candidates.find((caption) => !used.has(caption.trim().toLowerCase())) ?? undefined;

@@ -843,9 +843,38 @@ describe("adaptiveLayoutPlanner.buildAdaptiveLayout", () => {
     assert.equal(placedArticleIds.has("legacy"), true);
     assert.equal(placedArticleIds.has("chef"), true);
     assert.equal(placedArticleIds.has("music"), true);
+    assert.equal(placedArticleIds.has("outing"), true);
+    assert.equal(placedArticleIds.has("intergen"), true);
     assert.equal(placedListSlotIds.has("source-happy"), true);
     assert.equal(placedListSlotIds.has("source-socials"), true);
     assert.equal(placedListSlotIds.has("source-brunch"), true);
+
+    const chefImage = source.layout.blocks.find((block) => block.imageId === "chef-img");
+    const musicImage = source.layout.blocks.find((block) => block.imageId === "music-1");
+    const outingImage = source.layout.blocks.find((block) => block.imageId === "outing-img");
+    const intergenImage = source.layout.blocks.find((block) => block.imageId === "intergen-img");
+    const outing = source.layout.blocks.find((block) => block.articleId === "outing");
+    const intergen = source.layout.blocks.find((block) => block.articleId === "intergen");
+    assert.equal(chefImage?.caption, "Chef Circle");
+    assert.equal(musicImage?.caption, "Music to My Ears");
+    assert.equal(outingImage?.caption, "Out & About");
+    assert.equal(intergenImage?.caption, "Intergenerational Fun");
+    assert.equal(outingImage?.style?.panelRole, undefined);
+    assert.equal(intergenImage?.style?.panelRole, undefined);
+    assert.equal(outingImage?.style?.photoTreatment, "rounded");
+    assert.equal(intergenImage?.style?.photoTreatment, "rounded");
+    assert.equal(outingImage?.page, outing?.page);
+    assert.equal(intergenImage?.page, intergen?.page);
+    assert.ok(
+      outingImage && outing &&
+        Math.abs(outingImage.position.row - outing.position.row) <= outing.position.rowSpan,
+      "Out & About image should stay near its story",
+    );
+    assert.ok(
+      intergenImage && intergen &&
+        Math.abs(intergenImage.position.row - intergen.position.row) <= intergen.position.rowSpan,
+      "Intergenerational Fun image should stay near its story",
+    );
 
     for (const block of source.layout.blocks) {
       assert.ok(block.position.col >= 1);

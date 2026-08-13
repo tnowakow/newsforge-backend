@@ -705,6 +705,14 @@ function isFilenameCaption(caption: string | undefined): boolean {
   return Boolean(caption && /\.(jpe?g|png|gif|webp|heic|heif|tiff?)$/i.test(caption.trim()));
 }
 
+function sourcePhotoCaption(article: Article | undefined): string | undefined {
+  if (!article) return undefined;
+  const title = cleanSourceTitle(article.title);
+  if (title.length >= 4) return title;
+  const sentence = article.body.replace(/\s+/g, " ").trim().split(/(?<=[.!?])\s+/)[0]?.trim();
+  return sentence && sentence.length >= 10 ? sentence : undefined;
+}
+
 function positionsOverlap(a: LayoutBlock["position"], b: LayoutBlock["position"]): boolean {
   return !(
     a.col + a.colSpan - 1 < b.col ||
@@ -786,8 +794,10 @@ function sourceTopologyCandidate(input: AdaptiveLayoutInput, plan: EditorialPlan
     row: number,
     colSpan: number,
     rowSpan: number,
+    pairedArticle?: Article,
   ) => {
     if (!image) return;
+    const pairedCaption = sourcePhotoCaption(pairedArticle);
     blocks.push({
       blockId: `source-${blocks.length + 1}`,
       slotId: `source-${image.id}`,
@@ -795,9 +805,11 @@ function sourceTopologyCandidate(input: AdaptiveLayoutInput, plan: EditorialPlan
       position: { col, row, colSpan, rowSpan },
       kind: "image",
       imageId: image.id,
-      caption: isFilenameCaption(image.caption) ? undefined : image.caption,
+      caption: pairedCaption ?? (isFilenameCaption(image.caption) ? undefined : image.caption),
       needsFiller: false,
-      style: { panelRole: "photoCluster", photoTreatment: "collage", cornerRadius: 8 },
+      style: pairedArticle
+        ? { photoTreatment: "rounded", cornerRadius: 6 }
+        : { panelRole: "photoCluster", photoTreatment: "collage", cornerRadius: 8 },
       zIndex: 0,
     });
   };
@@ -805,7 +817,7 @@ function sourceTopologyCandidate(input: AdaptiveLayoutInput, plan: EditorialPlan
   if (orderedArticles.length === 0) return undefined;
   const [director, legacy, firstSchedule, secondSchedule, thirdSchedule, featureA, featureB, featureC] = orderedArticles;
   articleBlock(director, 1, 1, 1, 16, 6, 0);
-  imageBlock(takeImage(director), 1, 17, 1, 8, 6);
+  imageBlock(takeImage(director), 1, 17, 1, 8, 6, director);
   if (firstSchedule) articleBlock(firstSchedule, 1, 1, 7, 8, 4, 2);
   if (secondSchedule) articleBlock(secondSchedule, 1, 9, 7, 8, 4, 3);
   if (thirdSchedule) articleBlock(thirdSchedule, 1, 17, 7, 8, 4, 4);
@@ -814,12 +826,15 @@ function sourceTopologyCandidate(input: AdaptiveLayoutInput, plan: EditorialPlan
   imageBlock(takeImage(), 1, 17, 11, 8, 6);
 
   if (legacy) articleBlock(legacy, 2, 1, 1, 12, 5, 1);
-  imageBlock(takeImage(legacy), 2, 13, 1, 12, 5);
+  imageBlock(takeImage(legacy), 2, 13, 1, 12, 5, legacy);
   if (featureA) articleBlock(featureA, 2, 1, 6, 12, 5, 5);
-  imageBlock(takeImage(featureA), 2, 13, 6, 12, 5);
+  imageBlock(takeImage(featureA), 2, 13, 6, 12, 5, featureA);
   if (featureB) articleBlock(featureB, 2, 1, 11, 8, 6, 6);
-  imageBlock(takeImage(featureB), 2, 9, 11, 8, 6);
-  if (featureC) articleBlock(featureC, 2, 17, 11, 8, 6, 7);
+  imageBlock(takeImage(featureB), 2, 9, 11, 8, 6, featureB);
+  if (featureC) {
+    articleBlock(featureC, 2, 17, 11, 8, 3, 7);
+    imageBlock(takeImage(featureC), 2, 17, 14, 8, 3, featureC);
+  }
 
   const overflowArticles = orderedArticles.filter((article) => !blocks.some((block) => block.articleId === article.id || block.slotId === `source-${article.id}`));
   const findOpenRect = (page: number, colSpan: number, rowSpan: number): { page: number; position: LayoutBlock["position"] } | undefined => {
@@ -878,6 +893,7 @@ function sourceTopologyCandidate(input: AdaptiveLayoutInput, plan: EditorialPlan
         imagePlacement.position.row,
         imagePlacement.position.colSpan,
         imagePlacement.position.rowSpan,
+        article,
       );
     }
   }

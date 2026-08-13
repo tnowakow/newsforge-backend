@@ -130,6 +130,47 @@ test("real uploaded photos with a real caption are never overwritten by nearby-a
   assert.equal(photo?.caption, "Grandma Joan celebrating her 90th birthday with the whole family");
 });
 
+test("uploaded filename captions are replaced with nearby story captions", () => {
+  const articles: Article[] = [
+    {
+      id: "a-chef",
+      title: "Chef Circle",
+      body: "Chef Circle brought residents together for a hands-on culinary gathering with the dining team.",
+      wordCount: 14,
+      articleType: "announcement",
+      isFiller: false,
+      source: "UPLOAD",
+    },
+  ];
+  const images: NewsImage[] = [
+    {
+      id: "img-chef",
+      url: "https://example.com/chef.jpg",
+      caption: "Chefs Circle.heic",
+      aspect: "landscape",
+      isPlaceholder: false,
+      source: "UPLOAD",
+    },
+  ];
+  const layout: AssembledLayout = {
+    templateId: "v3-panel-garden",
+    pageCount: 1,
+    version: 1,
+    unfilledSlotIds: [],
+    stats: { placedArticles: 1, placedImages: 1, fillerBlocks: 0, emptySlots: 0 },
+    blocks: [
+      articleBlock("chef-block", 1, "a-chef", { col: 1, row: 1, colSpan: 8, rowSpan: 4 }),
+      imageBlock("chef-photo", 1, "img-chef", { col: 9, row: 1, colSpan: 6, rowSpan: 4 }),
+    ],
+  };
+
+  const out = applyVibrancyPass({ layout, articles, images });
+  const photo = out.blocks.find((b) => b.blockId === "chef-photo");
+  assert.ok(photo?.caption);
+  assert.match(photo!.caption!, /Chef Circle|culinary/i);
+  assert.notEqual(photo!.caption, "Chefs Circle.heic");
+});
+
 test("captions never pull from a nearby birthday/schedule list block", () => {
   const articles: Article[] = [
     {
