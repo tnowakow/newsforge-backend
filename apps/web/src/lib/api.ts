@@ -156,6 +156,7 @@ export const api = {
                   wordCount?: number;
                   byline?: string;
                   sectionId?: string;
+                  imageRefs?: string[];
                   articleType?: Article["articleType"];
                 }>;
               };
@@ -195,6 +196,7 @@ export const api = {
             wordCount: article.wordCount,
             byline: article.byline,
             sectionId: article.sectionId,
+            imageRefs: Array.isArray(article.imageRefs) ? article.imageRefs : undefined,
             articleType: article.articleType,
             source: "UPLOAD" as const,
             bytes: asset.meta?.size,

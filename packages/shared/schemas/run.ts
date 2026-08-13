@@ -14,6 +14,8 @@ export const ArticleSchema = z.object({
   byline: z.string().optional(),
   /** Which recurring section this article belongs to, if any. */
   sectionId: z.string().optional(),
+  /** Uploaded photo filenames explicitly associated with this article. */
+  imageRefs: z.array(z.string()).default([]).optional(),
   /** True if this body was AI-generated as filler. */
   isFiller: z.boolean().default(false),
   source: z.enum(["MOCK", "UPLOAD", "GENERATED"]).default("MOCK"),

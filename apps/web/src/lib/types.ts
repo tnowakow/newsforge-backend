@@ -85,6 +85,7 @@ export interface Article {
   wordCount: number;
   byline?: string;
   sectionId?: string;
+  imageRefs?: string[];
   isFiller?: boolean;
   source?: "MOCK" | "UPLOAD" | "GENERATED";
   articleType?: ArticleType;

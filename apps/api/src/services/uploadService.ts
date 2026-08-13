@@ -105,6 +105,13 @@ function sectionHeaderRemainder(header: string, sectionId: string): string {
   return known ? withoutPrefix.replace(known, "").trim() : withoutPrefix.trim();
 }
 
+function cleanArticleTitle(title: string): string {
+  return title
+    .replace(/\s+/g, " ")
+    .replace(/\s+[,;:.!?]+$/g, "")
+    .trim();
+}
+
 function addPhotoAssociations(
   refs: string[],
   sectionTitle: string,
@@ -118,11 +125,16 @@ function addPhotoAssociations(
 }
 
 function parsePhotoRefs(text: string): { body: string; refs: string[] } {
-  const match = text.match(/^Photos?:\s*(.+)$/i);
+  const match = text.match(/^(.*?)(?:\s*Photos?:\s*)(.+)$/i);
   if (!match) return { body: text, refs: [] };
+  const rawRefs = match[2]
+    .replace(/[.;]\s*$/g, "")
+    .split(/,|\band\b/i)
+    .map((ref) => ref.trim())
+    .filter(Boolean);
   return {
-    body: "",
-    refs: match[1].split(/,|\band\b/i).map((ref) => ref.trim()).filter(Boolean),
+    body: match[1].trim(),
+    refs: rawRefs,
   };
 }
 
@@ -212,30 +224,40 @@ export function parsePorterSubmissionText(rawText: string): ParsedPorterSubmissi
       continue;
     }
 
-    const content: string[] = [];
+    const content: Array<{ body: string; refs: string[] }> = [];
     const refs: string[] = [];
     for (const line of section.paragraphs) {
       if (isInstructionLine(line) || /^\d+\.\s*\(optional\)\s*$/i.test(line)) continue;
       const photo = parsePhotoRefs(line);
       refs.push(...photo.refs);
-      if (photo.body) content.push(photo.body);
+      if (photo.body) content.push({ body: photo.body, refs: photo.refs });
     }
     if (refs.length) addPhotoAssociations(refs, section.id, imageAssociations);
     if (section.id === "features") {
-      for (const body of content) {
+      for (const item of content) {
+        const { body } = item;
         if (body.length < 20) continue;
-        const title = body.split(/[.!?]/, 1)[0].trim().slice(0, 120) || "Interesting and Newsworthy";
-        articles.push({ title, body, wordCount: wordCount(body), articleType: /anniversary|color|chef/i.test(body) ? "announcement" : "other", sectionId: "features", imageRefs: refs });
+        const title = cleanArticleTitle(body.split(/[.!?]/, 1)[0].trim().slice(0, 120)) || "Interesting and Newsworthy";
+        if (item.refs.length) addPhotoAssociations(item.refs, title, imageAssociations);
+        articles.push({
+          title,
+          body,
+          wordCount: wordCount(body),
+          articleType: /anniversary|color|chef/i.test(body) ? "announcement" : "other",
+          sectionId: "features",
+          imageRefs: item.refs,
+        });
       }
       continue;
     }
     if (section.id === "director" || section.id === "legacy" || section.id === "custom") {
       if (content.length === 0) continue;
       const title = section.id === "director" ? "Executive Director Corner" : section.id === "legacy" ? "Legacy News" : section.header;
+      const body = content.map((item) => item.body).join("\n\n");
       articles.push({
         title,
-        body: content.join("\n\n"),
-        wordCount: wordCount(content.join(" ")),
+        body,
+        wordCount: wordCount(body),
         articleType: section.id === "director" ? "executive-note" : section.id === "legacy" ? "resident-story" : "other",
         sectionId: section.id,
         byline: section.id === "director" ? "From the Executive Director" : undefined,
@@ -258,6 +280,7 @@ export function porterParseToArticles(parse: ParsedPorterSubmission): Article[] 
     wordCount: article.wordCount,
     byline: article.byline,
     sectionId: article.sectionId,
+    imageRefs: article.imageRefs,
     isFiller: false,
     source: "UPLOAD" as const,
     articleType: article.articleType,
@@ -429,6 +452,7 @@ export function blocksToArticles(blocks: ParsedArticleBlock[]): Article[] {
     title: b.title,
     body: b.body,
     wordCount: b.wordCount,
+    imageRefs: b.imageRefs,
     isFiller: false,
     source: "UPLOAD" as const,
     articleType: b.articleType,

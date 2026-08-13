@@ -38,8 +38,8 @@ test("Porter parser strips scaffolding, optional menu, and department heads", ()
 
     REQUIRED - INTERESTING AND NEWSWORTHY
 
-    Chef Circle brings neighbors together for a shared meal.
-    Campus in Color celebrates creativity and community.
+    Chef Circle brings neighbors together for a shared meal. Photo: Chefs Circle.jpg
+    Campus in Color celebrates creativity and community. Photos: Campus in Color.jpg, Campus in Color 2.HEIC
     Oaks anniversary marks two years together.
     4. (Optional)
 
@@ -57,6 +57,15 @@ test("Porter parser strips scaffolding, optional menu, and department heads", ()
   assert.equal(parsed.articles.length, 5);
   assert.equal(parsed.lists.reduce((sum, list) => sum + list.rows.length, 0), 4);
   assert.equal(parsed.imageAssociations["Legacy.jpg"]?.[0], "legacy");
+  assert.deepEqual(
+    parsed.articles.find((article) => /^Chef Circle/.test(article.title))?.imageRefs,
+    ["Chefs Circle.jpg"],
+  );
+  assert.deepEqual(
+    parsed.articles.find((article) => /^Campus in Color/.test(article.title))?.imageRefs,
+    ["Campus in Color.jpg", "Campus in Color 2.HEIC"],
+  );
+  assert.doesNotMatch(text, /Photo:|Photos:/);
   assert.doesNotMatch(text, /Private staff roster|Chef's Corner|Vitality|Instructions and setup/);
 });
 

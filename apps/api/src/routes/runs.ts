@@ -47,6 +47,7 @@ import {
   buildLayoutFitReport,
   fitContent,
   pickBestTemplate,
+  type FitContentResult,
   type ScoreableTemplate,
 } from "../services/layoutFitService.js";
 import { measureAdaptiveCandidates } from "../services/layoutMeasurementService.js";
@@ -378,6 +379,35 @@ function measuredDensityScore(measurement: CandidateMeasurement | undefined): nu
   );
 }
 
+function sourceOnlyFitResult(
+  articles: Article[],
+  images: NewsImage[],
+  template: ScoreableTemplate,
+): FitContentResult {
+  const gridSpec = template.gridSpec as GridSpec;
+  const imageSlots = gridSpec.slots.filter((slot) => slot.type === "image");
+  return {
+    articles,
+    articleFit: articles.map((article, index) => ({
+      articleId: article.id,
+      slotId: gridSpec.slots[index]?.id ?? `source-${article.id}`,
+      wordsIn: article.wordCount,
+      wordsOut: article.wordCount,
+      trimmed: false,
+    })),
+    photoFit: images.map((image, index) => ({
+      imageId: image.id,
+      slotId: imageSlots[index]?.id,
+      dropped: false,
+      reason: "fit",
+    })),
+    droppedImageIds: [],
+    keptImages: images,
+    emptySlots: [],
+    warnings: [],
+  };
+}
+
 function isMeasuredRecoveryBetter(
   before: CandidateMeasurement | undefined,
   after: CandidateMeasurement | undefined,
@@ -623,7 +653,9 @@ runsRouter.post("/", async (req, res) => {
     pageCount: template.pageCount,
     gridSpec: effectiveGridSpec,
   };
-  const fitResult = fitContent(articles, images, scoreableChosen);
+  const fitResult = sourceOnlyUploadedRun
+    ? sourceOnlyFitResult(articles, images, scoreableChosen)
+    : fitContent(articles, images, scoreableChosen);
   articles = fitResult.articles;
   images = fitResult.keptImages;
   const innerImageSlotCount = effectiveGridSpec.slots.filter((slot) => slot.type === "image").length;

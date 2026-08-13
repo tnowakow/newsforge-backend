@@ -636,13 +636,49 @@ function styleForSourceArticle(article: Article, index: number): LayoutBlock["st
       : /brunch/i.test(article.title)
         ? "infoFooter"
         : "upcomingEvents";
-    return { bg: index % 2 === 0 ? "navy" : "sky", headerColor: "coral", invertText: role === "happyHour", panelRole: role, compact: true, cornerRadius: 8 };
+    return {
+      bg: role === "happyHour" ? "navy" : role === "infoFooter" ? "leaf" : "cream",
+      headerColor: role === "happyHour" ? "sun" : "coral",
+      invertText: role === "happyHour",
+      panelRole: role,
+      compact: true,
+      cornerRadius: 8,
+    };
   }
   if (/legacy/i.test(article.title)) {
     return { bg: "berry", headerColor: "cream", invertText: true, panelRole: "spotlightRail", compact: true, cornerRadius: 8 };
   }
   const headerColors: Array<NonNullable<LayoutBlock["style"]>["headerColor"]> = ["coral", "sky", "leaf", "berry"];
   return { bg: index % 2 === 0 ? "paper" : "cream", headerColor: headerColors[index % headerColors.length], panelRole: "featureBand", compact: true, cornerRadius: 8 };
+}
+
+function cleanSourceTitle(title: string): string {
+  return title
+    .replace(/\s+/g, " ")
+    .replace(/\s+[,;:.!?]+$/g, "")
+    .trim();
+}
+
+function normalizedImageName(value: string | undefined): string {
+  return (value ?? "")
+    .toLowerCase()
+    .replace(/^.*[\\/]/, "")
+    .replace(/\.(jpe?g|png|gif|webp|heic|heif|tiff?)$/i, "")
+    .replace(/[^a-z0-9]+/g, "");
+}
+
+function imageMatchesRef(image: NewsImage, ref: string): boolean {
+  const needle = normalizedImageName(ref);
+  if (!needle) return false;
+  return [image.caption, image.alt, image.description, image.url]
+    .some((value) => {
+      const candidate = normalizedImageName(value);
+      return Boolean(candidate && (candidate.includes(needle) || needle.includes(candidate)));
+    });
+}
+
+function isFilenameCaption(caption: string | undefined): boolean {
+  return Boolean(caption && /\.(jpe?g|png|gif|webp|heic|heif|tiff?)$/i.test(caption.trim()));
 }
 
 function sourceTopologyCandidate(input: AdaptiveLayoutInput, plan: EditorialPlan): AdaptiveLayoutCandidate | undefined {
@@ -657,6 +693,16 @@ function sourceTopologyCandidate(input: AdaptiveLayoutInput, plan: EditorialPlan
     ...stories.filter((article) => !/executive director|director corner|legacy/i.test(article.title)),
   ];
   const images = orderImages(input.images, "uploadedFirst");
+  const usedImages = new Set<string>();
+  const takeImage = (article?: Article): NewsImage | undefined => {
+    const refs = article?.imageRefs ?? [];
+    const matched = refs.length
+      ? images.find((image) => !usedImages.has(image.id) && refs.some((ref) => imageMatchesRef(image, ref)))
+      : undefined;
+    const fallback = matched ?? images.find((image) => !usedImages.has(image.id));
+    if (fallback) usedImages.add(fallback.id);
+    return fallback;
+  };
   const blocks: LayoutBlock[] = [];
   const articleBlock = (
     article: Article,
@@ -676,7 +722,7 @@ function sourceTopologyCandidate(input: AdaptiveLayoutInput, plan: EditorialPlan
       kind: schedule ? "list" : (/executive director|legacy/i.test(article.title) ? "recurring" : "article"),
       articleId: schedule ? undefined : article.id,
       needsFiller: false,
-      heading: article.title,
+      heading: cleanSourceTitle(article.title),
       listItems: schedule ? listRowsForArticle(article) : undefined,
       style: styleForSourceArticle(article, index),
       zIndex: 0,
@@ -698,7 +744,7 @@ function sourceTopologyCandidate(input: AdaptiveLayoutInput, plan: EditorialPlan
       position: { col, row, colSpan, rowSpan },
       kind: "image",
       imageId: image.id,
-      caption: image.caption,
+      caption: isFilenameCaption(image.caption) ? undefined : image.caption,
       needsFiller: false,
       style: { panelRole: "photoCluster", photoTreatment: "collage", cornerRadius: 8 },
       zIndex: 0,
@@ -708,20 +754,20 @@ function sourceTopologyCandidate(input: AdaptiveLayoutInput, plan: EditorialPlan
   if (orderedArticles.length === 0) return undefined;
   const [director, legacy, firstSchedule, secondSchedule, thirdSchedule, featureA, featureB, featureC] = orderedArticles;
   articleBlock(director, 1, 1, 1, 13, 5, 0);
-  imageBlock(images[0], 1, 14, 1, 11, 5);
+  imageBlock(takeImage(director), 1, 14, 1, 11, 5);
   if (firstSchedule) articleBlock(firstSchedule, 1, 1, 6, 8, 4, 2);
   if (secondSchedule) articleBlock(secondSchedule, 1, 9, 6, 8, 4, 3);
   if (thirdSchedule) articleBlock(thirdSchedule, 1, 17, 6, 8, 4, 4);
-  imageBlock(images[1], 1, 1, 10, 8, 7);
-  imageBlock(images[2], 1, 9, 10, 8, 7);
-  imageBlock(images[3], 1, 17, 10, 8, 7);
+  imageBlock(takeImage(), 1, 1, 10, 8, 7);
+  imageBlock(takeImage(), 1, 9, 10, 8, 7);
+  imageBlock(takeImage(), 1, 17, 10, 8, 7);
 
   if (legacy) articleBlock(legacy, 2, 1, 1, 12, 5, 1);
-  imageBlock(images[4], 2, 13, 1, 12, 5);
+  imageBlock(takeImage(legacy), 2, 13, 1, 12, 5);
   if (featureA) articleBlock(featureA, 2, 1, 6, 12, 5, 5);
-  imageBlock(images[5], 2, 13, 6, 12, 5);
+  imageBlock(takeImage(featureA), 2, 13, 6, 12, 5);
   if (featureB) articleBlock(featureB, 2, 1, 11, 8, 6, 6);
-  imageBlock(images[6], 2, 9, 11, 8, 6);
+  imageBlock(takeImage(featureB), 2, 9, 11, 8, 6);
   if (featureC) articleBlock(featureC, 2, 17, 11, 8, 6, 7);
 
   const overflowArticles = orderedArticles.filter((article) => !blocks.some((block) => block.articleId === article.id || block.slotId === `source-${article.id}`));
