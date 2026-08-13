@@ -9,7 +9,7 @@ import type {
   VisualPersonality,
 } from "@newsforge/shared/schemas";
 import { assembleLayout } from "./layoutAssembly.js";
-import { chooseVisualPersonality } from "./designLanguage.js";
+import { chooseVisualPersonality, normalizePanelStyle } from "./designLanguage.js";
 import {
   porterOneReferenceIdForTemplate,
   scorePorterOneReferenceAffinity,
@@ -641,7 +641,7 @@ function isScheduleArticle(article: Article): boolean {
 
 function styleForSourceArticle(article: Article, index: number): LayoutBlock["style"] {
   if (/executive director|director corner/i.test(article.title)) {
-    return { bg: "cream", headerColor: "berry", panelRole: "directorCorner", compact: true, cornerRadius: 8 };
+    return normalizePanelStyle({ bg: "cream", headerColor: "navy", panelRole: "directorCorner", compact: true, cornerRadius: 6 });
   }
   if (isScheduleArticle(article)) {
     const role = /happy/i.test(article.title)
@@ -649,20 +649,25 @@ function styleForSourceArticle(article: Article, index: number): LayoutBlock["st
       : /brunch/i.test(article.title)
         ? "infoFooter"
         : "upcomingEvents";
-    return {
+    return normalizePanelStyle({
       bg: role === "happyHour" ? "sky" : role === "infoFooter" ? "cream" : "cream",
       headerColor: role === "happyHour" ? "navy" : "coral",
       invertText: false,
       panelRole: role,
       compact: true,
-      cornerRadius: 8,
-    };
+      cornerRadius: 6,
+    });
   }
   if (/legacy/i.test(article.title)) {
-    return { bg: "berry", headerColor: "cream", invertText: true, panelRole: "spotlightRail", compact: true, cornerRadius: 8 };
+    return normalizePanelStyle({ bg: "berry", headerColor: "navy", invertText: false, panelRole: "spotlightRail", compact: true, cornerRadius: 6 });
   }
-  const headerColors: Array<NonNullable<LayoutBlock["style"]>["headerColor"]> = ["coral", "sky", "leaf", "berry"];
-  return { bg: index % 2 === 0 ? "paper" : "cream", headerColor: headerColors[index % headerColors.length], panelRole: "featureBand", compact: true, cornerRadius: 8 };
+  const featureStyles: Array<LayoutBlock["style"]> = [
+    { bg: "sky", headerColor: "navy" },
+    { bg: "cream", headerColor: "coral" },
+    { bg: "blush", headerColor: "navy" },
+    { bg: "paper", headerColor: "leaf" },
+  ];
+  return normalizePanelStyle({ ...featureStyles[index % featureStyles.length], panelRole: "featureBand", compact: true, cornerRadius: 6 });
 }
 
 function cleanSourceTitle(title: string): string {

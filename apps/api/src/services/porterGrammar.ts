@@ -49,11 +49,11 @@ export const PORTER_SCORER_RANGES = {
 
 export const PORTER_GRAMMAR_PROMPT = `
 PORTER GRAMMAR (six elastic families, not six rigid templates):
-- Shared vocabulary: birthday sun rail, cream director corner, narrow dated-list rails, colored feature/spotlight panels, navy info footer, and tight photo clusters.
+- Shared vocabulary: birthday sun rail, cream director corner with navy heading, narrow dated-list rails, berry/navy spotlight panels, colored feature panels, navy info footer, and tight photo clusters.
 - Choose among birthday-exec-rail, birthday-feature-band, photo-mosaic-rail, dense-lavender-grid, editorial-light, and spotlight-feature according to content volume.
 - Target 12–18 meaningful modules across the inner spread, 5–12 photos when supplied, and no block above 24% of a page.
 - Keep every content box at least 80% filled. If copy is short, shrink the box or grow an adjacent photo; never leave a tall colored slab with a few lines.
 - Birthday rails grow toward full height when the list is long. Director headshots are elastic: keep them only when the adjacent copy still fits; otherwise preserve the image exactly once in a nearby photo slot.
-- Dated lists remain narrow rails with subtle high-contrast panels: Happy Hour uses a sky panel with navy heading, Upcoming Events uses a cream panel with coral heading. Never use sun/yellow-green as schedule heading text.
+- Dated lists remain narrow rails with subtle high-contrast panels: Happy Hour uses a sky panel with navy heading, Upcoming Events uses a cream panel with coral heading. Never use sun/yellow-green as schedule heading text, and never use paper/cream text on light panels.
 - Every page needs a footer band, full-height rail, or photo mosaic anchor. Use purposeful color on mostly paper background.
 `;

@@ -447,7 +447,7 @@ export function renderRunHtml(input: RenderInput): string {
     .role-birthday .list-body { font-size: 8.2pt; line-height: 1.06; }
     .role-birthday .list-group { color:#D85C2A; font-size: 8.2pt; margin-top: 4pt; }
     .role-birthday .list-row { border-bottom: 0; }
-    .role-directorCorner.panel { padding: 11px 14px; }
+    .role-directorCorner.panel { padding: 11px 14px; border-left: 5px solid #151B2B; }
     .role-directorCorner .script-heading { font-size: clamp(17pt, 3vw, 23pt); font-style: normal; text-transform: uppercase; letter-spacing:0.02em; }
     .director-heading { font-family: var(--heading-font); font-size: clamp(17pt, 3vw, 23pt); line-height:0.95; letter-spacing:0.01em; margin-bottom:3pt; }
     .director-heading span { font-weight:900; text-transform:uppercase; }
@@ -458,6 +458,11 @@ export function renderRunHtml(input: RenderInput): string {
     .role-outingList .section-heading,
     .role-volunteerCallout .section-heading { font-size: clamp(13pt, 2.5vw, 19pt); }
     .role-happyHour .section-heading { margin-top: 7pt; }
+    .role-happyHour.panel,
+    .role-upcomingEvents.panel,
+    .role-outingList.panel { border-top: 4px solid #151B2B; }
+    .role-upcomingEvents.panel { border-top-color: #E8762C; }
+    .role-outingList.panel { border-top-color: #6FAE6B; }
     .role-happyHour .body,
     .role-upcomingEvents .body,
     .role-outingList .body,
@@ -465,11 +470,11 @@ export function renderRunHtml(input: RenderInput): string {
     .role-happyHour .list-body,
     .role-upcomingEvents .list-body,
     .role-outingList .list-body { font-size: 10pt; line-height:1.32; }
-    .role-featureBand.panel { padding: 10px 14px; }
+    .role-featureBand.panel { padding: 10px 14px; border-left: 4px solid rgba(21,27,43,0.22); }
     .role-featureBand .script-heading,
     .role-featureBand .section-heading { font-size: clamp(14pt, 2.6vw, 20pt); text-transform:none; letter-spacing:0; }
     .role-featureBand .body { font-size: 9.2pt; font-weight: 600; line-height:1.18; }
-    .role-spotlightRail.panel { padding: 10px 13px; }
+    .role-spotlightRail.panel { padding: 10px 13px; border-left: 5px solid #151B2B; }
     .role-spotlightRail .script-heading,
     .role-spotlightRail .section-heading { font-size: clamp(14pt, 2.4vw, 18pt); text-transform:none; letter-spacing:0; }
     .role-spotlightRail .body { font-size: 9.1pt; font-weight: 600; line-height:1.18; }

@@ -27,6 +27,7 @@ import type {
 import {
   DARK_TOKENS,
   HEADER_ROTATION,
+  normalizePanelStyle,
   PANEL_ROTATION,
   PERSONALITY_STYLES,
 } from "./designLanguage.js";
@@ -511,6 +512,12 @@ export function applyVibrancyPass(input: VibrancyInput): AssembledLayout {
 
     if (next.style && next.style.bg && next.style.cornerRadius == null) {
       next.style.cornerRadius = defaultCornerRadius;
+    }
+    if (next.style) {
+      next.style = normalizePanelStyle(next.style) ?? next.style;
+      if (next.style.bg && next.style.cornerRadius == null) {
+        next.style.cornerRadius = defaultCornerRadius;
+      }
     }
 
     // --- Dark panels invert text ---

@@ -820,6 +820,18 @@ describe("adaptiveLayoutPlanner.buildAdaptiveLayout", () => {
     assert.equal(socials?.style?.bg, "cream");
     assert.equal(socials?.style?.headerColor, "coral");
     assert.equal(socials?.style?.invertText, false);
+    const director = source.layout.blocks.find((block) => block.articleId === "director");
+    const legacy = source.layout.blocks.find((block) => block.articleId === "legacy");
+    const chef = source.layout.blocks.find((block) => block.articleId === "chef");
+    assert.equal(director?.style?.bg, "cream");
+    assert.equal(director?.style?.headerColor, "navy");
+    assert.equal(director?.style?.invertText, false);
+    assert.equal(legacy?.style?.bg, "berry");
+    assert.equal(legacy?.style?.headerColor, "navy");
+    assert.equal(legacy?.style?.invertText, false);
+    assert.notEqual(chef?.style?.bg, undefined);
+    assert.notEqual(chef?.style?.headerColor, "paper");
+    assert.notEqual(chef?.style?.headerColor, "cream");
 
     const placedArticleIds = new Set(source.layout.blocks.map((block) => block.articleId).filter(Boolean));
     const placedListSlotIds = new Set(

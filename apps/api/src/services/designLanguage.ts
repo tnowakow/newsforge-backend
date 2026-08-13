@@ -10,7 +10,7 @@
  * The web editor mirrors PANEL_PALETTE in apps/web/src/lib/v3.ts. If you
  * change a value here, change it there (Riley: assert parity in tests).
  */
-import type { PanelToken, VisualPersonality } from "@newsforge/shared/schemas";
+import type { BlockStyle, PanelRole, PanelToken, VisualPersonality } from "@newsforge/shared/schemas";
 import { PORTER_GRAMMAR_PROMPT } from "./porterGrammar.js";
 
 export interface BrandColors {
@@ -53,6 +53,86 @@ export const DARK_TOKENS: ReadonlySet<PanelToken> = new Set([
   "navy",
   "primary",
 ]);
+
+const LIGHT_PANEL_TOKENS = new Set<PanelToken>([
+  "sun",
+  "sky",
+  "berry",
+  "leaf",
+  "blush",
+  "cream",
+  "paper",
+  "secondary",
+  "accent",
+]);
+
+const LOW_CONTRAST_HEADER_BY_BG: Partial<Record<PanelToken, ReadonlySet<PanelToken>>> = {
+  sun: new Set(["sun", "sky", "berry", "blush", "cream", "paper", "leaf"]),
+  sky: new Set(["sun", "sky", "berry", "blush", "cream", "paper"]),
+  berry: new Set(["sun", "sky", "berry", "blush", "cream", "paper"]),
+  blush: new Set(["sun", "sky", "berry", "blush", "cream", "paper"]),
+  cream: new Set(["sun", "sky", "berry", "blush", "cream", "paper"]),
+  leaf: new Set(["sun", "sky", "berry", "blush", "cream", "paper", "leaf"]),
+  paper: new Set(["sun", "sky", "berry", "blush", "cream", "paper"]),
+};
+
+const ROLE_PANEL_DEFAULTS: Partial<Record<PanelRole, BlockStyle>> = {
+  birthday: { bg: "sun", headerColor: "navy", scriptHeading: true, invertText: false, cornerRadius: 0 },
+  directorCorner: { bg: "cream", headerColor: "navy", scriptHeading: true, invertText: false, cornerRadius: 6 },
+  happyHour: { bg: "sky", headerColor: "navy", invertText: false, centered: true, compact: true, cornerRadius: 6 },
+  upcomingEvents: { bg: "cream", headerColor: "coral", invertText: false, centered: true, compact: true, cornerRadius: 6 },
+  outingList: { bg: "cream", headerColor: "leaf", invertText: false, centered: true, compact: true, cornerRadius: 6 },
+  spotlightRail: { bg: "berry", headerColor: "navy", invertText: false, compact: true, cornerRadius: 6 },
+  featureBand: { headerColor: "coral", invertText: false, compact: true, cornerRadius: 6 },
+  volunteerCallout: { bg: "leaf", headerColor: "navy", invertText: false, centered: true, compact: true, cornerRadius: 6 },
+  infoFooter: { bg: "navy", headerColor: "paper", invertText: true, compact: true, cornerRadius: 0 },
+};
+
+function fallbackHeaderForBg(bg: PanelToken | undefined, role: PanelRole | undefined): PanelToken {
+  if (bg && DARK_TOKENS.has(bg)) return "paper";
+  if (role === "upcomingEvents") return "coral";
+  return "navy";
+}
+
+export function normalizePanelStyle(style: BlockStyle | undefined): BlockStyle | undefined {
+  if (!style) return style;
+  const role = style.panelRole;
+  const next: BlockStyle = { ...(role ? ROLE_PANEL_DEFAULTS[role] : undefined), ...style };
+
+  if (role === "happyHour") {
+    next.bg = "sky";
+    next.headerColor = "navy";
+    next.invertText = false;
+  } else if (role === "upcomingEvents") {
+    next.bg = "cream";
+    next.headerColor = "coral";
+    next.invertText = false;
+  } else if (role === "directorCorner") {
+    next.bg = "cream";
+    next.headerColor = "navy";
+    next.invertText = false;
+  } else if (role === "spotlightRail") {
+    next.bg = next.bg ?? "berry";
+    next.headerColor = next.headerColor === "cream" || next.headerColor === "paper" ? "navy" : (next.headerColor ?? "navy");
+    next.invertText = false;
+  } else if (role === "infoFooter" || (next.bg && DARK_TOKENS.has(next.bg))) {
+    next.headerColor = "paper";
+    next.invertText = true;
+  }
+
+  if (next.bg && LIGHT_PANEL_TOKENS.has(next.bg)) {
+    if (next.invertText) next.invertText = false;
+    const lowContrastHeaders = LOW_CONTRAST_HEADER_BY_BG[next.bg];
+    if (!next.headerColor || lowContrastHeaders?.has(next.headerColor)) {
+      next.headerColor = fallbackHeaderForBg(next.bg, role);
+    }
+  }
+  if (next.headerColor === "sun" && role !== "birthday") {
+    next.headerColor = fallbackHeaderForBg(next.bg, role);
+  }
+  if (next.bg && next.cornerRadius == null) next.cornerRadius = 6;
+  return next;
+}
 
 /** Rotation used for section headers when the designer doesn't specify. */
 export const HEADER_ROTATION: PanelToken[] = [
@@ -160,7 +240,7 @@ PORTERONE REFERENCE TARGET (the originals are the source of truth; the skeleton 
 2. Use the supplied slot grid as movable geometry. You may adjust block positions and spans when it improves PorterOne resemblance, content hierarchy, photo rhythm, and dense editorial fit.
 3. PorterOne pages are dense but organized: many mid-sized modules, purposeful colored panels, compact lists, several real-life photos, and at least one strong rail/band/anchor shape. Avoid giant two-block magazine layouts and avoid oversized colored slabs with little content.
    Numeric target: aim for 14–18 meaningful content modules across the two pages, keep no single content block above roughly 22% of a page (never above 24%), and use 5–11 purposeful image blocks when the supplied photos support it. Prefer three mid-sized modules over one large module.
-4. Panels are purposeful, not everywhere. Use "sun" for birthdays, "cream" for Executive Director, "berry" for profile/spotlight rails, "sky" for feature bands, "leaf" or "coral" for callouts/events, and "navy" with invertText for footer/info bars.
+4. Panels are purposeful, not everywhere. Use "sun" for birthdays, "cream" with navy headings for Executive Director, "berry" with navy headings for profile/spotlight rails, "sky" for feature bands, "leaf" or "coral" for callouts/events, and "navy" with invertText for footer/info bars. Never use paper/cream/sun headings on light panels; light panel headings must stay high-contrast navy, coral, or leaf.
 5. Set style.panelRole whenever a block fits: birthday, directorCorner, happyHour, upcomingEvents, outingList, spotlightRail, featureBand, volunteerCallout, infoFooter, photoCluster.
 6. Colored ALL-CAPS section headers. Every feature article gets a short heading with headerColor drawn from coral/sky/leaf/berry/accent. Vary colors across the spread; never two adjacent features with the same headerColor.
 7. Birthdays are a list block. If an article or its excerpt contains birthday names/dates, convert it to kind "list" with listItems: group headers ("RESIDENTS", "STAFF") as isGroupHeader rows, then {label: "First L.", value: "M/D"} rows. Style: bg "sun", panelRole "birthday", scriptHeading, heading "Happy Birthday!".

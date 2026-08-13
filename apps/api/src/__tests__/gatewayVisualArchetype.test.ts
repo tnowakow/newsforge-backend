@@ -381,6 +381,70 @@ test("vibrancy pass applies selected visual personality to panel and image defau
   assert.equal(layout.blocks[1]?.style?.photoTreatment, "collage");
 });
 
+test("vibrancy pass normalizes Porter panels away from low-contrast color combinations", () => {
+  const articles: Article[] = [
+    {
+      id: "a-legacy",
+      title: "Legacy News",
+      body: "Residents and families shared a warm memory-care moment together.",
+      wordCount: 9,
+      articleType: "resident-story",
+      isFiller: false,
+      source: "UPLOAD",
+    },
+    {
+      id: "a-happy",
+      title: "Happy Hours",
+      body: "7/3 America Bash\n7/10 Dog Days of Summer",
+      wordCount: 8,
+      articleType: "event-recap",
+      isFiller: false,
+      source: "UPLOAD",
+    },
+  ];
+  const layout = applyVibrancyPass({
+    layout: {
+      templateId: "v3-panel-garden",
+      pageCount: 1,
+      version: 1,
+      blocks: [
+        {
+          blockId: "legacy",
+          slotId: "legacy",
+          page: 1,
+          position: { col: 1, row: 1, colSpan: 6, rowSpan: 4 },
+          kind: "article",
+          articleId: "a-legacy",
+          style: { bg: "berry", headerColor: "cream", invertText: true, panelRole: "spotlightRail" },
+          needsFiller: false,
+        },
+        {
+          blockId: "happy",
+          slotId: "happy",
+          page: 1,
+          position: { col: 7, row: 1, colSpan: 6, rowSpan: 4 },
+          kind: "article",
+          articleId: "a-happy",
+          style: { bg: "sun", headerColor: "sun", invertText: true, panelRole: "happyHour" },
+          needsFiller: false,
+        },
+      ],
+      unfilledSlotIds: [],
+      stats: { placedArticles: 2, placedImages: 0, fillerBlocks: 0, emptySlots: 0 },
+    },
+    articles,
+    images: [],
+  });
+
+  assert.equal(layout.blocks[0]?.style?.bg, "berry");
+  assert.equal(layout.blocks[0]?.style?.headerColor, "navy");
+  assert.equal(layout.blocks[0]?.style?.invertText, false);
+  assert.equal(layout.blocks[1]?.kind, "list");
+  assert.equal(layout.blocks[1]?.style?.bg, "sky");
+  assert.equal(layout.blocks[1]?.style?.headerColor, "navy");
+  assert.equal(layout.blocks[1]?.style?.invertText, false);
+});
+
 
 test("large sparse general slots accept useful articles below ideal minWords", () => {
   const gridSpec: GridSpec = {

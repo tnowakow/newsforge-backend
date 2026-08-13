@@ -273,6 +273,18 @@ function BlockView({
   const headerColor =
     resolveToken(block.style?.headerColor, client) ?? client.primaryColor;
   const radius = block.style?.cornerRadius ?? (bg ? 10 : 0);
+  const panelAccent =
+    role === "directorCorner" || role === "spotlightRail"
+      ? { borderLeft: "5px solid #151B2B" }
+      : role === "featureBand"
+        ? { borderLeft: "4px solid rgba(21,27,43,0.22)" }
+        : role === "happyHour"
+          ? { borderTop: "4px solid #151B2B" }
+          : role === "upcomingEvents"
+            ? { borderTop: "4px solid #E8762C" }
+            : role === "outingList"
+              ? { borderTop: "4px solid #6FAE6B" }
+              : undefined;
 
   const cellSize = () => {
     const el = gridEl();
@@ -509,6 +521,7 @@ function BlockView({
           backgroundSize: role === "birthday" ? "18px 18px" : undefined,
           borderRadius: radius || undefined,
           color: invert ? "#F7F5EF" : undefined,
+          ...panelAccent,
         }}
       >
         {content}
