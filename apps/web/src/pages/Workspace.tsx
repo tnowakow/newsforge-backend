@@ -1169,7 +1169,7 @@ function UploadTab({
         <input
           type="file"
           multiple
-          accept=".jpg,.jpeg,.png,.webp,.txt,.docx"
+          accept=".jpg,.jpeg,.png,.webp,.heic,.heif,.txt,.docx"
           className="sr-only"
           onChange={(e) => e.target.files && onFiles(e.target.files)}
         />
@@ -1180,7 +1180,7 @@ function UploadTab({
           {uploading ? "Uploading…" : "Drop files or click to browse"}
         </div>
         <div className="text-2xs text-ink-muted mt-1">
-          Images (.jpg, .png, .webp), .docx, .txt — or paste text below.
+          Images (.jpg, .png, .webp, .heic), .docx, .txt — or paste text below.
         </div>
       </label>
 

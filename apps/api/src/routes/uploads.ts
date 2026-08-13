@@ -1,6 +1,7 @@
 import { Router } from "express";
 import multer from "multer";
 import fs from "node:fs/promises";
+import { createRequire } from "node:module";
 import path from "node:path";
 import mammoth from "mammoth";
 import { createId } from "@paralleldrive/cuid2";
@@ -9,6 +10,12 @@ import { env } from "../env.js";
 import { extractImageMeta, parsePorterSubmissionText, porterParseToArticles } from "../services/uploadService.js";
 
 export const uploadsRouter: Router = Router();
+const require = createRequire(import.meta.url);
+const heicConvert = require("heic-convert") as (input: {
+  buffer: Buffer;
+  format: "JPEG";
+  quality: number;
+}) => Promise<Buffer | ArrayBuffer>;
 
 const upload = multer({
   storage: multer.diskStorage({
@@ -24,12 +31,49 @@ const upload = multer({
   limits: { fileSize: 25 * 1024 * 1024 }, // 25 MB / file
 });
 
-const IMAGE_EXTS = new Set([".jpg", ".jpeg", ".png", ".webp"]);
+const BROWSER_IMAGE_EXTS = new Set([".jpg", ".jpeg", ".png", ".webp"]);
+const HEIC_IMAGE_EXTS = new Set([".heic", ".heif"]);
+const IMAGE_EXTS = new Set([...BROWSER_IMAGE_EXTS, ...HEIC_IMAGE_EXTS]);
 const TEXT_EXTS = new Set([".txt"]);
 const DOCX_EXTS = new Set([".docx"]);
 
 function wordCount(s: string): number {
   return s.trim().split(/\s+/).filter(Boolean).length;
+}
+
+async function normalizeImageUpload(file: Express.Multer.File): Promise<{
+  filePath: string;
+  url: string;
+  mime: string;
+  size: number;
+  convertedFrom?: string;
+}> {
+  const ext = path.extname(file.originalname).toLowerCase();
+  if (!HEIC_IMAGE_EXTS.has(ext)) {
+    return {
+      filePath: file.path,
+      url: `/uploads/${path.basename(file.path)}`,
+      mime: file.mimetype,
+      size: file.size,
+    };
+  }
+
+  const convertedPath = file.path.replace(/\.(heic|heif)$/i, ".jpg");
+  const input = await fs.readFile(file.path);
+  const converted = await heicConvert({ buffer: input, format: "JPEG", quality: 0.92 });
+  const output = Buffer.isBuffer(converted)
+    ? converted
+    : Buffer.from(new Uint8Array(converted));
+  await fs.writeFile(convertedPath, output);
+  await fs.unlink(file.path).catch(() => {});
+  const stat = await fs.stat(convertedPath);
+  return {
+    filePath: convertedPath,
+    url: `/uploads/${path.basename(convertedPath)}`,
+    mime: "image/jpeg",
+    size: stat.size,
+    convertedFrom: ext.slice(1),
+  };
 }
 
 uploadsRouter.post("/", upload.array("files", 30), async (req, res) => {
@@ -51,22 +95,28 @@ uploadsRouter.post("/", upload.array("files", 30), async (req, res) => {
     const ext = path.extname(file.originalname).toLowerCase();
     try {
       if (IMAGE_EXTS.has(ext)) {
-        const url = `/uploads/${path.basename(file.path)}`;
-        const dimensions = await extractImageMeta({ filePath: file.path, originalName: file.originalname, mime: file.mimetype });
+        const normalized = await normalizeImageUpload(file);
+        const dimensions = await extractImageMeta({
+          filePath: normalized.filePath,
+          originalName: file.originalname,
+          mime: normalized.mime,
+        });
         const asset = await prisma.assetLibrary.create({
           data: {
             id: createId(),
             clientId,
             type: "IMAGE",
-            contentOrUrl: url,
+            contentOrUrl: normalized.url,
             source: "UPLOAD",
             meta: {
               originalFilename: file.originalname,
-              mime: file.mimetype,
-              size: file.size,
+              mime: normalized.mime,
+              originalMime: file.mimetype,
+              size: normalized.size,
               width: dimensions.width,
               height: dimensions.height,
               format: dimensions.format,
+              convertedFrom: normalized.convertedFrom,
             },
           },
         });
