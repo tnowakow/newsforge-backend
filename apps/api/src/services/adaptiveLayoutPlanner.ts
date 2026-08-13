@@ -753,14 +753,14 @@ function sourceTopologyCandidate(input: AdaptiveLayoutInput, plan: EditorialPlan
 
   if (orderedArticles.length === 0) return undefined;
   const [director, legacy, firstSchedule, secondSchedule, thirdSchedule, featureA, featureB, featureC] = orderedArticles;
-  articleBlock(director, 1, 1, 1, 13, 5, 0);
-  imageBlock(takeImage(director), 1, 14, 1, 11, 5);
-  if (firstSchedule) articleBlock(firstSchedule, 1, 1, 6, 8, 4, 2);
-  if (secondSchedule) articleBlock(secondSchedule, 1, 9, 6, 8, 4, 3);
-  if (thirdSchedule) articleBlock(thirdSchedule, 1, 17, 6, 8, 4, 4);
-  imageBlock(takeImage(), 1, 1, 10, 8, 7);
-  imageBlock(takeImage(), 1, 9, 10, 8, 7);
-  imageBlock(takeImage(), 1, 17, 10, 8, 7);
+  articleBlock(director, 1, 1, 1, 16, 6, 0);
+  imageBlock(takeImage(director), 1, 17, 1, 8, 6);
+  if (firstSchedule) articleBlock(firstSchedule, 1, 1, 7, 8, 4, 2);
+  if (secondSchedule) articleBlock(secondSchedule, 1, 9, 7, 8, 4, 3);
+  if (thirdSchedule) articleBlock(thirdSchedule, 1, 17, 7, 8, 4, 4);
+  imageBlock(takeImage(), 1, 1, 11, 8, 6);
+  imageBlock(takeImage(), 1, 9, 11, 8, 6);
+  imageBlock(takeImage(), 1, 17, 11, 8, 6);
 
   if (legacy) articleBlock(legacy, 2, 1, 1, 12, 5, 1);
   imageBlock(takeImage(legacy), 2, 13, 1, 12, 5);
