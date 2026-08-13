@@ -327,7 +327,7 @@ export default function Workspace() {
               url: f.url ?? "",
               alt: f.originalName,
               aspect: "landscape",
-              fitMode: autoSizePictures ? "cover" : "contain",
+              fitMode: autoSizePictures ? "fill" : "contain",
               source: "UPLOAD",
             };
             return {
@@ -379,7 +379,7 @@ export default function Workspace() {
     setUploads((cur) =>
       cur.map((item) =>
         item.image
-          ? { ...item, image: { ...item.image, fitMode: enabled ? "cover" : "contain" } }
+          ? { ...item, image: { ...item.image, fitMode: enabled ? "fill" : "contain" } }
           : item,
       ),
     );
@@ -1173,7 +1173,7 @@ function UploadTab({
           <div className="text-sm font-medium">Auto-size pictures</div>
           <div className="text-2xs text-ink-muted">
             {autoSizePictures
-              ? "Uploaded photos fill their newsletter frames."
+              ? "Uploaded photos stretch to match their newsletter frames."
               : "Uploaded photos stay fully visible inside their frames."}
           </div>
         </div>

@@ -102,7 +102,7 @@ export interface NewsImage {
   focalX?: number;
   focalY?: number;
   zoom?: number;
-  fitMode?: "cover" | "contain";
+  fitMode?: "cover" | "contain" | "fill";
   isPlaceholder?: boolean;
   source?: "MOCK" | "UPLOAD" | "GENERATED" | "STOCK";
 }
