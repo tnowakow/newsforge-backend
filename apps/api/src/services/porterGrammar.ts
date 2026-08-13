@@ -18,8 +18,8 @@ export interface PorterRoleGrammar {
 export const PORTER_ROLE_GRAMMAR: Record<PanelRole, PorterRoleGrammar> = {
   birthday: { bg: "sun", headerColor: "coral", scriptHeading: true, narrowRail: true },
   directorCorner: { bg: "cream", headerColor: "navy", scriptHeading: true },
-  happyHour: { headerColor: "coral", narrowRail: true },
-  upcomingEvents: { headerColor: "berry", narrowRail: true },
+  happyHour: { bg: "sky", headerColor: "navy", narrowRail: true },
+  upcomingEvents: { bg: "cream", headerColor: "coral", narrowRail: true },
   outingList: { headerColor: "navy", narrowRail: true },
   spotlightRail: { bg: "berry", headerColor: "navy" },
   featureBand: { bg: "sky", headerColor: "navy" },
@@ -54,6 +54,6 @@ PORTER GRAMMAR (six elastic families, not six rigid templates):
 - Target 12–18 meaningful modules across the inner spread, 5–12 photos when supplied, and no block above 24% of a page.
 - Keep every content box at least 80% filled. If copy is short, shrink the box or grow an adjacent photo; never leave a tall colored slab with a few lines.
 - Birthday rails grow toward full height when the list is long. Director headshots are elastic: keep them only when the adjacent copy still fits; otherwise preserve the image exactly once in a nearby photo slot.
-- Dated lists remain narrow rails. Section headers are ALL-CAPS with varied coral/sky/leaf/berry accents; birthday and selected callouts may use script headings.
+- Dated lists remain narrow rails with subtle high-contrast panels: Happy Hour uses a sky panel with navy heading, Upcoming Events uses a cream panel with coral heading. Never use sun/yellow-green as schedule heading text.
 - Every page needs a footer band, full-height rail, or photo mosaic anchor. Use purposeful color on mostly paper background.
 `;

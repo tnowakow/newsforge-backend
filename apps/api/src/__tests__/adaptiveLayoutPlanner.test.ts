@@ -744,6 +744,8 @@ describe("adaptiveLayoutPlanner.buildAdaptiveLayout", () => {
     const source = result.candidates.find((candidate) => candidate.id === "source-topology");
     assert.ok(source, "expected uploaded source topology candidate");
 
+    const happy = source.layout.blocks.find((block) => block.slotId === "source-happy");
+    const socials = source.layout.blocks.find((block) => block.slotId === "source-socials");
     const chef = source.layout.blocks.find((block) => block.articleId === "chef");
     const chefImage = source.layout.blocks.find((block) => block.imageId === "chef-img");
     const music = source.layout.blocks.find((block) => block.articleId === "music");
@@ -752,6 +754,13 @@ describe("adaptiveLayoutPlanner.buildAdaptiveLayout", () => {
       (block) => block.page === 1 && block.position.row === 1 && block.imageId,
     );
 
+    assert.equal(happy?.style?.panelRole, "happyHour");
+    assert.equal(happy?.style?.bg, "sky");
+    assert.equal(happy?.style?.headerColor, "navy");
+    assert.equal(happy?.style?.invertText, false);
+    assert.equal(socials?.style?.panelRole, "upcomingEvents");
+    assert.equal(socials?.style?.bg, "cream");
+    assert.equal(socials?.style?.headerColor, "coral");
     assert.ok(chef);
     assert.ok(chefImage);
     assert.equal(chefImage.page, chef.page);

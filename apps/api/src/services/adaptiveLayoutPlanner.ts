@@ -650,9 +650,9 @@ function styleForSourceArticle(article: Article, index: number): LayoutBlock["st
         ? "infoFooter"
         : "upcomingEvents";
     return {
-      bg: role === "happyHour" ? "navy" : role === "infoFooter" ? "leaf" : "cream",
-      headerColor: role === "happyHour" ? "sun" : "coral",
-      invertText: role === "happyHour",
+      bg: role === "happyHour" ? "sky" : role === "infoFooter" ? "cream" : "cream",
+      headerColor: role === "happyHour" ? "navy" : "coral",
+      invertText: false,
       panelRole: role,
       compact: true,
       cornerRadius: 8,

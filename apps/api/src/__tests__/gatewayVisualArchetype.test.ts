@@ -87,6 +87,12 @@ test("Gateway-style inner spread lands key content in the intended archetype slo
   assert.equal(bySlot.get("birthdays")?.kind, "list");
   assert.equal(bySlot.get("happy-hour")?.style?.panelRole, "happyHour");
   assert.equal(bySlot.get("happy-hour")?.kind, "list");
+  assert.equal(bySlot.get("happy-hour")?.style?.bg, "sky");
+  assert.equal(bySlot.get("happy-hour")?.style?.headerColor, "navy");
+  assert.equal(bySlot.get("happy-hour")?.style?.invertText, false);
+  assert.equal(bySlot.get("upcoming")?.style?.panelRole, "upcomingEvents");
+  assert.equal(bySlot.get("upcoming")?.style?.bg, "cream");
+  assert.equal(bySlot.get("upcoming")?.style?.headerColor, "coral");
   assert.equal(bySlot.get("outings")?.style?.panelRole, "outingList");
   assert.equal(bySlot.get("outings")?.kind, "list");
   assert.equal(bySlot.get("smile")?.style?.panelRole, "spotlightRail");

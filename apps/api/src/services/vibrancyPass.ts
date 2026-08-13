@@ -183,15 +183,17 @@ function applyRoleDefaults(block: LayoutBlock, role: PanelRole): void {
       block.heading = block.heading ?? "Executive Director Corner";
       break;
     case "happyHour":
-      delete block.style.bg;
-      block.style.headerColor = "primary";
+      block.style.bg = "sky";
+      block.style.headerColor = "navy";
+      block.style.invertText = false;
       block.style.centered = true;
       block.style.compact = true;
       block.heading = "Happy Hour";
       break;
     case "upcomingEvents":
-      delete block.style.bg;
-      block.style.headerColor = "berry";
+      block.style.bg = "cream";
+      block.style.headerColor = "coral";
+      block.style.invertText = false;
       block.style.centered = true;
       block.style.compact = true;
       block.heading = "Upcoming Events";
