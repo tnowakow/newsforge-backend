@@ -71,7 +71,8 @@ function imageInlineStyle(img: NewsImage): string {
   const focalX = img.focalX ?? 50;
   const focalY = img.focalY ?? 50;
   const zoom = img.zoom ?? 1;
-  return `object-position:${focalX}% ${focalY}%;transform:scale(${zoom});transform-origin:${focalX}% ${focalY}%;`;
+  const fitMode = img.fitMode ?? "cover";
+  return `object-fit:${fitMode};object-position:${focalX}% ${focalY}%;transform:scale(${zoom});transform-origin:${focalX}% ${focalY}%;`;
 }
 
 function paragraphs(body: string): string {

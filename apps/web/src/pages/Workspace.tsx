@@ -142,6 +142,7 @@ export default function Workspace() {
   const [uploads, setUploads] = useState<UploadItem[]>([]);
   const [pasteText, setPasteText] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [autoSizePictures, setAutoSizePictures] = useState(true);
 
   // Assembling
   const [assembling, setAssembling] = useState(false);
@@ -326,6 +327,7 @@ export default function Workspace() {
               url: f.url ?? "",
               alt: f.originalName,
               aspect: "landscape",
+              fitMode: autoSizePictures ? "cover" : "contain",
               source: "UPLOAD",
             };
             return {
@@ -369,8 +371,19 @@ export default function Workspace() {
         setUploading(false);
       }
     },
-    [clientId, toast],
+    [autoSizePictures, clientId, toast],
   );
+
+  const handleAutoSizePicturesChange = (enabled: boolean) => {
+    setAutoSizePictures(enabled);
+    setUploads((cur) =>
+      cur.map((item) =>
+        item.image
+          ? { ...item, image: { ...item.image, fitMode: enabled ? "cover" : "contain" } }
+          : item,
+      ),
+    );
+  };
 
   const handlePasteAdd = () => {
     const text = pasteText.trim();
@@ -687,6 +700,8 @@ export default function Workspace() {
                 setPasteText={setPasteText}
                 onPasteAdd={handlePasteAdd}
                 onRemove={removeUpload}
+                autoSizePictures={autoSizePictures}
+                onAutoSizePicturesChange={handleAutoSizePicturesChange}
               />
             )}
           </div>
@@ -1107,6 +1122,8 @@ function UploadTab({
   uploads,
   onFiles,
   uploading,
+  autoSizePictures,
+  onAutoSizePicturesChange,
   pasteText,
   setPasteText,
   onPasteAdd,
@@ -1115,6 +1132,8 @@ function UploadTab({
   uploads: UploadItem[];
   onFiles: (f: FileList | File[]) => void;
   uploading: boolean;
+  autoSizePictures: boolean;
+  onAutoSizePicturesChange: (enabled: boolean) => void;
   pasteText: string;
   setPasteText: (s: string) => void;
   onPasteAdd: () => void;
@@ -1147,6 +1166,28 @@ function UploadTab({
             they've got, upload it back here.
           </div>
         )}
+      </div>
+
+      <div className="flex items-center justify-between gap-4 rounded-md border border-rule bg-surface px-4 py-3">
+        <div>
+          <div className="text-sm font-medium">Auto-size pictures</div>
+          <div className="text-2xs text-ink-muted">
+            {autoSizePictures
+              ? "Uploaded photos fill their newsletter frames."
+              : "Uploaded photos stay fully visible inside their frames."}
+          </div>
+        </div>
+        <label className="inline-flex cursor-pointer items-center gap-2">
+          <span className="text-2xs text-ink-muted">
+            {autoSizePictures ? "On" : "Off"}
+          </span>
+          <input
+            type="checkbox"
+            checked={autoSizePictures}
+            onChange={(e) => onAutoSizePicturesChange(e.target.checked)}
+            className="h-4 w-4 accent-accent"
+          />
+        </label>
       </div>
 
       <label

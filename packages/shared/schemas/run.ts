@@ -46,6 +46,8 @@ export const ImageSchema = z.object({
   focalY: z.number().min(0).max(100).default(50).optional(),
   /** Editor zoom for cover-fit images. 1 = normal. */
   zoom: z.number().min(1).max(3).default(1).optional(),
+  /** How the image should fit its assigned frame. */
+  fitMode: z.enum(["cover", "contain"]).default("cover").optional(),
   /** True if this image is a placeholder rather than real content. */
   isPlaceholder: z.boolean().default(false),
   source: z.enum(["MOCK", "UPLOAD", "GENERATED", "STOCK"]).default("MOCK"),

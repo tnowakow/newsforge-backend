@@ -378,8 +378,9 @@ function BlockView({
           <img
             src={image.url}
             alt={image.alt ?? ""}
-            className="h-full w-full object-cover"
+            className="h-full w-full"
             style={{
+              objectFit: image.fitMode ?? "cover",
               objectPosition: `${image.focalX ?? 50}% ${image.focalY ?? 50}%`,
               transform: `scale(${image.zoom ?? 1})`,
               transformOrigin: `${image.focalX ?? 50}% ${image.focalY ?? 50}%`,

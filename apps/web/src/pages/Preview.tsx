@@ -1511,6 +1511,7 @@ function Inspector({
                         focalX: 50,
                         focalY: 50,
                         zoom: 1,
+                        fitMode: "cover",
                         isPlaceholder: false,
                         source: "UPLOAD",
                       }),
@@ -1820,6 +1821,7 @@ function makeImage(url?: string): NewsImage {
     focalX: 50,
     focalY: 50,
     zoom: 1,
+    fitMode: "cover",
     isPlaceholder: false,
     source: url ? "UPLOAD" : "GENERATED",
   };
