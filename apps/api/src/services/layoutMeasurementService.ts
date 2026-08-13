@@ -136,7 +136,7 @@ async function measureCandidate(input: Omit<MeasureInput, "candidates"> & {
       fillRatios.push({ blockId: id, fillRatio });
     }
     const underfilledBlocks = fillRatios.filter((entry) => entry.fillRatio < 0.8).length;
-    const overflowBlocks = blocks.filter((block) => {
+    const pageBoundaryOverflowSet = new Set<any>(blocks.filter((block) => {
       const rect = block.getBoundingClientRect();
       const pageRect = block.closest(".page")?.getBoundingClientRect();
       if (!pageRect) return false;
@@ -146,7 +146,27 @@ async function measureCandidate(input: Omit<MeasureInput, "candidates"> & {
         rect.right > pageRect.right + 1 ||
         rect.bottom > pageRect.bottom + 1
       );
-    }).length;
+    }));
+    const overlapBlockSet = new Set<any>();
+    for (let i = 0; i < blocks.length; i++) {
+      const a = blocks[i];
+      const aPage = a.closest(".page");
+      const aRect = a.getBoundingClientRect();
+      if (!aPage || aRect.width <= 1 || aRect.height <= 1) continue;
+      for (let j = i + 1; j < blocks.length; j++) {
+        const b = blocks[j];
+        if (b.closest(".page") !== aPage) continue;
+        const bRect = b.getBoundingClientRect();
+        if (bRect.width <= 1 || bRect.height <= 1) continue;
+        const overlapWidth = Math.min(aRect.right, bRect.right) - Math.max(aRect.left, bRect.left);
+        const overlapHeight = Math.min(aRect.bottom, bRect.bottom) - Math.max(aRect.top, bRect.top);
+        if (overlapWidth > 2 && overlapHeight > 2) {
+          overlapBlockSet.add(a);
+          overlapBlockSet.add(b);
+        }
+      }
+    }
+    const overflowBlocks = new Set([...pageBoundaryOverflowSet, ...overlapBlockSet]).size;
     const images = Array.from(doc.querySelectorAll(".photo img")) as any[];
     const renderedImages = images.filter((image) => image.complete && image.naturalWidth > 0).length;
     let weightedUtility = 0;
@@ -170,11 +190,11 @@ async function measureCandidate(input: Omit<MeasureInput, "candidates"> & {
       const rowBuckets = Array.from({ length: 16 }, () => false);
       const pageBlocks = blocks.filter((block) => block.closest(".page") === page);
       const pageClipped = pageBlocks.filter((block) => clippedBlockSet.has(block)).length;
-      const pageOverflow = pageBlocks.filter((block) => {
+      const pageOverflow = new Set(pageBlocks.filter((block) => {
         const rect = block.getBoundingClientRect();
         const pageRect = block.closest(".page")?.getBoundingClientRect();
         return Boolean(pageRect && (rect.left < pageRect.left - 1 || rect.top < pageRect.top - 1 || rect.right > pageRect.right + 1 || rect.bottom > pageRect.bottom + 1));
-      }).length;
+      }).concat(pageBlocks.filter((block) => overlapBlockSet.has(block)))).size;
       const pageImages = pageBlocks.filter((block) => block.querySelector(".photo img")).length;
       for (const block of pageBlocks) {
         const rect = block.getBoundingClientRect();

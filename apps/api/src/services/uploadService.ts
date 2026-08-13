@@ -112,6 +112,34 @@ function cleanArticleTitle(title: string): string {
     .trim();
 }
 
+function featureTitleAndBody(rawBody: string): { title: string; body: string } {
+  const numbered = rawBody.match(/^\s*\d+\.\s*([^-–—:]+?)\s*[-–—:]\s*(.+)$/s);
+  if (numbered) {
+    const label = cleanArticleTitle(numbered[1]);
+    const rest = numbered[2].trim();
+    return {
+      title: label || "Interesting and Newsworthy",
+      body: label && !rest.toLowerCase().startsWith(label.toLowerCase())
+        ? `${label} - ${rest}`
+        : rest,
+    };
+  }
+
+  const titleRules: Array<[RegExp, string]> = [
+    [/chef circle/i, "Chef Circle"],
+    [/artisans?/i, "Artisans Group"],
+    [/resident of the month|featured resident|resident spotlight/i, "Resident Spotlight"],
+    [/customer service/i, "Customer Service"],
+    [/featured recipe|recipe from the chef|chef'?s recipe/i, "Chef's Recipe"],
+  ];
+  const matched = titleRules.find(([pattern]) => pattern.test(rawBody));
+  const fallback = cleanArticleTitle(rawBody.split(/[.!?]/, 1)[0].trim().slice(0, 120));
+  return {
+    title: matched?.[1] ?? fallback ?? "Interesting and Newsworthy",
+    body: rawBody,
+  };
+}
+
 function addPhotoAssociations(
   refs: string[],
   sectionTitle: string,
@@ -235,9 +263,8 @@ export function parsePorterSubmissionText(rawText: string): ParsedPorterSubmissi
     if (refs.length) addPhotoAssociations(refs, section.id, imageAssociations);
     if (section.id === "features") {
       for (const item of content) {
-        const { body } = item;
+        const { title, body } = featureTitleAndBody(item.body);
         if (body.length < 20) continue;
-        const title = cleanArticleTitle(body.split(/[.!?]/, 1)[0].trim().slice(0, 120)) || "Interesting and Newsworthy";
         if (item.refs.length) addPhotoAssociations(item.refs, title, imageAssociations);
         articles.push({
           title,

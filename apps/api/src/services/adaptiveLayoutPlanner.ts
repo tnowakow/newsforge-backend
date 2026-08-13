@@ -335,7 +335,8 @@ function orderImages(
       const bySource = sourceRank(a) - sourceRank(b);
       if (bySource !== 0) return bySource;
     }
-    return aspectRank(a) - aspectRank(b) || a.id.localeCompare(b.id);
+    const byScreenshot = Number(isScreenshotLikeImage(a)) - Number(isScreenshotLikeImage(b));
+    return byScreenshot || aspectRank(a) - aspectRank(b) || a.id.localeCompare(b.id);
   });
 }
 
@@ -667,6 +668,12 @@ function normalizedImageName(value: string | undefined): string {
     .replace(/[^a-z0-9]+/g, "");
 }
 
+function isScreenshotLikeImage(image: NewsImage): boolean {
+  return [image.caption, image.alt, image.description, image.url].some((value) =>
+    /\bscreen\s*shot\b|\bscreenshot\b|\bscreencap\b|\bscreen\s*capture\b/i.test(value ?? ""),
+  );
+}
+
 function imageMatchesRef(image: NewsImage, ref: string): boolean {
   const needle = normalizedImageName(ref);
   if (!needle) return false;
@@ -679,6 +686,15 @@ function imageMatchesRef(image: NewsImage, ref: string): boolean {
 
 function isFilenameCaption(caption: string | undefined): boolean {
   return Boolean(caption && /\.(jpe?g|png|gif|webp|heic|heif|tiff?)$/i.test(caption.trim()));
+}
+
+function positionsOverlap(a: LayoutBlock["position"], b: LayoutBlock["position"]): boolean {
+  return !(
+    a.col + a.colSpan - 1 < b.col ||
+    b.col + b.colSpan - 1 < a.col ||
+    a.row + a.rowSpan - 1 < b.row ||
+    b.row + b.rowSpan - 1 < a.row
+  );
 }
 
 function sourceTopologyCandidate(input: AdaptiveLayoutInput, plan: EditorialPlan): AdaptiveLayoutCandidate | undefined {
@@ -699,7 +715,9 @@ function sourceTopologyCandidate(input: AdaptiveLayoutInput, plan: EditorialPlan
     const matched = refs.length
       ? images.find((image) => !usedImages.has(image.id) && refs.some((ref) => imageMatchesRef(image, ref)))
       : undefined;
-    const fallback = matched ?? images.find((image) => !usedImages.has(image.id));
+    const fallback = matched ??
+      images.find((image) => !usedImages.has(image.id) && !isScreenshotLikeImage(image)) ??
+      images.find((image) => !usedImages.has(image.id));
     if (fallback) usedImages.add(fallback.id);
     return fallback;
   };
@@ -771,9 +789,29 @@ function sourceTopologyCandidate(input: AdaptiveLayoutInput, plan: EditorialPlan
   if (featureC) articleBlock(featureC, 2, 17, 11, 8, 6, 7);
 
   const overflowArticles = orderedArticles.filter((article) => !blocks.some((block) => block.articleId === article.id || block.slotId === `source-${article.id}`));
+  const findOpenRect = (page: number, colSpan: number, rowSpan: number): { page: number; position: LayoutBlock["position"] } | undefined => {
+    for (let row = 1; row <= input.gridSpec.rowsPerPage - rowSpan + 1; row++) {
+      for (let col = 1; col <= input.gridSpec.columns - colSpan + 1; col++) {
+        const position = { col, row, colSpan, rowSpan };
+        if (!blocks.some((block) => block.page === page && positionsOverlap(block.position, position))) {
+          return { page, position };
+        }
+      }
+    }
+    return undefined;
+  };
   for (const [index, article] of overflowArticles.entries()) {
-    const col = 1 + (index % 3) * 8;
-    articleBlock(article, 2, col, 13, 8, 4, index + 8);
+    const placement = findOpenRect(2, 8, 3) ?? findOpenRect(1, 8, 3);
+    if (!placement) continue;
+    articleBlock(
+      article,
+      placement.page,
+      placement.position.col,
+      placement.position.row,
+      placement.position.colSpan,
+      placement.position.rowSpan,
+      index + 8,
+    );
   }
 
   const layout: AssembledLayout = {

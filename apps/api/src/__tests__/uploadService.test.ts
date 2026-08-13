@@ -112,7 +112,7 @@ test("Porter parse expands into uploaded run articles instead of one filename ar
   assert.deepEqual(titles, [
     "Executive Director Corner",
     "Legacy News",
-    "Chef Circle brings neighbors together for a shared meal",
+    "Chef Circle",
     "Campus in Color celebrates creativity and community",
     "Oaks anniversary marks two years together",
     "Happy Hours",
@@ -122,6 +122,36 @@ test("Porter parse expands into uploaded run articles instead of one filename ar
   assert.equal(articles.every((article) => article.source === "UPLOAD"), true);
   assert.equal(articles.every((article) => article.isFiller === false), true);
   assert.doesNotMatch(output, /\.docx|Private staff roster|Optional Article Suggestions/);
+});
+
+test("Porter parser cleans numbered interesting/newsworthy labels", () => {
+  const parsed = service.parsePorterSubmissionText(`
+    Required Articles
+
+    REQUIRED - Executive Directors Corner
+
+    A director note with useful content.
+
+    REQUIRED - INTERESTING AND NEWSWORTHY
+
+    4. Featured Resident of the Month - This month we're celebrating a resident whose story and spirit have made a real impact on our community. Photo: Featured Resident of the Month.jpg
+
+    5. Customer Service Moment - A shoutout to a team member who went above and beyond for a resident this month.
+
+    6. Featured Recipe from the Chef - This month's featured recipe comes straight from a resident's family favorite.
+
+    Optional Article Suggestions
+  `);
+  assert.equal(parsed.fallbackRequired, false);
+  assert.deepEqual(parsed.articles.map((article) => article.title), [
+    "Executive Director Corner",
+    "Featured Resident of the Month",
+    "Customer Service Moment",
+    "Featured Recipe from the Chef",
+  ]);
+  assert.equal(parsed.articles.some((article) => /^[456]$/.test(article.title)), false);
+  assert.equal(parsed.articles[1].body.startsWith("Featured Resident of the Month -"), true);
+  assert.deepEqual(parsed.articles[1].imageRefs, ["Featured Resident of the Month.jpg"]);
 });
 
 test("missing Porter markers enters explicit fallback state", () => {
