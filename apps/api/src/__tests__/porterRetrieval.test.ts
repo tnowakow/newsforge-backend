@@ -38,21 +38,24 @@ test("routes low-word source uploads with many modules and referenced photos awa
     article({ title: "Executive Director Corner", wordCount: 100 }),
     { ...article({ title: "Legacy News", wordCount: 29, articleType: "resident-story" }), imageRefs: ["Legacy.jpg", "Legacy 2.jpg"] },
     { ...article({ title: "Chef Circle", wordCount: 50 }), imageRefs: ["Chefs Circle.heic"] },
-    { ...article({ title: "Music to My Ears", wordCount: 17 }), imageRefs: ["Music to My Ears 2.heic"] },
+    { ...article({ title: "Music to My Ears", wordCount: 17 }), imageRefs: ["Music to My Ears.jpg", "Music to My Ears 2.heic"] },
     article({ title: "Resident Council", wordCount: 21 }),
-    article({ title: "Out & About", wordCount: 21 }),
+    { ...article({ title: "Out & About", wordCount: 21 }), imageRefs: ["Out and About.jpg"] },
     { ...article({ title: "Intergenerational Fun", wordCount: 22 }), imageRefs: ["Intergenerational Fun.jpg"] },
     article({ title: "Happy Hours", body: "7/3 event 7/10 event 7/17 event 7/24 event 7/31 event", wordCount: 21, articleType: "event-recap" }),
     article({ title: "Socials", body: "7/8 event 7/15 event 7/22 event 7/29 event", wordCount: 16, articleType: "event-recap" }),
     article({ title: "Brunch", body: "7/12 July Brunch", wordCount: 3 }),
   ];
-  const result = retrievePorterExamples(articles, Array.from({ length: 5 }, (_, index) => image(String(index))));
+  const result = retrievePorterExamples(articles, Array.from({ length: 7 }, (_, index) => image(String(index))));
 
   assert.equal(result.signature.moduleCount, 10);
-  assert.equal(result.signature.referencedPhotoPairs, 5);
+  assert.equal(result.signature.photoCount, 7);
+  assert.equal(result.signature.referencedPhotoPairs, 7);
+  assert.equal(result.signature.datedRows, 10);
   assert.equal(result.family, "dense-lavender-grid");
   assert.equal(result.scenario, "panel-garden");
   assert.ok(!result.prompt.includes("retrieved family editorial-light"));
+  assert.match(result.prompt, /10 modules, 7 photos, 7 referenced photo pairs, 10 dated rows/);
 });
 
 test("routes dense low-word upload shape away from editorial light even when photo refs are missing", () => {

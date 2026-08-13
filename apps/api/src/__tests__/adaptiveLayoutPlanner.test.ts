@@ -772,6 +772,90 @@ describe("adaptiveLayoutPlanner.buildAdaptiveLayout", () => {
     assert.equal(directorImage, undefined);
   });
 
+  it("locks the Trilogy phase 0 source-upload baseline against empty inner pages and schedule color regressions", () => {
+    const result = buildAdaptiveLayout({
+      templateId: "v3-upload-source",
+      pageCount: 2,
+      gridSpec: { ...gridSpec, columns: 24, rowsPerPage: 16 },
+      recurringSections: [],
+      articles: [
+        article("director", "Executive Director Corner", 100, "executive-note", "UPLOAD"),
+        { ...article("legacy", "Legacy News", 29, "resident-story", "UPLOAD"), imageRefs: ["Legacy.jpg", "Legacy 2.jpg"] },
+        { ...article("chef", "Chef Circle", 50, "announcement", "UPLOAD"), imageRefs: ["Chefs Circle.heic"] },
+        { ...article("music", "Music to My Ears", 17, "other", "UPLOAD"), imageRefs: ["Music to My Ears.jpg", "Music to My Ears 2.heic"] },
+        article("resident", "Resident Council", 21, "other", "UPLOAD"),
+        { ...article("outing", "Out & About", 21, "other", "UPLOAD"), imageRefs: ["Out and About.jpg"] },
+        { ...article("intergen", "Intergenerational Fun", 22, "other", "UPLOAD"), imageRefs: ["Intergenerational Fun.jpg"] },
+        article("happy", "Happy Hours", 21, "event-recap", "UPLOAD"),
+        article("socials", "Socials", 16, "event-recap", "UPLOAD"),
+        article("brunch", "Brunch", 3, "announcement", "UPLOAD"),
+      ],
+      images: [
+        { ...image("legacy-1", "landscape", "UPLOAD"), caption: "Legacy.jpg" },
+        { ...image("legacy-2", "landscape", "UPLOAD"), caption: "Legacy 2.jpg" },
+        { ...image("chef-img", "landscape", "UPLOAD"), caption: "Chefs Circle.heic" },
+        { ...image("music-1", "landscape", "UPLOAD"), caption: "Music to My Ears.jpg" },
+        { ...image("music-2", "landscape", "UPLOAD"), caption: "Music to My Ears 2.heic" },
+        { ...image("outing-img", "landscape", "UPLOAD"), caption: "Out and About.jpg" },
+        { ...image("intergen-img", "landscape", "UPLOAD"), caption: "Intergenerational Fun.jpg" },
+      ],
+    });
+    const source = result.candidates.find((candidate) => candidate.id === "source-topology");
+    assert.ok(source, "expected uploaded source topology candidate");
+
+    const contentBlocks = source.layout.blocks.filter((block) => block.articleId || block.imageId || block.kind === "list");
+    const page1Blocks = contentBlocks.filter((block) => block.page === 1);
+    const page2Blocks = contentBlocks.filter((block) => block.page === 2);
+    assert.ok(page1Blocks.length >= 4, "page 1 should retain meaningful content");
+    assert.ok(page2Blocks.length >= 4, "page 2 should retain meaningful content");
+    assert.ok(page2Blocks.some((block) => block.articleId), "page 2 must not collapse to photos only");
+
+    const happy = source.layout.blocks.find((block) => block.slotId === "source-happy");
+    const socials = source.layout.blocks.find((block) => block.slotId === "source-socials");
+    assert.equal(happy?.style?.panelRole, "happyHour");
+    assert.equal(happy?.style?.bg, "sky");
+    assert.equal(happy?.style?.headerColor, "navy");
+    assert.equal(happy?.style?.invertText, false);
+    assert.equal(socials?.style?.panelRole, "upcomingEvents");
+    assert.equal(socials?.style?.bg, "cream");
+    assert.equal(socials?.style?.headerColor, "coral");
+    assert.equal(socials?.style?.invertText, false);
+
+    const placedArticleIds = new Set(source.layout.blocks.map((block) => block.articleId).filter(Boolean));
+    const placedListSlotIds = new Set(
+      source.layout.blocks
+        .filter((block) => block.kind === "list")
+        .map((block) => block.slotId),
+    );
+    assert.equal(placedArticleIds.has("director"), true);
+    assert.equal(placedArticleIds.has("legacy"), true);
+    assert.equal(placedArticleIds.has("chef"), true);
+    assert.equal(placedArticleIds.has("music"), true);
+    assert.equal(placedListSlotIds.has("source-happy"), true);
+    assert.equal(placedListSlotIds.has("source-socials"), true);
+    assert.equal(placedListSlotIds.has("source-brunch"), true);
+
+    for (const block of source.layout.blocks) {
+      assert.ok(block.position.col >= 1);
+      assert.ok(block.position.row >= 1);
+      assert.ok(block.position.col + block.position.colSpan - 1 <= 24);
+      assert.ok(block.position.row + block.position.rowSpan - 1 <= 16);
+    }
+    const blocks = source.layout.blocks;
+    for (const [index, block] of blocks.entries()) {
+      for (const other of blocks.slice(index + 1)) {
+        if (block.page !== other.page) continue;
+        const overlap: boolean = !(
+          block.position.col + block.position.colSpan - 1 < other.position.col ||
+          other.position.col + other.position.colSpan - 1 < block.position.col ||
+          block.position.row + block.position.rowSpan - 1 < other.position.row ||
+          other.position.row + other.position.rowSpan - 1 < block.position.row
+        );
+        assert.equal(overlap, false, `blocks ${block.slotId} and ${other.slotId} should not overlap`);
+      }
+    }
+  });
+
   it("creates a photo band expansion candidate by compressing the band above it", () => {
     const bandGrid: GridSpec = {
       label: "photo-band-test",
