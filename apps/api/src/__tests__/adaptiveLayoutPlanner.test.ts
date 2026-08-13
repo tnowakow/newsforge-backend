@@ -477,6 +477,45 @@ describe("adaptiveLayoutPlanner.buildAdaptiveLayout", () => {
     assert.deepEqual(chosenIds, new Set([candidates[0].id]));
   });
 
+  it("prefers a clean uploaded source topology when it is close to the measured winner", () => {
+    const result = buildAdaptiveLayout({
+      templateId: "v3-test",
+      pageCount: 2,
+      gridSpec,
+      recurringSections: [],
+      articles: [
+        article("director", "Executive Director Corner", 100, "executive-note", "UPLOAD"),
+        { ...article("legacy", "Legacy News", 30, "resident-story", "UPLOAD"), imageRefs: ["Legacy.jpg"] },
+        { ...article("chef", "Chef Circle", 50, "announcement", "UPLOAD"), imageRefs: ["Chef.jpg"] },
+      ],
+      images: [
+        { ...image("legacy-photo", "landscape", "UPLOAD"), caption: "Legacy.jpg" },
+        { ...image("chef-photo", "landscape", "UPLOAD"), caption: "Chef.jpg" },
+      ],
+    });
+    const source = result.candidates.find((candidate) => candidate.id === "source-topology");
+    const other = result.candidates.find((candidate) => candidate.id !== "source-topology");
+    assert.ok(source);
+    assert.ok(other);
+
+    const chosen = chooseAdaptiveCandidate([
+      {
+        ...other,
+        score: 0.64,
+        subscores: { ...other.subscores, renderFit: 1, usefulOccupancy: 0.7 },
+        warnings: [],
+      },
+      {
+        ...source,
+        score: 0.58,
+        subscores: { ...source.subscores, renderFit: 1, usefulOccupancy: 0.6 },
+        warnings: ["underfilled-blocks:4"],
+      },
+    ], "source-upload-smoke");
+
+    assert.equal(chosen.id, "source-topology");
+  });
+
   it("does not vary into candidates with meaningfully worse PorterOne reference affinity", () => {
     const result = buildAdaptiveLayout({
       templateId: "v3-test",

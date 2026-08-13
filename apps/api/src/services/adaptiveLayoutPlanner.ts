@@ -541,6 +541,18 @@ export function chooseAdaptiveCandidate(
   const sorted = [...candidates].sort((a, b) => b.score - a.score || a.id.localeCompare(b.id));
   const best = sorted[0];
   if (!best || !variationSeed) return best;
+  const sourceTopology = sorted.find((candidate) => candidate.id === "source-topology");
+  if (
+    sourceTopology &&
+    sourceTopology.subscores.renderFit != null &&
+    (sourceTopology.subscores.renderFit ?? 0) >= ((best.subscores.renderFit ?? 1) - 0.01) &&
+    best.score - sourceTopology.score <= 0.16 &&
+    ((best.subscores.usefulOccupancy ?? 0) - (sourceTopology.subscores.usefulOccupancy ?? 0)) <= 0.16 &&
+    lowUtilityWarningCount(sourceTopology) <= lowUtilityWarningCount(best) + 2 &&
+    !sourceTopology.warnings.some((warning) => /^render-(clipped|overflow|missing)-/.test(warning))
+  ) {
+    return sourceTopology;
+  }
   const bestUsefulOccupancy = best.subscores.usefulOccupancy;
   const bestRenderFit = best.subscores.renderFit;
   const bestLowUtilityWarnings = lowUtilityWarningCount(best);
