@@ -11,7 +11,9 @@ export type PorterRetrievalFamily =
 type WordBand = "low" | "med" | "high" | "v-high";
 
 export interface PorterContentSignature {
+  moduleCount: number;
   photoCount: number;
+  referencedPhotoPairs: number;
   datedRows: number;
   wordVolume: number;
   wordBand: WordBand;
@@ -56,11 +58,24 @@ const EXAMPLES: PorterExampleSignature[] = [
   ["18", "feature-band", 8, 17, "v-high", true, true, false],
   ["19", "photo-mosaic", 14, 12, "med", false, true, false],
   ["20", "feature-band", 6, 20, "high", true, false, false],
-].map(([exampleId, family, photoCount, datedRows, wordBand, hasSpotlight, hasEventRecap, hasFooterBand]) => ({
+].map(([exampleId, family, photoCount, datedRows, wordBand, hasSpotlight, hasEventRecap, hasFooterBand]) => {
+  const retrievalFamily = family as PorterRetrievalFamily;
+  const examplePhotoCount = Number(photoCount);
+  const moduleCount =
+    retrievalFamily === "editorial-light"
+      ? Math.max(5, Math.round(examplePhotoCount + 1))
+      : retrievalFamily === "dense-lavender-grid"
+        ? Math.max(11, Math.round(examplePhotoCount + 2))
+        : retrievalFamily === "photo-mosaic"
+          ? Math.max(10, Math.round(examplePhotoCount + 1))
+          : Math.max(8, Math.round(examplePhotoCount + 1));
+  return {
     exampleId: String(exampleId),
-    family: family as PorterRetrievalFamily,
+    family: retrievalFamily,
     signature: {
-      photoCount: Number(photoCount),
+      moduleCount,
+      photoCount: examplePhotoCount,
+      referencedPhotoPairs: 0,
       datedRows: Number(datedRows),
       wordVolume: wordBand === "low" ? 500 : wordBand === "med" ? 850 : wordBand === "high" ? 1250 : 1600,
       wordBand: wordBand as WordBand,
@@ -69,7 +84,8 @@ const EXAMPLES: PorterExampleSignature[] = [
       hasFooterBand: Boolean(hasFooterBand),
     },
     notes: "Porter example signature seed from Addendum 7B.",
-  }));
+  };
+});
 
 const DATE_PATTERN = /\b(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\s+\d{1,2}\b|\b\d{1,2}[/-]\d{1,2}\b/gi;
 
@@ -87,8 +103,11 @@ export function computePorterContentSignature(articles: Article[], images: NewsI
   const text = articles.map((article) => `${article.title} ${article.body}`).join(" ");
   const datedRows = (text.match(DATE_PATTERN) ?? []).length;
   const wordVolume = articles.reduce((sum, article) => sum + article.wordCount, 0);
+  const referencedPhotoPairs = articles.reduce((sum, article) => sum + (article.imageRefs?.length ?? 0), 0);
   return {
+    moduleCount: articles.length,
     photoCount: images.length,
+    referencedPhotoPairs,
     datedRows,
     wordVolume,
     wordBand: wordBand(wordVolume),
@@ -101,9 +120,10 @@ export function computePorterContentSignature(articles: Article[], images: NewsI
 function distance(a: PorterContentSignature, b: PorterContentSignature): number {
   const wordBandPenalty = a.wordBand === b.wordBand ? 0 : 0.18;
   return (
-    Math.min(Math.abs(a.photoCount - b.photoCount) / 10, 1) * 0.38 +
-    Math.min(Math.abs(a.datedRows - b.datedRows) / 40, 1) * 0.30 +
-    Math.min(Math.abs(a.wordVolume - b.wordVolume) / 1400, 1) * 0.16 +
+    Math.min(Math.abs(a.photoCount - b.photoCount) / 10, 1) * 0.30 +
+    Math.min(Math.abs(a.datedRows - b.datedRows) / 40, 1) * 0.24 +
+    Math.min(Math.abs(a.wordVolume - b.wordVolume) / 1400, 1) * 0.12 +
+    Math.min(Math.abs(a.moduleCount - b.moduleCount) / 10, 1) * 0.16 +
     (a.hasSpotlight === b.hasSpotlight ? 0 : 0.06) +
     (a.hasEventRecap === b.hasEventRecap ? 0 : 0.06) +
     wordBandPenalty
@@ -120,6 +140,11 @@ function familyScenario(family: PorterRetrievalFamily): PorterRetrievalResult["s
 
 export function retrievePorterExamples(articles: Article[], images: NewsImage[], k = 3): PorterRetrievalResult {
   const signature = computePorterContentSignature(articles, images);
+  const sourceDenseIssue =
+    signature.moduleCount >= 9 &&
+    signature.photoCount >= 5 &&
+    signature.datedRows >= 8 &&
+    signature.referencedPhotoPairs >= 4;
   const julyLikeDenseGrid =
     signature.photoCount >= 6 &&
     signature.photoCount <= 14 &&
@@ -133,6 +158,8 @@ export function retrievePorterExamples(articles: Article[], images: NewsImage[],
       example,
       score:
         distance(signature, example.signature) -
+        (sourceDenseIssue && example.family === "dense-lavender-grid" ? 0.32 : 0) +
+        (sourceDenseIssue && example.family === "editorial-light" ? 0.18 : 0) -
         (julyLikeDenseGrid && example.family === "dense-lavender-grid" ? 0.25 : 0),
     }))
     .sort((a, b) => a.score - b.score || a.example.exampleId.localeCompare(b.example.exampleId))
@@ -140,10 +167,12 @@ export function retrievePorterExamples(articles: Article[], images: NewsImage[],
     .map(({ example }) => example);
   const familyCounts = new Map<PorterRetrievalFamily, number>();
   for (const example of examples) familyCounts.set(example.family, (familyCounts.get(example.family) ?? 0) + 1);
-  const family = [...familyCounts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0]?.[0] ?? "community-collage";
+  const family = sourceDenseIssue
+    ? "dense-lavender-grid"
+    : [...familyCounts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0]?.[0] ?? "community-collage";
   const prompt = [
     `Retrieved Porter exemplars: ${examples.map((example) => `${example.exampleId} (${example.family})`).join(", ")}.`,
-    `Content signature: ${signature.photoCount} photos, ${signature.datedRows} dated rows, ${signature.wordVolume} words (${signature.wordBand}), spotlight=${signature.hasSpotlight}, event recap=${signature.hasEventRecap}.`,
+    `Content signature: ${signature.moduleCount} modules, ${signature.photoCount} photos, ${signature.referencedPhotoPairs} referenced photo pairs, ${signature.datedRows} dated rows, ${signature.wordVolume} words (${signature.wordBand}), spotlight=${signature.hasSpotlight}, event recap=${signature.hasEventRecap}.`,
     `Use the retrieved family ${family} as the compositional starting point. Generalize its density and elastic proportions; do not copy content or invent facts.`,
   ].join(" ");
   return { signature, examples, family, scenario: familyScenario(family), prompt };
