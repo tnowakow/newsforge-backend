@@ -117,6 +117,9 @@ function porterParsedArticlesFromMeta(meta: unknown): Article[] {
         wordCount: typeof raw.wordCount === "number" ? raw.wordCount : wordCount(body),
         byline: typeof raw.byline === "string" ? raw.byline : undefined,
         sectionId: typeof raw.sectionId === "string" ? raw.sectionId : undefined,
+        imageRefs: Array.isArray(raw.imageRefs)
+          ? raw.imageRefs.filter((ref): ref is string => typeof ref === "string" && ref.trim().length > 0)
+          : undefined,
         isFiller: false,
         source: "UPLOAD",
         articleType: raw.articleType,
@@ -218,6 +221,24 @@ function repairClippedBlocks(
     articles: nextArticles,
     changed,
   };
+}
+
+function applyCopyFitToClippedBlocks(
+  layout: AssembledLayout,
+  measurement: CandidateMeasurement,
+): { layout: AssembledLayout; changed: boolean } {
+  const clipped = new Set(measurement.clippedBlockIds ?? []);
+  if (clipped.size === 0) return { layout, changed: false };
+  let changed = false;
+  const blocks = layout.blocks.map((block) => {
+    if (!clipped.has(block.blockId) || block.style?.copyFit === "sm") return block;
+    changed = true;
+    return {
+      ...block,
+      style: { ...(block.style ?? {}), copyFit: "sm" as const },
+    };
+  });
+  return { layout: { ...layout, blocks }, changed };
 }
 
 function applyGuaranteedFitFloor(
@@ -780,6 +801,13 @@ runsRouter.post("/", async (req, res) => {
 
       finalMeasurement = await measureSelected();
       for (let attempt = 0; attempt < 5 && finalMeasurement?.clippedBlocks > 0; attempt++) {
+        if (sourceOnlyUploadedRun) {
+          const compacted = applyCopyFitToClippedBlocks(layout, finalMeasurement);
+          if (!compacted.changed) break;
+          layout = compacted.layout;
+          finalMeasurement = await measureSelected();
+          continue;
+        }
         const repaired = repairClippedBlocks(layout, articles, finalMeasurement, originalWordCounts);
         if (!repaired.changed) break;
         layout = repaired.layout;
@@ -791,7 +819,7 @@ runsRouter.post("/", async (req, res) => {
       // preserve the compositional box, and measure once more. This makes a
       // text clip impossible to ship even when upstream AI/repair behavior
       // regresses. The loss is explicit in the persisted fit report.
-      if (finalMeasurement?.clippedBlocks > 0) {
+      if (!sourceOnlyUploadedRun && finalMeasurement?.clippedBlocks > 0) {
         const floored = applyGuaranteedFitFloor(layout, articles, finalMeasurement);
         layout = floored.layout;
         articles = floored.articles;

@@ -108,7 +108,7 @@ function sectionHeaderRemainder(header: string, sectionId: string): string {
 function cleanArticleTitle(title: string): string {
   return title
     .replace(/\s+/g, " ")
-    .replace(/\s+[,;:.!?]+$/g, "")
+    .replace(/[\s,;:.!?]+$/g, "")
     .trim();
 }
 
