@@ -675,6 +675,9 @@ runsRouter.post("/", async (req, res) => {
   // v3: the AI layout designer produces the styled layout (panels, colored
   // headers, list blocks, captions). Falls back to the deterministic fitter
   // + vibrancy pass internally, so this never throws and is always styled.
+  const sourceOnlyArticlesBeforeDesign = sourceOnlyUploadedRun
+    ? articles.map((article) => ({ ...article }))
+    : undefined;
   const designed = await designLayout({
     templateId: template.id,
     pageCount: template.pageCount,
@@ -689,7 +692,11 @@ runsRouter.post("/", async (req, res) => {
     variationSeed: runId,
     porterRetrievalPrompt: porterRetrieval?.prompt,
   });
-  if (designed.articles) articles = designed.articles;
+  if (sourceOnlyArticlesBeforeDesign) {
+    articles = sourceOnlyArticlesBeforeDesign;
+  } else if (designed.articles) {
+    articles = designed.articles;
+  }
   let layout = stripUnfilledSourceBlocks(designed.layout, sourceOnlyUploadedRun);
 
   const monthLabel =
