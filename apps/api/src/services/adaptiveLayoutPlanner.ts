@@ -545,6 +545,14 @@ export function chooseAdaptiveCandidate(
   if (
     sourceTopology &&
     sourceTopology.subscores.renderFit != null &&
+    (sourceTopology.subscores.renderFit ?? 0) >= 0.999 &&
+    !sourceTopology.warnings.some((warning) => /^render-(clipped|overflow|missing)-/.test(warning))
+  ) {
+    return sourceTopology;
+  }
+  if (
+    sourceTopology &&
+    sourceTopology.subscores.renderFit != null &&
     (sourceTopology.subscores.renderFit ?? 0) >= ((best.subscores.renderFit ?? 1) - 0.01) &&
     best.score - sourceTopology.score <= 0.16 &&
     ((best.subscores.usefulOccupancy ?? 0) - (sourceTopology.subscores.usefulOccupancy ?? 0)) <= 0.16 &&
