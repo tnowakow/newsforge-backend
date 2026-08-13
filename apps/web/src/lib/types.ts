@@ -525,6 +525,7 @@ export interface UploadResult {
     wordCount?: number;
     byline?: string;
     sectionId?: string;
+    imageRefs?: string[];
     articleType?: ArticleType;
     source?: "MOCK" | "UPLOAD" | "GENERATED";
     bytes?: number;

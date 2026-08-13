@@ -173,7 +173,7 @@ export const api = {
     }
     const created = "created" in (raw as any) ? ((raw as any).created ?? []) : [];
     return {
-      files: created.map((asset: any) => {
+      files: created.flatMap((asset: any) => {
         const originalName = asset.meta?.originalFilename;
         if (asset.type === "IMAGE") {
           return {

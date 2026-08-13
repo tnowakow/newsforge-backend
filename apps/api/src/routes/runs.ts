@@ -151,6 +151,53 @@ async function expandCollapsedPorterUploadArticles(articles: Article[] | undefin
   return articles.flatMap((article) => expandedByAssetId.get(article.id) ?? [article]);
 }
 
+function normalizeSourceKey(value: string | undefined): string {
+  return (value ?? "")
+    .toLowerCase()
+    .replace(/&/g, "and")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+function sourceArticleMatches(left: Article, right: Article): boolean {
+  const leftTitle = normalizeSourceKey(left.title);
+  const rightTitle = normalizeSourceKey(right.title);
+  if (leftTitle && rightTitle && leftTitle === rightTitle) return true;
+  const leftBody = normalizeSourceKey(left.body).slice(0, 160);
+  const rightBody = normalizeSourceKey(right.body).slice(0, 160);
+  return leftBody.length > 40 && rightBody.length > 40 && leftBody === rightBody;
+}
+
+async function restorePorterImageRefsFromUploadMeta(
+  articles: Article[] | undefined,
+  clientId: string,
+): Promise<Article[] | undefined> {
+  if (!articles?.some((article) => article.source === "UPLOAD" && (article.imageRefs?.length ?? 0) === 0)) {
+    return articles;
+  }
+
+  const assets = await prisma.assetLibrary.findMany({
+    where: { clientId, type: "ARTICLE", source: "UPLOAD" },
+    orderBy: { createdAt: "desc" },
+    take: 30,
+    select: { meta: true },
+  });
+  const parsedArticles = assets.flatMap((asset) =>
+    porterParsedArticlesFromMeta(asset.meta).filter((article) => (article.imageRefs?.length ?? 0) > 0),
+  );
+  if (parsedArticles.length === 0) return articles;
+
+  let changed = false;
+  const restored = articles.map((article) => {
+    if (article.source !== "UPLOAD" || (article.imageRefs?.length ?? 0) > 0) return article;
+    const match = parsedArticles.find((parsed) => sourceArticleMatches(article, parsed));
+    if (!match?.imageRefs?.length) return article;
+    changed = true;
+    return { ...article, imageRefs: match.imageRefs };
+  });
+  return changed ? restored : articles;
+}
+
 function stripUnfilledSourceBlocks(layout: AssembledLayout, sourceOnly: boolean): AssembledLayout {
   if (!sourceOnly) return layout;
   const blocks = layout.blocks.filter((block) =>
@@ -561,6 +608,7 @@ runsRouter.post("/", async (req, res) => {
     res.status(404).json({ error: "client_not_found" });
     return;
   }
+  articles = await restorePorterImageRefsFromUploadMeta(articles, client.id);
 
   // Use supplied content, or generate mock content for this client.
   let images = body.images;

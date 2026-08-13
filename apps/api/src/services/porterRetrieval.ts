@@ -144,7 +144,7 @@ export function retrievePorterExamples(articles: Article[], images: NewsImage[],
     signature.moduleCount >= 9 &&
     signature.photoCount >= 5 &&
     signature.datedRows >= 8 &&
-    signature.referencedPhotoPairs >= 4;
+    (signature.referencedPhotoPairs >= 4 || signature.wordBand === "low" || signature.hasEventRecap);
   const julyLikeDenseGrid =
     signature.photoCount >= 6 &&
     signature.photoCount <= 14 &&

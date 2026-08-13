@@ -345,6 +345,7 @@ export default function Workspace() {
             wordCount: f.wordCount ?? countWords(f.body ?? ""),
             byline: f.byline,
             sectionId: f.sectionId,
+            imageRefs: f.imageRefs,
             isFiller: false,
             source: f.source ?? "UPLOAD",
             articleType: f.articleType,
