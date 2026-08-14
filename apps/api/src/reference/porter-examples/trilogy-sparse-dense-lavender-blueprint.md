@@ -31,7 +31,7 @@ Phase 1 target for the Trilogy June/August packet discussed on 2026-08-14.
 
 - Page 1 left rail: compact schedule/social/brunch stack.
 - Page 1 upper middle: Executive Director cream anchor.
-- Page 1 right/top and lower middle/right: Legacy, Chef, and Music story/photo tiles.
+- Page 1 right/top and lower middle/right: Legacy, Chef, and Music story/photo tiles. Sparse story copy should stay compact while the paired photos grow into the reclaimed vertical space, especially the lower Music band.
 - Page 2 upper band: campus brief stack plus outing/intergenerational photos.
 - Page 2 lower band: large leftover photo mass/rail.
 

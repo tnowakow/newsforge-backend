@@ -1217,11 +1217,17 @@ describe("adaptiveLayoutPlanner.buildAdaptiveLayout", () => {
     const chefImage = blueprint.layout.blocks.find((block) => block.imageId === "chef-img");
     const music = blueprint.layout.blocks.find((block) => block.articleId === "music");
     const musicImage = blueprint.layout.blocks.find((block) => block.imageId === "music-1");
+    const legacy = blueprint.layout.blocks.find((block) => block.articleId === "legacy");
+    const legacyImage = blueprint.layout.blocks.find((block) => block.imageId === "legacy-1");
+    assert.deepEqual(legacy?.position, { col: 15, row: 1, colSpan: 10, rowSpan: 2 });
+    assert.deepEqual(legacyImage?.position, { col: 15, row: 3, colSpan: 10, rowSpan: 4 });
     assert.equal(chef?.page, 1);
     assert.equal(chefImage?.page, 1);
     assert.ok(chef && chefImage && Math.abs(chefImage.position.row - chef.position.row) <= chef.position.rowSpan);
     assert.equal(music?.page, 1);
     assert.equal(musicImage?.page, 1);
+    assert.deepEqual(music?.position, { col: 6, row: 11, colSpan: 4, rowSpan: 6 });
+    assert.deepEqual(musicImage?.position, { col: 10, row: 11, colSpan: 15, rowSpan: 6 });
 
     const outing = blueprint.layout.blocks.find((block) => block.articleId === "outing");
     const outingImage = blueprint.layout.blocks.find((block) => block.imageId === "outing-img");

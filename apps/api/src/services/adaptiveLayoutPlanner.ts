@@ -932,16 +932,16 @@ function sourceTopologyCandidate(
       if (thirdSchedule) articleBlock(thirdSchedule, 1, 1, 13, 5, 4, 4);
       articleBlock(director, 1, 6, 1, 9, 6, 0);
       if (legacy) {
-        articleBlock(legacy, 1, 15, 1, 10, 3, 1);
-        imageBlock(takeImage(legacy), 1, 15, 4, 10, 3, legacy);
+        articleBlock(legacy, 1, 15, 1, 10, 2, 1);
+        imageBlock(takeImage(legacy), 1, 15, 3, 10, 4, legacy);
       }
       if (featureA) {
         articleBlock(featureA, 1, 6, 7, 7, 4, 5);
         imageBlock(takeImage(featureA), 1, 13, 7, 12, 4, featureA);
       }
       if (featureB) {
-        articleBlock(featureB, 1, 6, 11, 4, 3, 6);
-        imageBlock(takeImage(featureB), 1, 10, 11, 15, 4, featureB);
+        articleBlock(featureB, 1, 6, 11, 4, 6, 6);
+        imageBlock(takeImage(featureB), 1, 10, 11, 15, 6, featureB);
       }
 
       if (briefA) articleBlock(briefA, 2, 1, 1, 8, 3, 8);
