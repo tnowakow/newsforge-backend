@@ -940,8 +940,8 @@ function sourceTopologyCandidate(
         imageBlock(takeImage(featureA), 1, 13, 7, 12, 4, featureA);
       }
       if (featureB) {
-        articleBlock(featureB, 1, 6, 11, 7, 3, 6);
-        imageBlock(takeImage(featureB), 1, 13, 11, 12, 6, featureB);
+        articleBlock(featureB, 1, 6, 11, 4, 3, 6);
+        imageBlock(takeImage(featureB), 1, 10, 11, 15, 4, featureB);
       }
 
       if (briefA) articleBlock(briefA, 2, 1, 1, 8, 3, 8);
@@ -951,7 +951,7 @@ function sourceTopologyCandidate(
       }
       if (featureD) {
         articleBlock(featureD, 2, 17, 1, 8, 4, 9);
-        imageBlock(takeImage(featureD), 2, 17, 5, 8, 6, featureD);
+        imageBlock(takeImage(featureD), 2, 17, 5, 8, briefB ? 6 : 12, featureD);
       }
       imageBlock(takeImage(legacy), 2, 1, 7, 6, 10, legacy);
       imageBlock(takeImage(featureB), 2, 7, 7, 10, 10, featureB);

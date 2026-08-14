@@ -1200,6 +1200,7 @@ describe("adaptiveLayoutPlanner.buildAdaptiveLayout", () => {
     assert.ok(blueprint, "expected Porter-guided sparse blueprint candidate");
     assert.equal(result.chosen.id, "source-porter-guided-sparse");
     assert.equal(blueprint.label, "Uploaded source Porter composition: Porter-guided sparse blueprint");
+    assert.ok(blueprint.warnings.includes("porter-photo-pairing:5/5"));
 
     const happy = blueprint.layout.blocks.find((block) => block.slotId === "source-happy");
     const socials = blueprint.layout.blocks.find((block) => block.slotId === "source-socials");
