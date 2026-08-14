@@ -97,11 +97,13 @@ export function ModalHeader({
   title,
   subtitle,
   icon,
+  action,
   onClose,
 }: {
   title: ReactNode;
   subtitle?: ReactNode;
   icon?: ReactNode;
+  action?: ReactNode;
   onClose: () => void;
 }) {
   return (
@@ -115,13 +117,16 @@ export function ModalHeader({
           <div className="text-sm text-ink-muted mt-0.5">{subtitle}</div>
         )}
       </div>
-      <button
-        aria-label="Close"
-        onClick={onClose}
-        className="text-ink-muted hover:text-ink text-lg leading-none px-1 -mr-1 -mt-1"
-      >
-        ×
-      </button>
+      <div className="flex items-center gap-2">
+        {action}
+        <button
+          aria-label="Close"
+          onClick={onClose}
+          className="text-ink-muted hover:text-ink text-lg leading-none px-1 -mr-1 -mt-1"
+        >
+          ×
+        </button>
+      </div>
     </div>
   );
 }

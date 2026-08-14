@@ -788,6 +788,16 @@ function AiPromptLogModal({
       <ModalHeader
         title={<span id="ai-prompt-log-title">AI Prompt Log</span>}
         subtitle="Generation and edit prompts stored for this newsletter."
+        action={
+          <Button
+            variant="secondary"
+            size="sm"
+            disabled={loading || error != null || items.length === 0}
+            onClick={() => downloadTextFile(`AI_Prompt_Log---${runId}.txt`, buildPromptLogText(items))}
+          >
+            Download
+          </Button>
+        }
         onClose={onClose}
       />
       <div className="p-5 space-y-4">
@@ -870,6 +880,18 @@ function ScoreDetailsModal({
       <ModalHeader
         title={<span id="score-details-title">Why This Score?</span>}
         subtitle="The stored scoring path for this newsletter—not a new AI opinion."
+        action={
+          <Button
+            variant="secondary"
+            size="sm"
+            disabled={!report}
+            onClick={() => {
+              if (report) downloadTextFile(`Why_This_Score---${report.chosenTemplateId}.txt`, buildScoreDetailsText(report));
+            }}
+          >
+            Download
+          </Button>
+        }
         onClose={onClose}
       />
       {!report ? (
@@ -1069,6 +1091,138 @@ function formatDuration(durationMs: number): string {
   if (durationMs < 1000) return `${durationMs} ms`;
   const seconds = durationMs / 1000;
   return `${seconds.toFixed(seconds < 10 ? 1 : 0)} sec`;
+}
+
+function downloadTextFile(filename: string, contents: string) {
+  const blob = new Blob([contents], { type: "text/plain;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 0);
+}
+
+function buildPromptLogText(items: AiPromptAudit[]): string {
+  return [
+    "AI Prompt Log",
+    "Generation and edit prompts stored for this newsletter.",
+    "",
+    ...items.flatMap((item, index) => {
+      const meta = item.diffSummary;
+      return [
+        index > 0 ? "---" : "",
+        promptStatusLabel(item.resultStatus),
+        meta?.provider ? formatProvider(meta) : null,
+        meta?.durationMs !== undefined ? formatDuration(meta.durationMs) : null,
+        new Date(item.createdAt).toLocaleString(),
+        promptMetaSummary(item),
+        item.prompt,
+        "",
+      ].filter((line): line is string => typeof line === "string" && line.length > 0);
+    }),
+  ].join("\n");
+}
+
+function buildScoreDetailsText(report: LayoutFitReport): string {
+  const selected = report.adaptiveCandidates?.find((candidate) => candidate.selected)
+    ?? report.adaptiveCandidates?.[0];
+  const measurement = selected?.measurement;
+  const sub = selected?.subscores;
+  const warnings = uniqueStrings([...(selected?.warnings ?? []), ...(report.warnings ?? [])]);
+  const alternatives = (report.adaptiveCandidates ?? [])
+    .filter((candidate) => candidate.id !== selected?.id)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 4);
+  const lines: string[] = [
+    "Why This Score?",
+    "The stored scoring path for this newsletter—not a new AI opinion.",
+    "",
+    "Final score",
+    formatScoreValue(report.score),
+    "Inner spread",
+    formatScoreValue(report.innerSpreadAffinity ?? report.porterReferenceAffinity ?? 0),
+    "Cover / back",
+    formatScoreValue(report.coverScore ?? 0),
+    "Selected candidate",
+    selected?.label ?? report.chosenTemplateId,
+    "Reference family",
+    sub?.porterReferenceId ?? report.porterReferenceId ?? "Not recorded",
+    "Design mode",
+    report.designMode ?? "Not recorded",
+    "",
+    "Full-output quality gate",
+    `Four-page final score: ${formatScoreValue(report.fullOutputScore ?? report.score)}`,
+    `Cover render fit / clipping / overflow: ${formatScoreValue(report.coverRenderFit)} / ${report.coverClippedBlocks ?? 0} / ${report.coverOverflowBlocks ?? 0}`,
+    `Cover modules / images: ${report.coverContentBlocks ?? 0} / ${report.coverImageBlocks ?? 0}`,
+    `Duplicate birthday blocks: ${report.coverDuplicateBirthdayBlocks ?? 0}`,
+    "",
+    "How the score is calculated",
+    "Static candidate score = occupancy 14% + content coverage 14% + required coverage 18% + balance 9% + clipping risk 13% + geometry validity 8% + photo impact 5% + grammar affinity 4% + PorterOne affinity 15%.",
+    "Measured winner score = static score 38% + render fit 17% + useful occupancy 19% + geometric coverage 14% + reference affinity 12%, minus clipping, underfill, coverage, page-utility, empty-band, and low-utility deductions.",
+    "",
+    "Selected candidate inputs",
+    `PorterOne reference affinity: ${formatScoreValue(sub?.porterReferenceAffinity ?? report.porterReferenceAffinity)}`,
+    `Useful occupancy: ${formatScoreValue(sub?.usefulOccupancy ?? report.usefulOccupancy)}`,
+    `Render fit: ${formatScoreValue(sub?.renderFit ?? report.renderFit)}`,
+    `Geometric coverage: ${formatScoreValue(sub?.geometricCoverage ?? report.geometricCoverage ?? measurement?.geometricCoverage)}`,
+    `Content coverage: ${formatScoreValue(sub?.contentCoverage)}`,
+    `Required coverage: ${formatScoreValue(sub?.requiredCoverage)}`,
+    `Page balance: ${formatScoreValue(sub?.balance)}`,
+    `Photo impact: ${formatScoreValue(sub?.photoImpact)}`,
+    `Grammar affinity: ${formatScoreValue(sub?.grammarAffinity)}`,
+    `Geometry validity: ${formatScoreValue(sub?.geometryValidity)}`,
+    "",
+    "Render evidence",
+    `Clipped blocks: ${measurement?.clippedBlocks ?? report.clippedBlocks ?? 0}`,
+    `Overflow blocks: ${measurement?.overflowBlocks ?? report.overflowBlocks ?? 0}`,
+    `Missing images: ${measurement?.missingImages ?? report.missingImages ?? 0}`,
+    `Rendered images: ${measurement ? `${measurement.renderedImages}/${measurement.totalImages}` : report.renderedImages ?? "Not recorded"}`,
+    `Min page utility: ${formatScoreValue(measurement?.minPageUtility ?? report.minPageUtility)}`,
+    `Largest empty band: ${formatScoreValue(measurement?.largestEmptyBandRatio ?? report.largestEmptyBandRatio)}`,
+    "",
+    "Why this candidate won",
+    selected ? `It scored ${formatScoreValue(selected.score)} after the measured candidate pass.` : "No adaptive candidate detail was stored.",
+    alternatives.length > 0 ? `Nearest alternatives: ${alternatives.map((candidate) => `${candidate.label} (${formatScoreValue(candidate.score)})`).join(" · ")}` : null,
+    warnings.length > 0 ? `Deductions/warnings: ${warnings.join(" · ")}` : "No recorded warnings or deductions.",
+  ].filter((line): line is string => typeof line === "string");
+
+  if (report.fitReport) {
+    lines.push(
+      "",
+      "How this layout was fit",
+      report.fitReport.summary,
+      `Feasibility: ${report.fitReport.feasibility.status}`,
+      `Required words: ${report.fitReport.feasibility.requiredWords}`,
+      `Measured capacity: ${report.fitReport.feasibility.measuredCapacityWords}`,
+      `Underfilled boxes: ${report.underfilledBlocks ?? 0}`,
+      ...report.fitReport.actions.map((action) =>
+        `${action.warning ? "Warning: " : ""}${action.label}: rung ${action.rung} - ${action.action}${action.wordsIn != null ? ` (${action.wordsIn}->${action.wordsOut ?? action.wordsIn} words)` : ""}`,
+      ),
+      report.fitReport.hardOverflowGate ? "Hard no-overflow gate passed." : "Hard no-overflow gate needs attention.",
+    );
+  }
+
+  if (report.porterLayoutPlaybook) {
+    lines.push(
+      "",
+      "Porter layout rule adherence",
+      report.porterLayoutPlaybook.family,
+      formatScoreValue(report.porterLayoutPlaybook.score),
+      report.porterLayoutPlaybook.summary,
+      ...report.porterLayoutPlaybook.rules.flatMap((item) => [
+        "",
+        `${porterRuleLabel(item.status)} · ${formatScoreValue(item.score)}`,
+        item.label,
+        `Rule: ${item.target}`,
+        `Result: ${item.result}`,
+      ]),
+    );
+  }
+
+  return `${lines.join("\n")}\n`;
 }
 
 function promptMetaSummary(item: AiPromptAudit): string | null {
