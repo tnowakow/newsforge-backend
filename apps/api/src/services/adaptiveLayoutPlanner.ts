@@ -817,24 +817,46 @@ function sourceTopologyCandidate(input: AdaptiveLayoutInput, plan: EditorialPlan
 
   if (orderedArticles.length === 0) return undefined;
   const [director, legacy, firstSchedule, secondSchedule, thirdSchedule, featureA, featureB, featureC] = orderedArticles;
-  articleBlock(director, 1, 1, 1, 16, 6, 0);
-  imageBlock(takeImage(director), 1, 17, 1, 8, 6, director);
-  if (firstSchedule) articleBlock(firstSchedule, 1, 1, 7, 8, 4, 2);
-  if (secondSchedule) articleBlock(secondSchedule, 1, 9, 7, 8, 4, 3);
-  if (thirdSchedule) articleBlock(thirdSchedule, 1, 17, 7, 8, 4, 4);
-  imageBlock(takeImage(), 1, 1, 11, 8, 6);
-  imageBlock(takeImage(), 1, 9, 11, 8, 6);
-  imageBlock(takeImage(), 1, 17, 11, 8, 6);
+  const usesDensePorterPacker =
+    input.gridSpec.columns === 24 &&
+    input.gridSpec.rowsPerPage === 16 &&
+    orderedArticles.length >= 9 &&
+    images.length >= 5;
+  if (usesDensePorterPacker) {
+    articleBlock(director, 1, 1, 1, 13, 5, 0);
+    if (legacy) articleBlock(legacy, 1, 14, 1, 6, 3, 1);
+    imageBlock(takeImage(legacy), 1, 14, 4, 6, 4, legacy);
+    if (featureA) articleBlock(featureA, 1, 20, 1, 5, 3, 5);
+    imageBlock(takeImage(featureA), 1, 20, 4, 5, 6, featureA);
+    if (firstSchedule) articleBlock(firstSchedule, 1, 1, 6, 6, 5, 2);
+    if (secondSchedule) articleBlock(secondSchedule, 1, 7, 6, 6, 4, 3);
+    if (thirdSchedule) articleBlock(thirdSchedule, 1, 13, 8, 5, 3, 4);
+    if (featureB) articleBlock(featureB, 1, 13, 11, 6, 3, 6);
+    imageBlock(takeImage(featureB), 1, 19, 10, 6, 7, featureB);
+    if (featureC) {
+      articleBlock(featureC, 2, 1, 1, 7, 4, 7);
+      imageBlock(takeImage(featureC), 2, 8, 1, 7, 5, featureC);
+    }
+  } else {
+    articleBlock(director, 1, 1, 1, 16, 6, 0);
+    imageBlock(takeImage(director), 1, 17, 1, 8, 6, director);
+    if (firstSchedule) articleBlock(firstSchedule, 1, 1, 7, 8, 4, 2);
+    if (secondSchedule) articleBlock(secondSchedule, 1, 9, 7, 8, 4, 3);
+    if (thirdSchedule) articleBlock(thirdSchedule, 1, 17, 7, 8, 4, 4);
+    imageBlock(takeImage(), 1, 1, 11, 8, 6);
+    imageBlock(takeImage(), 1, 9, 11, 8, 6);
+    imageBlock(takeImage(), 1, 17, 11, 8, 6);
 
-  if (legacy) articleBlock(legacy, 2, 1, 1, 12, 5, 1);
-  imageBlock(takeImage(legacy), 2, 13, 1, 12, 5, legacy);
-  if (featureA) articleBlock(featureA, 2, 1, 6, 12, 5, 5);
-  imageBlock(takeImage(featureA), 2, 13, 6, 12, 5, featureA);
-  if (featureB) articleBlock(featureB, 2, 1, 11, 8, 6, 6);
-  imageBlock(takeImage(featureB), 2, 9, 11, 8, 6, featureB);
-  if (featureC) {
-    articleBlock(featureC, 2, 17, 11, 8, 3, 7);
-    imageBlock(takeImage(featureC), 2, 17, 14, 8, 3, featureC);
+    if (legacy) articleBlock(legacy, 2, 1, 1, 12, 5, 1);
+    imageBlock(takeImage(legacy), 2, 13, 1, 12, 5, legacy);
+    if (featureA) articleBlock(featureA, 2, 1, 6, 12, 5, 5);
+    imageBlock(takeImage(featureA), 2, 13, 6, 12, 5, featureA);
+    if (featureB) articleBlock(featureB, 2, 1, 11, 8, 6, 6);
+    imageBlock(takeImage(featureB), 2, 9, 11, 8, 6, featureB);
+    if (featureC) {
+      articleBlock(featureC, 2, 17, 11, 8, 3, 7);
+      imageBlock(takeImage(featureC), 2, 17, 14, 8, 3, featureC);
+    }
   }
 
   const overflowArticles = orderedArticles.filter((article) => !blocks.some((block) => block.articleId === article.id || block.slotId === `source-${article.id}`));
@@ -928,7 +950,7 @@ function sourceTopologyCandidate(input: AdaptiveLayoutInput, plan: EditorialPlan
   const scored = scoreCandidate(layout, { ...input, articles: orderedArticles, images }, plan);
   return {
     id: "source-topology",
-    label: "Uploaded source topology",
+    label: usesDensePorterPacker ? "Uploaded source Porter composition" : "Uploaded source topology",
     geometryVariant: "source-topology",
     layout,
     score: scored.score + 0.08,

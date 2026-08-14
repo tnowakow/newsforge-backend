@@ -852,6 +852,7 @@ describe("adaptiveLayoutPlanner.buildAdaptiveLayout", () => {
     });
     const source = result.candidates.find((candidate) => candidate.id === "source-topology");
     assert.ok(source, "expected uploaded source topology candidate");
+    assert.equal(source.label, "Uploaded source Porter composition");
 
     const contentBlocks = source.layout.blocks.filter((block) => block.articleId || block.imageId || block.kind === "list");
     const page1Blocks = contentBlocks.filter((block) => block.page === 1);
@@ -924,6 +925,20 @@ describe("adaptiveLayoutPlanner.buildAdaptiveLayout", () => {
       intergenImage && intergen &&
         Math.abs(intergenImage.position.row - intergen.position.row) <= intergen.position.rowSpan,
       "Intergenerational Fun image should stay near its story",
+    );
+    const articleAndListWidths = new Set(
+      source.layout.blocks
+        .filter((block) => block.articleId || block.kind === "list")
+        .map((block) => block.position.colSpan),
+    );
+    assert.ok(articleAndListWidths.size >= 4, "dense Porter source packer should avoid uniform same-width boxes");
+    assert.ok(
+      source.layout.blocks.some((block) => block.imageId && block.position.rowSpan >= 6 && block.position.colSpan <= 6),
+      "dense Porter source packer should create at least one vertical photo rail",
+    );
+    assert.ok(
+      source.layout.blocks.some((block) => block.page === 1 && block.imageId && block.position.row >= 10),
+      "dense Porter source packer should anchor the lower page with photo rhythm",
     );
 
     for (const block of source.layout.blocks) {
