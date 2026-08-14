@@ -794,13 +794,14 @@ function positionsOverlap(a: LayoutBlock["position"], b: LayoutBlock["position"]
   );
 }
 
-type DenseLavenderMapId = "rail-mosaic" | "story-river" | "photo-stair";
+type DenseLavenderMapId = "rail-mosaic" | "story-river" | "photo-stair" | "porter-guided-sparse";
 
 function denseLavenderMapLabel(mapId: DenseLavenderMapId): string {
   return {
     "rail-mosaic": "Uploaded source Porter composition: rail mosaic",
     "story-river": "Uploaded source Porter composition: story river",
     "photo-stair": "Uploaded source Porter composition: photo stair",
+    "porter-guided-sparse": "Uploaded source Porter composition: Porter-guided sparse blueprint",
   }[mapId];
 }
 
@@ -925,7 +926,38 @@ function sourceTopologyCandidate(
     orderedArticles.length >= 9 &&
     images.length >= 5;
   if (usesDensePorterPacker) {
-    if (denseMapId === "story-river") {
+    if (denseMapId === "porter-guided-sparse") {
+      if (firstSchedule) articleBlock(firstSchedule, 1, 1, 1, 5, 7, 2);
+      if (secondSchedule) articleBlock(secondSchedule, 1, 1, 8, 5, 5, 3);
+      if (thirdSchedule) articleBlock(thirdSchedule, 1, 1, 13, 5, 4, 4);
+      articleBlock(director, 1, 6, 1, 9, 6, 0);
+      if (legacy) {
+        articleBlock(legacy, 1, 15, 1, 10, 3, 1);
+        imageBlock(takeImage(legacy), 1, 15, 4, 10, 3, legacy);
+      }
+      if (featureA) {
+        articleBlock(featureA, 1, 6, 7, 7, 4, 5);
+        imageBlock(takeImage(featureA), 1, 13, 7, 12, 4, featureA);
+      }
+      if (featureB) {
+        articleBlock(featureB, 1, 6, 11, 7, 3, 6);
+        imageBlock(takeImage(featureB), 1, 13, 11, 12, 6, featureB);
+      }
+
+      if (briefA) articleBlock(briefA, 2, 1, 1, 8, 3, 8);
+      if (featureC) {
+        articleBlock(featureC, 2, 1, 4, 8, 3, 7);
+        imageBlock(takeImage(featureC), 2, 9, 1, 8, 6, featureC);
+      }
+      if (featureD) {
+        articleBlock(featureD, 2, 17, 1, 8, 4, 9);
+        imageBlock(takeImage(featureD), 2, 17, 5, 8, 6, featureD);
+      }
+      imageBlock(takeImage(legacy), 2, 1, 7, 6, 10, legacy);
+      imageBlock(takeImage(featureB), 2, 7, 7, 10, 10, featureB);
+      if (briefB) articleBlock(briefB, 2, 17, 11, 8, 3, 10);
+      imageBlock(takeImage(undefined, true), 2, 17, 14, 8, 3);
+    } else if (denseMapId === "story-river") {
       if (firstSchedule) articleBlock(firstSchedule, 1, 1, 1, 6, 5, 2);
       if (secondSchedule) articleBlock(secondSchedule, 1, 1, 6, 6, 4, 3);
       if (thirdSchedule) articleBlock(thirdSchedule, 1, 1, 10, 6, 3, 4);
@@ -1132,7 +1164,7 @@ function sourceTopologyCandidate(
     label: usesDensePorterPacker ? denseLavenderMapLabel(denseMapId) : "Uploaded source topology",
     geometryVariant: "source-topology",
     layout,
-    score: scored.score + (usesDensePorterPacker ? 0.12 : 0.08),
+    score: scored.score + (usesDensePorterPacker ? (denseMapId === "porter-guided-sparse" ? 0.2 : 0.12) : 0.08),
     subscores: scored.subscores,
     warnings: scored.warnings,
   };
@@ -1149,6 +1181,7 @@ function sourceTopologyCandidates(input: AdaptiveLayoutInput, plan: EditorialPla
   if (!dense) return [base];
   return [
     base,
+    sourceTopologyCandidate(input, plan, "porter-guided-sparse"),
     sourceTopologyCandidate(input, plan, "story-river"),
     sourceTopologyCandidate(input, plan, "photo-stair"),
   ].filter((candidate): candidate is AdaptiveLayoutCandidate => Boolean(candidate));

@@ -1007,6 +1007,7 @@ describe("adaptiveLayoutPlanner.buildAdaptiveLayout", () => {
     const source = result.candidates.find((candidate) => candidate.id === "source-topology");
     assert.ok(source, "expected uploaded source topology candidate");
     assert.equal(source.label, "Uploaded source Porter composition: rail mosaic");
+    assert.ok(result.candidates.some((candidate) => candidate.id === "source-porter-guided-sparse"));
     assert.ok(result.candidates.some((candidate) => candidate.id === "source-story-river"));
     assert.ok(result.candidates.some((candidate) => candidate.id === "source-photo-stair"));
 
@@ -1164,6 +1165,97 @@ describe("adaptiveLayoutPlanner.buildAdaptiveLayout", () => {
     assert.equal(playbook.rules.find((rule) => rule.id === "schedule-rails")?.status, "pass");
     assert.equal(playbook.rules.find((rule) => rule.id === "photo-story-pairing")?.status, "pass");
     assert.notEqual(playbook.rules.find((rule) => rule.id === "white-space-repair")?.status, "fail");
+  });
+
+  it("adds a Porter-guided sparse blueprint for the Trilogy low-word photo packet", () => {
+    const result = buildAdaptiveLayout({
+      templateId: "v3-upload-source",
+      pageCount: 2,
+      gridSpec: { ...gridSpec, columns: 24, rowsPerPage: 16 },
+      recurringSections: [],
+      articles: [
+        article("director", "Executive Director Corner", 100, "executive-note", "UPLOAD"),
+        { ...article("legacy", "Legacy News", 29, "resident-story", "UPLOAD"), imageRefs: ["Legacy.jpg", "Legacy 2.jpg"] },
+        { ...article("chef", "Chef Circle", 50, "announcement", "UPLOAD"), imageRefs: ["Chefs Circle.heic"] },
+        { ...article("music", "Music to My Ears", 17, "other", "UPLOAD"), imageRefs: ["Music to My Ears.jpg", "Music to My Ears 2.heic"] },
+        article("resident", "Resident Council", 21, "other", "UPLOAD"),
+        { ...article("outing", "Out & About", 21, "other", "UPLOAD"), imageRefs: ["Out and About.jpg"] },
+        { ...article("intergen", "Intergenerational Fun", 22, "other", "UPLOAD"), imageRefs: ["Intergenerational Fun.jpg"] },
+        article("happy", "Happy Hours", 21, "event-recap", "UPLOAD"),
+        article("socials", "Socials", 16, "event-recap", "UPLOAD"),
+        article("brunch", "Brunch", 3, "announcement", "UPLOAD"),
+      ],
+      images: [
+        { ...image("legacy-1", "landscape", "UPLOAD"), caption: "Legacy.jpg" },
+        { ...image("legacy-2", "landscape", "UPLOAD"), caption: "Legacy 2.jpg" },
+        { ...image("chef-img", "landscape", "UPLOAD"), caption: "Chefs Circle.heic" },
+        { ...image("music-1", "landscape", "UPLOAD"), caption: "Music to My Ears.jpg" },
+        { ...image("music-2", "landscape", "UPLOAD"), caption: "Music to My Ears 2.heic" },
+        { ...image("outing-img", "landscape", "UPLOAD"), caption: "Out and About.jpg" },
+        { ...image("intergen-img", "landscape", "UPLOAD"), caption: "Intergenerational Fun.jpg" },
+      ],
+    });
+
+    const blueprint = result.candidates.find((candidate) => candidate.id === "source-porter-guided-sparse");
+    assert.ok(blueprint, "expected Porter-guided sparse blueprint candidate");
+    assert.equal(result.chosen.id, "source-porter-guided-sparse");
+    assert.equal(blueprint.label, "Uploaded source Porter composition: Porter-guided sparse blueprint");
+
+    const happy = blueprint.layout.blocks.find((block) => block.slotId === "source-happy");
+    const socials = blueprint.layout.blocks.find((block) => block.slotId === "source-socials");
+    const brunch = blueprint.layout.blocks.find((block) => block.slotId === "source-brunch");
+    assert.deepEqual(happy?.position, { col: 1, row: 1, colSpan: 5, rowSpan: 7 });
+    assert.deepEqual(socials?.position, { col: 1, row: 8, colSpan: 5, rowSpan: 5 });
+    assert.deepEqual(brunch?.position, { col: 1, row: 13, colSpan: 5, rowSpan: 4 });
+
+    const director = blueprint.layout.blocks.find((block) => block.articleId === "director");
+    assert.deepEqual(director?.position, { col: 6, row: 1, colSpan: 9, rowSpan: 6 });
+    assert.equal(director?.style?.panelRole, "directorCorner");
+
+    const chef = blueprint.layout.blocks.find((block) => block.articleId === "chef");
+    const chefImage = blueprint.layout.blocks.find((block) => block.imageId === "chef-img");
+    const music = blueprint.layout.blocks.find((block) => block.articleId === "music");
+    const musicImage = blueprint.layout.blocks.find((block) => block.imageId === "music-1");
+    assert.equal(chef?.page, 1);
+    assert.equal(chefImage?.page, 1);
+    assert.ok(chef && chefImage && Math.abs(chefImage.position.row - chef.position.row) <= chef.position.rowSpan);
+    assert.equal(music?.page, 1);
+    assert.equal(musicImage?.page, 1);
+
+    const outing = blueprint.layout.blocks.find((block) => block.articleId === "outing");
+    const outingImage = blueprint.layout.blocks.find((block) => block.imageId === "outing-img");
+    const intergen = blueprint.layout.blocks.find((block) => block.articleId === "intergen");
+    const intergenImage = blueprint.layout.blocks.find((block) => block.imageId === "intergen-img");
+    assert.equal(outing?.page, 2);
+    assert.equal(outingImage?.page, 2);
+    assert.equal(intergen?.page, 2);
+    assert.equal(intergenImage?.page, 2);
+
+    const placedImages = blueprint.layout.blocks.filter((block) => block.imageId);
+    assert.equal(placedImages.length, 7);
+    assert.ok(
+      placedImages.some((block) => block.page === 2 && block.position.rowSpan >= 10),
+      "page 2 should turn reclaimed sparse-copy space into a strong photo mass",
+    );
+
+    for (const block of blueprint.layout.blocks) {
+      assert.ok(block.position.col >= 1);
+      assert.ok(block.position.row >= 1);
+      assert.ok(block.position.col + block.position.colSpan - 1 <= 24);
+      assert.ok(block.position.row + block.position.rowSpan - 1 <= 16);
+    }
+    for (const [index, block] of blueprint.layout.blocks.entries()) {
+      for (const other of blueprint.layout.blocks.slice(index + 1)) {
+        if (block.page !== other.page) continue;
+        const overlap: boolean = !(
+          block.position.col + block.position.colSpan - 1 < other.position.col ||
+          other.position.col + other.position.colSpan - 1 < block.position.col ||
+          block.position.row + block.position.rowSpan - 1 < other.position.row ||
+          other.position.row + other.position.rowSpan - 1 < block.position.row
+        );
+        assert.equal(overlap, false, `blocks ${block.slotId} and ${other.slotId} should not overlap`);
+      }
+    }
   });
 
   it("fails photo and rendered-quality playbook rules when loaded images are placeholders", () => {
