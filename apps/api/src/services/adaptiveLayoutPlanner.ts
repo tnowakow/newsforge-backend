@@ -474,20 +474,20 @@ function scoreWithMeasurement(
   const averageFillDeficit = fillRatios.length > 0
     ? fillRatios.reduce((sum, entry) => sum + Math.max(0, 0.8 - entry.fillRatio), 0) / fillRatios.length
     : 0;
-  const underfillPenalty = Math.max(0, 0.86 - usefulOccupancy) * 0.18 + averageFillDeficit * 0.22;
-  const coveragePenalty = Math.max(0, 0.9 - geometricCoverage) * 0.3;
-  const pageUtilityPenalty = Math.max(0, 0.72 - minPageUtility) * 0.24;
-  const emptyBandPenalty = Math.max(0, largestEmptyBandRatio - 0.18) * 0.2;
+  const underfillPenalty = Math.max(0, 0.86 - usefulOccupancy) * 0.2 + averageFillDeficit * 0.24;
+  const coveragePenalty = Math.max(0, 0.9 - geometricCoverage) * 0.32;
+  const pageUtilityPenalty = Math.max(0, 0.74 - minPageUtility) * 0.28;
+  const emptyBandPenalty = Math.max(0, largestEmptyBandRatio - 0.18) * 0.24;
   const renderPenalty = (1 - renderFit) * 0.35;
-  const lowUtilityPenalty = measurement.lowUtilityBlocks * 0.055;
+  const lowUtilityPenalty = measurement.lowUtilityBlocks * 0.065;
   const referenceAffinity = candidate.subscores.porterReferenceAffinity ?? 0;
   const score = Math.max(
     0,
-    candidate.score * 0.38 +
+    candidate.score * 0.36 +
       renderFit * 0.17 +
-      usefulOccupancy * 0.19 +
-      geometricCoverage * 0.14 +
-      referenceAffinity * 0.12 -
+      usefulOccupancy * 0.18 +
+      geometricCoverage * 0.13 +
+      referenceAffinity * 0.16 -
       renderPenalty -
       underfillPenalty -
       coveragePenalty -
@@ -546,9 +546,10 @@ export function chooseAdaptiveCandidate(
     sourceTopology &&
     sourceTopology.subscores.renderFit != null &&
     (sourceTopology.subscores.renderFit ?? 0) >= ((best.subscores.renderFit ?? 1) - 0.01) &&
-    best.score - sourceTopology.score <= 0.16 &&
-    ((best.subscores.usefulOccupancy ?? 0) - (sourceTopology.subscores.usefulOccupancy ?? 0)) <= 0.16 &&
-    lowUtilityWarningCount(sourceTopology) <= lowUtilityWarningCount(best) + 2 &&
+    best.score - sourceTopology.score <= 0.1 &&
+    ((best.subscores.usefulOccupancy ?? 0) - (sourceTopology.subscores.usefulOccupancy ?? 0)) <= 0.1 &&
+    ((best.subscores.porterReferenceAffinity ?? 0) - (sourceTopology.subscores.porterReferenceAffinity ?? 0)) <= 0.06 &&
+    lowUtilityWarningCount(sourceTopology) <= lowUtilityWarningCount(best) + 1 &&
     !sourceTopology.warnings.some((warning) => /^render-(clipped|overflow|missing)-/.test(warning))
   ) {
     return sourceTopology;

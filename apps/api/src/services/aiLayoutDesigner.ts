@@ -226,10 +226,10 @@ function qualityScore(
     ? Math.max(0, 1 - measurement.clippedBlocks * 0.015 - measurement.overflowBlocks * 0.2 - measurement.missingImages * 0.2)
     : 0;
   const clipPenalty = Math.min(0.12, (measurement?.clippedBlocks ?? 0) * 0.015);
-  const emptyPenalty = Math.max(0, (measurement?.largestEmptyBandRatio ?? 0) - 0.28) * 0.35;
-  const underfillPenalty = Math.min(0.24, underfilledBlocks * 0.02);
+  const emptyPenalty = Math.max(0, (measurement?.largestEmptyBandRatio ?? 0) - 0.24) * 0.4;
+  const underfillPenalty = Math.min(0.28, underfilledBlocks * 0.025);
   return Math.max(0, Math.min(1,
-    reference.affinity * 0.38 + useful * 0.22 + coverage * 0.15 + pageUtility * 0.15 + renderFit * 0.1 - clipPenalty - emptyPenalty - underfillPenalty,
+    reference.affinity * 0.42 + useful * 0.22 + coverage * 0.14 + pageUtility * 0.14 + renderFit * 0.08 - clipPenalty - emptyPenalty - underfillPenalty,
   ));
 }
 
