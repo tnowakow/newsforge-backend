@@ -478,6 +478,97 @@ describe("adaptiveLayoutPlanner.buildAdaptiveLayout", () => {
     assert.deepEqual(chosenIds, new Set([candidates[0].id]));
   });
 
+  it("gates out candidates that fail critical Porter designer rules", () => {
+    const result = buildAdaptiveLayout({
+      templateId: "v3-test",
+      pageCount: 2,
+      gridSpec,
+      recurringSections: [],
+      articles: [
+        article("director", "Executive Director Corner", 100, "executive-note", "UPLOAD"),
+        { ...article("legacy", "Legacy News", 30, "resident-story", "UPLOAD"), imageRefs: ["Legacy.jpg"] },
+      ],
+      images: [{ ...image("legacy-photo", "landscape", "UPLOAD"), caption: "Legacy.jpg" }],
+    });
+    const [first, second] = result.candidates;
+    assert.ok(first);
+    assert.ok(second);
+
+    const chosen = chooseAdaptiveCandidate([
+      {
+        ...first,
+        id: "photo-band-expand",
+        score: 0.9,
+        warnings: ["porter-critical:photo-story-pairing"],
+      },
+      {
+        ...second,
+        id: "compound-tile-packer",
+        score: 0.62,
+        warnings: [],
+      },
+    ], "porter-hard-gate");
+
+    assert.equal(chosen.id, "compound-tile-packer");
+  });
+
+  it("gates out measured candidates with severe white-space repair failures", () => {
+    const result = buildAdaptiveLayout({
+      templateId: "v3-test",
+      pageCount: 2,
+      gridSpec,
+      recurringSections: [],
+      articles: [
+        article("director", "Executive Director Corner", 100, "executive-note", "UPLOAD"),
+        { ...article("legacy", "Legacy News", 30, "resident-story", "UPLOAD"), imageRefs: ["Legacy.jpg"] },
+      ],
+      images: [{ ...image("legacy-photo", "landscape", "UPLOAD"), caption: "Legacy.jpg" }],
+    });
+    const [first, second] = result.candidates;
+    assert.ok(first);
+    assert.ok(second);
+
+    const measured = applyCandidateMeasurements([
+      { ...first, id: "technically-clean-but-empty", score: 0.95, warnings: [] },
+      { ...second, id: "lower-score-designer-layout", score: 0.6, warnings: [] },
+    ], [
+      {
+        candidateId: "technically-clean-but-empty",
+        clippedBlocks: 0,
+        overflowBlocks: 0,
+        missingImages: 0,
+        renderedImages: 1,
+        totalImages: 1,
+        usefulOccupancy: 0.43,
+        minPageUtility: 0.22,
+        largestEmptyBandRatio: 0,
+        lowUtilityBlocks: 12,
+        underfilledBlocks: 21,
+      },
+      {
+        candidateId: "lower-score-designer-layout",
+        clippedBlocks: 0,
+        overflowBlocks: 0,
+        missingImages: 0,
+        renderedImages: 1,
+        totalImages: 1,
+        usefulOccupancy: 0.64,
+        minPageUtility: 0.5,
+        largestEmptyBandRatio: 0,
+        lowUtilityBlocks: 3,
+        underfilledBlocks: 6,
+      },
+    ]);
+    const badWhitespace = measured.find((candidate) => candidate.id === "technically-clean-but-empty");
+    const cleanEnough = measured.find((candidate) => candidate.id === "lower-score-designer-layout");
+    assert.ok(badWhitespace);
+    assert.ok(cleanEnough);
+
+    assert.equal(badWhitespace?.warnings.includes("porter-critical:white-space-repair"), true);
+    assert.equal(cleanEnough?.warnings.includes("porter-critical:white-space-repair"), false);
+    assert.equal(chooseAdaptiveCandidate([badWhitespace, cleanEnough], "porter-hard-gate").id, "lower-score-designer-layout");
+  });
+
   it("prefers a clean uploaded source topology when it is close to the measured winner", () => {
     const result = buildAdaptiveLayout({
       templateId: "v3-test",

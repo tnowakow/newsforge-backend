@@ -368,12 +368,56 @@ function geometryWarnings(layout: AssembledLayout, gridSpec: GridSpec): string[]
   return warnings;
 }
 
+function blockCenter(block: LayoutBlock): { x: number; y: number } {
+  return {
+    x: block.position.col + block.position.colSpan / 2,
+    y: block.position.row + block.position.rowSpan / 2,
+  };
+}
+
+function blockDistance(a: LayoutBlock, b: LayoutBlock): number {
+  const ac = blockCenter(a);
+  const bc = blockCenter(b);
+  return Math.abs(ac.x - bc.x) + Math.abs(ac.y - bc.y);
+}
+
+function photoStoryPairingRatio(
+  layout: AssembledLayout,
+  articles: Article[],
+  images: NewsImage[],
+): { paired: number; total: number; ratio: number } {
+  const referencedArticles = articles.filter((article) => (article.imageRefs?.length ?? 0) > 0);
+  if (referencedArticles.length === 0) return { paired: 0, total: 0, ratio: 1 };
+  const imageBlocks = layout.blocks.filter((block) => block.imageId);
+  let paired = 0;
+  for (const article of referencedArticles) {
+    const articleBlock = layout.blocks.find((block) => block.articleId === article.id);
+    if (!articleBlock) continue;
+    const matchedImageIds = images
+      .filter((image) => (article.imageRefs ?? []).some((ref) => imageMatchesRef(image, ref)))
+      .map((image) => image.id);
+    const near = imageBlocks.some((imageBlock) =>
+      imageBlock.imageId &&
+      matchedImageIds.includes(imageBlock.imageId) &&
+      imageBlock.page === articleBlock.page &&
+      blockDistance(articleBlock, imageBlock) <= 10,
+    );
+    if (near) paired += 1;
+  }
+  return { paired, total: referencedArticles.length, ratio: paired / referencedArticles.length };
+}
+
 function scoreCandidate(
   layout: AssembledLayout,
   input: AdaptiveLayoutInput,
   plan: EditorialPlan,
 ): { score: number; subscores: AdaptiveCandidateScore; warnings: string[] } {
   const warnings = geometryWarnings(layout, input.gridSpec);
+  const photoPairing = photoStoryPairingRatio(layout, input.articles, input.images);
+  if (photoPairing.total > 0) {
+    warnings.push(`porter-photo-pairing:${photoPairing.paired}/${photoPairing.total}`);
+    if (photoPairing.ratio < 0.8) warnings.push("porter-critical:photo-story-pairing");
+  }
   const placedArticleIds = new Set(layout.blocks.flatMap((block) => block.articleId ? [block.articleId] : []));
   const placedRequired = plan.requiredArticleIds.filter((id) => placedArticleIds.has(id)).length;
   const pageAreas = Array.from({ length: input.pageCount }, (_, pageIndex) =>
@@ -426,7 +470,10 @@ function scoreCandidate(
     porterReferenceAffinity: reference.affinity,
     porterReferenceId: reference.referenceId,
   };
-  const score =
+  const photoPairingPenalty = photoPairing.total > 0
+    ? Math.max(0, 0.8 - photoPairing.ratio) * 0.26
+    : 0;
+  const score = Math.max(0,
     0.13 * subscores.occupancy +
     0.13 * subscores.contentCoverage +
     0.17 * subscores.requiredCoverage +
@@ -435,7 +482,9 @@ function scoreCandidate(
     0.07 * subscores.geometryValidity +
     0.04 * subscores.photoImpact +
     0.03 * subscores.grammarAffinity +
-    0.22 * (subscores.porterReferenceAffinity ?? 0);
+    0.22 * (subscores.porterReferenceAffinity ?? 0) -
+    photoPairingPenalty,
+  );
   return { score, subscores, warnings };
 }
 
@@ -480,6 +529,12 @@ function scoreWithMeasurement(
   const emptyBandPenalty = Math.max(0, largestEmptyBandRatio - 0.18) * 0.24;
   const renderPenalty = (1 - renderFit) * 0.35;
   const lowUtilityPenalty = measurement.lowUtilityBlocks * 0.065;
+  const whiteSpaceCritical =
+    usefulOccupancy < 0.5 ||
+    minPageUtility < 0.38 ||
+    (measurement.underfilledBlocks ?? 0) >= 12 ||
+    measurement.lowUtilityBlocks >= 10;
+  if (whiteSpaceCritical) warnings.push("porter-critical:white-space-repair");
   const referenceAffinity = candidate.subscores.porterReferenceAffinity ?? 0;
   const score = Math.max(
     0,
@@ -493,7 +548,8 @@ function scoreWithMeasurement(
       coveragePenalty -
       pageUtilityPenalty -
       emptyBandPenalty -
-      lowUtilityPenalty,
+      lowUtilityPenalty -
+      (whiteSpaceCritical ? 0.28 : 0),
   );
   return {
     ...candidate,
@@ -534,14 +590,20 @@ function lowUtilityWarningCount(candidate: AdaptiveLayoutCandidate): number {
   }, 0);
 }
 
+function hasPorterCriticalWarning(candidate: AdaptiveLayoutCandidate): boolean {
+  return candidate.warnings.some((warning) => warning.startsWith("porter-critical:"));
+}
+
 export function chooseAdaptiveCandidate(
   candidates: AdaptiveLayoutCandidate[],
   variationSeed?: string,
 ): AdaptiveLayoutCandidate {
   const sorted = [...candidates].sort((a, b) => b.score - a.score || a.id.localeCompare(b.id));
-  const best = sorted[0];
+  const gateClean = sorted.filter((candidate) => !hasPorterCriticalWarning(candidate));
+  const ranked = gateClean.length > 0 ? gateClean : sorted;
+  const best = ranked[0];
   if (!best || !variationSeed) return best;
-  const sourceTopology = sorted.find((candidate) => candidate.id === "source-topology");
+  const sourceTopology = ranked.find((candidate) => candidate.id === "source-topology");
   if (
     sourceTopology &&
     sourceTopology.subscores.renderFit != null &&
@@ -558,7 +620,7 @@ export function chooseAdaptiveCandidate(
   const bestRenderFit = best.subscores.renderFit;
   const bestLowUtilityWarnings = lowUtilityWarningCount(best);
   const bestReferenceAffinity = best.subscores.porterReferenceAffinity;
-  const nearBest = sorted.filter((candidate) => {
+  const nearBest = ranked.filter((candidate) => {
     if (best.score - candidate.score > 0.04) return false;
     if (
       bestRenderFit != null &&
@@ -816,27 +878,59 @@ function sourceTopologyCandidate(input: AdaptiveLayoutInput, plan: EditorialPlan
   };
 
   if (orderedArticles.length === 0) return undefined;
-  const [director, legacy, firstSchedule, secondSchedule, thirdSchedule, featureA, featureB, featureC] = orderedArticles;
+  const director = orderedArticles.find((article) => /executive director|director corner/i.test(article.title)) ?? orderedArticles[0];
+  const legacy = orderedArticles.find((article) => /legacy/i.test(article.title) && article.id !== director.id);
+  const scheduleArticles = orderedArticles.filter(isScheduleArticle);
+  const photoStories = orderedArticles.filter((article) =>
+    article.id !== director.id &&
+    article.id !== legacy?.id &&
+    !isScheduleArticle(article) &&
+    (article.imageRefs?.length ?? 0) > 0,
+  );
+  const briefs = orderedArticles.filter((article) =>
+    article.id !== director.id &&
+    article.id !== legacy?.id &&
+    !scheduleArticles.some((schedule) => schedule.id === article.id) &&
+    !photoStories.some((story) => story.id === article.id),
+  );
+  const [firstSchedule, secondSchedule, thirdSchedule] = scheduleArticles;
+  const [featureA, featureB, featureC, featureD] = photoStories;
+  const [briefA, briefB] = briefs;
   const usesDensePorterPacker =
     input.gridSpec.columns === 24 &&
     input.gridSpec.rowsPerPage === 16 &&
     orderedArticles.length >= 9 &&
     images.length >= 5;
   if (usesDensePorterPacker) {
-    articleBlock(director, 1, 1, 1, 13, 5, 0);
-    if (legacy) articleBlock(legacy, 1, 14, 1, 6, 3, 1);
-    imageBlock(takeImage(legacy), 1, 14, 4, 6, 4, legacy);
-    if (featureA) articleBlock(featureA, 1, 20, 1, 5, 3, 5);
-    imageBlock(takeImage(featureA), 1, 20, 4, 5, 6, featureA);
-    if (firstSchedule) articleBlock(firstSchedule, 1, 1, 6, 6, 5, 2);
-    if (secondSchedule) articleBlock(secondSchedule, 1, 7, 6, 6, 4, 3);
-    if (thirdSchedule) articleBlock(thirdSchedule, 1, 13, 8, 5, 3, 4);
-    if (featureB) articleBlock(featureB, 1, 13, 11, 6, 3, 6);
-    imageBlock(takeImage(featureB), 1, 19, 10, 6, 7, featureB);
-    if (featureC) {
-      articleBlock(featureC, 2, 1, 1, 7, 4, 7);
-      imageBlock(takeImage(featureC), 2, 8, 1, 7, 5, featureC);
+    articleBlock(director, 1, 1, 1, 9, 7, 0);
+    if (legacy) {
+      articleBlock(legacy, 1, 10, 1, 7, 4, 1);
+      imageBlock(takeImage(legacy), 1, 17, 1, 8, 4, legacy);
     }
+    if (featureA) {
+      articleBlock(featureA, 1, 10, 5, 7, 5, 5);
+      imageBlock(takeImage(featureA), 1, 17, 5, 8, 6, featureA);
+    }
+    if (firstSchedule) articleBlock(firstSchedule, 1, 1, 8, 6, 5, 2);
+    if (secondSchedule) articleBlock(secondSchedule, 1, 1, 13, 6, 4, 3);
+    if (featureB) {
+      articleBlock(featureB, 1, 7, 11, 6, 4, 6);
+      imageBlock(takeImage(featureB), 1, 13, 11, 6, 6, featureB);
+    }
+    if (thirdSchedule) articleBlock(thirdSchedule, 1, 19, 11, 6, 3, 4);
+    imageBlock(takeImage(featureB), 1, 19, 14, 6, 3, featureB);
+
+    if (briefA) articleBlock(briefA, 2, 1, 1, 10, 4, 8);
+    if (featureC) {
+      articleBlock(featureC, 2, 1, 5, 7, 4, 7);
+      imageBlock(takeImage(featureC), 2, 8, 5, 8, 5, featureC);
+    }
+    if (featureD) {
+      articleBlock(featureD, 2, 16, 1, 9, 5, 9);
+      imageBlock(takeImage(featureD), 2, 16, 6, 9, 6, featureD);
+    }
+    if (briefB) articleBlock(briefB, 2, 1, 10, 8, 3, 10);
+    imageBlock(takeImage(legacy), 2, 9, 10, 7, 4, legacy);
   } else {
     articleBlock(director, 1, 1, 1, 16, 6, 0);
     imageBlock(takeImage(director), 1, 17, 1, 8, 6, director);
