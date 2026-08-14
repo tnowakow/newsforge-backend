@@ -785,7 +785,21 @@ function positionsOverlap(a: LayoutBlock["position"], b: LayoutBlock["position"]
   );
 }
 
-function sourceTopologyCandidate(input: AdaptiveLayoutInput, plan: EditorialPlan): AdaptiveLayoutCandidate | undefined {
+type DenseLavenderMapId = "rail-mosaic" | "story-river" | "photo-stair";
+
+function denseLavenderMapLabel(mapId: DenseLavenderMapId): string {
+  return {
+    "rail-mosaic": "Uploaded source Porter composition: rail mosaic",
+    "story-river": "Uploaded source Porter composition: story river",
+    "photo-stair": "Uploaded source Porter composition: photo stair",
+  }[mapId];
+}
+
+function sourceTopologyCandidate(
+  input: AdaptiveLayoutInput,
+  plan: EditorialPlan,
+  denseMapId: DenseLavenderMapId = "rail-mosaic",
+): AdaptiveLayoutCandidate | undefined {
   if (!input.articles.some((article) => article.source === "UPLOAD")) return undefined;
   const articles = orderArticles(input.articles, plan, "source");
   const schedules = articles.filter(isScheduleArticle);
@@ -902,35 +916,97 @@ function sourceTopologyCandidate(input: AdaptiveLayoutInput, plan: EditorialPlan
     orderedArticles.length >= 9 &&
     images.length >= 5;
   if (usesDensePorterPacker) {
-    articleBlock(director, 1, 1, 1, 9, 7, 0);
-    if (legacy) {
-      articleBlock(legacy, 1, 10, 1, 7, 4, 1);
-      imageBlock(takeImage(legacy), 1, 17, 1, 8, 4, legacy);
-    }
-    if (featureA) {
-      articleBlock(featureA, 1, 10, 5, 7, 5, 5);
-      imageBlock(takeImage(featureA), 1, 17, 5, 8, 6, featureA);
-    }
-    if (firstSchedule) articleBlock(firstSchedule, 1, 1, 8, 6, 5, 2);
-    if (secondSchedule) articleBlock(secondSchedule, 1, 1, 13, 6, 4, 3);
-    if (featureB) {
-      articleBlock(featureB, 1, 7, 11, 6, 4, 6);
-      imageBlock(takeImage(featureB), 1, 13, 11, 6, 6, featureB);
-    }
-    if (thirdSchedule) articleBlock(thirdSchedule, 1, 19, 11, 6, 3, 4);
-    imageBlock(takeImage(featureB), 1, 19, 14, 6, 3, featureB);
+    if (denseMapId === "story-river") {
+      if (firstSchedule) articleBlock(firstSchedule, 1, 1, 1, 6, 5, 2);
+      if (secondSchedule) articleBlock(secondSchedule, 1, 1, 6, 6, 4, 3);
+      if (thirdSchedule) articleBlock(thirdSchedule, 1, 1, 10, 6, 3, 4);
+      articleBlock(director, 1, 7, 1, 9, 7, 0);
+      if (legacy) {
+        articleBlock(legacy, 1, 16, 1, 9, 3, 1);
+        imageBlock(takeImage(legacy), 1, 16, 4, 9, 4, legacy);
+      }
+      if (featureA) {
+        articleBlock(featureA, 1, 7, 8, 8, 4, 5);
+        imageBlock(takeImage(featureA), 1, 15, 8, 10, 5, featureA);
+      }
+      if (featureB) {
+        articleBlock(featureB, 1, 7, 12, 7, 5, 6);
+        imageBlock(takeImage(featureB), 1, 14, 13, 11, 4, featureB);
+      }
 
-    if (briefA) articleBlock(briefA, 2, 1, 1, 10, 4, 8);
-    if (featureC) {
-      articleBlock(featureC, 2, 1, 5, 7, 4, 7);
-      imageBlock(takeImage(featureC), 2, 8, 5, 8, 5, featureC);
+      if (briefA) articleBlock(briefA, 2, 1, 1, 8, 4, 8);
+      if (featureC) {
+        imageBlock(takeImage(featureC), 2, 9, 1, 8, 5, featureC);
+        articleBlock(featureC, 2, 17, 1, 8, 5, 7);
+      }
+      imageBlock(takeImage(legacy), 2, 1, 5, 8, 4, legacy);
+      if (featureD) {
+        articleBlock(featureD, 2, 1, 9, 8, 4, 9);
+        imageBlock(takeImage(featureD), 2, 9, 9, 8, 4, featureD);
+      }
+      if (briefB) articleBlock(briefB, 2, 17, 7, 8, 4, 10);
+      imageBlock(takeImage(undefined, true), 2, 17, 11, 8, 6);
+    } else if (denseMapId === "photo-stair") {
+      articleBlock(director, 1, 1, 1, 10, 7, 0);
+      if (legacy) {
+        articleBlock(legacy, 1, 11, 1, 6, 4, 1);
+        imageBlock(takeImage(legacy), 1, 17, 1, 8, 5, legacy);
+      }
+      if (firstSchedule) articleBlock(firstSchedule, 1, 1, 8, 6, 5, 2);
+      if (secondSchedule) articleBlock(secondSchedule, 1, 1, 13, 6, 4, 3);
+      if (featureA) {
+        articleBlock(featureA, 1, 7, 8, 7, 4, 5);
+        imageBlock(takeImage(featureA), 1, 14, 7, 11, 5, featureA);
+      }
+      if (featureB) {
+        articleBlock(featureB, 1, 7, 12, 7, 5, 6);
+        imageBlock(takeImage(featureB), 1, 14, 12, 11, 5, featureB);
+      }
+
+      if (thirdSchedule) articleBlock(thirdSchedule, 2, 1, 1, 6, 3, 4);
+      if (briefA) articleBlock(briefA, 2, 7, 1, 9, 4, 8);
+      imageBlock(takeImage(legacy), 2, 16, 1, 9, 5, legacy);
+      if (featureC) {
+        imageBlock(takeImage(featureC), 2, 1, 4, 8, 6, featureC);
+        articleBlock(featureC, 2, 9, 5, 7, 5, 7);
+      }
+      if (featureD) {
+        articleBlock(featureD, 2, 16, 6, 9, 4, 9);
+        imageBlock(takeImage(featureD), 2, 16, 10, 9, 7, featureD);
+      }
+      if (briefB) articleBlock(briefB, 2, 1, 10, 7, 3, 10);
+      imageBlock(takeImage(undefined, true), 2, 8, 10, 8, 7);
+    } else {
+      if (firstSchedule) articleBlock(firstSchedule, 1, 1, 1, 6, 5, 2);
+      if (secondSchedule) articleBlock(secondSchedule, 1, 1, 6, 6, 4, 3);
+      if (thirdSchedule) articleBlock(thirdSchedule, 1, 1, 10, 6, 3, 4);
+      articleBlock(director, 1, 7, 1, 9, 8, 0);
+      if (legacy) {
+        articleBlock(legacy, 1, 16, 1, 9, 3, 1);
+        imageBlock(takeImage(legacy), 1, 16, 4, 9, 5, legacy);
+      }
+      if (featureA) {
+        articleBlock(featureA, 1, 7, 9, 7, 4, 5);
+        imageBlock(takeImage(featureA), 1, 14, 9, 11, 4, featureA);
+      }
+      if (featureB) {
+        articleBlock(featureB, 1, 7, 13, 6, 4, 6);
+        imageBlock(takeImage(featureB), 1, 13, 13, 12, 4, featureB);
+      }
+
+      if (briefA) articleBlock(briefA, 2, 1, 1, 9, 4, 8);
+      imageBlock(takeImage(legacy), 2, 10, 1, 7, 4, legacy);
+      if (featureC) {
+        articleBlock(featureC, 2, 17, 1, 8, 4, 7);
+        imageBlock(takeImage(featureC), 2, 17, 5, 8, 5, featureC);
+      }
+      if (featureD) {
+        imageBlock(takeImage(featureD), 2, 1, 5, 8, 6, featureD);
+        articleBlock(featureD, 2, 9, 6, 8, 5, 9);
+      }
+      if (briefB) articleBlock(briefB, 2, 17, 10, 8, 3, 10);
+      imageBlock(takeImage(undefined, true), 2, 1, 11, 6, 6);
     }
-    if (featureD) {
-      articleBlock(featureD, 2, 16, 1, 9, 5, 9);
-      imageBlock(takeImage(featureD), 2, 16, 6, 9, 6, featureD);
-    }
-    if (briefB) articleBlock(briefB, 2, 1, 10, 8, 3, 10);
-    imageBlock(takeImage(legacy), 2, 9, 10, 7, 4, legacy);
   } else {
     articleBlock(director, 1, 1, 1, 16, 6, 0);
     imageBlock(takeImage(director), 1, 17, 1, 8, 6, director);
@@ -1043,14 +1119,30 @@ function sourceTopologyCandidate(input: AdaptiveLayoutInput, plan: EditorialPlan
   };
   const scored = scoreCandidate(layout, { ...input, articles: orderedArticles, images }, plan);
   return {
-    id: "source-topology",
-    label: usesDensePorterPacker ? "Uploaded source Porter composition" : "Uploaded source topology",
+    id: usesDensePorterPacker && denseMapId !== "rail-mosaic" ? `source-${denseMapId}` : "source-topology",
+    label: usesDensePorterPacker ? denseLavenderMapLabel(denseMapId) : "Uploaded source topology",
     geometryVariant: "source-topology",
     layout,
-    score: scored.score + 0.08,
+    score: scored.score + (usesDensePorterPacker ? 0.12 : 0.08),
     subscores: scored.subscores,
     warnings: scored.warnings,
   };
+}
+
+function sourceTopologyCandidates(input: AdaptiveLayoutInput, plan: EditorialPlan): AdaptiveLayoutCandidate[] {
+  const base = sourceTopologyCandidate(input, plan, "rail-mosaic");
+  if (!base) return [];
+  const dense =
+    input.gridSpec.columns === 24 &&
+    input.gridSpec.rowsPerPage === 16 &&
+    input.articles.filter((article) => article.source === "UPLOAD").length >= 9 &&
+    input.images.length >= 5;
+  if (!dense) return [base];
+  return [
+    base,
+    sourceTopologyCandidate(input, plan, "story-river"),
+    sourceTopologyCandidate(input, plan, "photo-stair"),
+  ].filter((candidate): candidate is AdaptiveLayoutCandidate => Boolean(candidate));
 }
 
 function largestBlock(blocks: LayoutBlock[]): LayoutBlock | undefined {
@@ -1443,9 +1535,9 @@ export function buildAdaptiveLayout(input: AdaptiveLayoutInput): AdaptiveLayoutR
     brandVoice: input.brandVoice,
     clientName: input.clientName,
   });
-  const sourceTopology = sourceTopologyCandidate(input, plan);
+  const sourceCandidates = sourceTopologyCandidates(input, plan);
   const candidates = [
-    ...(sourceTopology ? [sourceTopology] : []),
+    ...sourceCandidates,
     makeCandidate("source-order", "Source order", input, plan, "source", "source", "fixed"),
     makeCandidate("editorial-priority", "Editorial priority", input, plan, "editorial", "uploadedFirst", "lead-photo-swap"),
     makeCandidate("photo-impact", "Photo impact", input, plan, "editorial", "landscapeFirst", "photo-lead-swap"),

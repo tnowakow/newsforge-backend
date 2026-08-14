@@ -17,6 +17,7 @@ export const PORTER_LAYOUT_PLAYBOOK_PROMPT = `PORTER LAYOUT DIRECTOR RULES:
 - Keep every uploaded photo referenced by a story next to that story, preferably same page and touching or near the story block.
 - If a page has white space or low utility, repair in this order: grow an adjacent referenced photo, then shrink/merge the short text box, then move the short list into a rail.
 - Every dense-lavender page needs a visible anchor: vertical rail, stacked photo strip, footer band, or strong photo mosaic.
+- For dense-lavender-grid, choose and obey a concrete page map: schedule rail, Executive Director anchor, story/photo pair tiles, short-brief stack, and vertical/photo-strip anchor.
 - Avoid repeated same-width text boxes stacked in rows. Dense Porter spreads need varied module widths and staggered rhythm.
 - Use all real uploaded photos exactly once when supplied; never let filename captions replace human story captions.
 - Reject technically valid layouts that fail these rules, even if they have no clipping or overflow.`;
@@ -128,6 +129,7 @@ export function evaluatePorterLayoutPlaybook(input: EvaluateInput): PorterLayout
     .map((block) => layout.pageCount >= 4 ? { ...block, page: block.page - 1 } : block)
     .filter((block) => block.kind !== "empty");
   const articleBlocks = innerBlocks.filter((block) => block.articleId);
+  const imageBlocks = innerBlocks.filter((block) => block.imageId);
   const rules: PorterLayoutRuleResult[] = [];
 
   const birthdayBlocks = innerBlocks.filter(isBirthdayBlock);
@@ -170,9 +172,11 @@ export function evaluatePorterLayoutPlaybook(input: EvaluateInput): PorterLayout
 
   const scheduleArticles = articles.filter(isScheduleArticle);
   const scheduleBlocks = innerBlocks.filter(isScheduleBlock);
+  let scheduleRailRatio = 1;
   if (scheduleArticles.length > 0 || scheduleBlocks.length > 0) {
     const compact = scheduleBlocks.filter((block) => block.position.colSpan <= narrowRailMax || (block.position.colSpan <= 10 && (block.listItems?.length ?? 0) >= 5));
     const ratio = scheduleBlocks.length ? compact.length / scheduleBlocks.length : 0;
+    scheduleRailRatio = ratio;
     rules.push(rule(
       "schedule-rails",
       "Dated lists stay narrow",
@@ -184,6 +188,7 @@ export function evaluatePorterLayoutPlaybook(input: EvaluateInput): PorterLayout
   }
 
   const referencedArticles = articles.filter((article) => (article.imageRefs?.length ?? 0) > 0);
+  let photoStoryRatio = 1;
   if (referencedArticles.length > 0) {
     let paired = 0;
     const details: string[] = [];
@@ -198,6 +203,7 @@ export function evaluatePorterLayoutPlaybook(input: EvaluateInput): PorterLayout
       details.push(`${article.title}: ${near ? "near" : "drifted"}`);
     }
     const ratio = paired / referencedArticles.length;
+    photoStoryRatio = ratio;
     rules.push(rule(
       "photo-story-pairing",
       "Referenced photos stay with stories",
@@ -208,7 +214,23 @@ export function evaluatePorterLayoutPlaybook(input: EvaluateInput): PorterLayout
     ));
   }
 
-  const imageBlocks = innerBlocks.filter((block) => block.imageId);
+  if (/dense-lavender-grid/i.test(input.referenceFamily ?? "")) {
+    const hasDirectorAnchor = Boolean(directorBlock && directorBlock.page === 1 && directorBlock.position.row <= 3 && directorBlock.position.col <= 14);
+    const hasVerticalRail = imageBlocks.some((block) => block.position.colSpan <= narrowRailMax && block.position.rowSpan >= Math.ceil(gridSpec.rowsPerPage * 0.35));
+    const hasPhotoStrip = [1, 2].some((page) => imageBlocks.filter((block) => block.page === page).length >= 3);
+    const hasBriefStack = articleBlocks.filter((block) => blockArea(block) <= 36).length >= 3 || scheduleBlocks.length >= 2;
+    const mapScore = [hasDirectorAnchor, scheduleRailRatio >= 0.8, photoStoryRatio >= 0.8, hasVerticalRail || hasPhotoStrip, hasBriefStack]
+      .filter(Boolean).length / 5;
+    rules.push(rule(
+      "dense-lavender-map",
+      "Dense-lavender map skeleton",
+      statusFromRatio(mapScore, 0.8),
+      mapScore,
+      "Dense-lavender output should follow a concrete map: schedule rail, ED anchor, story/photo tiles, brief stack, and photo rail/strip.",
+      `${Math.round(mapScore * 5)}/5 skeleton traits present: ED anchor ${hasDirectorAnchor ? "yes" : "no"}, schedule rail ${scheduleRailRatio >= 0.8 ? "yes" : "no"}, photo/story tiles ${photoStoryRatio >= 0.8 ? "yes" : "no"}, photo anchor ${hasVerticalRail || hasPhotoStrip ? "yes" : "no"}, brief stack ${hasBriefStack ? "yes" : "no"}.`,
+    ));
+  }
+
   const usedUploadedImages = images.filter((image) => image.source === "UPLOAD" || images.length > 0);
   const imageUseRatio = usedUploadedImages.length ? imageBlocks.length / usedUploadedImages.length : 1;
   const filenameCaptions = imageBlocks.filter((block) => isFilenameCaption(block.caption)).length;

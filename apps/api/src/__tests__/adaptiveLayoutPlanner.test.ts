@@ -944,7 +944,9 @@ describe("adaptiveLayoutPlanner.buildAdaptiveLayout", () => {
     });
     const source = result.candidates.find((candidate) => candidate.id === "source-topology");
     assert.ok(source, "expected uploaded source topology candidate");
-    assert.equal(source.label, "Uploaded source Porter composition");
+    assert.equal(source.label, "Uploaded source Porter composition: rail mosaic");
+    assert.ok(result.candidates.some((candidate) => candidate.id === "source-story-river"));
+    assert.ok(result.candidates.some((candidate) => candidate.id === "source-photo-stair"));
 
     const contentBlocks = source.layout.blocks.filter((block) => block.articleId || block.imageId || block.kind === "list");
     const page1Blocks = contentBlocks.filter((block) => block.page === 1);
