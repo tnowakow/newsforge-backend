@@ -176,6 +176,24 @@ export const FitReportSchema = z.object({
 });
 export type FitReport = z.infer<typeof FitReportSchema>;
 
+export const PorterLayoutRuleResultSchema = z.object({
+  id: z.string(),
+  label: z.string(),
+  status: z.enum(["pass", "warn", "fail", "not-applicable"]),
+  score: z.number().min(0).max(1),
+  target: z.string(),
+  result: z.string(),
+});
+export type PorterLayoutRuleResult = z.infer<typeof PorterLayoutRuleResultSchema>;
+
+export const PorterLayoutPlaybookReportSchema = z.object({
+  family: z.string(),
+  score: z.number().min(0).max(1),
+  summary: z.string(),
+  rules: z.array(PorterLayoutRuleResultSchema),
+});
+export type PorterLayoutPlaybookReport = z.infer<typeof PorterLayoutPlaybookReportSchema>;
+
 export const LayoutFitReportSchema = z.object({
   chosenTemplateId: z.string(),
   score: z.number(),
@@ -214,6 +232,7 @@ export const LayoutFitReportSchema = z.object({
   coverImageBlocks: z.number().int().nonnegative().optional(),
   coverDuplicateBirthdayBlocks: z.number().int().nonnegative().optional(),
   fitReport: FitReportSchema.optional(),
+  porterLayoutPlaybook: PorterLayoutPlaybookReportSchema.optional(),
   editorialPlan: EditorialPlanReportSchema.optional(),
   adaptiveCandidates: z.array(AdaptiveLayoutCandidateReportSchema).optional(),
   candidates: z.array(LayoutFitCandidateSchema),

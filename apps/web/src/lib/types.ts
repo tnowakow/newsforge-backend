@@ -236,6 +236,7 @@ export interface AdaptiveLayoutCandidateReport {
   selected?: boolean;
   geometryVariant:
     | "fixed"
+    | "source-topology"
     | "lead-photo-swap"
     | "photo-lead-swap"
     | "brief-rail-swap"
@@ -268,6 +269,9 @@ export interface AdaptiveLayoutCandidateReport {
     renderedImages: number;
     totalImages: number;
     usefulOccupancy: number;
+    underfilledBlocks?: number;
+    fillRatios?: Array<{ blockId: string; fillRatio: number }>;
+    clipDetails?: Array<{ blockId: string; overflowPx: number }>;
     geometricCoverage?: number;
     minPageUtility?: number;
     largestEmptyBandRatio?: number;
@@ -353,6 +357,22 @@ export interface FitReport {
   hardOverflowGate: boolean;
 }
 
+export interface PorterLayoutRuleResult {
+  id: string;
+  label: string;
+  status: "pass" | "warn" | "fail" | "not-applicable";
+  score: number;
+  target: string;
+  result: string;
+}
+
+export interface PorterLayoutPlaybookReport {
+  family: string;
+  score: number;
+  summary: string;
+  rules: PorterLayoutRuleResult[];
+}
+
 export interface LayoutFitReport {
   chosenTemplateId: string;
   score: number;
@@ -383,6 +403,7 @@ export interface LayoutFitReport {
   coverImageBlocks?: number;
   coverDuplicateBirthdayBlocks?: number;
   fitReport?: FitReport;
+  porterLayoutPlaybook?: PorterLayoutPlaybookReport;
   editorialPlan?: EditorialPlanReport;
   adaptiveCandidates?: AdaptiveLayoutCandidateReport[];
   candidates: LayoutFitCandidate[];

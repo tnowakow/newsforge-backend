@@ -437,6 +437,7 @@ export function buildLayoutFitReport(input: {
   fullOutput?: FullOutputScore;
   fitReport?: FitReport;
   porterRetrieval?: LayoutFitReport["porterRetrieval"];
+  porterLayoutPlaybook?: LayoutFitReport["porterLayoutPlaybook"];
 }): LayoutFitReport {
   const pick =
     input.pickResult ??
@@ -478,6 +479,7 @@ export function buildLayoutFitReport(input: {
     coverImageBlocks: input.fullOutput?.coverImageBlocks,
     coverDuplicateBirthdayBlocks: input.fullOutput?.coverDuplicateBirthdayBlocks,
     fitReport: input.fitReport,
+    porterLayoutPlaybook: input.porterLayoutPlaybook,
     editorialPlan: input.design?.editorialPlan,
     adaptiveCandidates: input.design?.adaptiveCandidates,
     candidates: pick.candidates,

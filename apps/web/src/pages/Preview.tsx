@@ -971,6 +971,35 @@ function ScoreDetailsModal({
               </div>
             </section>
           )}
+
+          {report.porterLayoutPlaybook && (
+            <section>
+              <h3 className="font-display font-semibold mb-2">Porter layout rule adherence</h3>
+              <div className="border border-rule rounded-md overflow-hidden">
+                <div className="px-3 py-2 bg-bg border-b border-rule flex flex-wrap items-center gap-2">
+                  <span className="font-medium">{report.porterLayoutPlaybook.family}</span>
+                  <span className="font-mono text-xs">{formatScoreValue(report.porterLayoutPlaybook.score)}</span>
+                  <span className="text-xs text-ink-muted">{report.porterLayoutPlaybook.summary}</span>
+                </div>
+                <div className="divide-y divide-rule">
+                  {report.porterLayoutPlaybook.rules.map((item) => (
+                    <div key={item.id} className="px-3 py-2 grid gap-2 md:grid-cols-[120px_minmax(160px,220px)_1fr] text-xs">
+                      <div>
+                        <span className={`inline-flex items-center rounded px-2 py-0.5 font-medium ${porterRuleTone(item.status)}`}>
+                          {porterRuleLabel(item.status)} · {formatScoreValue(item.score)}
+                        </span>
+                      </div>
+                      <div className="font-medium text-ink">{item.label}</div>
+                      <div className="space-y-1 text-ink-muted">
+                        <div><span className="text-ink">Rule:</span> {item.target}</div>
+                        <div><span className="text-ink">Result:</span> {item.result}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </section>
+          )}
         </div>
       )}
     </Modal>
@@ -988,6 +1017,20 @@ function formatScoreValue(value: number | undefined): string {
 function scoreBarTone(value: number | undefined): string {
   if (value == null) return "bg-rule";
   return value >= 0.8 ? "bg-emerald-500" : value >= 0.6 ? "bg-amber-400" : "bg-rose-400";
+}
+
+function porterRuleLabel(status: "pass" | "warn" | "fail" | "not-applicable"): string {
+  if (status === "pass") return "Pass";
+  if (status === "warn") return "Warn";
+  if (status === "fail") return "Fail";
+  return "N/A";
+}
+
+function porterRuleTone(status: "pass" | "warn" | "fail" | "not-applicable"): string {
+  if (status === "pass") return "bg-emerald-50 text-emerald-700";
+  if (status === "warn") return "bg-amber-50 text-amber-700";
+  if (status === "fail") return "bg-rose-50 text-rose-700";
+  return "bg-slate-100 text-slate-600";
 }
 
 function uniqueStrings(values: string[]): string[] {

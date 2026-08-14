@@ -14,6 +14,7 @@ import {
   chooseAdaptiveCandidate,
   createEditorialPlan,
 } from "../services/adaptiveLayoutPlanner.js";
+import { evaluatePorterLayoutPlaybook } from "../services/porterLayoutPlaybook.js";
 
 function simpleLayout(templateId: string, blocks: AssembledLayout["blocks"]): AssembledLayout {
   return {
@@ -960,6 +961,54 @@ describe("adaptiveLayoutPlanner.buildAdaptiveLayout", () => {
         assert.equal(overlap, false, `blocks ${block.slotId} and ${other.slotId} should not overlap`);
       }
     }
+
+    const playbook = evaluatePorterLayoutPlaybook({
+      layout: source.layout,
+      articles: result.plan.items.length
+        ? [
+            article("director", "Executive Director Corner", 100, "executive-note", "UPLOAD"),
+            { ...article("legacy", "Legacy News", 29, "resident-story", "UPLOAD"), imageRefs: ["Legacy.jpg", "Legacy 2.jpg"] },
+            { ...article("chef", "Chef Circle", 50, "announcement", "UPLOAD"), imageRefs: ["Chefs Circle.heic"] },
+            { ...article("music", "Music to My Ears", 17, "other", "UPLOAD"), imageRefs: ["Music to My Ears.jpg", "Music to My Ears 2.heic"] },
+            article("resident", "Resident Council", 21, "other", "UPLOAD"),
+            { ...article("outing", "Out & About", 21, "other", "UPLOAD"), imageRefs: ["Out and About.jpg"] },
+            { ...article("intergen", "Intergenerational Fun", 22, "other", "UPLOAD"), imageRefs: ["Intergenerational Fun.jpg"] },
+            article("happy", "Happy Hours", 21, "event-recap", "UPLOAD"),
+            article("socials", "Socials", 16, "event-recap", "UPLOAD"),
+            article("brunch", "Brunch", 3, "announcement", "UPLOAD"),
+          ]
+        : [],
+      images: [
+        { ...image("legacy-1", "landscape", "UPLOAD"), caption: "Legacy.jpg" },
+        { ...image("legacy-2", "landscape", "UPLOAD"), caption: "Legacy 2.jpg" },
+        { ...image("chef-img", "landscape", "UPLOAD"), caption: "Chefs Circle.heic" },
+        { ...image("music-1", "landscape", "UPLOAD"), caption: "Music to My Ears.jpg" },
+        { ...image("music-2", "landscape", "UPLOAD"), caption: "Music to My Ears 2.heic" },
+        { ...image("outing-img", "landscape", "UPLOAD"), caption: "Out and About.jpg" },
+        { ...image("intergen-img", "landscape", "UPLOAD"), caption: "Intergenerational Fun.jpg" },
+      ],
+      gridSpec: { ...gridSpec, columns: 24, rowsPerPage: 16 },
+      referenceFamily: "dense-lavender-grid",
+      measurement: {
+        candidateId: source.id,
+        clippedBlocks: 0,
+        overflowBlocks: 0,
+        missingImages: 0,
+        renderedImages: 7,
+        totalImages: 7,
+        usefulOccupancy: 0.78,
+        geometricCoverage: 0.92,
+        minPageUtility: 0.72,
+        largestEmptyBandRatio: 0.04,
+        lowUtilityBlocks: 2,
+        underfilledBlocks: 3,
+      },
+    });
+    assert.equal(playbook.family, "dense-lavender-grid");
+    assert.ok(playbook.rules.length >= 7);
+    assert.equal(playbook.rules.find((rule) => rule.id === "schedule-rails")?.status, "pass");
+    assert.equal(playbook.rules.find((rule) => rule.id === "photo-story-pairing")?.status, "pass");
+    assert.notEqual(playbook.rules.find((rule) => rule.id === "white-space-repair")?.status, "fail");
   });
 
   it("creates a photo band expansion candidate by compressing the band above it", () => {

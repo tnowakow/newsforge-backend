@@ -12,6 +12,7 @@
  */
 import type { BlockStyle, PanelRole, PanelToken, VisualPersonality } from "@newsforge/shared/schemas";
 import { PORTER_GRAMMAR_PROMPT } from "./porterGrammar.js";
+import { PORTER_LAYOUT_PLAYBOOK_PROMPT } from "./porterLayoutPlaybook.js";
 
 export interface BrandColors {
   primaryColor: string;
@@ -247,6 +248,8 @@ PORTERONE REFERENCE TARGET (the originals are the source of truth; the skeleton 
 8. Dated schedules and outings are list blocks too. Happy Hour uses panelRole "happyHour" with bg "sky" and headerColor "navy". Upcoming Events uses panelRole "upcomingEvents" with bg "cream" and headerColor "coral". Do not use "sun" as schedule heading text color. Outings use panelRole "outingList" with compact two-column rows when possible. Dated lists (happyHour, outingList, upcomingEvents) MUST be narrow rails (colSpan <= about 6 on a 24-column grid) or compact two-column lists. Never place a short dated list (six rows or fewer) in a wide single-column band: it cannot fill the width and strands white space.
 9. Every photo gets a caption unless it is part of a tight collage/photoCluster. Captions are italic and short. Photos cluster near their stories; prefer several smaller human/community photos over one large generic hero.
 10. No white space, no overflow. Every page should have strong edge-to-edge editorial rhythm; if content is sparse, grow photos and compact callouts, not empty panels. If content overflows, prefer trimming the longest article over dropping required content.
+
+${PORTER_LAYOUT_PLAYBOOK_PROMPT}
 
 STRICT OUTPUT RULES:
 - JSON only, matching the provided schema. Preserve every blockId you were given for blocks you keep; new blocks get blockId "new-1", "new-2", ...

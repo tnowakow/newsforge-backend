@@ -64,6 +64,7 @@ import {
   type PorterOneScenario,
 } from "../services/porterOneReferenceScorer.js";
 import { retrievePorterExamples } from "../services/porterRetrieval.js";
+import { evaluatePorterLayoutPlaybook } from "../services/porterLayoutPlaybook.js";
 import type { CandidateMeasurement } from "../services/adaptiveLayoutPlanner.js";
 
 export const runsRouter: Router = Router();
@@ -958,6 +959,14 @@ runsRouter.post("/", async (req, res) => {
   // acceptance score disagree with the design notes).
   const measuredInnerAffinity = innerReferenceScore.affinity;
   const fullOutput = scoreFullNewsletterOutput(layout, measuredInnerAffinity, finalMeasurement);
+  const porterLayoutPlaybook = evaluatePorterLayoutPlaybook({
+    layout,
+    articles,
+    images,
+    gridSpec: effectiveGridSpec,
+    referenceFamily: porterRetrieval?.family ?? innerReferenceScore.referenceId,
+    measurement: finalMeasurement,
+  });
 
   const originalRequiredWords = [...originalWordCounts.values()].reduce((sum, words) => sum + words, 0);
   const fittedWords = fitResult.articleFit.reduce((sum, fit) => sum + fit.wordsOut, 0);
@@ -1007,6 +1016,7 @@ runsRouter.post("/", async (req, res) => {
     },
     fullOutput,
     fitReport,
+    porterLayoutPlaybook,
     porterRetrieval: porterRetrieval
       ? {
           family: porterRetrieval.family,
@@ -1786,6 +1796,13 @@ runsRouter.post("/:id/ai-arrange", aiRateLimit, async (req, res) => {
     chosen: scoreableChosen,
     pickResult: deterministicPick,
     fitResult,
+    porterLayoutPlaybook: evaluatePorterLayoutPlaybook({
+      layout: finalLayout,
+      articles: fitResult.articles,
+      images: fitResult.keptImages,
+      gridSpec: gridSpecParsed.data,
+      referenceFamily: porterOneReferenceIdForTemplate(chosenTemplate.id),
+    }),
   });
 
   const updated = await prisma.newsletterRun.update({
