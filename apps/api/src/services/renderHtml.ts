@@ -172,7 +172,7 @@ function renderBlock(input: RenderInput, b: LayoutBlock): string {
     if (img) {
       inner = `
         <figure class="photo${photoClass(b)}">
-          <div class="photo-frame"><img src="${esc(img.url)}" alt="${esc(img.alt ?? "")}" style="${imageInlineStyle(img)}"/></div>
+          <div class="photo-frame"><img src="${esc(img.url)}" alt="${esc(img.alt ?? "")}" data-placeholder="${img.isPlaceholder ? "true" : "false"}" style="${imageInlineStyle(img)}"/></div>
           ${b.caption ? `<figcaption>${esc(b.caption)}</figcaption>` : ""}
         </figure>`;
     }

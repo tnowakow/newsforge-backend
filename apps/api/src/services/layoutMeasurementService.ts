@@ -33,6 +33,8 @@ interface DomMeasurement {
   overflowBlocks: number;
   missingImages: number;
   renderedImages: number;
+  placeholderImages: number;
+  realRenderedImages: number;
   totalImages: number;
   usefulOccupancy: number;
   geometricCoverage: number;
@@ -47,6 +49,7 @@ interface DomMeasurement {
     clippedBlocks: number;
     overflowBlocks: number;
     missingImages: number;
+    placeholderImages: number;
     renderFit: number;
     usefulOccupancy: number;
   }>;
@@ -110,6 +113,49 @@ async function measureCandidate(input: Omit<MeasureInput, "candidates"> & {
     const clippedBlockIds = Array.from(clippedBlockSet)
       .map((block) => block.getAttribute("data-block-id"))
       .filter((id): id is string => typeof id === "string" && id.length > 0);
+    const isLoadedImage = (image: any) => image && image.complete && image.naturalWidth > 0;
+    const imageLooksPlaceholder = (image: any): boolean => {
+      if (!isLoadedImage(image)) return false;
+      const marker = `${image.currentSrc ?? ""} ${image.src ?? ""} ${image.alt ?? ""}`.toLowerCase();
+      if (image.dataset?.placeholder === "true") return true;
+      if (/test[-_\s]?placeholder|placeholder[-_\s]?image|newsletter photo/.test(marker)) return true;
+      try {
+        const canvas = doc.createElement("canvas") as any;
+        const size = 48;
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext("2d", { willReadFrequently: true });
+        if (!ctx) return false;
+        ctx.drawImage(image, 0, 0, size, size);
+        const data = ctx.getImageData(0, 0, size, size).data;
+        let lowerDark = 0;
+        let lowerCount = 0;
+        let upperColorful = 0;
+        let upperCount = 0;
+        for (let y = 0; y < size; y++) {
+          for (let x = 0; x < size; x++) {
+            const idx = (y * size + x) * 4;
+            const r = data[idx] ?? 0;
+            const g = data[idx + 1] ?? 0;
+            const b = data[idx + 2] ?? 0;
+            const brightness = (r + g + b) / 3;
+            const chroma = Math.max(r, g, b) - Math.min(r, g, b);
+            if (y >= Math.floor(size * 0.72)) {
+              lowerCount += 1;
+              if (brightness < 38) lowerDark += 1;
+            } else {
+              upperCount += 1;
+              if (chroma > 45 && brightness > 70) upperColorful += 1;
+            }
+          }
+        }
+        const lowerDarkRatio = lowerCount > 0 ? lowerDark / lowerCount : 0;
+        const upperColorfulRatio = upperCount > 0 ? upperColorful / upperCount : 0;
+        return lowerDarkRatio > 0.68 && upperColorfulRatio > 0.18;
+      } catch {
+        return false;
+      }
+    };
     const fillRatios: Array<{ blockId: string; fillRatio: number }> = [];
     for (const block of blocks) {
       const rect = block.getBoundingClientRect();
@@ -119,7 +165,7 @@ async function measureCandidate(input: Omit<MeasureInput, "candidates"> & {
       const image = block.querySelector(".photo img") as any;
       let fillRatio = 0;
       if (image) {
-        fillRatio = image.complete && image.naturalWidth > 0 ? 1 : 0;
+        fillRatio = isLoadedImage(image) && !imageLooksPlaceholder(image) ? 1 : 0;
       } else {
         const contentNodes = Array.from(block.querySelectorAll(
           ".section-heading,.script-heading,.byline,.body p,.list-row,.list-group,figcaption",
@@ -168,7 +214,9 @@ async function measureCandidate(input: Omit<MeasureInput, "candidates"> & {
     }
     const overflowBlocks = new Set([...pageBoundaryOverflowSet, ...overlapBlockSet]).size;
     const images = Array.from(doc.querySelectorAll(".photo img")) as any[];
-    const renderedImages = images.filter((image) => image.complete && image.naturalWidth > 0).length;
+    const renderedImages = images.filter(isLoadedImage).length;
+    const placeholderImages = images.filter(imageLooksPlaceholder).length;
+    const realRenderedImages = Math.max(0, renderedImages - placeholderImages);
     let weightedUtility = 0;
     let totalContentArea = 0;
     let totalCoveredArea = 0;
@@ -208,7 +256,7 @@ async function measureCandidate(input: Omit<MeasureInput, "candidates"> & {
         const image = block.querySelector(".photo img") as any;
         let utility = 0;
         if (image) {
-          utility = image.complete && image.naturalWidth > 0 ? 1 : 0;
+          utility = isLoadedImage(image) && !imageLooksPlaceholder(image) ? 1 : 0;
         } else {
           const contentNodes = Array.from(block.querySelectorAll(
             ".section-heading,.script-heading,.byline,.body p,.list-row,.list-group,figcaption",
@@ -236,7 +284,11 @@ async function measureCandidate(input: Omit<MeasureInput, "candidates"> & {
       const pageTotalImages = pageBlocks.reduce((sum, block) => sum + (block.querySelector(".photo img") ? 1 : 0), 0);
       const pageRenderedImages = pageBlocks.filter((block) => {
         const image = block.querySelector(".photo img") as any;
-        return image && image.complete && image.naturalWidth > 0;
+        return isLoadedImage(image);
+      }).length;
+      const pagePlaceholderImages = pageBlocks.filter((block) => {
+        const image = block.querySelector(".photo img") as any;
+        return imageLooksPlaceholder(image);
       }).length;
       const pageContentBlocks = pageBlocks.filter((block) => {
         const kind = block.getAttribute("data-kind");
@@ -255,7 +307,7 @@ async function measureCandidate(input: Omit<MeasureInput, "candidates"> & {
       maxEmptyRun = Math.max(maxEmptyRun, emptyRun);
       largestEmptyBandRatio = Math.max(largestEmptyBandRatio, maxEmptyRun / rowBuckets.length);
       const pageUtility = pageWeightedUtility / contentArea;
-      const pageRenderFit = Math.max(0, 1 - pageClipped / Math.max(pageBlocks.length, 1) - pageOverflow / Math.max(pageBlocks.length, 1) - (pageTotalImages - pageRenderedImages) / Math.max(pageTotalImages, 1));
+      const pageRenderFit = Math.max(0, 1 - pageClipped / Math.max(pageBlocks.length, 1) - pageOverflow / Math.max(pageBlocks.length, 1) - (pageTotalImages - pageRenderedImages + pagePlaceholderImages) / Math.max(pageTotalImages, 1));
       pageMetrics.push({
         page: pageIndex + 1,
         blockCount: pageBlocks.length,
@@ -264,6 +316,7 @@ async function measureCandidate(input: Omit<MeasureInput, "candidates"> & {
         clippedBlocks: pageClipped,
         overflowBlocks: pageOverflow,
         missingImages: pageTotalImages - pageRenderedImages,
+        placeholderImages: pagePlaceholderImages,
         renderFit: pageRenderFit,
         usefulOccupancy: pageUtility,
       });
@@ -277,6 +330,8 @@ async function measureCandidate(input: Omit<MeasureInput, "candidates"> & {
       overflowBlocks,
       missingImages: images.length - renderedImages,
       renderedImages,
+      placeholderImages,
+      realRenderedImages,
       totalImages: images.length,
       usefulOccupancy: totalContentArea > 0 ? weightedUtility / totalContentArea : 0,
       geometricCoverage: totalContentArea > 0 ? totalCoveredArea / totalContentArea : 0,

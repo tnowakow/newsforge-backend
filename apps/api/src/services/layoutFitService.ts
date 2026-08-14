@@ -465,6 +465,8 @@ export function buildLayoutFitReport(input: {
     overflowBlocks: selectedMeasurement?.overflowBlocks,
     missingImages: selectedMeasurement?.missingImages,
     renderedImages: selectedMeasurement?.renderedImages,
+    placeholderImages: selectedMeasurement?.placeholderImages,
+    realRenderedImages: selectedMeasurement?.realRenderedImages,
     porterReferenceAffinity: selectedSubscores?.porterReferenceAffinity,
     porterReferenceId: selectedSubscores?.porterReferenceId,
     porterRetrieval: input.porterRetrieval,

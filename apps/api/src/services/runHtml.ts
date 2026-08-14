@@ -43,10 +43,10 @@ async function inlineRemoteImage(image: NewsImage): Promise<NewsImage> {
       signal: AbortSignal.timeout(7_500),
       headers: { "user-agent": "NewsForgeBot/1.0" },
     });
-    if (!res.ok) return { ...image, url: svgFallbackDataUri(image) };
+    if (!res.ok) return { ...image, url: svgFallbackDataUri(image), isPlaceholder: true };
     const contentType = res.headers.get("content-type") ?? "image/jpeg";
     if (!contentType.startsWith("image/")) {
-      return { ...image, url: svgFallbackDataUri(image) };
+      return { ...image, url: svgFallbackDataUri(image), isPlaceholder: true };
     }
     const bytes = Buffer.from(await res.arrayBuffer());
     return {
@@ -54,7 +54,7 @@ async function inlineRemoteImage(image: NewsImage): Promise<NewsImage> {
       url: `data:${contentType};base64,${bytes.toString("base64")}`,
     };
   } catch {
-    return { ...image, url: svgFallbackDataUri(image) };
+    return { ...image, url: svgFallbackDataUri(image), isPlaceholder: true };
   }
 }
 

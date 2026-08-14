@@ -85,6 +85,8 @@ export interface CandidateMeasurement {
   overflowBlocks: number;
   missingImages: number;
   renderedImages: number;
+  placeholderImages?: number;
+  realRenderedImages?: number;
   totalImages: number;
   usefulOccupancy: number;
   geometricCoverage?: number;
@@ -99,6 +101,7 @@ export interface CandidateMeasurement {
     clippedBlocks: number;
     overflowBlocks: number;
     missingImages: number;
+    placeholderImages?: number;
     renderFit: number;
     usefulOccupancy: number;
   }>;
@@ -497,12 +500,15 @@ function scoreWithMeasurement(
   const clippedPenalty = measurement.clippedBlocks / totalBlocks;
   const overflowPenalty = measurement.overflowBlocks / totalBlocks;
   const imagePenalty = measurement.missingImages / totalImages;
-  const renderFit = Math.max(0, 1 - clippedPenalty - overflowPenalty - imagePenalty);
+  const placeholderImages = measurement.placeholderImages ?? 0;
+  const placeholderPenalty = placeholderImages / totalImages;
+  const renderFit = Math.max(0, 1 - clippedPenalty - overflowPenalty - imagePenalty - placeholderPenalty);
   const warnings = [
     ...candidate.warnings,
     ...(measurement.clippedBlocks > 0 ? [`render-clipped-blocks:${measurement.clippedBlocks}`] : []),
     ...(measurement.overflowBlocks > 0 ? [`render-overflow-blocks:${measurement.overflowBlocks}`] : []),
     ...(measurement.missingImages > 0 ? [`render-missing-images:${measurement.missingImages}`] : []),
+    ...(placeholderImages > 0 ? [`render-placeholder-images:${placeholderImages}`] : []),
     ...(measurement.lowUtilityBlocks > 0 ? [`low-utility-blocks:${measurement.lowUtilityBlocks}`] : []),
     ...(measurement.underfilledBlocks && measurement.underfilledBlocks > 0
       ? [`underfilled-blocks:${measurement.underfilledBlocks}`]
@@ -535,6 +541,7 @@ function scoreWithMeasurement(
     (measurement.underfilledBlocks ?? 0) >= 12 ||
     measurement.lowUtilityBlocks >= 10;
   if (whiteSpaceCritical) warnings.push("porter-critical:white-space-repair");
+  if (placeholderImages > 0) warnings.push("porter-critical:photo-realism");
   const referenceAffinity = candidate.subscores.porterReferenceAffinity ?? 0;
   const score = Math.max(
     0,
@@ -549,7 +556,9 @@ function scoreWithMeasurement(
       pageUtilityPenalty -
       emptyBandPenalty -
       lowUtilityPenalty -
-      (whiteSpaceCritical ? 0.28 : 0),
+      placeholderPenalty * 0.35 -
+      (whiteSpaceCritical ? 0.28 : 0) -
+      (placeholderImages > 0 ? 0.24 : 0),
   );
   return {
     ...candidate,

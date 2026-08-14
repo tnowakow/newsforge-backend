@@ -234,13 +234,17 @@ export function evaluatePorterLayoutPlaybook(input: EvaluateInput): PorterLayout
   const usedUploadedImages = images.filter((image) => image.source === "UPLOAD" || images.length > 0);
   const imageUseRatio = usedUploadedImages.length ? imageBlocks.length / usedUploadedImages.length : 1;
   const filenameCaptions = imageBlocks.filter((block) => isFilenameCaption(block.caption)).length;
+  const suppliedPlaceholderImages = usedUploadedImages.filter((image) => image.isPlaceholder).length;
+  const measuredPlaceholderImages = measurement?.placeholderImages ?? 0;
+  const placeholderImages = Math.max(suppliedPlaceholderImages, measuredPlaceholderImages);
+  const realRenderedImages = measurement?.realRenderedImages ?? Math.max(0, imageBlocks.length - placeholderImages);
   rules.push(rule(
     "photo-use-captions",
     "Real photos and human captions",
-    imageUseRatio >= 1 && filenameCaptions === 0 ? "pass" : imageUseRatio >= 0.85 && filenameCaptions <= 1 ? "warn" : "fail",
-    Math.min(1, imageUseRatio) * (filenameCaptions === 0 ? 1 : 0.75),
-    "Use all supplied real photos once and avoid filename captions.",
-    `${imageBlocks.length}/${usedUploadedImages.length} supplied photos placed; ${filenameCaptions} filename-like captions.`,
+    placeholderImages > 0 ? "fail" : imageUseRatio >= 1 && filenameCaptions === 0 ? "pass" : imageUseRatio >= 0.85 && filenameCaptions <= 1 ? "warn" : "fail",
+    Math.min(1, imageUseRatio) * (filenameCaptions === 0 ? 1 : 0.75) * (placeholderImages === 0 ? 1 : 0.35),
+    "Use all supplied real photos once, avoid filename captions, and reject rendered placeholder/test images.",
+    `${imageBlocks.length}/${usedUploadedImages.length} supplied photos placed; ${realRenderedImages}/${imageBlocks.length} rendered as real photos; ${placeholderImages} placeholder/test images; ${filenameCaptions} filename-like captions.`,
   ));
 
   const pageCount = Math.max(playbookPageCount, 1);
@@ -279,6 +283,22 @@ export function evaluatePorterLayoutPlaybook(input: EvaluateInput): PorterLayout
     whiteSpaceScore,
     "If useful occupancy/page utility is low, grow adjacent photos, merge short text, or move lists into rails.",
     `Useful ${(useful * 100).toFixed(1)}%, min page utility ${(minPageUtility * 100).toFixed(1)}%, underfilled ${underfilled}, low-utility ${lowUtility}.`,
+  ));
+
+  const renderedQualityScore = Math.max(
+    0,
+    Math.min(1, (useful / 0.72 + minPageUtility / 0.62) / 2) -
+      Math.max(0, underfilled - 6) * 0.025 -
+      Math.max(0, lowUtility - 4) * 0.03 -
+      placeholderImages * 0.2,
+  );
+  rules.push(rule(
+    "rendered-quality-gate",
+    "Rendered quality gate",
+    placeholderImages > 0 ? "fail" : renderedQualityScore >= 0.82 ? "pass" : renderedQualityScore >= 0.62 ? "warn" : "fail",
+    renderedQualityScore,
+    "High symbolic Porter adherence must still produce real photos, filled pages, and low dead space.",
+    `Real rendered photos ${realRenderedImages}/${imageBlocks.length}; useful ${(useful * 100).toFixed(1)}%; min page utility ${(minPageUtility * 100).toFixed(1)}%; underfilled ${underfilled}; low-utility ${lowUtility}.`,
   ));
 
   const widths = new Set(innerBlocks.filter((block) => block.articleId || block.imageId || block.kind === "list").map((block) => block.position.colSpan));

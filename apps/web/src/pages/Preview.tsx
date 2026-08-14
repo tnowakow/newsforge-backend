@@ -953,6 +953,8 @@ function ScoreDetailsModal({
                 <div>Overflow blocks: <b>{measurement?.overflowBlocks ?? report.overflowBlocks ?? 0}</b></div>
                 <div>Missing images: <b>{measurement?.missingImages ?? report.missingImages ?? 0}</b></div>
                 <div>Rendered images: <b>{measurement ? `${measurement.renderedImages}/${measurement.totalImages}` : report.renderedImages ?? "Not recorded"}</b></div>
+                <div>Real rendered photos: <b>{measurement ? `${measurement.realRenderedImages ?? Math.max(0, measurement.renderedImages - (measurement.placeholderImages ?? 0))}/${measurement.totalImages}` : report.realRenderedImages ?? "Not recorded"}</b></div>
+                <div>Placeholder/test images: <b>{measurement?.placeholderImages ?? report.placeholderImages ?? 0}</b></div>
                 <div>Min page utility: <b>{formatScoreValue(measurement?.minPageUtility ?? report.minPageUtility)}</b></div>
                 <div>Largest empty band: <b>{formatScoreValue(measurement?.largestEmptyBandRatio ?? report.largestEmptyBandRatio)}</b></div>
               </div>
@@ -1180,6 +1182,8 @@ function buildScoreDetailsText(report: LayoutFitReport): string {
     `Overflow blocks: ${measurement?.overflowBlocks ?? report.overflowBlocks ?? 0}`,
     `Missing images: ${measurement?.missingImages ?? report.missingImages ?? 0}`,
     `Rendered images: ${measurement ? `${measurement.renderedImages}/${measurement.totalImages}` : report.renderedImages ?? "Not recorded"}`,
+    `Real rendered photos: ${measurement ? `${measurement.realRenderedImages ?? Math.max(0, measurement.renderedImages - (measurement.placeholderImages ?? 0))}/${measurement.totalImages}` : report.realRenderedImages ?? "Not recorded"}`,
+    `Placeholder/test images: ${measurement?.placeholderImages ?? report.placeholderImages ?? 0}`,
     `Min page utility: ${formatScoreValue(measurement?.minPageUtility ?? report.minPageUtility)}`,
     `Largest empty band: ${formatScoreValue(measurement?.largestEmptyBandRatio ?? report.largestEmptyBandRatio)}`,
     "",

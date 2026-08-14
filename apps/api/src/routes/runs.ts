@@ -434,7 +434,8 @@ function measuredDensityScore(measurement: CandidateMeasurement | undefined): nu
     1 -
       measurement.clippedBlocks * 0.12 -
       measurement.overflowBlocks * 0.25 -
-      measurement.missingImages * 0.2,
+      measurement.missingImages * 0.2 -
+      (measurement.placeholderImages ?? 0) * 0.2,
   );
   const pageUtility = measurement.minPageUtility ?? measurement.usefulOccupancy;
   const fillPenalty = Math.min(0.35, (measurement.underfilledBlocks ?? 0) * 0.025);
@@ -485,6 +486,7 @@ function isMeasuredRecoveryBetter(
   if (after.overflowBlocks > before.overflowBlocks) return false;
   if (after.clippedBlocks > before.clippedBlocks) return false;
   if (after.missingImages > before.missingImages) return false;
+  if ((after.placeholderImages ?? 0) > (before.placeholderImages ?? 0)) return false;
   const beforePageUtility = before.minPageUtility ?? before.usefulOccupancy;
   const afterPageUtility = after.minPageUtility ?? after.usefulOccupancy;
   const densityImproved = measuredDensityScore(after) >= measuredDensityScore(before) + 0.025;
@@ -911,13 +913,15 @@ runsRouter.post("/", async (req, res) => {
           1 -
             measuredFinal.clippedBlocks / totalBlocks -
             measuredFinal.overflowBlocks / totalBlocks -
-            measuredFinal.missingImages / totalImages,
+            (measuredFinal.missingImages + (measuredFinal.placeholderImages ?? 0)) / totalImages,
         );
         adaptiveCandidatesForReport = adaptiveCandidatesForReport?.map((candidate) => {
           if (candidate.id !== selectedAdaptive.id) return candidate;
           const baseWarnings = candidate.warnings.filter(
             (warning) =>
               !/^render-(clipped|overflow|missing)-/.test(warning) &&
+              !/^render-placeholder-images:/.test(warning) &&
+              !/^porter-critical:photo-realism$/.test(warning) &&
               !/^low-utility-blocks:/.test(warning),
           );
           return {
@@ -939,6 +943,9 @@ runsRouter.post("/", async (req, res) => {
                 : []),
               ...(measuredFinal.missingImages > 0
                 ? [`render-missing-images:${measuredFinal.missingImages}`]
+                : []),
+              ...((measuredFinal.placeholderImages ?? 0) > 0
+                ? [`render-placeholder-images:${measuredFinal.placeholderImages}`, "porter-critical:photo-realism"]
                 : []),
               ...(measuredFinal.lowUtilityBlocks > 0
                 ? [`low-utility-blocks:${measuredFinal.lowUtilityBlocks}`]

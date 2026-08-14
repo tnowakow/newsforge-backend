@@ -267,6 +267,8 @@ export interface AdaptiveLayoutCandidateReport {
     overflowBlocks: number;
     missingImages: number;
     renderedImages: number;
+    placeholderImages?: number;
+    realRenderedImages?: number;
     totalImages: number;
     usefulOccupancy: number;
     underfilledBlocks?: number;
@@ -284,6 +286,7 @@ export interface AdaptiveLayoutCandidateReport {
       clippedBlocks: number;
       overflowBlocks: number;
       missingImages: number;
+      placeholderImages?: number;
       renderFit: number;
       usefulOccupancy: number;
     }>;
@@ -390,6 +393,8 @@ export interface LayoutFitReport {
   overflowBlocks?: number;
   missingImages?: number;
   renderedImages?: number;
+  placeholderImages?: number;
+  realRenderedImages?: number;
   porterReferenceAffinity?: number;
   porterReferenceId?: string;
   innerSpreadAffinity?: number;

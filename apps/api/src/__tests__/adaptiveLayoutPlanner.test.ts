@@ -569,6 +569,68 @@ describe("adaptiveLayoutPlanner.buildAdaptiveLayout", () => {
     assert.equal(chooseAdaptiveCandidate([badWhitespace, cleanEnough], "porter-hard-gate").id, "lower-score-designer-layout");
   });
 
+  it("gates out loaded images that are rendered placeholders instead of real photos", () => {
+    const result = buildAdaptiveLayout({
+      templateId: "v3-test",
+      pageCount: 2,
+      gridSpec,
+      recurringSections: [],
+      articles: [
+        article("director", "Executive Director Corner", 100, "executive-note", "UPLOAD"),
+        { ...article("legacy", "Legacy News", 30, "resident-story", "UPLOAD"), imageRefs: ["Legacy.jpg"] },
+      ],
+      images: [{ ...image("legacy-photo", "landscape", "UPLOAD"), caption: "Legacy.jpg" }],
+    });
+    const [first, second] = result.candidates;
+    assert.ok(first);
+    assert.ok(second);
+
+    const measured = applyCandidateMeasurements([
+      { ...first, id: "loaded-placeholder-photo", score: 0.9, warnings: [] },
+      { ...second, id: "real-photo-layout", score: 0.58, warnings: [] },
+    ], [
+      {
+        candidateId: "loaded-placeholder-photo",
+        clippedBlocks: 0,
+        overflowBlocks: 0,
+        missingImages: 0,
+        renderedImages: 1,
+        placeholderImages: 1,
+        realRenderedImages: 0,
+        totalImages: 1,
+        usefulOccupancy: 0.82,
+        minPageUtility: 0.76,
+        largestEmptyBandRatio: 0,
+        lowUtilityBlocks: 0,
+        underfilledBlocks: 2,
+      },
+      {
+        candidateId: "real-photo-layout",
+        clippedBlocks: 0,
+        overflowBlocks: 0,
+        missingImages: 0,
+        renderedImages: 1,
+        placeholderImages: 0,
+        realRenderedImages: 1,
+        totalImages: 1,
+        usefulOccupancy: 0.68,
+        minPageUtility: 0.58,
+        largestEmptyBandRatio: 0,
+        lowUtilityBlocks: 2,
+        underfilledBlocks: 6,
+      },
+    ]);
+    const placeholder = measured.find((candidate) => candidate.id === "loaded-placeholder-photo");
+    const real = measured.find((candidate) => candidate.id === "real-photo-layout");
+    assert.ok(placeholder);
+    assert.ok(real);
+
+    assert.equal(placeholder.warnings.includes("render-placeholder-images:1"), true);
+    assert.equal(placeholder.warnings.includes("porter-critical:photo-realism"), true);
+    assert.equal(real.warnings.includes("porter-critical:photo-realism"), false);
+    assert.equal(chooseAdaptiveCandidate([placeholder, real], "porter-photo-gate").id, "real-photo-layout");
+  });
+
   it("prefers a clean uploaded source topology when it is close to the measured winner", () => {
     const result = buildAdaptiveLayout({
       templateId: "v3-test",
@@ -1102,6 +1164,57 @@ describe("adaptiveLayoutPlanner.buildAdaptiveLayout", () => {
     assert.equal(playbook.rules.find((rule) => rule.id === "schedule-rails")?.status, "pass");
     assert.equal(playbook.rules.find((rule) => rule.id === "photo-story-pairing")?.status, "pass");
     assert.notEqual(playbook.rules.find((rule) => rule.id === "white-space-repair")?.status, "fail");
+  });
+
+  it("fails photo and rendered-quality playbook rules when loaded images are placeholders", () => {
+    const layout = simpleLayout("v3-test", [
+      {
+        blockId: "story",
+        slotId: "story",
+        page: 1,
+        position: { col: 1, row: 1, colSpan: 6, rowSpan: 4 },
+        kind: "article",
+        articleId: "legacy",
+        needsFiller: false,
+      },
+      {
+        blockId: "photo",
+        slotId: "photo",
+        page: 1,
+        position: { col: 7, row: 1, colSpan: 6, rowSpan: 4 },
+        kind: "image",
+        imageId: "legacy-photo",
+        caption: "Legacy News",
+        needsFiller: false,
+      },
+    ]);
+
+    const playbook = evaluatePorterLayoutPlaybook({
+      layout,
+      articles: [{ ...article("legacy", "Legacy News", 30, "resident-story", "UPLOAD"), imageRefs: ["Legacy.jpg"] }],
+      images: [{ ...image("legacy-photo", "landscape", "UPLOAD"), caption: "Legacy.jpg" }],
+      gridSpec,
+      referenceFamily: "dense-lavender-grid",
+      measurement: {
+        candidateId: "candidate",
+        clippedBlocks: 0,
+        overflowBlocks: 0,
+        missingImages: 0,
+        renderedImages: 1,
+        placeholderImages: 1,
+        realRenderedImages: 0,
+        totalImages: 1,
+        usefulOccupancy: 0.8,
+        geometricCoverage: 0.9,
+        minPageUtility: 0.76,
+        largestEmptyBandRatio: 0,
+        lowUtilityBlocks: 0,
+        underfilledBlocks: 2,
+      },
+    });
+
+    assert.equal(playbook.rules.find((rule) => rule.id === "photo-use-captions")?.status, "fail");
+    assert.equal(playbook.rules.find((rule) => rule.id === "rendered-quality-gate")?.status, "fail");
   });
 
   it("creates a photo band expansion candidate by compressing the band above it", () => {
