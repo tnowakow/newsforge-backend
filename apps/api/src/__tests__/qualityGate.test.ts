@@ -55,7 +55,7 @@ describe("evaluateQualityGate", () => {
     assert.equal(g.passed, true);
     assert.equal(g.floor, 0.6);
     assert.equal(g.finalScore, 0.808);
-    assert.match(g.reason, /meets/);
+    assert.match(g.reason ?? "", /meets/);
   });
 
   it("fails below the floor (Tom's 29.5% Trilogy run)", () => {
@@ -63,7 +63,7 @@ describe("evaluateQualityGate", () => {
     assert.equal(g.passed, false);
     assert.equal(g.finalScore, 0.295);
     assert.equal(g.floor, 0.6);
-    assert.match(g.reason, /below/);
+    assert.match(g.reason ?? "", /below/);
   });
 
   it("clamps out-of-range scores and floors", () => {
