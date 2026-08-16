@@ -24,6 +24,7 @@ import {
   type TemplateSlot,
 } from "@newsforge/shared/schemas";
 import type { FullOutputScore } from "./porterOneReferenceScorer.js";
+import { evaluateQualityGate } from "./qualityGate.js";
 
 // A template shape we can score. Matches the Prisma Template row we pass in.
 export interface ScoreableTemplate {
@@ -446,11 +447,14 @@ export function buildLayoutFitReport(input: {
   const selectedMeasurement = selectedAdaptive?.measurement;
   const selectedSubscores = selectedAdaptive?.subscores;
 
+  const finalScore = input.fullOutput?.fullOutputScore ??
+    pick.candidates.find((c) => c.templateId === input.chosen.id)?.score ??
+    pick.chosenScore;
+
   return {
     chosenTemplateId: input.chosen.id,
-    score: input.fullOutput?.fullOutputScore ??
-      pick.candidates.find((c) => c.templateId === input.chosen.id)?.score ??
-      pick.chosenScore,
+    score: finalScore,
+    qualityGate: evaluateQualityGate(finalScore),
     designMode: input.design?.mode,
     designNotes: input.design?.designNotes,
     fallbackReason: input.design?.fallbackReason,

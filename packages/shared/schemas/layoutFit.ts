@@ -197,9 +197,24 @@ export const PorterLayoutPlaybookReportSchema = z.object({
 });
 export type PorterLayoutPlaybookReport = z.infer<typeof PorterLayoutPlaybookReportSchema>;
 
+/**
+ * QualityGateReport — ship-floor gate (V3 quality gate fix #1).
+ * Persisted on NewsletterRun.layoutFitReport.qualityGate (JSONB).
+ * `passed === false` blocks `POST /runs/:id/pdf` unless the request
+ * forces export (body `force: true` or `?force=1`).
+ */
+export const QualityGateReportSchema = z.object({
+  floor: z.number().min(0).max(1),
+  finalScore: z.number().min(0).max(1),
+  passed: z.boolean(),
+  reason: z.string().optional(),
+});
+export type QualityGateReport = z.infer<typeof QualityGateReportSchema>;
+
 export const LayoutFitReportSchema = z.object({
   chosenTemplateId: z.string(),
   score: z.number(),
+  qualityGate: QualityGateReportSchema.optional(),
   /** v3 — whether the layout was Gemini-designed or styled by fallback. */
   designMode: z.enum(["ai", "deterministic"]).optional(),
   designNotes: z.string().optional(),

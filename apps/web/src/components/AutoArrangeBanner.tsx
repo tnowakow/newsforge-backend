@@ -210,6 +210,25 @@ export function AutoArrangeBanner({
                   {designLabel}
                 </span>
               )}
+              {report.qualityGate && (
+                <span
+                  className={`ml-2 inline-flex items-center rounded-full px-2 py-0.5 text-2xs font-semibold ${
+                    report.qualityGate.passed
+                      ? "bg-success/15 text-success"
+                      : "bg-warn/15 text-warn"
+                  }`}
+                  title={
+                    report.qualityGate.reason ??
+                    (report.qualityGate.passed
+                      ? "Meets the ship floor"
+                      : "Below the ship floor — PDF download is blocked unless forced")
+                  }
+                >
+                  {report.qualityGate.passed
+                    ? "ship floor ✓"
+                    : `below ship floor (${(report.qualityGate.finalScore * 100).toFixed(0)}% < ${(report.qualityGate.floor * 100).toFixed(0)}%)`}
+                </span>
+              )}
               {aiFellBack && (
                 <span className="text-warn"> · AI fell back to deterministic pick.</span>
               )}

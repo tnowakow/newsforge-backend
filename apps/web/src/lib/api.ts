@@ -299,10 +299,14 @@ export const api = {
   generatePdf: (
     runId: string,
     variant: "web" | "print" = "web",
+    force = false,
   ) =>
     request<{ pdfUrl: string; pdfPath: string; variant?: string }>(
       `/api/runs/${runId}/pdf?variant=${variant}`,
-      { method: "POST" },
+      {
+        method: "POST",
+        body: JSON.stringify(force ? { force: true } : {}),
+      },
     ),
 
   // ---- AI ----

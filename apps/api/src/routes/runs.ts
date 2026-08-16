@@ -65,6 +65,7 @@ import {
 } from "../services/porterOneReferenceScorer.js";
 import { retrievePorterExamples } from "../services/porterRetrieval.js";
 import { evaluatePorterLayoutPlaybook } from "../services/porterLayoutPlaybook.js";
+import { evaluateQualityGate } from "../services/qualityGate.js";
 import type { CandidateMeasurement } from "../services/adaptiveLayoutPlanner.js";
 
 export const runsRouter: Router = Router();
@@ -1628,6 +1629,41 @@ runsRouter.post("/:id/pdf", async (req, res) => {
   if (!run) {
     res.status(404).json({ error: "run_not_found" });
     return;
+  }
+
+  // ---- Quality gate (V3 fix #1): don't ship sub-floor newsletters silently ----
+  const qgReport = (run.layoutFitReport ?? null) as
+    | {
+        fullOutputScore?: number;
+        score?: number;
+        qualityGate?: {
+          floor: number;
+          finalScore: number;
+          passed: boolean;
+          reason?: string;
+        };
+      }
+    | null;
+  const qgScore =
+    qgReport && typeof qgReport.fullOutputScore === "number"
+      ? qgReport.fullOutputScore
+      : qgReport && typeof qgReport.score === "number"
+      ? qgReport.score
+      : null;
+  const qgForced =
+    req.query.force === "1" ||
+    req.query.force === "true" ||
+    (req.body as { force?: unknown } | undefined)?.force === true;
+  if (qgScore != null) {
+    const gate = qgReport?.qualityGate ?? evaluateQualityGate(qgScore);
+    if (!gate.passed && !qgForced) {
+      res.status(409).json({
+        error: "quality_gate_blocked",
+        qualityGate: gate,
+        message: `Final score ${(gate.finalScore * 100).toFixed(1)}% is below the ${(gate.floor * 100).toFixed(0)}% ship floor — re-arrange, or force the download to compare.`,
+      });
+      return;
+    }
   }
 
   const variantParsed = z

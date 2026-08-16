@@ -399,6 +399,13 @@ export interface LayoutFitReport {
   porterReferenceId?: string;
   innerSpreadAffinity?: number;
   fullOutputScore?: number;
+  /** Ship-floor gate (V3 fix #1). passed=false blocks PDF export unless forced. */
+  qualityGate?: {
+    floor: number;
+    finalScore: number;
+    passed: boolean;
+    reason?: string;
+  };
   coverScore?: number;
   coverRenderFit?: number;
   coverClippedBlocks?: number;

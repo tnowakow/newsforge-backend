@@ -289,7 +289,7 @@ export default function Preview() {
   };
 
   // ---- Download PDF (variant-aware, v2 Screen 7) ----
-  const downloadPdf = async () => {
+  const downloadPdf = async (force = false) => {
     if (!run) return;
     // Approved runs: prefer cached URL that the approve response provided.
     const cached = pdfVariant === "print" ? pdfPrintUrl : pdfWebUrl;
@@ -309,7 +309,7 @@ export default function Preview() {
     }
     setDownloading(true);
     try {
-      const { pdfUrl } = await api.generatePdf(run.id, pdfVariant);
+      const { pdfUrl } = await api.generatePdf(run.id, pdfVariant, force);
       const a = document.createElement("a");
       a.href = pdfUrl.startsWith("http") ? pdfUrl : pdfUrl;
       a.download = `${slug(run.client?.name ?? "newsletter")}-${slug(
@@ -324,6 +324,27 @@ export default function Preview() {
         tone: "success",
       });
     } catch (err) {
+      const body =
+        err instanceof ApiError && err.body && typeof err.body === "object"
+          ? (err.body as Record<string, unknown>)
+          : null;
+      if (
+        err instanceof ApiError &&
+        err.status === 409 &&
+        body?.error === "quality_gate_blocked"
+      ) {
+        toast(
+          `${typeof body.message === "string" ? body.message : "Blocked by the quality gate."} Force to compare anyway.`,
+          {
+            tone: "error",
+            action: {
+              label: "Force download",
+              onClick: () => void downloadPdf(true),
+            },
+          },
+        );
+        return;
+      }
       const msg = err instanceof ApiError ? err.message : "Couldn't download PDF.";
       toast(`${msg} Try again.`, {
         tone: "error",
@@ -914,6 +935,14 @@ function ScoreDetailsModal({
               <div className="px-3 py-2 flex justify-between"><span>Cover render fit / clipping / overflow</span><span className="font-mono">{formatScoreValue(report.coverRenderFit)} / {report.coverClippedBlocks ?? 0} / {report.coverOverflowBlocks ?? 0}</span></div>
               <div className="px-3 py-2 flex justify-between"><span>Cover modules / images</span><span className="font-mono">{report.coverContentBlocks ?? 0} / {report.coverImageBlocks ?? 0}</span></div>
               <div className="px-3 py-2 flex justify-between"><span>Duplicate birthday blocks</span><span className="font-mono">{report.coverDuplicateBirthdayBlocks ?? 0}</span></div>
+              {report.qualityGate && (
+                <div className="px-3 py-2 flex justify-between">
+                  <span>Ship floor</span>
+                  <span className={`font-mono ${report.qualityGate.passed ? "text-emerald-700" : "text-amber-700"}`}>
+                    {report.qualityGate.passed ? "met" : "below"} — {(report.qualityGate.finalScore * 100).toFixed(1)}% vs {(report.qualityGate.floor * 100).toFixed(0)}%
+                  </span>
+                </div>
+              )}
             </div>
           </section>
 
@@ -1160,6 +1189,9 @@ function buildScoreDetailsText(report: LayoutFitReport): string {
     `Cover render fit / clipping / overflow: ${formatScoreValue(report.coverRenderFit)} / ${report.coverClippedBlocks ?? 0} / ${report.coverOverflowBlocks ?? 0}`,
     `Cover modules / images: ${report.coverContentBlocks ?? 0} / ${report.coverImageBlocks ?? 0}`,
     `Duplicate birthday blocks: ${report.coverDuplicateBirthdayBlocks ?? 0}`,
+    report.qualityGate
+      ? `Ship floor: ${report.qualityGate.passed ? "met" : "BELOW"} — ${(report.qualityGate.finalScore * 100).toFixed(1)}% vs ${(report.qualityGate.floor * 100).toFixed(0)}%`
+      : "Ship floor: not recorded",
     "",
     "How the score is calculated",
     "Static candidate score = occupancy 14% + content coverage 14% + required coverage 18% + balance 9% + clipping risk 13% + geometry validity 8% + photo impact 5% + grammar affinity 4% + PorterOne affinity 15%.",
