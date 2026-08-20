@@ -410,12 +410,23 @@ function photoStoryPairingRatio(
   return { paired, total: referencedArticles.length, ratio: paired / referencedArticles.length };
 }
 
+function unmatchedPhotoRefs(articles: Article[], images: NewsImage[]): string[] {
+  const refs = articles.flatMap((article) => article.imageRefs ?? []);
+  const unmatched = refs.filter((ref) => !images.some((image) => imageMatchesRef(image, ref)));
+  return [...new Set(unmatched)];
+}
+
 function scoreCandidate(
   layout: AssembledLayout,
   input: AdaptiveLayoutInput,
   plan: EditorialPlan,
 ): { score: number; subscores: AdaptiveCandidateScore; warnings: string[] } {
   const warnings = geometryWarnings(layout, input.gridSpec);
+  const unmatchedRefs = unmatchedPhotoRefs(input.articles, input.images);
+  if (unmatchedRefs.length > 0) {
+    const sample = unmatchedRefs.slice(0, 4).join("|");
+    warnings.push(`porter-unmatched-photo-refs:${unmatchedRefs.length}:${sample}`);
+  }
   const photoPairing = photoStoryPairingRatio(layout, input.articles, input.images);
   if (photoPairing.total > 0) {
     warnings.push(`porter-photo-pairing:${photoPairing.paired}/${photoPairing.total}`);

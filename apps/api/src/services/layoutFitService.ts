@@ -225,7 +225,7 @@ function articleMatchesSemanticSlot(article: Article, slot: TemplateSlot): boole
   const tag = slot.styleTag ?? "";
   const title = article.title;
   if (/birthday/i.test(tag)) {
-    return article.articleType === "birthday" || /birthday|anniversar/i.test(title);
+    return article.articleType === "birthday" || /\bbirthdays?\b|\bbday\b|\bturning\s+\d{2}\b/i.test(title);
   }
   if (/exec-corner|director/i.test(tag)) {
     return /executive director|director corner|from the director/i.test(title);

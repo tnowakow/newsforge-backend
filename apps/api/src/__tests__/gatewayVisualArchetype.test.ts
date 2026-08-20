@@ -138,6 +138,49 @@ test("semantic slots are not filled with unrelated articles", () => {
   assert.equal(bySlot.get("general")?.articleId, "a-profile");
 });
 
+test("anniversary stories do not fill birthday modules", () => {
+  const gridSpec: GridSpec = {
+    label: "anniversary-birthday-guard",
+    columns: 12,
+    rowsPerPage: 10,
+    slots: [
+      slot("birthdays", 1, "list", 1, 1, 6, 5, "birthdays panel:sun"),
+      slot("general", 1, "body", 7, 1, 6, 5),
+    ],
+  };
+  const articles: Article[] = [
+    {
+      id: "a-anniversary",
+      title: "Oaks Anniversary",
+      body: "Oaks anniversary marks two years together with neighbors, staff, and families.",
+      wordCount: 11,
+      articleType: "announcement",
+      isFiller: false,
+      source: "UPLOAD",
+    },
+  ];
+
+  const layout = applyVibrancyPass({
+    layout: assembleLayout({
+      templateId: "v3-editorial-light",
+      pageCount: 1,
+      gridSpec,
+      articles,
+      images: [],
+      recurringSections: [],
+    }),
+    articles,
+    images: [],
+  });
+
+  const bySlot = new Map(layout.blocks.map((block) => [block.slotId, block]));
+  assert.equal(bySlot.get("birthdays")?.articleId, undefined);
+  assert.equal(bySlot.get("birthdays")?.needsFiller, true);
+  assert.equal(bySlot.get("birthdays")?.style?.panelRole, "birthday");
+  assert.equal(bySlot.get("general")?.articleId, "a-anniversary");
+  assert.notEqual(bySlot.get("general")?.style?.panelRole, "birthday");
+});
+
 test("generic slots do not steal articles needed by later semantic slots", () => {
   const gridSpec: GridSpec = {
     label: "semantic-preserve",

@@ -196,6 +196,27 @@ describe("layoutFitService.fitContent", () => {
     assert.equal(result.articleFit[0].trimmed, true);
   });
 
+  it("does not apply birthday slot capacity to anniversary stories", () => {
+    const anniversary = {
+      ...makeArticle(
+        "anniversary",
+        95,
+        "Oaks anniversary marks two years together. " + Array(90).fill("community").join(" ") + ".",
+        "announcement",
+      ),
+      title: "Oaks Anniversary",
+    };
+    const semanticTemplate = tmpl("t-anniversary", [
+      slot("wide-feature", 1, "body", 1, 1, 12, 5, { maxWords: 220 }),
+      slot("birthday-rail", 1, "list", 1, 6, 12, 2, { maxWords: 30 }, "birthdays panel:sun"),
+    ]);
+
+    const result = fitContent([anniversary], [], semanticTemplate);
+
+    assert.ok(result.articles[0].wordCount > 80);
+    assert.equal(result.articleFit[0].trimmed, false);
+  });
+
   it("drops last-uploaded photos when over-supplied", () => {
     const images = [
       makeImage("i-old-1"),

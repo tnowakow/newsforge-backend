@@ -43,7 +43,7 @@ function slotArea(slot: TemplateSlot): number {
 function slotMatchesSection(slot: TemplateSlot, section: RecurringSection): boolean {
   if (slot.type === section.slotHint) return true;
   const tag = slot.styleTag ?? "";
-  if (slot.type === "list" && /birthday|anniversar|milestone/i.test(section.title)) {
+  if (slot.type === "list" && isBirthdayTitle(section.title)) {
     return /birthday/i.test(tag);
   }
   if (slot.type === "calendar" && /calendar|activit|event/i.test(section.title)) {
@@ -70,11 +70,19 @@ function isArticleLikeSection(section: RecurringSection): boolean {
   );
 }
 
+function isBirthdayTitle(title: string): boolean {
+  return /\bbirthdays?\b|\bbday\b|\bturning\s+\d{2}\b/i.test(title);
+}
+
+function isBirthdayArticle(article: Article): boolean {
+  return article.articleType === "birthday" || isBirthdayTitle(article.title);
+}
+
 function articleMatchesSlot(article: Article, slot: TemplateSlot): boolean {
   const tag = slot.styleTag ?? "";
   const title = article.title;
   if (/birthday/i.test(tag)) {
-    return article.articleType === "birthday" || /birthday|anniversar/i.test(title);
+    return isBirthdayArticle(article);
   }
   if (/exec-corner|director/i.test(tag)) {
     return /executive director|director corner|from the director/i.test(title);

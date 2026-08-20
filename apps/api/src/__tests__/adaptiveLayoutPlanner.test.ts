@@ -976,6 +976,26 @@ describe("adaptiveLayoutPlanner.buildAdaptiveLayout", () => {
     assert.equal(directorImage, undefined);
   });
 
+  it("reports DOCX photo refs that do not match uploaded image names", () => {
+    const result = buildAdaptiveLayout({
+      templateId: "v3-upload-source",
+      pageCount: 2,
+      gridSpec,
+      recurringSections: [],
+      articles: [
+        { ...article("legacy", "Legacy News", 30, "resident-story", "UPLOAD"), imageRefs: ["photo1.jpg"] },
+      ],
+      images: [
+        { ...image("legacy-real", "landscape", "UPLOAD"), caption: "Legacy Celebration.jpg" },
+      ],
+    });
+
+    assert.ok(
+      result.chosen.warnings.some((warning) => warning.startsWith("porter-unmatched-photo-refs:1:photo1.jpg")),
+      "expected unmatched generic photo ref to be visible in candidate warnings",
+    );
+  });
+
   it("locks the Trilogy phase 0 source-upload baseline against empty inner pages and schedule color regressions", () => {
     const result = buildAdaptiveLayout({
       templateId: "v3-upload-source",
