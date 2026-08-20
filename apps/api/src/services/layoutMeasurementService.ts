@@ -5,6 +5,8 @@ import type {
   NewsImage,
   RecurringSection,
 } from "@newsforge/shared/schemas";
+import fs from "node:fs/promises";
+import path from "node:path";
 import { getPage } from "../browser.js";
 import { env } from "../env.js";
 import { renderRunHtml } from "./renderHtml.js";
@@ -63,10 +65,48 @@ function htmlWithMeasurementBase(html: string): string {
     : `${baseTag}${html}`;
 }
 
+function mimeForImagePath(filePath: string): string {
+  const ext = path.extname(filePath).toLowerCase();
+  if (ext === ".png") return "image/png";
+  if (ext === ".webp") return "image/webp";
+  if (ext === ".gif") return "image/gif";
+  return "image/jpeg";
+}
+
+function localUploadFilename(url: string): string | null {
+  const publicBase = env.PUBLIC_BASE_URL.replace(/\/$/, "");
+  const normalized = url.startsWith(publicBase) ? url.slice(publicBase.length) : url;
+  const match = normalized.match(/^\/uploads\/([^?#]+)/);
+  if (!match?.[1]) return null;
+  try {
+    return path.basename(decodeURIComponent(match[1]));
+  } catch {
+    return path.basename(match[1]);
+  }
+}
+
+async function imagesWithMeasurementDataUrls(images: NewsImage[]): Promise<NewsImage[]> {
+  return Promise.all(
+    images.map(async (image) => {
+      const filename = localUploadFilename(image.url);
+      if (!filename) return image;
+      const filePath = path.resolve(env.UPLOAD_DIR, filename);
+      try {
+        const buf = await fs.readFile(filePath);
+        const dataUrl = `data:${mimeForImagePath(filePath)};base64,${buf.toString("base64")}`;
+        return { ...image, url: dataUrl };
+      } catch {
+        return image;
+      }
+    }),
+  );
+}
+
 async function measureCandidate(input: Omit<MeasureInput, "candidates"> & {
   candidate: AdaptiveLayoutCandidate;
 }): Promise<CandidateMeasurement> {
   const page = await getPage();
+  const measurementImages = await imagesWithMeasurementDataUrls(input.images);
   const html = renderRunHtml({
     clientName: input.clientName,
     monthLabel: input.monthLabel,
@@ -74,7 +114,7 @@ async function measureCandidate(input: Omit<MeasureInput, "candidates"> & {
     gridSpec: input.gridSpec,
     layout: input.candidate.layout,
     articles: input.articles,
-    images: input.images,
+    images: measurementImages,
     recurringSections: input.recurringSections,
   });
   await page.setContent(htmlWithMeasurementBase(html), { waitUntil: "domcontentloaded", timeout: 8_000 });
