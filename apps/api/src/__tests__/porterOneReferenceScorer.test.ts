@@ -9,6 +9,7 @@ import {
   porterOneReferenceIdForTemplate,
   porterOneTemplateForScenario,
   scorePorterOneReferenceAffinity,
+  scoreFullNewsletterOutput,
 } from "../services/porterOneReferenceScorer.js";
 
 const gridSpec: GridSpec = {
@@ -109,5 +110,34 @@ describe("porterOneReferenceScorer", () => {
     assert.ok(score.affinity < 0.6, `expected low affinity, got ${score.affinity}`);
     assert.equal(score.diagnostics.imageBlockCount, 1);
     assert.equal(score.diagnostics.narrowRailCount, 0);
+  });
+
+  it("does not let sparse static wrapper pages sink a strong inner spread", () => {
+    const strongInnerMeasurement = {
+      usefulOccupancy: 0.58,
+      geometricCoverage: 0.96,
+      underfilledBlocks: 16,
+      pageMetrics: [
+        { page: 1, renderFit: 1, clippedBlocks: 0, overflowBlocks: 0, missingImages: 0, usefulOccupancy: 0.25 },
+        { page: 2, renderFit: 1, clippedBlocks: 0, overflowBlocks: 0, missingImages: 0, usefulOccupancy: 0.86 },
+        { page: 3, renderFit: 1, clippedBlocks: 0, overflowBlocks: 0, missingImages: 0, usefulOccupancy: 0.98 },
+        { page: 4, renderFit: 1, clippedBlocks: 0, overflowBlocks: 0, missingImages: 0, usefulOccupancy: 0.22 },
+      ],
+    };
+
+    const score = scoreFullNewsletterOutput(layout([
+      block("cover-title", 1, 1, 1, 8, 4, { inlineText: "June Newsletter" }),
+      block("cover-inside", 1, 1, 5, 8, 12, { inlineText: "Inside this issue" }),
+      block("inner-photo-1", 2, 1, 1, 8, 16, { imageId: "i1" }),
+      block("inner-story-1", 2, 9, 1, 16, 16, { articleId: "a1" }),
+      block("inner-photo-2", 3, 1, 1, 16, 16, { imageId: "i2" }),
+      block("inner-story-2", 3, 17, 1, 8, 16, { articleId: "a2" }),
+      block("back-a", 4, 1, 1, 8, 8, { inlineText: "Looking ahead" }),
+      block("back-b", 4, 9, 1, 8, 8, { inlineText: "Save the date" }),
+      block("back-c", 4, 17, 1, 8, 8, { inlineText: "Thank you" }),
+    ]), 0.48, strongInnerMeasurement);
+
+    assert.ok(score.fullOutputScore >= 0.6, `expected wrapper-aware score to clear ship floor, got ${score.fullOutputScore}`);
+    assert.equal(score.coverRenderFit, 1);
   });
 });

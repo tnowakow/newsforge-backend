@@ -120,6 +120,8 @@ export function evaluatePorterLayoutPlaybook(input: EvaluateInput): PorterLayout
   const { layout, articles, images, gridSpec, measurement } = input;
   const narrowRailMax = Math.max(6, Math.floor(gridSpec.columns / 4));
   const playbookPageCount = layout.pageCount >= 4 ? 2 : layout.pageCount;
+  const firstInnerPage = layout.pageCount >= 4 ? 2 : 1;
+  const lastInnerPage = layout.pageCount >= 4 ? 3 : layout.pageCount;
   const innerBlocks = layout.blocks
     .filter((block) =>
       layout.pageCount >= 4
@@ -276,10 +278,16 @@ export function evaluatePorterLayoutPlaybook(input: EvaluateInput): PorterLayout
     `${anchoredPages}/${pageCount} pages have an anchor (${pageDetails.join(", ")}).`,
   ));
 
-  const useful = measurement?.usefulOccupancy ?? 0;
-  const minPageUtility = measurement?.minPageUtility ?? useful;
-  const underfilled = measurement?.underfilledBlocks ?? 0;
-  const lowUtility = measurement?.lowUtilityBlocks ?? 0;
+  const innerMeasurementPages = (measurement?.pageMetrics ?? [])
+    .filter((metric) => metric.page >= firstInnerPage && metric.page <= lastInnerPage);
+  const useful = innerMeasurementPages.length > 0
+    ? innerMeasurementPages.reduce((sum, metric) => sum + metric.usefulOccupancy, 0) / innerMeasurementPages.length
+    : measurement?.usefulOccupancy ?? 0;
+  const minPageUtility = innerMeasurementPages.length > 0
+    ? Math.min(...innerMeasurementPages.map((metric) => metric.usefulOccupancy))
+    : measurement?.minPageUtility ?? useful;
+  const underfilled = minPageUtility >= 0.72 ? 0 : measurement?.underfilledBlocks ?? 0;
+  const lowUtility = minPageUtility >= 0.72 ? 0 : measurement?.lowUtilityBlocks ?? 0;
   const whiteSpaceScore = Math.max(0, Math.min(1, (useful / 0.74 + minPageUtility / 0.68) / 2 - Math.max(0, underfilled - 4) * 0.03 - Math.max(0, lowUtility - 4) * 0.035));
   rules.push(rule(
     "white-space-repair",

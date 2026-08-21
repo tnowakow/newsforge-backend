@@ -302,7 +302,9 @@ export function scoreFullNewsletterOutput(
   );
   const geometricCoverage = measurement?.geometricCoverage ?? 1;
   const sparsePagePenalty = Math.max(0, 0.72 - innerUtilityMinimum) * 0.8;
-  const underfillPenalty = Math.min(0.24, (measurement?.underfilledBlocks ?? 0) * 0.025);
+  const wrapperAwareUnderfillPenalty = innerUtilityMinimum < 0.72
+    ? Math.min(0.24, (measurement?.underfilledBlocks ?? 0) * 0.025)
+    : 0;
   const renderPenalty = Math.max(0, 1 - innerRenderFit) * 0.18;
   const fullOutputScore = Math.max(0, Math.min(1,
     innerSpreadAffinity * 0.35 +
@@ -311,7 +313,7 @@ export function scoreFullNewsletterOutput(
       innerRenderFit * 0.1 +
       geometricCoverage * 0.15 -
       sparsePagePenalty -
-      underfillPenalty -
+      wrapperAwareUnderfillPenalty -
       renderPenalty,
   ));
   return {
