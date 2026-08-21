@@ -997,10 +997,15 @@ function sourceTopologyCandidate(
       if (featureC) {
         articleBlock(featureC, 2, 1, 10, 8, 3, 7);
         imageBlock(takeImage(featureC, true), 2, 9, 9, 8, 8, featureC);
+        if (briefB) articleBlock(briefB, 2, 17, 9, 8, 4, 9);
+        imageBlock(takeImage(undefined, true), 2, 1, 13, 8, 4);
+        imageBlock(takeImage(undefined, true), 2, 17, 13, 8, 4);
+      } else {
+        if (briefB) articleBlock(briefB, 2, 17, 9, 8, 4, 9);
+        imageBlock(takeImage(undefined, true), 2, 1, 10, 8, 7);
+        imageBlock(takeImage(undefined, true), 2, 9, 9, 8, 8);
+        imageBlock(takeImage(undefined, true), 2, 17, briefB ? 13 : 9, 8, briefB ? 4 : 8);
       }
-      if (briefB) articleBlock(briefB, 2, 17, 9, 8, 4, 9);
-      imageBlock(takeImage(undefined, true), 2, 1, 13, 8, 4);
-      imageBlock(takeImage(undefined, true), 2, 17, 13, 8, 4);
     } else if (denseMapId === "porter-guided-sparse") {
       if (firstSchedule) articleBlock(firstSchedule, 1, 1, 1, 5, 7, 2);
       if (secondSchedule) articleBlock(secondSchedule, 1, 1, 8, 5, 5, 3);
