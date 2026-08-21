@@ -159,6 +159,51 @@ test("Porter parser cleans numbered interesting/newsworthy labels", () => {
   assert.deepEqual(parsed.articles[1].imageRefs, ["Featured Resident of the Month.jpg"]);
 });
 
+test("Porter parser preserves Example-6 style principles without name-specific rules", () => {
+  const parsed = service.parsePorterSubmissionText(`
+    Required Articles
+
+    REQUIRED - Executive Directors Corner
+
+    A monthly note from the director about summer activities and community connection.
+    Photo: Director Portrait.jpg
+
+    REQUIRED - Upcoming Campus EventsUpcoming Events:
+    7/1 Music by Greg & Tony; 7/2 Men's Breakfast; 7/3 Happy Hour with Don;
+    7/9 Picnic in the Park; 7/15 Senior Karaoke; 7/31 Happy Hour with Johnny A.
+
+    REQUIRED - Happy Birthday
+    RESIDENTS
+    Jerry L. 7/8
+    Michael J. 7/12
+    STAFF
+    Carla M. 7/3
+
+    REQUIRED - PHOTO CAPTIONS
+    Director Portrait.jpg - Executive director portrait (Article: Executive Director Corner) | Outings 1.jpg - Residents enjoying a trip (Article: Outings)
+    Outings 2.jpg - Friends on a community outing (Article: Outings)
+
+    REQUIRED - INTERESTING AND NEWSWORTHY
+
+    Outings - Residents joined weekly outings for scenic rides and lunches together. Photo: Outings 1.jpg, Outings 2.jpg
+    Wings of Joy Project - Residents partnered with preschool students on a creative intergenerational project. Photo: Wings 1.jpg, Wings 2.jpg
+
+    Optional Article Suggestions
+  `);
+
+  assert.equal(parsed.fallbackRequired, false);
+  assert.equal(parsed.captions["Director Portrait.jpg"], "Executive director portrait");
+  assert.equal(parsed.imageAssociations["Director Portrait.jpg"]?.includes("Executive Director Corner"), true);
+  assert.equal(parsed.imageAssociations["Outings 1.jpg"]?.includes("Outings"), true);
+  assert.equal(parsed.lists.find((list) => list.label === "Upcoming Events")?.rows.length, 6);
+  assert.equal(parsed.lists.find((list) => list.label === "Happy Birthday!")?.panelRole, "birthday");
+
+  const runArticles = service.porterParseToArticles(parsed);
+  assert.equal(runArticles.some((article) => article.title === "Upcoming Events" && article.body.includes("7/31 Happy Hour")), true);
+  assert.equal(runArticles.some((article) => article.title === "Happy Birthday!" && article.articleType === "birthday"), true);
+  assert.deepEqual(runArticles.find((article) => article.title === "Outings")?.imageRefs, ["Outings 1.jpg", "Outings 2.jpg"]);
+});
+
 test("missing Porter markers enters explicit fallback state", () => {
   const parsed = service.parsePorterSubmissionText("A loose document with no structural markers.");
   assert.equal(parsed.fallbackRequired, true);

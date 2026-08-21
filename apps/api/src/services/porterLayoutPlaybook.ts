@@ -72,9 +72,17 @@ function touchesOrNear(a: LayoutBlock, b: LayoutBlock): boolean {
 }
 
 function isScheduleArticle(article: Article): boolean {
+  const datedRows = article.body.split(/\n+|;\s*/).filter((line) => /^\d{1,2}\/\d{1,2}\s+/.test(line.trim())).length;
+  if (
+    /outings?|out\s*(?:&|and)\s*about/i.test(article.title) &&
+    (article.imageRefs?.length ?? 0) > 0 &&
+    datedRows < 2
+  ) {
+    return false;
+  }
   return (
-    /happy hours?|socials?|brunch|events?|outings?|out & about/i.test(article.title) ||
-    article.body.split(/\n+/).filter((line) => /^\d{1,2}\/\d{1,2}\s+/.test(line.trim())).length >= 2
+    /happy hours?|socials?|brunch|events?|calendar|schedule/i.test(article.title) ||
+    datedRows >= 2
   );
 }
 
@@ -276,6 +284,20 @@ export function evaluatePorterLayoutPlaybook(input: EvaluateInput): PorterLayout
     anchorRatio,
     "Each inner page needs a visible rail, photo strip, footer band, or mosaic anchor.",
     `${anchoredPages}/${pageCount} pages have an anchor (${pageDetails.join(", ")}).`,
+  ));
+
+  const photoOnlyPages = Array.from({ length: pageCount }, (_, index) => index + 1).filter((page) => {
+    const pageBlocks = innerBlocks.filter((block) => block.page === page);
+    return pageBlocks.some((block) => block.imageId) &&
+      !pageBlocks.some((block) => block.articleId || block.kind === "list");
+  });
+  rules.push(rule(
+    "no-photo-only-pages",
+    "No photo-only inner pages",
+    photoOnlyPages.length === 0 ? "pass" : "fail",
+    photoOnlyPages.length === 0 ? 1 : 0,
+    "A Porter inner spread should not dedicate a whole page to loose photos unless the selected family is explicitly a collage-only page.",
+    photoOnlyPages.length === 0 ? "Every inner page carries editorial text or structured list content." : `Photo-only inner pages: ${photoOnlyPages.join(", ")}.`,
   ));
 
   const innerMeasurementPages = (measurement?.pageMetrics ?? [])

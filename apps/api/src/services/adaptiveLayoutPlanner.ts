@@ -426,7 +426,8 @@ function scoreCandidate(
   input: AdaptiveLayoutInput,
   plan: EditorialPlan,
 ): { score: number; subscores: AdaptiveCandidateScore; warnings: string[] } {
-  const warnings = geometryWarnings(layout, input.gridSpec);
+  const geometryIssues = geometryWarnings(layout, input.gridSpec);
+  const warnings = [...geometryIssues];
   const unmatchedRefs = unmatchedPhotoRefs(input.articles, input.images);
   if (unmatchedRefs.length > 0) {
     const sample = unmatchedRefs.slice(0, 4).join("|");
@@ -444,6 +445,13 @@ function scoreCandidate(
       .filter((block) => block.page === pageIndex + 1 && block.kind !== "empty")
       .reduce((sum, block) => sum + blockArea(block), 0),
   );
+  const photoOnlyPages = Array.from({ length: input.pageCount }, (_, pageIndex) => {
+    const page = pageIndex + 1;
+    const content = layout.blocks.filter((block) => block.page === page && block.kind !== "empty");
+    return content.some((block) => block.imageId) &&
+      !content.some((block) => block.articleId || block.kind === "list");
+  }).filter(Boolean).length;
+  if (photoOnlyPages > 0) warnings.push(`porter-critical:photo-only-page:${photoOnlyPages}`);
   const totalArea = input.gridSpec.columns * input.gridSpec.rowsPerPage * input.pageCount;
   const occupiedArea = pageAreas.reduce((sum, area) => sum + area, 0);
   const avgArea = pageAreas.length ? occupiedArea / pageAreas.length : 0;
@@ -483,7 +491,7 @@ function scoreCandidate(
     requiredCoverage: placedRequired / Math.max(plan.requiredArticleIds.length, 1),
     balance: Math.max(0, 1 - imbalance),
     clippingRisk: Math.max(0, 1 - clippingRisks / Math.max(placedArticleIds.size, 1)),
-    geometryValidity: warnings.length === 0 ? 1 : Math.max(0, 1 - warnings.length * 0.2),
+    geometryValidity: geometryIssues.length === 0 ? 1 : Math.max(0, 1 - geometryIssues.length * 0.2),
     photoImpact: Math.max(0, 1 - Math.abs(actualPhotoRatio - desiredPhotoRatio) / 0.5),
     grammarAffinity,
     porterReferenceAffinity: reference.affinity,
@@ -492,6 +500,7 @@ function scoreCandidate(
   const photoPairingPenalty = photoPairing.total > 0
     ? Math.max(0, 0.8 - photoPairing.ratio) * 0.26
     : 0;
+  const photoOnlyPagePenalty = photoOnlyPages * 0.22;
   const score = Math.max(0,
     0.13 * subscores.occupancy +
     0.13 * subscores.contentCoverage +
@@ -502,7 +511,8 @@ function scoreCandidate(
     0.04 * subscores.photoImpact +
     0.03 * subscores.grammarAffinity +
     0.22 * (subscores.porterReferenceAffinity ?? 0) -
-    photoPairingPenalty,
+    photoPairingPenalty -
+    photoOnlyPagePenalty,
   );
   return { score, subscores, warnings };
 }
@@ -720,16 +730,34 @@ function listRowsForArticle(article: Article): LayoutBlock["listItems"] {
     });
 }
 
+function datedRowCount(article: Article): number {
+  return article.body
+    .split(/\n+|;\s*/)
+    .filter((line) => /^\d{1,2}\/\d{1,2}\s+/.test(line.trim()))
+    .length;
+}
+
+function isNarrativeOutingArticle(article: Article): boolean {
+  return /outings?|out\s*(?:&|and)\s*about/i.test(article.title) &&
+    (article.imageRefs?.length ?? 0) > 0 &&
+    datedRowCount(article) < 2;
+}
+
 function isScheduleArticle(article: Article): boolean {
+  if (article.articleType === "birthday") return false;
+  if (isNarrativeOutingArticle(article)) return false;
   return (
-    /happy hours?|socials?|brunch|events?|outings?/i.test(article.title) ||
-    article.body.split(/\n+/).filter((line) => /^\d{1,2}\/\d{1,2}\s+/.test(line.trim())).length >= 2
+    /happy hours?|socials?|brunch|events?|calendar|schedule/i.test(article.title) ||
+    datedRowCount(article) >= 2
   );
 }
 
 function styleForSourceArticle(article: Article, index: number): LayoutBlock["style"] {
   if (/executive director|director corner/i.test(article.title)) {
     return normalizePanelStyle({ bg: "cream", headerColor: "navy", panelRole: "directorCorner", compact: true, cornerRadius: 6 });
+  }
+  if (article.articleType === "birthday" || /birthday/i.test(article.title)) {
+    return normalizePanelStyle({ bg: "sun", headerColor: "coral", panelRole: "birthday", scriptHeading: true, compact: true, cornerRadius: 0 });
   }
   if (isScheduleArticle(article)) {
     const role = /happy/i.test(article.title)
@@ -810,7 +838,7 @@ function positionsOverlap(a: LayoutBlock["position"], b: LayoutBlock["position"]
   );
 }
 
-type DenseLavenderMapId = "rail-mosaic" | "story-river" | "photo-stair" | "porter-guided-sparse" | "compact-director-mosaic";
+type DenseLavenderMapId = "rail-mosaic" | "story-river" | "photo-stair" | "porter-guided-sparse" | "compact-director-mosaic" | "community-collage";
 
 function denseLavenderMapLabel(mapId: DenseLavenderMapId): string {
   return {
@@ -819,7 +847,22 @@ function denseLavenderMapLabel(mapId: DenseLavenderMapId): string {
     "photo-stair": "Uploaded source Porter composition: photo stair",
     "porter-guided-sparse": "Uploaded source Porter composition: Porter-guided sparse blueprint",
     "compact-director-mosaic": "Uploaded source Porter composition: compact director mosaic",
+    "community-collage": "Uploaded source Porter composition: community collage grammar",
   }[mapId];
+}
+
+function hasCommunityCollageSourceShape(input: AdaptiveLayoutInput, articles: Article[], images: NewsImage[]): boolean {
+  if (input.gridSpec.columns !== 24 || input.gridSpec.rowsPerPage !== 16) return false;
+  const uploadedArticles = articles.filter((article) => article.source === "UPLOAD");
+  if (uploadedArticles.length < 6 || images.length < 5) return false;
+  const hasDirector = uploadedArticles.some((article) => /executive director|director corner/i.test(article.title));
+  const hasLongSchedule = uploadedArticles.some((article) => isScheduleArticle(article) && datedRowCount(article) >= 10);
+  const photoStoryCount = uploadedArticles.filter((article) =>
+    !isScheduleArticle(article) &&
+    article.articleType !== "birthday" &&
+    ((article.imageRefs?.length ?? 0) > 0 || /outing|breakfast|tea|project|joy|celebrat/i.test(`${article.title} ${article.body}`))
+  ).length;
+  return hasDirector && hasLongSchedule && photoStoryCount >= 3;
 }
 
 function hasDensePorterSourceShape(input: AdaptiveLayoutInput, articles: Article[], images: NewsImage[]): boolean {
@@ -860,8 +903,10 @@ function sourceTopologyCandidate(
   if (!input.articles.some((article) => article.source === "UPLOAD")) return undefined;
   const articles = orderArticles(input.articles, plan, "source");
   const schedules = articles.filter(isScheduleArticle);
-  const stories = articles.filter((article) => !isScheduleArticle(article));
+  const stories = articles.filter((article) => !isScheduleArticle(article) && article.articleType !== "birthday");
+  const birthdays = articles.filter((article) => article.articleType === "birthday" || /birthday/i.test(article.title));
   const orderedArticles = [
+    ...birthdays,
     ...stories.filter((article) => /executive director|director corner/i.test(article.title)),
     ...stories.filter((article) => /legacy/i.test(article.title)),
     ...schedules,
@@ -907,16 +952,17 @@ function sourceTopologyCandidate(
     index: number,
   ) => {
     const schedule = isScheduleArticle(article);
+    const birthdayArticle = article.articleType === "birthday" || /birthday/i.test(article.title);
     blocks.push({
       blockId: `source-${blocks.length + 1}`,
       slotId: `source-${article.id}`,
       page,
       position: { col, row, colSpan, rowSpan },
-      kind: schedule ? "list" : (/executive director|legacy/i.test(article.title) ? "recurring" : "article"),
-      articleId: schedule ? undefined : article.id,
+      kind: schedule || birthdayArticle ? "list" : (/executive director|legacy/i.test(article.title) ? "recurring" : "article"),
+      articleId: schedule || birthdayArticle ? undefined : article.id,
       needsFiller: false,
       heading: cleanSourceTitle(article.title),
-      listItems: schedule ? listRowsForArticle(article) : undefined,
+      listItems: schedule || birthdayArticle ? listRowsForArticle(article) : undefined,
       style: styleForSourceArticle(article, index),
       zIndex: 0,
     });
@@ -952,16 +998,20 @@ function sourceTopologyCandidate(
 
   if (orderedArticles.length === 0) return undefined;
   const director = orderedArticles.find((article) => /executive director|director corner/i.test(article.title)) ?? orderedArticles[0];
+  const birthday = orderedArticles.find((article) => article.articleType === "birthday" || /birthday/i.test(article.title));
   const legacy = orderedArticles.find((article) => /legacy/i.test(article.title) && article.id !== director.id);
-  const scheduleArticles = orderedArticles.filter(isScheduleArticle);
+  const scheduleArticles = orderedArticles.filter(isScheduleArticle).sort((a, b) => datedRowCount(b) - datedRowCount(a));
   const photoStories = orderedArticles.filter((article) =>
     article.id !== director.id &&
+    article.id !== birthday?.id &&
     article.id !== legacy?.id &&
     !isScheduleArticle(article) &&
+    article.articleType !== "birthday" &&
     (article.imageRefs?.length ?? 0) > 0,
-  );
+  ).sort((a, b) => Number(isNarrativeOutingArticle(b)) - Number(isNarrativeOutingArticle(a)) || b.wordCount - a.wordCount);
   const briefs = orderedArticles.filter((article) =>
     article.id !== director.id &&
+    article.id !== birthday?.id &&
     article.id !== legacy?.id &&
     !scheduleArticles.some((schedule) => schedule.id === article.id) &&
     !photoStories.some((story) => story.id === article.id),
@@ -970,9 +1020,44 @@ function sourceTopologyCandidate(
   const [featureA, featureB, featureC, featureD] = photoStories;
   const [briefA, briefB] = briefs;
   const usesDensePorterPacker =
-    hasDensePorterSourceShape(input, orderedArticles, images);
+    hasDensePorterSourceShape(input, orderedArticles, images) ||
+    (denseMapId === "community-collage" && hasCommunityCollageSourceShape(input, orderedArticles, images));
   if (usesDensePorterPacker) {
-    if (denseMapId === "compact-director-mosaic") {
+    if (denseMapId === "community-collage") {
+      const longSchedule = firstSchedule;
+      if (birthday) articleBlock(birthday, 1, 1, 1, 5, 9, 1);
+      articleBlock(director, 1, birthday ? 6 : 1, 1, 9, 7, 0);
+      imageBlock(takeImage(director, true), 1, birthday ? 15 : 10, 1, 4, 7, director);
+      if (featureA) {
+        articleBlock(featureA, 1, 19, 1, 6, 5, 5);
+        imageBlock(takeImage(featureA, true), 1, 19, 6, 3, 5, featureA);
+        imageBlock(takeImage(featureA, true), 1, 22, 6, 3, 5, featureA);
+      }
+      if (featureB) {
+        articleBlock(featureB, 1, 6, 8, 13, 4, 6);
+        imageBlock(takeImage(featureB, true), 1, 6, 12, 9, 5, featureB);
+        imageBlock(takeImage(featureB, true), 1, 15, 12, 10, 5, featureB);
+      }
+      if (!birthday && secondSchedule) articleBlock(secondSchedule, 1, 1, 8, 5, 9, 3);
+
+      if (featureC) {
+        articleBlock(featureC, 2, 1, 1, 9, 5, 7);
+        imageBlock(takeImage(featureC, true), 2, 10, 1, 4, 5, featureC);
+        imageBlock(takeImage(featureC, true), 2, 14, 1, 4, 5, featureC);
+      }
+      if (featureD) {
+        articleBlock(featureD, 2, 1, 6, 9, 5, 8);
+        imageBlock(takeImage(featureD, true), 2, 10, 6, 4, 5, featureD);
+        imageBlock(takeImage(featureD, true), 2, 14, 6, 4, 5, featureD);
+      } else if (legacy && legacy.id !== featureA?.id && legacy.id !== featureB?.id) {
+        articleBlock(legacy, 2, 1, 6, 9, 5, 8);
+        imageBlock(takeImage(legacy, true), 2, 10, 6, 8, 5, legacy);
+      }
+      imageBlock(takeImage(undefined, true), 2, 1, 11, 6, 6);
+      imageBlock(takeImage(undefined, true), 2, 7, 11, 6, 6);
+      imageBlock(takeImage(undefined, true), 2, 13, 11, 5, 6);
+      if (longSchedule) articleBlock(longSchedule, 2, 18, 1, 7, 16, 2);
+    } else if (denseMapId === "compact-director-mosaic") {
       if (firstSchedule) articleBlock(firstSchedule, 1, 1, 1, 5, 6, 2);
       if (secondSchedule) articleBlock(secondSchedule, 1, 1, 7, 5, 5, 3);
       if (thirdSchedule) articleBlock(thirdSchedule, 1, 1, 12, 5, 5, 4);
@@ -1036,7 +1121,7 @@ function sourceTopologyCandidate(
       imageBlock(takeImage(legacy), 2, 1, 7, 6, 10, legacy);
       imageBlock(takeImage(featureB), 2, 7, 7, 10, 10, featureB);
       if (briefB) articleBlock(briefB, 2, 17, 11, 8, 3, 10);
-      imageBlock(takeImage(undefined, true), 2, 17, 14, 8, 3);
+      if (briefB) imageBlock(takeImage(undefined, true), 2, 17, 14, 8, 3);
     } else if (denseMapId === "story-river") {
       if (firstSchedule) articleBlock(firstSchedule, 1, 1, 1, 6, 5, 2);
       if (secondSchedule) articleBlock(secondSchedule, 1, 1, 6, 6, 4, 3);
@@ -1244,7 +1329,7 @@ function sourceTopologyCandidate(
     label: usesDensePorterPacker ? denseLavenderMapLabel(denseMapId) : "Uploaded source topology",
     geometryVariant: "source-topology",
     layout,
-    score: scored.score + (usesDensePorterPacker ? (denseMapId === "compact-director-mosaic" ? 0.24 : denseMapId === "porter-guided-sparse" ? 0.2 : 0.12) : 0.08),
+    score: scored.score + (usesDensePorterPacker ? (denseMapId === "compact-director-mosaic" ? 0.24 : denseMapId === "community-collage" ? 0.22 : denseMapId === "porter-guided-sparse" ? 0.2 : 0.12) : 0.08),
     subscores: scored.subscores,
     warnings: scored.warnings,
   };
@@ -1255,10 +1340,12 @@ function sourceTopologyCandidates(input: AdaptiveLayoutInput, plan: EditorialPla
   if (!base) return [];
   const dense =
     hasDensePorterSourceShape(input, input.articles, input.images);
-  if (!dense) return [base];
   const compact = hasCompactPorterSourceShape(input, input.articles, input.images);
+  const communityCollage = hasCommunityCollageSourceShape(input, input.articles, input.images);
+  if (!dense && !communityCollage) return [base];
   return [
     base,
+    communityCollage ? sourceTopologyCandidate(input, plan, "community-collage") : undefined,
     compact ? sourceTopologyCandidate(input, plan, "compact-director-mosaic") : undefined,
     sourceTopologyCandidate(input, plan, "porter-guided-sparse"),
     sourceTopologyCandidate(input, plan, "story-river"),

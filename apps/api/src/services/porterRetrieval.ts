@@ -90,9 +90,17 @@ const EXAMPLES: PorterExampleSignature[] = [
 const DATE_PATTERN = /\b(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\s+\d{1,2}\b|\b\d{1,2}[/-]\d{1,2}\b/gi;
 
 function isScheduleArticle(article: Article): boolean {
+  const datedRows = article.body.split(/\n+|;\s*/).filter((line) => /^\d{1,2}\/\d{1,2}\s+/.test(line.trim())).length;
+  if (
+    /outings?|out\s*(?:&|and)\s*about/i.test(article.title) &&
+    (article.imageRefs?.length ?? 0) > 0 &&
+    datedRows < 2
+  ) {
+    return false;
+  }
   return (
-    /happy hours?|socials?|brunch|events?|outings?|out & about/i.test(article.title) ||
-    article.body.split(/\n+/).filter((line) => /^\d{1,2}\/\d{1,2}\s+/.test(line.trim())).length >= 2 ||
+    /happy hours?|socials?|brunch|events?|calendar|schedule/i.test(article.title) ||
+    datedRows >= 2 ||
     (article.body.match(DATE_PATTERN) ?? []).length >= 2
   );
 }
@@ -153,6 +161,17 @@ export function retrievePorterExamples(articles: Article[], images: NewsImage[],
   const hasLegacyOrSpotlight = articles.some((article) =>
     /legacy|spotlight|resident|profile/i.test(article.title) || article.articleType === "resident-story"
   );
+  const photoStoryCount = articles.filter((article) =>
+    !isScheduleArticle(article) &&
+    article.articleType !== "birthday" &&
+    ((article.imageRefs?.length ?? 0) > 0 || /outing|breakfast|tea|project|joy|celebrat/i.test(`${article.title} ${article.body}`))
+  ).length;
+  const hasLongSchedule = articles.some((article) => isScheduleArticle(article) && article.body.split(/\n+|;\s*/).filter((line) => /^\d{1,2}\/\d{1,2}\s+/.test(line.trim())).length >= 10);
+  const communityCollageIssue =
+    hasDirector &&
+    signature.photoCount >= 5 &&
+    hasLongSchedule &&
+    photoStoryCount >= 3;
   const sourceDenseIssue =
     signature.moduleCount >= 8 &&
     signature.photoCount >= 3 &&
@@ -172,6 +191,8 @@ export function retrievePorterExamples(articles: Article[], images: NewsImage[],
       example,
       score:
         distance(signature, example.signature) -
+        (communityCollageIssue && example.family === "community-collage" ? 0.35 : 0) +
+        (communityCollageIssue && example.family === "editorial-light" ? 0.2 : 0) -
         (sourceDenseIssue && example.family === "dense-lavender-grid" ? 0.32 : 0) +
         (sourceDenseIssue && example.family === "editorial-light" ? 0.18 : 0) -
         (julyLikeDenseGrid && example.family === "dense-lavender-grid" ? 0.25 : 0),
@@ -181,7 +202,9 @@ export function retrievePorterExamples(articles: Article[], images: NewsImage[],
     .map(({ example }) => example);
   const familyCounts = new Map<PorterRetrievalFamily, number>();
   for (const example of examples) familyCounts.set(example.family, (familyCounts.get(example.family) ?? 0) + 1);
-  const family = sourceDenseIssue
+  const family = communityCollageIssue
+    ? "community-collage"
+    : sourceDenseIssue
     ? "dense-lavender-grid"
     : [...familyCounts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0]?.[0] ?? "community-collage";
   const prompt = [

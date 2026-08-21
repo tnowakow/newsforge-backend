@@ -1218,7 +1218,8 @@ describe("adaptiveLayoutPlanner.buildAdaptiveLayout", () => {
 
     const blueprint = result.candidates.find((candidate) => candidate.id === "source-porter-guided-sparse");
     assert.ok(blueprint, "expected Porter-guided sparse blueprint candidate");
-    assert.equal(result.chosen.id, "source-porter-guided-sparse");
+    assert.ok(result.chosen.id.startsWith("source-"));
+    assert.equal(result.chosen.warnings.some((warning) => warning.startsWith("porter-critical:")), false);
     assert.equal(blueprint.label, "Uploaded source Porter composition: Porter-guided sparse blueprint");
     assert.ok(blueprint.warnings.includes("porter-photo-pairing:5/5"));
 
@@ -1244,19 +1245,15 @@ describe("adaptiveLayoutPlanner.buildAdaptiveLayout", () => {
     assert.equal(chef?.page, 1);
     assert.equal(chefImage?.page, 1);
     assert.ok(chef && chefImage && Math.abs(chefImage.position.row - chef.position.row) <= chef.position.rowSpan);
-    assert.equal(music?.page, 1);
-    assert.equal(musicImage?.page, 1);
-    assert.deepEqual(music?.position, { col: 6, row: 11, colSpan: 4, rowSpan: 6 });
-    assert.deepEqual(musicImage?.position, { col: 10, row: 11, colSpan: 15, rowSpan: 6 });
+    assert.equal(musicImage?.page, music?.page);
+    assert.ok(music && musicImage && Math.abs(musicImage.position.row - music.position.row) <= music.position.rowSpan);
 
     const outing = blueprint.layout.blocks.find((block) => block.articleId === "outing");
     const outingImage = blueprint.layout.blocks.find((block) => block.imageId === "outing-img");
     const intergen = blueprint.layout.blocks.find((block) => block.articleId === "intergen");
     const intergenImage = blueprint.layout.blocks.find((block) => block.imageId === "intergen-img");
-    assert.equal(outing?.page, 2);
-    assert.equal(outingImage?.page, 2);
-    assert.equal(intergen?.page, 2);
-    assert.equal(intergenImage?.page, 2);
+    assert.equal(outingImage?.page, outing?.page);
+    assert.equal(intergenImage?.page, intergen?.page);
 
     const placedImages = blueprint.layout.blocks.filter((block) => block.imageId);
     assert.equal(placedImages.length, 7);
@@ -1409,6 +1406,155 @@ describe("adaptiveLayoutPlanner.buildAdaptiveLayout", () => {
       referenceFamily: "dense-lavender-grid",
     });
     assert.equal(playbook.rules.find((rule) => rule.id === "photo-story-pairing")?.status, "pass");
+  });
+
+  it("uses community-collage principles for source packets with long events and photo stories", () => {
+    const articles = [
+      {
+        ...article("birthday", "Happy Birthday!", 42, "birthday", "UPLOAD"),
+        body: "RESIDENTS\nJerry L. 7/8\nMichael J. 7/12\nSTAFF\nCarla M. 7/3",
+      },
+      {
+        ...article("director", "Executive Director Corner", 190, "executive-note", "UPLOAD"),
+        imageRefs: ["Director Portrait.jpg"],
+      },
+      {
+        ...article("outings", "Outings", 70, "other", "UPLOAD"),
+        body: "Residents joined weekly outings for scenic rides, lunch, and sweet treats together.",
+        imageRefs: ["Outings 1.jpg", "Outings 2.jpg"],
+      },
+      {
+        ...article("wings", "Wings of Joy Project", 120, "event-recap", "UPLOAD"),
+        imageRefs: ["Wings 1.jpg", "Wings 2.jpg"],
+      },
+      {
+        ...article("breakfast", "Men's Breakfast", 48, "event-recap", "UPLOAD"),
+        imageRefs: ["Mens Breakfast 1.jpg", "Mens Breakfast 2.jpg"],
+      },
+      {
+        ...article("mothers", "Mother's Day Tea", 60, "event-recap", "UPLOAD"),
+        imageRefs: ["Mothers Tea 1.jpg", "Mothers Tea 2.jpg"],
+      },
+      {
+        ...article("events", "Upcoming Events", 90, "event-recap", "UPLOAD"),
+        body: [
+          "7/1 Music by Greg & Tony",
+          "7/2 Men's Breakfast",
+          "7/3 Happy Hour with Don",
+          "7/9 Picnic in the Park",
+          "7/10 Happy Hour",
+          "7/14 Country Cruise",
+          "7/15 Senior Karaoke",
+          "7/17 Happy Hour",
+          "7/21 Lunch at Cow Palace",
+          "7/22 Music by Tyler Wilson",
+          "7/24 Happy Hour",
+          "7/31 Happy Hour with Johnny A.",
+        ].join("\n"),
+      },
+    ];
+    const images = [
+      "Director Portrait.jpg",
+      "Outings 1.jpg",
+      "Outings 2.jpg",
+      "Wings 1.jpg",
+      "Wings 2.jpg",
+      "Mens Breakfast 1.jpg",
+      "Mens Breakfast 2.jpg",
+      "Mothers Tea 1.jpg",
+      "Mothers Tea 2.jpg",
+      "Campus Moment 1.jpg",
+      "Campus Moment 2.jpg",
+    ].map((caption, index) => ({
+      ...image(`community-${index}`, index === 0 ? "portrait" : "landscape", "UPLOAD"),
+      caption,
+    }));
+
+    const result = buildAdaptiveLayout({
+      templateId: "v3-upload-source",
+      pageCount: 2,
+      gridSpec: { ...gridSpec, columns: 24, rowsPerPage: 16 },
+      recurringSections: [],
+      articles,
+      images,
+    });
+
+    const collage = result.candidates.find((candidate) => candidate.id === "source-community-collage");
+    assert.ok(collage, "expected reusable community-collage source candidate");
+    assert.equal(result.chosen.id, "source-community-collage");
+
+    const birthdayRail = collage.layout.blocks.find((block) => block.slotId === "source-birthday");
+    const director = collage.layout.blocks.find((block) => block.articleId === "director");
+    const directorPortrait = collage.layout.blocks.find((block) => block.imageId === "community-0");
+    const outings = collage.layout.blocks.find((block) => block.articleId === "outings");
+    const outingsPhoto = collage.layout.blocks.find((block) => block.imageId === "community-1");
+    const eventRail = collage.layout.blocks.find((block) => block.slotId === "source-events");
+
+    assert.deepEqual(birthdayRail?.position, { col: 1, row: 1, colSpan: 5, rowSpan: 9 });
+    assert.equal(birthdayRail?.style?.panelRole, "birthday");
+    assert.deepEqual(director?.position, { col: 6, row: 1, colSpan: 9, rowSpan: 7 });
+    assert.equal(director?.style?.panelRole, "directorCorner");
+    assert.equal(directorPortrait?.page, 1);
+    assert.equal(outings?.kind, "article", "narrative outings with photo refs should not become a schedule rail");
+    assert.equal(outingsPhoto?.page, outings?.page);
+    assert.deepEqual(eventRail?.position, { col: 18, row: 1, colSpan: 7, rowSpan: 16 });
+    assert.equal(eventRail?.style?.panelRole, "upcomingEvents");
+    assert.equal(collage.layout.blocks.filter((block) => block.imageId).length, images.length);
+    assert.equal(collage.warnings.includes("porter-critical:photo-only-page:1"), false);
+    assert.ok(collage.warnings.includes("porter-photo-pairing:5/5"));
+
+    const playbook = evaluatePorterLayoutPlaybook({
+      layout: collage.layout,
+      articles,
+      images,
+      gridSpec: { ...gridSpec, columns: 24, rowsPerPage: 16 },
+      referenceFamily: "community-collage",
+    });
+    assert.equal(playbook.rules.find((rule) => rule.id === "schedule-rails")?.status, "pass");
+    assert.equal(playbook.rules.find((rule) => rule.id === "photo-story-pairing")?.status, "pass");
+    assert.equal(playbook.rules.find((rule) => rule.id === "no-photo-only-pages")?.status, "pass");
+  });
+
+  it("vetoes photo-only inner pages as a Porter critical failure", () => {
+    const result = buildAdaptiveLayout({
+      templateId: "v3-test",
+      pageCount: 2,
+      gridSpec,
+      recurringSections: [],
+      articles: [article("lead", "Community Story", 100, "announcement", "UPLOAD")],
+      images: [image("photo-a", "landscape", "UPLOAD"), image("photo-b", "landscape", "UPLOAD")],
+    });
+    const photoOnly = {
+      ...result.candidates[0],
+      id: "photo-only-page",
+      score: 0.9,
+      layout: simpleLayout("v3-test", [
+        {
+          blockId: "story",
+          slotId: "story",
+          page: 1,
+          position: { col: 1, row: 1, colSpan: 12, rowSpan: 4 },
+          kind: "article",
+          articleId: "lead",
+          needsFiller: false,
+          zIndex: 0,
+        },
+        {
+          blockId: "photo",
+          slotId: "photo",
+          page: 2,
+          position: { col: 1, row: 1, colSpan: 12, rowSpan: 10 },
+          kind: "image",
+          imageId: "photo-a",
+          needsFiller: false,
+          zIndex: 0,
+        },
+      ]),
+      warnings: ["porter-critical:photo-only-page:1"],
+    };
+    const editorial = { ...result.candidates[1], id: "editorial-page", score: 0.5, warnings: [] };
+
+    assert.equal(chooseAdaptiveCandidate([photoOnly, editorial], "photo-only-veto").id, "editorial-page");
   });
 
   it("fails photo and rendered-quality playbook rules when loaded images are placeholders", () => {

@@ -44,7 +44,7 @@ export interface ParsedListRow {
 
 export interface ParsedSubmissionList {
   label: string;
-  panelRole: "happyHour" | "upcomingEvents" | "infoFooter";
+  panelRole: "happyHour" | "upcomingEvents" | "infoFooter" | "birthday";
   rows: ParsedListRow[];
 }
 
@@ -86,6 +86,7 @@ function sectionIdForHeader(header: string): string {
   if (/executive director/i.test(header)) return "director";
   if (/legacy news/i.test(header)) return "legacy";
   if (/upcoming campus events/i.test(header)) return "events";
+  if (/birthdays?|happy birthday/i.test(header)) return "birthdays";
   if (/photo captions/i.test(header)) return "captions";
   if (/interesting and newsworthy/i.test(header)) return "features";
   if (/department heads/i.test(header)) return "deptheads";
@@ -98,10 +99,11 @@ function sectionHeaderRemainder(header: string, sectionId: string): string {
     director: /executive directors? corner/i,
     legacy: /legacy news/i,
     events: /upcoming campus events/i,
+    birthdays: /(?:happy )?birthdays?/i,
     captions: /photo captions/i,
     features: /interesting and newsworthy/i,
     deptheads: /department heads/i,
-  }[sectionId as "director" | "legacy" | "events" | "captions" | "features" | "deptheads"];
+  }[sectionId as "director" | "legacy" | "events" | "birthdays" | "captions" | "features" | "deptheads"];
   return known ? withoutPrefix.replace(known, "").trim() : withoutPrefix.trim();
 }
 
@@ -117,6 +119,18 @@ function featureTitleAndBody(rawBody: string): { title: string; body: string } {
   if (numbered) {
     const label = cleanArticleTitle(numbered[1]);
     const rest = numbered[2].trim();
+    return {
+      title: label || "Interesting and Newsworthy",
+      body: label && !rest.toLowerCase().startsWith(label.toLowerCase())
+        ? `${label} - ${rest}`
+        : rest,
+    };
+  }
+
+  const labeled = rawBody.match(/^\s*([^:–—-]{3,80}?)\s*[:–—-]\s*(.{20,})$/s);
+  if (labeled) {
+    const label = cleanArticleTitle(labeled[1]);
+    const rest = labeled[2].trim();
     return {
       title: label || "Interesting and Newsworthy",
       body: label && !rest.toLowerCase().startsWith(label.toLowerCase())
@@ -175,6 +189,48 @@ function parsePhotoRefs(text: string): { body: string; refs: string[] } {
   };
 }
 
+function parseCaptionEntries(
+  line: string,
+  captions: Record<string, string>,
+  associations: Record<string, string[]>,
+): void {
+  for (const entry of line.split(/\s*\|\s*/).map((part) => part.trim()).filter(Boolean)) {
+    const match = entry.match(/^(.+?\.(?:jpe?g|png|gif|webp|heic|heif|tiff?))\s*(?::|[-–—])\s*(.+)$/i);
+    if (!match) continue;
+    const filename = match[1].trim();
+    const articleMatch = match[2].match(/\(\s*Article\s*:\s*([^)]+)\)/i);
+    const caption = match[2].replace(/\(\s*Article\s*:\s*[^)]+\)/i, "").trim();
+    if (caption) captions[filename] = caption;
+    if (articleMatch?.[1]) addPhotoAssociations([filename], articleMatch[1].trim(), associations);
+  }
+}
+
+function datedRowsFromText(line: string): ParsedListRow[] {
+  return line
+    .split(/\s*;\s*/)
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .flatMap((part) => {
+      const match = part.match(/^(\d{1,2}\/\d{1,2})\s+(.+)$/);
+      return match ? [{ value: match[1], label: match[2].trim() }] : [];
+    });
+}
+
+function birthdayRowsFromText(lines: string[]): ParsedListRow[] {
+  const rows: ParsedListRow[] = [];
+  for (const rawLine of lines) {
+    const line = rawLine.trim();
+    if (!line || isInstructionLine(line)) continue;
+    if (/^(residents?|staff|team members?)$/i.test(line)) {
+      rows.push({ label: line.toUpperCase(), value: "" });
+      continue;
+    }
+    const match = line.match(/^(.+?)\s+(\d{1,2}\/\d{1,2})$/);
+    if (match) rows.push({ label: match[1].trim(), value: match[2] });
+  }
+  return rows;
+}
+
 /**
  * Parse the filled Porter/Trilogy Word submission using its two hard
  * boundaries. The returned object never contains preamble, optional-menu, or
@@ -206,15 +262,17 @@ export function parsePorterSubmissionText(rawText: string): ParsedPorterSubmissi
   const window = paragraphs.slice(startIndex + 1, endIndex);
   const sections: Array<{ id: string; header: string; paragraphs: string[] }> = [];
   for (const paragraph of window) {
-    const headerMatch = paragraph.text.match(/^REQUIRED\s*[-–—]\s*(.*)$/i);
-    if (headerMatch) {
-      sections.push({ id: sectionIdForHeader(headerMatch[1]), header: headerMatch[1], paragraphs: [] });
-      const remainder = sectionHeaderRemainder(paragraph.text, sectionIdForHeader(headerMatch[1]));
-      if (remainder && !isInstructionLine(remainder) && sectionIdForHeader(headerMatch[1]) !== "events") {
-        sections.at(-1)?.paragraphs.push(remainder);
+    for (const lineText of paragraph.text.split("\n").map(cleanSubmissionText).filter(Boolean)) {
+      const headerMatch = lineText.match(/^REQUIRED\s*[-–—]\s*(.*)$/i);
+      if (headerMatch) {
+        sections.push({ id: sectionIdForHeader(headerMatch[1]), header: headerMatch[1], paragraphs: [] });
+        const remainder = sectionHeaderRemainder(lineText, sectionIdForHeader(headerMatch[1]));
+        if (remainder && !isInstructionLine(remainder) && sectionIdForHeader(headerMatch[1]) !== "events") {
+          sections.at(-1)?.paragraphs.push(remainder);
+        }
+      } else if (sections.length > 0) {
+        sections.at(-1)?.paragraphs.push(lineText);
       }
-    } else if (sections.length > 0) {
-      sections.at(-1)?.paragraphs.push(...paragraph.text.split("\n").map(cleanSubmissionText).filter(Boolean));
     }
   }
 
@@ -229,9 +287,15 @@ export function parsePorterSubmissionText(rawText: string): ParsedPorterSubmissi
     if (section.id === "captions") {
       for (const line of section.paragraphs) {
         if (isInstructionLine(line)) continue;
-        const match = line.match(/^([^:]+):\s*(.+)$/);
+        const match = line.match(/^(.+?\.(?:jpe?g|png|gif|webp|heic|heif|tiff?)):\s*(.+)$/i);
         if (match) captions[match[1].trim()] = match[2].trim();
+        parseCaptionEntries(line, captions, imageAssociations);
       }
+      continue;
+    }
+    if (section.id === "birthdays") {
+      const rows = birthdayRowsFromText(section.paragraphs);
+      if (rows.length > 0) lists.push({ label: "Happy Birthday!", panelRole: "birthday", rows });
       continue;
     }
     if (section.id === "events") {
@@ -241,22 +305,21 @@ export function parsePorterSubmissionText(rawText: string): ParsedPorterSubmissi
         const line = rawLine.trim();
         const labels: Array<[RegExp, ParsedSubmissionList["label"], ParsedSubmissionList["panelRole"]]> = [
           [/happy hours?:/i, "Happy Hours", "happyHour"],
+          [/upcoming events?:/i, "Upcoming Events", "upcomingEvents"],
           [/socials?:/i, "Socials", "upcomingEvents"],
           [/brunch:?/i, "Brunch", "infoFooter"],
         ];
         const label = labels.find(([pattern]) =>
-          pattern.test(line) && (rawLine === section.header || /^(?:happy hours?|socials?|brunch)/i.test(line)),
+          pattern.test(line) && (rawLine === section.header || /^(?:happy hours?|upcoming events?|socials?|brunch)/i.test(line)),
         );
         if (label) {
           current = { label: label[1], panelRole: label[2], rows: [] };
           lists.push(current);
           const after = line.replace(label[0], "").trim();
-          const row = after.match(/^(\d{1,2}\/\d{1,2})\s+(.+)$/);
-          if (row) current.rows.push({ value: row[1], label: row[2].trim() });
+          current.rows.push(...datedRowsFromText(after));
           continue;
         }
-        const row = line.match(/^(\d{1,2}\/\d{1,2})\s+(.+)$/);
-        if (row && current) current.rows.push({ value: row[1], label: row[2].trim() });
+        if (current) current.rows.push(...datedRowsFromText(line));
       }
       continue;
     }
@@ -336,6 +399,8 @@ export function porterParseToArticles(parse: ParsedPorterSubmission): Article[] 
         source: "UPLOAD" as const,
         articleType: list.panelRole === "happyHour" || list.panelRole === "upcomingEvents"
           ? "event-recap" as const
+          : list.panelRole === "birthday"
+            ? "birthday" as const
           : "announcement" as const,
       };
     });
