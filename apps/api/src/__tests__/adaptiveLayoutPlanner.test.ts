@@ -1309,15 +1309,21 @@ describe("adaptiveLayoutPlanner.buildAdaptiveLayout", () => {
     });
 
     assert.ok(result.candidates.some((candidate) => candidate.id === "source-porter-guided-sparse"));
+    assert.ok(result.candidates.some((candidate) => candidate.id === "source-compact-director-mosaic"));
     assert.ok(result.candidates.some((candidate) => candidate.id === "source-story-river"));
     assert.ok(result.candidates.some((candidate) => candidate.id === "source-photo-stair"));
 
-    const blueprint = result.candidates.find((candidate) => candidate.id === "source-porter-guided-sparse");
-    assert.ok(blueprint, "expected Porter-guided candidate for eight-module packet");
-    assert.equal(blueprint.label, "Uploaded source Porter composition: Porter-guided sparse blueprint");
+    const blueprint = result.candidates.find((candidate) => candidate.id === "source-compact-director-mosaic");
+    assert.ok(blueprint, "expected compact Porter candidate for eight-module packet");
+    assert.equal(result.chosen.id, "source-compact-director-mosaic");
+    assert.equal(blueprint.label, "Uploaded source Porter composition: compact director mosaic");
     assert.ok(
       blueprint.warnings.some((warning) => warning.startsWith("porter-unmatched-photo-refs:3:")),
       "generic DOCX photo refs should stay visible as a pairing warning",
+    );
+    assert.ok(
+      blueprint.warnings.includes("porter-photo-pairing:3/3"),
+      "ordered fallback photos should still count as paired when generic refs cannot filename-match",
     );
     assert.notEqual(
       blueprint.layout.blocks.find((block) => block.articleId === "anniversary")?.style?.panelRole,
@@ -1331,6 +1337,16 @@ describe("adaptiveLayoutPlanner.buildAdaptiveLayout", () => {
     assert.ok(
       blueprint.layout.blocks.some((block) => block.articleId === "director" && block.position.row <= 3),
       "director should still anchor the first inner page",
+    );
+    const pairedImages = blueprint.layout.blocks.filter((block) => block.imageId);
+    assert.equal(pairedImages.length, 3, "all three uploaded images should be used");
+    assert.ok(
+      pairedImages.some((block) => block.page === 2 && block.position.colSpan >= 16),
+      "compact packet should reserve a strong second-page photo anchor",
+    );
+    assert.ok(
+      new Set(blueprint.layout.blocks.filter((block) => block.articleId || block.kind === "list").map((block) => block.position.colSpan)).size >= 4,
+      "compact packet should avoid repeated same-width boxes",
     );
   });
 
