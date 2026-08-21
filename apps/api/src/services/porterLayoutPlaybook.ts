@@ -199,8 +199,13 @@ export function evaluatePorterLayoutPlaybook(input: EvaluateInput): PorterLayout
         .map((image) => image.id);
       const matchingImageBlocks = innerBlocks.filter((block) => block.imageId && matchedImageIds.includes(block.imageId));
       const near = Boolean(textBlock && matchingImageBlocks.some((imageBlock) => touchesOrNear(textBlock, imageBlock)));
-      if (near) paired += 1;
-      details.push(`${article.title}: ${near ? "near" : "drifted"}`);
+      const fallbackNear = matchedImageIds.length === 0 && Boolean(textBlock && imageBlocks.some((imageBlock) =>
+        imageBlock.page === textBlock.page &&
+        gridDistance(textBlock, imageBlock) <= 16 &&
+        normalize(imageBlock.caption).includes(normalize(article.title)),
+      ));
+      if (near || fallbackNear) paired += 1;
+      details.push(`${article.title}: ${near || fallbackNear ? "near" : "drifted"}`);
     }
     const ratio = paired / referencedArticles.length;
     photoStoryRatio = ratio;

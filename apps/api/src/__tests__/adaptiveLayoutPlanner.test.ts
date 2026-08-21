@@ -1350,6 +1350,67 @@ describe("adaptiveLayoutPlanner.buildAdaptiveLayout", () => {
     );
   });
 
+  it("uses compact director mosaic for WillsInitial-style seven-photo generic uploads", () => {
+    const articles = [
+      article("director", "Executive Director Corner", 167, "executive-note", "UPLOAD"),
+      { ...article("legacy", "Legacy News", 29, "resident-story", "UPLOAD"), imageRefs: ["Legacy.jpg", "Legacy 2.jpg"] },
+      { ...article("chef", "Chef Circle", 50, "announcement", "UPLOAD"), imageRefs: ["Chefs Circle.jpg"] },
+      {
+        ...article(
+          "campus",
+          "Campus in Color is a Vibrant Celebration of Creativity, community and self-expression",
+          39,
+          "announcement",
+          "UPLOAD",
+        ),
+        imageRefs: ["Campus in Color.jpg", "Campus in Color 2.HEIC"],
+      },
+      article("anniversary", "The Oaks at Jamestown is Proud to celebrate its second anniversary", 89, "announcement", "UPLOAD"),
+      article("happy", "Happy Hours", 23, "event-recap", "UPLOAD"),
+      article("socials", "Socials", 14, "event-recap", "UPLOAD"),
+      article("brunch", "Brunch", 3, "announcement", "UPLOAD"),
+    ];
+    const images = Array.from({ length: 7 }, (_, index) => ({
+      ...image(`photo-${index + 1}`, index % 2 === 0 ? "landscape" : "portrait", "UPLOAD"),
+      alt: `photo${index + 1}.jpg`,
+    }));
+
+    const result = buildAdaptiveLayout({
+      templateId: "v3-upload-source",
+      pageCount: 2,
+      gridSpec: { ...gridSpec, columns: 24, rowsPerPage: 16 },
+      recurringSections: [],
+      articles,
+      images,
+    });
+
+    const compact = result.candidates.find((candidate) => candidate.id === "source-compact-director-mosaic");
+    assert.ok(compact, "expected compact candidate for real WillsInitial seven-photo shape");
+    assert.equal(result.chosen.id, "source-compact-director-mosaic");
+    assert.ok(compact.warnings.some((warning) => warning.startsWith("porter-unmatched-photo-refs:5:")));
+    assert.ok(compact.warnings.includes("porter-photo-pairing:3/3"));
+    assert.equal(compact.layout.blocks.filter((block) => block.imageId).length, 7);
+    for (const articleId of ["legacy", "chef", "campus"]) {
+      const story = compact.layout.blocks.find((block) => block.articleId === articleId);
+      const pairedPhoto = compact.layout.blocks.find((block) =>
+        block.imageId &&
+        block.page === story?.page &&
+        block.caption &&
+        block.caption.toLowerCase().includes((articles.find((article) => article.id === articleId)?.title ?? "").toLowerCase().slice(0, 12)),
+      );
+      assert.ok(story && pairedPhoto, `${articleId} should have a same-page semantic fallback photo pair`);
+    }
+
+    const playbook = evaluatePorterLayoutPlaybook({
+      layout: compact.layout,
+      articles,
+      images,
+      gridSpec: { ...gridSpec, columns: 24, rowsPerPage: 16 },
+      referenceFamily: "dense-lavender-grid",
+    });
+    assert.equal(playbook.rules.find((rule) => rule.id === "photo-story-pairing")?.status, "pass");
+  });
+
   it("fails photo and rendered-quality playbook rules when loaded images are placeholders", () => {
     const layout = simpleLayout("v3-test", [
       {

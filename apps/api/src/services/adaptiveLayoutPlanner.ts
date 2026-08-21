@@ -849,7 +849,7 @@ function hasCompactPorterSourceShape(input: AdaptiveLayoutInput, articles: Artic
   const uploadedArticles = articles.filter((article) => article.source === "UPLOAD");
   const scheduleCount = uploadedArticles.filter(isScheduleArticle).length;
   const referencedStoryCount = uploadedArticles.filter((article) => (article.imageRefs?.length ?? 0) > 0).length;
-  return uploadedArticles.length <= 9 && images.length <= 4 && scheduleCount >= 2 && referencedStoryCount >= 3;
+  return uploadedArticles.length <= 9 && images.length <= 8 && scheduleCount >= 2 && referencedStoryCount >= 3;
 }
 
 function sourceTopologyCandidate(
@@ -947,6 +947,8 @@ function sourceTopologyCandidate(
       zIndex: 0,
     });
   };
+  const surplusImageAvailable = (remainingStorySlots: number): boolean =>
+    images.filter((image) => !usedImages.has(image.id)).length > remainingStorySlots;
 
   if (orderedArticles.length === 0) return undefined;
   const director = orderedArticles.find((article) => /executive director|director corner/i.test(article.title)) ?? orderedArticles[0];
@@ -974,25 +976,31 @@ function sourceTopologyCandidate(
       if (firstSchedule) articleBlock(firstSchedule, 1, 1, 1, 5, 6, 2);
       if (secondSchedule) articleBlock(secondSchedule, 1, 1, 7, 5, 5, 3);
       if (thirdSchedule) articleBlock(thirdSchedule, 1, 1, 12, 5, 5, 4);
-      articleBlock(director, 1, 6, 1, 10, 6, 0);
+      articleBlock(director, 1, 6, 1, 10, 7, 0);
       if (legacy) {
-        articleBlock(legacy, 1, 16, 1, 9, 4, 1);
-        imageBlock(takeImage(legacy, true), 1, 16, 5, 9, 5, legacy);
+        articleBlock(legacy, 1, 16, 1, 9, 3, 1);
+        imageBlock(takeImage(legacy, true), 1, 16, 4, 9, 5, legacy);
       }
       if (featureA) {
-        articleBlock(featureA, 1, 6, 7, 7, 5, 5);
-        imageBlock(takeImage(featureA, true), 1, 13, 10, 12, 7, featureA);
+        articleBlock(featureA, 1, 6, 8, 7, 4, 5);
+        imageBlock(takeImage(featureA, true), 1, 13, 9, 12, 8, featureA);
+      }
+      if (surplusImageAvailable([featureB, featureC, featureD].filter(Boolean).length)) {
+        imageBlock(takeImage(undefined, true), 1, 6, 12, 7, 5);
       }
 
       if (featureB) {
-        articleBlock(featureB, 2, 1, 1, 8, 6, 6);
+        articleBlock(featureB, 2, 1, 1, 8, 5, 6);
         imageBlock(takeImage(featureB, true), 2, 9, 1, 16, 8, featureB);
       }
-      if (briefA) articleBlock(briefA, 2, 1, 7, 8, 5, 8);
-      if (featureC) articleBlock(featureC, 2, 9, 9, 8, 4, 7);
+      if (briefA) articleBlock(briefA, 2, 1, 6, 8, 4, 8);
+      if (featureC) {
+        articleBlock(featureC, 2, 1, 10, 8, 3, 7);
+        imageBlock(takeImage(featureC, true), 2, 9, 9, 8, 8, featureC);
+      }
       if (briefB) articleBlock(briefB, 2, 17, 9, 8, 4, 9);
-      imageBlock(takeImage(undefined, true), 2, 1, 12, 12, 5);
-      imageBlock(takeImage(undefined, true), 2, 13, 13, 12, 4);
+      imageBlock(takeImage(undefined, true), 2, 1, 13, 8, 4);
+      imageBlock(takeImage(undefined, true), 2, 17, 13, 8, 4);
     } else if (denseMapId === "porter-guided-sparse") {
       if (firstSchedule) articleBlock(firstSchedule, 1, 1, 1, 5, 7, 2);
       if (secondSchedule) articleBlock(secondSchedule, 1, 1, 8, 5, 5, 3);
