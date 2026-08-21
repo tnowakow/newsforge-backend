@@ -70,20 +70,23 @@ export function porterDatedRowCount(article: Article): number {
 }
 
 export function isPorterBirthdayArticle(article: Article): boolean {
-  return article.articleType === "birthday" || /\bbirthdays?\b|\bhappy birthday\b/i.test(article.title);
+  return article.sourceRole === "birthday-roster" || article.articleType === "birthday" || /\bbirthdays?\b|\bhappy birthday\b/i.test(article.title);
 }
 
 export function isPorterDirectorArticle(article: Article): boolean {
-  return article.articleType === "executive-note" || /executive director|director corner|from the director/i.test(article.title);
+  return article.sourceRole === "director-note" || article.articleType === "executive-note" || /executive director|director corner|from the director/i.test(article.title);
 }
 
 export function isPorterNarrativeOutingArticle(article: Article): boolean {
+  if (article.sourceRole === "narrative-story") return /outing|out\s*(?:&|and)\s*about/i.test(article.title);
   return /outings?|out\s*(?:&|and)\s*about/i.test(article.title) &&
     (article.imageRefs?.length ?? 0) > 0 &&
     porterDatedRowCount(article) < 2;
 }
 
 export function isPorterScheduleArticle(article: Article): boolean {
+  if (article.sourceRole === "dated-list") return true;
+  if (article.sourceRole === "birthday-roster" || article.sourceRole === "narrative-story") return false;
   if (isPorterBirthdayArticle(article)) return false;
   if (isPorterNarrativeOutingArticle(article)) return false;
   return (
@@ -93,6 +96,7 @@ export function isPorterScheduleArticle(article: Article): boolean {
 }
 
 export function classifyPorterSourceRole(article: Article): PorterSourceRole {
+  if (article.sourceRole) return article.sourceRole;
   if (isPorterDirectorArticle(article)) return "director-note";
   if (isPorterBirthdayArticle(article)) return "birthday-roster";
   if (isPorterScheduleArticle(article)) return "dated-list";
@@ -150,4 +154,3 @@ export function porterBlocksAreAdjacent(a: LayoutBlock, b: LayoutBlock): boolean
 export function sourceUnitBlock(layoutBlocks: LayoutBlock[], articleId: string): LayoutBlock | undefined {
   return layoutBlocks.find((block) => block.articleId === articleId || block.slotId === `source-${articleId}`);
 }
-

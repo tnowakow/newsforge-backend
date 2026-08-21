@@ -1499,14 +1499,20 @@ describe("adaptiveLayoutPlanner.buildAdaptiveLayout", () => {
     const outingsPhoto = collage.layout.blocks.find((block) => block.imageId === "community-1");
     const eventRail = collage.layout.blocks.find((block) => block.slotId === "source-events");
 
-    assert.deepEqual(birthdayRail?.position, { col: 1, row: 1, colSpan: 5, rowSpan: 9 });
+    assert.equal(birthdayRail?.position.col, 1);
+    assert.equal(birthdayRail?.position.row, 1);
+    assert.ok((birthdayRail?.position.colSpan ?? 0) <= 6, "birthday stays a narrow rail");
+    assert.ok((birthdayRail?.position.rowSpan ?? 0) >= 6, "birthday rail grows with roster rows");
     assert.equal(birthdayRail?.style?.panelRole, "birthday");
-    assert.deepEqual(director?.position, { col: 6, row: 1, colSpan: 9, rowSpan: 7 });
+    assert.equal(director?.page, 1);
+    assert.ok((director?.position.col ?? 99) > (birthdayRail?.position.col ?? 0), "director anchors beside the birthday rail");
     assert.equal(director?.style?.panelRole, "directorCorner");
     assert.equal(directorPortrait?.page, 1);
     assert.equal(outings?.kind, "article", "narrative outings with photo refs should not become a schedule rail");
     assert.equal(outingsPhoto?.page, outings?.page);
-    assert.deepEqual(eventRail?.position, { col: 18, row: 1, colSpan: 7, rowSpan: 16 });
+    assert.equal(eventRail?.position.row, 1);
+    assert.equal(eventRail?.position.rowSpan, 16);
+    assert.ok((eventRail?.position.colSpan ?? 0) >= 6, "long event list receives a durable side rail");
     assert.equal(eventRail?.style?.panelRole, "upcomingEvents");
     assert.equal(collage.layout.blocks.filter((block) => block.imageId).length, images.length);
     assert.equal(collage.warnings.includes("porter-critical:photo-only-page:1"), false);

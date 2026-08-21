@@ -15,6 +15,7 @@ import {
   scorePorterOneReferenceAffinity,
 } from "./porterOneReferenceScorer.js";
 import { evaluatePorterLayoutInvariants } from "./porterLayoutInvariants.js";
+import { buildPorterCompoundLayout } from "./porterCompoundPlanner.js";
 import {
   classifyPorterSourceRole,
   isPorterNarrativeOutingArticle,
@@ -435,7 +436,13 @@ function scoreCandidate(
     warnings.push(`porter-photo-pairing:${photoPairing.paired}/${photoPairing.total}`);
     if (photoPairing.ratio < 0.8) warnings.push("porter-critical:photo-story-pairing");
   }
-  const placedArticleIds = new Set(layout.blocks.flatMap((block) => block.articleId ? [block.articleId] : []));
+  const placedArticleIds = new Set(layout.blocks.flatMap((block) => {
+    if (block.articleId) return [block.articleId];
+    const sourceMatch = /^source-(.+)$/.exec(block.slotId);
+    return sourceMatch && input.articles.some((article) => article.id === sourceMatch[1])
+      ? [sourceMatch[1]]
+      : [];
+  }));
   const placedRequired = plan.requiredArticleIds.filter((id) => placedArticleIds.has(id)).length;
   const pageAreas = Array.from({ length: input.pageCount }, (_, pageIndex) =>
     layout.blocks
@@ -1012,39 +1019,20 @@ function sourceTopologyCandidate(
     (denseMapId === "community-collage" && hasCommunityCollageSourceShape(input, orderedArticles, images));
   if (usesDensePorterPacker) {
     if (denseMapId === "community-collage") {
-      const longSchedule = firstSchedule;
-      if (birthday) articleBlock(birthday, 1, 1, 1, 5, 9, 1);
-      articleBlock(director, 1, birthday ? 6 : 1, 1, 9, 7, 0);
-      imageBlock(takeImage(director, true), 1, birthday ? 15 : 10, 1, 4, 7, director);
-      if (featureA) {
-        articleBlock(featureA, 1, 19, 1, 6, 5, 5);
-        imageBlock(takeImage(featureA, true), 1, 19, 6, 3, 5, featureA);
-        imageBlock(takeImage(featureA, true), 1, 22, 6, 3, 5, featureA);
+      const compoundLayout = buildPorterCompoundLayout({
+        templateId: input.templateId,
+        pageCount: input.pageCount,
+        gridSpec: input.gridSpec,
+        articles: orderedArticles,
+        images,
+        visualPersonality: plan.visualPersonality,
+        previousVersion: input.previousVersion,
+      });
+      if (!compoundLayout) return undefined;
+      blocks.push(...compoundLayout.blocks);
+      for (const block of compoundLayout.blocks) {
+        if (block.imageId) usedImages.add(block.imageId);
       }
-      if (featureB) {
-        articleBlock(featureB, 1, 6, 8, 13, 4, 6);
-        imageBlock(takeImage(featureB, true), 1, 6, 12, 9, 5, featureB);
-        imageBlock(takeImage(featureB, true), 1, 15, 12, 10, 5, featureB);
-      }
-      if (!birthday && secondSchedule) articleBlock(secondSchedule, 1, 1, 8, 5, 9, 3);
-
-      if (featureC) {
-        articleBlock(featureC, 2, 1, 1, 9, 5, 7);
-        imageBlock(takeImage(featureC, true), 2, 10, 1, 4, 5, featureC);
-        imageBlock(takeImage(featureC, true), 2, 14, 1, 4, 5, featureC);
-      }
-      if (featureD) {
-        articleBlock(featureD, 2, 1, 6, 9, 5, 8);
-        imageBlock(takeImage(featureD, true), 2, 10, 6, 4, 5, featureD);
-        imageBlock(takeImage(featureD, true), 2, 14, 6, 4, 5, featureD);
-      } else if (legacy && legacy.id !== featureA?.id && legacy.id !== featureB?.id) {
-        articleBlock(legacy, 2, 1, 6, 9, 5, 8);
-        imageBlock(takeImage(legacy, true), 2, 10, 6, 8, 5, legacy);
-      }
-      imageBlock(takeImage(undefined, true), 2, 1, 11, 6, 6);
-      imageBlock(takeImage(undefined, true), 2, 7, 11, 6, 6);
-      imageBlock(takeImage(undefined, true), 2, 13, 11, 5, 6);
-      if (longSchedule) articleBlock(longSchedule, 2, 18, 1, 7, 16, 2);
     } else if (denseMapId === "compact-director-mosaic") {
       if (firstSchedule) articleBlock(firstSchedule, 1, 1, 1, 5, 6, 2);
       if (secondSchedule) articleBlock(secondSchedule, 1, 1, 7, 5, 5, 3);
