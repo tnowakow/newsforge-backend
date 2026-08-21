@@ -19,6 +19,10 @@ export const ArticleSchema = z.object({
   /** True if this body was AI-generated as filler. */
   isFiller: z.boolean().default(false),
   source: z.enum(["MOCK", "UPLOAD", "GENERATED"]).default("MOCK"),
+  /** Porter source-role semantics. Optional for legacy runs. */
+  sourceRole: z.enum(["director-note", "birthday-roster", "dated-list", "profile-story", "narrative-story", "brief"]).optional(),
+  sourceOrder: z.number().int().nonnegative().optional(),
+  compoundId: z.string().optional(),
   /**
    * v2 addition — Gemini-classified article kind, optional to keep legacy
    * runs parseable.
@@ -100,6 +104,10 @@ export const LayoutBlockSchema = z.object({
   caption: z.string().optional(),
   /** v3 — rows for kind:"list" blocks (birthdays, schedules). */
   listItems: ListItemsSchema.optional(),
+  /** Porter compound semantics. Optional for legacy runs and non-Porter layouts. */
+  sourceRole: z.enum(["director-note", "birthday-roster", "dated-list", "profile-story", "narrative-story", "brief"]).optional(),
+  sourceOrder: z.number().int().nonnegative().optional(),
+  compoundId: z.string().optional(),
 });
 export type LayoutBlock = z.infer<typeof LayoutBlockSchema>;
 

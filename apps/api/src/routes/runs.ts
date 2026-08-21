@@ -65,6 +65,7 @@ import {
 } from "../services/porterOneReferenceScorer.js";
 import { retrievePorterExamples } from "../services/porterRetrieval.js";
 import { evaluatePorterLayoutPlaybook } from "../services/porterLayoutPlaybook.js";
+import { evaluatePorterLayoutInvariants } from "../services/porterLayoutInvariants.js";
 import { evaluateQualityGate } from "../services/qualityGate.js";
 import type { CandidateMeasurement } from "../services/adaptiveLayoutPlanner.js";
 
@@ -975,6 +976,12 @@ runsRouter.post("/", async (req, res) => {
     referenceFamily: porterRetrieval?.family ?? innerReferenceScore.referenceId,
     measurement: finalMeasurement,
   });
+  const porterLayoutInvariants = evaluatePorterLayoutInvariants({
+    layout,
+    articles,
+    images,
+    measurement: finalMeasurement,
+  });
 
   const originalRequiredWords = [...originalWordCounts.values()].reduce((sum, words) => sum + words, 0);
   const fittedWords = fitResult.articleFit.reduce((sum, fit) => sum + fit.wordsOut, 0);
@@ -1025,6 +1032,7 @@ runsRouter.post("/", async (req, res) => {
     fullOutput,
     fitReport,
     porterLayoutPlaybook,
+    porterLayoutInvariants,
     porterRetrieval: porterRetrieval
       ? {
           family: porterRetrieval.family,
@@ -1641,6 +1649,7 @@ runsRouter.post("/:id/pdf", async (req, res) => {
           finalScore: number;
           passed: boolean;
           reason?: string;
+          hardFailures?: string[];
         };
       }
     | null;
@@ -1845,6 +1854,11 @@ runsRouter.post("/:id/ai-arrange", aiRateLimit, async (req, res) => {
       images: fitResult.keptImages,
       gridSpec: gridSpecParsed.data,
       referenceFamily: porterOneReferenceIdForTemplate(chosenTemplate.id),
+    }),
+    porterLayoutInvariants: evaluatePorterLayoutInvariants({
+      layout: finalLayout,
+      articles: fitResult.articles,
+      images: fitResult.keptImages,
     }),
   });
 

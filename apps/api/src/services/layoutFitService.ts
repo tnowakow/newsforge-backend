@@ -439,6 +439,7 @@ export function buildLayoutFitReport(input: {
   fitReport?: FitReport;
   porterRetrieval?: LayoutFitReport["porterRetrieval"];
   porterLayoutPlaybook?: LayoutFitReport["porterLayoutPlaybook"];
+  porterLayoutInvariants?: LayoutFitReport["porterLayoutInvariants"];
 }): LayoutFitReport {
   const pick =
     input.pickResult ??
@@ -454,7 +455,7 @@ export function buildLayoutFitReport(input: {
   return {
     chosenTemplateId: input.chosen.id,
     score: finalScore,
-    qualityGate: evaluateQualityGate(finalScore),
+    qualityGate: evaluateQualityGate(finalScore, undefined, input.porterLayoutInvariants?.hardFailures ?? []),
     designMode: input.design?.mode,
     designNotes: input.design?.designNotes,
     fallbackReason: input.design?.fallbackReason,
@@ -486,6 +487,7 @@ export function buildLayoutFitReport(input: {
     coverDuplicateBirthdayBlocks: input.fullOutput?.coverDuplicateBirthdayBlocks,
     fitReport: input.fitReport,
     porterLayoutPlaybook: input.porterLayoutPlaybook,
+    porterLayoutInvariants: input.porterLayoutInvariants,
     editorialPlan: input.design?.editorialPlan,
     adaptiveCandidates: input.design?.adaptiveCandidates,
     candidates: pick.candidates,

@@ -14,6 +14,15 @@ import {
   porterOneReferenceIdForTemplate,
   scorePorterOneReferenceAffinity,
 } from "./porterOneReferenceScorer.js";
+import { evaluatePorterLayoutInvariants } from "./porterLayoutInvariants.js";
+import {
+  classifyPorterSourceRole,
+  isPorterNarrativeOutingArticle,
+  isPorterScheduleArticle,
+  porterBlocksAreAdjacent,
+  porterDatedRowCount,
+  porterImageMatchesRef,
+} from "./porterSourceSemantics.js";
 
 type EditorialRole =
   | "lead"
@@ -371,19 +380,6 @@ function geometryWarnings(layout: AssembledLayout, gridSpec: GridSpec): string[]
   return warnings;
 }
 
-function blockCenter(block: LayoutBlock): { x: number; y: number } {
-  return {
-    x: block.position.col + block.position.colSpan / 2,
-    y: block.position.row + block.position.rowSpan / 2,
-  };
-}
-
-function blockDistance(a: LayoutBlock, b: LayoutBlock): number {
-  const ac = blockCenter(a);
-  const bc = blockCenter(b);
-  return Math.abs(ac.x - bc.x) + Math.abs(ac.y - bc.y);
-}
-
 function photoStoryPairingRatio(
   layout: AssembledLayout,
   articles: Article[],
@@ -402,15 +398,9 @@ function photoStoryPairingRatio(
     const near = imageBlocks.some((imageBlock) =>
       imageBlock.imageId &&
       matchedImageIds.includes(imageBlock.imageId) &&
-      imageBlock.page === articleBlock.page &&
-      blockDistance(articleBlock, imageBlock) <= 10,
+      porterBlocksAreAdjacent(articleBlock, imageBlock),
     );
-    const fallbackPaired = matchedImageIds.length === 0 && imageBlocks.some((imageBlock) =>
-      imageBlock.page === articleBlock.page &&
-      blockDistance(articleBlock, imageBlock) <= 16 &&
-      normalizedImageName(imageBlock.caption).includes(normalizedImageName(article.title)),
-    );
-    if (near || fallbackPaired) paired += 1;
+    if (near) paired += 1;
   }
   return { paired, total: referencedArticles.length, ratio: paired / referencedArticles.length };
 }
@@ -428,6 +418,13 @@ function scoreCandidate(
 ): { score: number; subscores: AdaptiveCandidateScore; warnings: string[] } {
   const geometryIssues = geometryWarnings(layout, input.gridSpec);
   const warnings = [...geometryIssues];
+  const invariants = evaluatePorterLayoutInvariants({
+    layout,
+    articles: input.articles,
+    images: input.images,
+  });
+  warnings.push(...invariants.hardFailures.map((failure) => `porter-critical:${failure}`));
+  warnings.push(...invariants.warnings.map((warning) => `porter-warning:${warning}`));
   const unmatchedRefs = unmatchedPhotoRefs(input.articles, input.images);
   if (unmatchedRefs.length > 0) {
     const sample = unmatchedRefs.slice(0, 4).join("|");
@@ -731,25 +728,15 @@ function listRowsForArticle(article: Article): LayoutBlock["listItems"] {
 }
 
 function datedRowCount(article: Article): number {
-  return article.body
-    .split(/\n+|;\s*/)
-    .filter((line) => /^\d{1,2}\/\d{1,2}\s+/.test(line.trim()))
-    .length;
+  return porterDatedRowCount(article);
 }
 
 function isNarrativeOutingArticle(article: Article): boolean {
-  return /outings?|out\s*(?:&|and)\s*about/i.test(article.title) &&
-    (article.imageRefs?.length ?? 0) > 0 &&
-    datedRowCount(article) < 2;
+  return isPorterNarrativeOutingArticle(article);
 }
 
 function isScheduleArticle(article: Article): boolean {
-  if (article.articleType === "birthday") return false;
-  if (isNarrativeOutingArticle(article)) return false;
-  return (
-    /happy hours?|socials?|brunch|events?|calendar|schedule/i.test(article.title) ||
-    datedRowCount(article) >= 2
-  );
+  return isPorterScheduleArticle(article);
 }
 
 function styleForSourceArticle(article: Article, index: number): LayoutBlock["style"] {
@@ -808,13 +795,7 @@ function isScreenshotLikeImage(image: NewsImage): boolean {
 }
 
 function imageMatchesRef(image: NewsImage, ref: string): boolean {
-  const needle = normalizedImageName(ref);
-  if (!needle) return false;
-  return [image.caption, image.alt, image.description, image.url]
-    .some((value) => {
-      const candidate = normalizedImageName(value);
-      return Boolean(candidate && (candidate.includes(needle) || needle.includes(candidate)));
-    });
+  return porterImageMatchesRef(image, ref);
 }
 
 function isFilenameCaption(caption: string | undefined): boolean {
@@ -953,6 +934,7 @@ function sourceTopologyCandidate(
   ) => {
     const schedule = isScheduleArticle(article);
     const birthdayArticle = article.articleType === "birthday" || /birthday/i.test(article.title);
+    const sourceRole = classifyPorterSourceRole(article);
     blocks.push({
       blockId: `source-${blocks.length + 1}`,
       slotId: `source-${article.id}`,
@@ -964,6 +946,9 @@ function sourceTopologyCandidate(
       heading: cleanSourceTitle(article.title),
       listItems: schedule || birthdayArticle ? listRowsForArticle(article) : undefined,
       style: styleForSourceArticle(article, index),
+      sourceRole,
+      sourceOrder: index,
+      compoundId: `compound-${article.id}`,
       zIndex: 0,
     });
   };
@@ -990,6 +975,9 @@ function sourceTopologyCandidate(
       style: pairedArticle
         ? { photoTreatment: "rounded", cornerRadius: 6 }
         : { panelRole: "photoCluster", photoTreatment: "collage", cornerRadius: 8 },
+      sourceRole: pairedArticle ? classifyPorterSourceRole(pairedArticle) : undefined,
+      sourceOrder: pairedArticle ? orderedArticles.findIndex((article) => article.id === pairedArticle.id) : undefined,
+      compoundId: pairedArticle ? `compound-${pairedArticle.id}` : undefined,
       zIndex: 0,
     });
   };

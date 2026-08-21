@@ -8,6 +8,13 @@ import type {
   PorterLayoutRuleResult,
 } from "@newsforge/shared/schemas";
 import type { CandidateMeasurement } from "./adaptiveLayoutPlanner.js";
+import { evaluatePorterLayoutInvariants } from "./porterLayoutInvariants.js";
+import {
+  isPorterScheduleArticle,
+  normalizePorterText,
+  porterBlocksAreAdjacent,
+  porterImageMatchesRef,
+} from "./porterSourceSemantics.js";
 
 export const PORTER_LAYOUT_PLAYBOOK_PROMPT = `PORTER LAYOUT DIRECTOR RULES:
 - Classify content before placing it: birthday, Executive Director note, dated schedule, resident/legacy story, photo-paired story, short brief, and footer/info module.
@@ -34,56 +41,23 @@ interface EvaluateInput {
 }
 
 function normalize(value: string | undefined): string {
-  return (value ?? "")
-    .toLowerCase()
-    .replace(/^.*[\\/]/, "")
-    .replace(/\.(jpe?g|png|gif|webp|heic|heif|tiff?)$/i, "")
-    .replace(/[^a-z0-9]+/g, "");
+  return normalizePorterText(value);
 }
 
 function imageMatchesRef(image: NewsImage, ref: string): boolean {
-  const needle = normalize(ref);
-  if (!needle) return false;
-  return [image.caption, image.alt, image.description, image.url].some((value) => {
-    const candidate = normalize(value);
-    return Boolean(candidate && (candidate.includes(needle) || needle.includes(candidate)));
-  });
+  return porterImageMatchesRef(image, ref);
 }
 
 function blockArea(block: LayoutBlock): number {
   return block.position.colSpan * block.position.rowSpan;
 }
 
-function center(block: LayoutBlock): { x: number; y: number } {
-  return {
-    x: block.position.col + block.position.colSpan / 2,
-    y: block.position.row + block.position.rowSpan / 2,
-  };
-}
-
-function gridDistance(a: LayoutBlock, b: LayoutBlock): number {
-  const ac = center(a);
-  const bc = center(b);
-  return Math.abs(ac.x - bc.x) + Math.abs(ac.y - bc.y);
-}
-
 function touchesOrNear(a: LayoutBlock, b: LayoutBlock): boolean {
-  return a.page === b.page && gridDistance(a, b) <= 10;
+  return porterBlocksAreAdjacent(a, b);
 }
 
 function isScheduleArticle(article: Article): boolean {
-  const datedRows = article.body.split(/\n+|;\s*/).filter((line) => /^\d{1,2}\/\d{1,2}\s+/.test(line.trim())).length;
-  if (
-    /outings?|out\s*(?:&|and)\s*about/i.test(article.title) &&
-    (article.imageRefs?.length ?? 0) > 0 &&
-    datedRows < 2
-  ) {
-    return false;
-  }
-  return (
-    /happy hours?|socials?|brunch|events?|calendar|schedule/i.test(article.title) ||
-    datedRows >= 2
-  );
+  return isPorterScheduleArticle(article);
 }
 
 function isBirthdayBlock(block: LayoutBlock): boolean {
@@ -141,6 +115,17 @@ export function evaluatePorterLayoutPlaybook(input: EvaluateInput): PorterLayout
   const articleBlocks = innerBlocks.filter((block) => block.articleId);
   const imageBlocks = innerBlocks.filter((block) => block.imageId);
   const rules: PorterLayoutRuleResult[] = [];
+  const invariantReport = evaluatePorterLayoutInvariants({ layout, articles, images, measurement });
+  rules.push(rule(
+    "hard-source-invariants",
+    "Hard source invariants",
+    invariantReport.passed ? "pass" : "fail",
+    invariantReport.passed ? 1 : 0,
+    "Required source units, rows, real images, non-photo-only pages, and explicit story/photo compounds cannot fail.",
+    invariantReport.passed
+      ? "No hard Porter source invariant failures."
+      : invariantReport.hardFailures.slice(0, 3).join(" · "),
+  ));
 
   const birthdayBlocks = innerBlocks.filter(isBirthdayBlock);
   if (birthdayBlocks.length === 0) {
@@ -209,13 +194,8 @@ export function evaluatePorterLayoutPlaybook(input: EvaluateInput): PorterLayout
         .map((image) => image.id);
       const matchingImageBlocks = innerBlocks.filter((block) => block.imageId && matchedImageIds.includes(block.imageId));
       const near = Boolean(textBlock && matchingImageBlocks.some((imageBlock) => touchesOrNear(textBlock, imageBlock)));
-      const fallbackNear = matchedImageIds.length === 0 && Boolean(textBlock && imageBlocks.some((imageBlock) =>
-        imageBlock.page === textBlock.page &&
-        gridDistance(textBlock, imageBlock) <= 16 &&
-        normalize(imageBlock.caption).includes(normalize(article.title)),
-      ));
-      if (near || fallbackNear) paired += 1;
-      details.push(`${article.title}: ${near || fallbackNear ? "near" : "drifted"}`);
+      if (near) paired += 1;
+      details.push(`${article.title}: ${near ? "adjacent" : matchedImageIds.length === 0 ? "unresolved" : "drifted"}`);
     }
     const ratio = paired / referencedArticles.length;
     photoStoryRatio = ratio;

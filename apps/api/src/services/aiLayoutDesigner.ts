@@ -43,6 +43,7 @@ import {
   porterOneReferenceIdForTemplate,
   scorePorterOneReferenceAffinity,
 } from "./porterOneReferenceScorer.js";
+import { evaluatePorterLayoutInvariants } from "./porterLayoutInvariants.js";
 import type { CandidateMeasurement } from "./adaptiveLayoutPlanner.js";
 
 /** Layout design returns full spread JSON; production smokes can take 30-75s. */
@@ -586,11 +587,18 @@ export async function designLayout(
     const placedImageIds = new Set(layout.blocks.map((block) => block.imageId).filter(Boolean));
     const missingPlacements = input.images.filter((image) => !placedImageIds.has(image.id)).length;
     const geometricCoverage = measurement?.geometricCoverage ?? 0;
+    const invariantReport = evaluatePorterLayoutInvariants({
+      layout,
+      articles: repairedArticles,
+      images: input.images,
+      measurement,
+    });
     const hardFailure =
       !measurement ||
       measurement.overflowBlocks > 0 ||
       measurement.missingImages > 0 ||
-      missingPlacements > 0;
+      missingPlacements > 0 ||
+      !invariantReport.passed;
     const aiAffinity = scorePorterOneReferenceAffinity(
       layout,
       input.gridSpec,
@@ -623,6 +631,7 @@ export async function designLayout(
           measurement ? `minPageUtility=${aiMinPageUtility.toFixed(3)}` : undefined,
           measurement ? `pageUtilityCollapse=${pageUtilityCollapse}` : undefined,
           measurement ? `underfilled=${measurement.underfilledBlocks}` : undefined,
+          invariantReport.hardFailures.length > 0 ? `invariants=${invariantReport.hardFailures.length}` : undefined,
           `aiScore=${aiScore.toFixed(3)}`,
           `fallbackScore=${fallbackScore.toFixed(3)}`,
         ].filter(Boolean).join(",")}`,

@@ -1319,8 +1319,12 @@ describe("adaptiveLayoutPlanner.buildAdaptiveLayout", () => {
       "generic DOCX photo refs should stay visible as a pairing warning",
     );
     assert.ok(
-      blueprint.warnings.includes("porter-photo-pairing:3/3"),
-      "ordered fallback photos should still count as paired when generic refs cannot filename-match",
+      blueprint.warnings.includes("porter-photo-pairing:0/3"),
+      "generic fallback photos should no longer certify source photo/story pairing",
+    );
+    assert.ok(
+      blueprint.warnings.some((warning) => warning.startsWith("porter-warning:source-photo-unresolved")),
+      "unresolved generic refs should stay visible without becoming hard failures",
     );
     assert.notEqual(
       blueprint.layout.blocks.find((block) => block.articleId === "anniversary")?.style?.panelRole,
@@ -1385,7 +1389,11 @@ describe("adaptiveLayoutPlanner.buildAdaptiveLayout", () => {
     assert.ok(compact, "expected compact candidate for real WillsInitial seven-photo shape");
     assert.equal(result.chosen.id, "source-compact-director-mosaic");
     assert.ok(compact.warnings.some((warning) => warning.startsWith("porter-unmatched-photo-refs:5:")));
-    assert.ok(compact.warnings.includes("porter-photo-pairing:3/3"));
+    assert.ok(compact.warnings.includes("porter-photo-pairing:0/3"));
+    assert.ok(
+      compact.warnings.some((warning) => warning.startsWith("porter-warning:source-photo-unresolved")),
+      "generic WillsInitial refs should remain unresolved warnings, not certified pairings",
+    );
     assert.equal(compact.layout.blocks.filter((block) => block.imageId).length, 7);
     for (const articleId of ["legacy", "chef", "campus"]) {
       const story = compact.layout.blocks.find((block) => block.articleId === articleId);
@@ -1405,7 +1413,8 @@ describe("adaptiveLayoutPlanner.buildAdaptiveLayout", () => {
       gridSpec: { ...gridSpec, columns: 24, rowsPerPage: 16 },
       referenceFamily: "dense-lavender-grid",
     });
-    assert.equal(playbook.rules.find((rule) => rule.id === "photo-story-pairing")?.status, "pass");
+    assert.equal(playbook.rules.find((rule) => rule.id === "photo-story-pairing")?.status, "fail");
+    assert.equal(playbook.rules.find((rule) => rule.id === "hard-source-invariants")?.status, "pass");
   });
 
   it("uses community-collage principles for source packets with long events and photo stories", () => {

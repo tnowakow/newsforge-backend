@@ -1,4 +1,8 @@
 import type { Article, NewsImage } from "@newsforge/shared/schemas";
+import {
+  isPorterScheduleArticle,
+  porterDatedRowCount,
+} from "./porterSourceSemantics.js";
 
 export type PorterRetrievalFamily =
   | "feature-band"
@@ -90,19 +94,7 @@ const EXAMPLES: PorterExampleSignature[] = [
 const DATE_PATTERN = /\b(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\s+\d{1,2}\b|\b\d{1,2}[/-]\d{1,2}\b/gi;
 
 function isScheduleArticle(article: Article): boolean {
-  const datedRows = article.body.split(/\n+|;\s*/).filter((line) => /^\d{1,2}\/\d{1,2}\s+/.test(line.trim())).length;
-  if (
-    /outings?|out\s*(?:&|and)\s*about/i.test(article.title) &&
-    (article.imageRefs?.length ?? 0) > 0 &&
-    datedRows < 2
-  ) {
-    return false;
-  }
-  return (
-    /happy hours?|socials?|brunch|events?|calendar|schedule/i.test(article.title) ||
-    datedRows >= 2 ||
-    (article.body.match(DATE_PATTERN) ?? []).length >= 2
-  );
+  return isPorterScheduleArticle(article) || (article.body.match(DATE_PATTERN) ?? []).length >= 2;
 }
 
 function wordBand(wordVolume: number): WordBand {
@@ -166,7 +158,7 @@ export function retrievePorterExamples(articles: Article[], images: NewsImage[],
     article.articleType !== "birthday" &&
     ((article.imageRefs?.length ?? 0) > 0 || /outing|breakfast|tea|project|joy|celebrat/i.test(`${article.title} ${article.body}`))
   ).length;
-  const hasLongSchedule = articles.some((article) => isScheduleArticle(article) && article.body.split(/\n+|;\s*/).filter((line) => /^\d{1,2}\/\d{1,2}\s+/.test(line.trim())).length >= 10);
+  const hasLongSchedule = articles.some((article) => isScheduleArticle(article) && porterDatedRowCount(article) >= 10);
   const communityCollageIssue =
     hasDirector &&
     signature.photoCount >= 5 &&

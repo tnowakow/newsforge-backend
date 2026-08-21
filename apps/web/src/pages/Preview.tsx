@@ -943,6 +943,14 @@ function ScoreDetailsModal({
                   </span>
                 </div>
               )}
+              {report.porterLayoutInvariants && (
+                <div className="px-3 py-2 flex justify-between gap-4">
+                  <span>Hard source invariants</span>
+                  <span className={`font-mono text-right ${report.porterLayoutInvariants.passed ? "text-emerald-700" : "text-amber-700"}`}>
+                    {report.porterLayoutInvariants.passed ? "passed" : `${report.porterLayoutInvariants.hardFailures.length} failed`}
+                  </span>
+                </div>
+              )}
             </div>
           </section>
 
@@ -1192,6 +1200,9 @@ function buildScoreDetailsText(report: LayoutFitReport): string {
     report.qualityGate
       ? `Ship floor: ${report.qualityGate.passed ? "met" : "BELOW"} — ${(report.qualityGate.finalScore * 100).toFixed(1)}% vs ${(report.qualityGate.floor * 100).toFixed(0)}%`
       : "Ship floor: not recorded",
+    report.porterLayoutInvariants
+      ? `Hard source invariants: ${report.porterLayoutInvariants.passed ? "passed" : `FAILED — ${report.porterLayoutInvariants.hardFailures.join(" · ")}`}`
+      : "Hard source invariants: not recorded",
     "",
     "How the score is calculated",
     "Static candidate score = occupancy 14% + content coverage 14% + required coverage 18% + balance 9% + clipping risk 13% + geometry validity 8% + photo impact 5% + grammar affinity 4% + PorterOne affinity 15%.",

@@ -43,18 +43,23 @@ const pct = (n: number): string => `${Math.round(n * 1000) / 10}%`;
 export function evaluateQualityGate(
   finalScore: number,
   floor: number = resolveQualityGateFloor(),
+  hardFailures: string[] = [],
 ): QualityGateReport {
   const safeFloor = Number.isFinite(floor)
     ? Math.min(1, Math.max(0, floor))
     : DEFAULT_QUALITY_GATE_FLOOR;
   const safeScore = clamp01(finalScore);
-  const passed = safeScore >= safeFloor;
+  const failures = hardFailures.filter(Boolean);
+  const passed = safeScore >= safeFloor && failures.length === 0;
   return {
     floor: safeFloor,
     finalScore: safeScore,
     passed,
-    reason: passed
-      ? `Final score ${pct(safeScore)} meets the ${pct(safeFloor)} ship floor.`
-      : `Final score ${pct(safeScore)} is below the ${pct(safeFloor)} ship floor — export blocked until forced.`,
+    hardFailures: failures.length > 0 ? failures : undefined,
+    reason: failures.length > 0
+      ? `Hard Porter invariant failed — export blocked until forced. ${failures[0]}`
+      : passed
+        ? `Final score ${pct(safeScore)} meets the ${pct(safeFloor)} ship floor.`
+        : `Final score ${pct(safeScore)} is below the ${pct(safeFloor)} ship floor — export blocked until forced.`,
   };
 }

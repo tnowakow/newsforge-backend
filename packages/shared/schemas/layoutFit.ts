@@ -208,8 +208,23 @@ export const QualityGateReportSchema = z.object({
   finalScore: z.number().min(0).max(1),
   passed: z.boolean(),
   reason: z.string().optional(),
+  hardFailures: z.array(z.string()).optional(),
 });
 export type QualityGateReport = z.infer<typeof QualityGateReportSchema>;
+
+export const PorterLayoutInvariantFailureSchema = z.object({
+  id: z.string(),
+  severity: z.enum(["hard", "warning"]),
+  message: z.string(),
+});
+
+export const PorterLayoutInvariantReportSchema = z.object({
+  passed: z.boolean(),
+  hardFailures: z.array(z.string()),
+  warnings: z.array(z.string()),
+  failures: z.array(PorterLayoutInvariantFailureSchema),
+});
+export type PorterLayoutInvariantReport = z.infer<typeof PorterLayoutInvariantReportSchema>;
 
 export const LayoutFitReportSchema = z.object({
   chosenTemplateId: z.string(),
@@ -253,6 +268,7 @@ export const LayoutFitReportSchema = z.object({
   coverDuplicateBirthdayBlocks: z.number().int().nonnegative().optional(),
   fitReport: FitReportSchema.optional(),
   porterLayoutPlaybook: PorterLayoutPlaybookReportSchema.optional(),
+  porterLayoutInvariants: PorterLayoutInvariantReportSchema.optional(),
   editorialPlan: EditorialPlanReportSchema.optional(),
   adaptiveCandidates: z.array(AdaptiveLayoutCandidateReportSchema).optional(),
   candidates: z.array(LayoutFitCandidateSchema),

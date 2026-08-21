@@ -89,6 +89,9 @@ export interface Article {
   isFiller?: boolean;
   source?: "MOCK" | "UPLOAD" | "GENERATED";
   articleType?: ArticleType;
+  sourceRole?: "director-note" | "birthday-roster" | "dated-list" | "profile-story" | "narrative-story" | "brief";
+  sourceOrder?: number;
+  compoundId?: string;
 }
 
 export interface NewsImage {
@@ -176,6 +179,9 @@ export interface LayoutBlock {
   heading?: string;
   caption?: string;
   listItems?: ListItem[];
+  sourceRole?: "director-note" | "birthday-roster" | "dated-list" | "profile-story" | "narrative-story" | "brief";
+  sourceOrder?: number;
+  compoundId?: string;
 }
 
 export interface AssembledLayout {
@@ -376,6 +382,17 @@ export interface PorterLayoutPlaybookReport {
   rules: PorterLayoutRuleResult[];
 }
 
+export interface PorterLayoutInvariantReport {
+  passed: boolean;
+  hardFailures: string[];
+  warnings: string[];
+  failures: Array<{
+    id: string;
+    severity: "hard" | "warning";
+    message: string;
+  }>;
+}
+
 export interface LayoutFitReport {
   chosenTemplateId: string;
   score: number;
@@ -405,6 +422,7 @@ export interface LayoutFitReport {
     finalScore: number;
     passed: boolean;
     reason?: string;
+    hardFailures?: string[];
   };
   coverScore?: number;
   coverRenderFit?: number;
@@ -416,6 +434,7 @@ export interface LayoutFitReport {
   coverDuplicateBirthdayBlocks?: number;
   fitReport?: FitReport;
   porterLayoutPlaybook?: PorterLayoutPlaybookReport;
+  porterLayoutInvariants?: PorterLayoutInvariantReport;
   editorialPlan?: EditorialPlanReport;
   adaptiveCandidates?: AdaptiveLayoutCandidateReport[];
   candidates: LayoutFitCandidate[];

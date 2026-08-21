@@ -14,6 +14,7 @@ import mammoth from "mammoth";
 import type { Article, NewsImage } from "@newsforge/shared/schemas";
 import type { ArticleType } from "@newsforge/shared/schemas";
 import { classifyArticleType } from "./articleTypeClassifier.js";
+import { classifyPorterSourceRole } from "./porterSourceSemantics.js";
 
 export function wordCount(s: string): number {
   return s.trim().split(/\s+/).filter(Boolean).length;
@@ -372,25 +373,32 @@ export function parsePorterSubmissionText(rawText: string): ParsedPorterSubmissi
 }
 
 export function porterParseToArticles(parse: ParsedPorterSubmission): Article[] {
-  const articles: Article[] = parse.articles.map((article) => ({
-    id: createId(),
-    title: article.title,
-    body: article.body,
-    wordCount: article.wordCount,
-    byline: article.byline,
-    sectionId: article.sectionId,
-    imageRefs: article.imageRefs,
-    isFiller: false,
-    source: "UPLOAD" as const,
-    articleType: article.articleType,
-  }));
+  const articles: Article[] = parse.articles.map((article, index) => {
+    const id = createId();
+    const base = {
+      id,
+      title: article.title,
+      body: article.body,
+      wordCount: article.wordCount,
+      byline: article.byline,
+      sectionId: article.sectionId,
+      imageRefs: article.imageRefs,
+      isFiller: false,
+      source: "UPLOAD" as const,
+      articleType: article.articleType,
+      sourceOrder: index,
+      compoundId: `compound-${id}`,
+    };
+    return { ...base, sourceRole: classifyPorterSourceRole(base) };
+  });
 
   const lists: Article[] = parse.lists
     .filter((list) => list.rows.length > 0)
-    .map((list) => {
+    .map((list, index) => {
+      const id = createId();
       const body = list.rows.map((row) => `${row.value} ${row.label}`).join("\n");
-      return {
-        id: createId(),
+      const base = {
+        id,
         title: list.label,
         body,
         wordCount: wordCount(body),
@@ -402,7 +410,10 @@ export function porterParseToArticles(parse: ParsedPorterSubmission): Article[] 
           : list.panelRole === "birthday"
             ? "birthday" as const
           : "announcement" as const,
+        sourceOrder: articles.length + index,
+        compoundId: `compound-${id}`,
       };
+      return { ...base, sourceRole: classifyPorterSourceRole(base) };
     });
 
   return [...articles, ...lists];
