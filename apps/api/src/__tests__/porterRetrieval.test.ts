@@ -78,6 +78,27 @@ test("routes dense low-word upload shape away from editorial light even when pho
   assert.equal(result.scenario, "panel-garden");
 });
 
+test("routes eight-module director schedule packets to dense lavender even with generic photo refs", () => {
+  const articles = [
+    article({ title: "Executive Director Corner", wordCount: 110 }),
+    { ...article({ title: "Legacy News", wordCount: 48, articleType: "resident-story" }), imageRefs: ["photo1.jpg"] },
+    { ...article({ title: "Anniversary Celebration", wordCount: 45 }), imageRefs: ["photo2.jpg"] },
+    { ...article({ title: "Chef Circle", wordCount: 42 }), imageRefs: ["photo3.jpg"] },
+    article({ title: "Resident Council", wordCount: 26 }),
+    article({ title: "Happy Hours", body: "7/3 event\n7/10 event\n7/17 event\n7/24 event", wordCount: 28, articleType: "event-recap" }),
+    article({ title: "Socials", body: "7/8 event\n7/15 event\n7/22 event", wordCount: 24, articleType: "event-recap" }),
+    article({ title: "Brunch", body: "7/12 July Brunch", wordCount: 16 }),
+  ];
+  const result = retrievePorterExamples(articles, [image("upload-a"), image("upload-b"), image("upload-c")]);
+
+  assert.equal(result.signature.moduleCount, 8);
+  assert.equal(result.signature.photoCount, 3);
+  assert.equal(result.signature.referencedPhotoPairs, 3);
+  assert.equal(result.signature.datedRows, 8);
+  assert.equal(result.family, "dense-lavender-grid");
+  assert.equal(result.scenario, "panel-garden");
+});
+
 test("retrieves three nearest Porter exemplars and a plurality family", () => {
   const result = retrievePorterExamples(
     Array.from({ length: 8 }, (_, index) => article({ wordCount: 150, articleType: index === 0 ? "event-recap" : "announcement" })),

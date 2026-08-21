@@ -816,6 +816,28 @@ function denseLavenderMapLabel(mapId: DenseLavenderMapId): string {
   }[mapId];
 }
 
+function hasDensePorterSourceShape(input: AdaptiveLayoutInput, articles: Article[], images: NewsImage[]): boolean {
+  if (input.gridSpec.columns !== 24 || input.gridSpec.rowsPerPage !== 16) return false;
+  const uploadedArticles = articles.filter((article) => article.source === "UPLOAD");
+  if (uploadedArticles.length < 8 || images.length < 3) return false;
+
+  const hasDirector = uploadedArticles.some((article) => /executive director|director corner/i.test(article.title));
+  const hasLegacyOrSpotlight = uploadedArticles.some((article) =>
+    /legacy|spotlight|resident|profile/i.test(article.title) || article.articleType === "resident-story"
+  );
+  const scheduleCount = uploadedArticles.filter(isScheduleArticle).length;
+  const storyCount = uploadedArticles.filter((article) => !isScheduleArticle(article)).length;
+  const referencedStoryCount = uploadedArticles.filter((article) => (article.imageRefs?.length ?? 0) > 0).length;
+  const roleUnits =
+    Number(hasDirector) +
+    Number(hasLegacyOrSpotlight) +
+    Math.min(scheduleCount, 3) +
+    Math.min(storyCount, 4) +
+    Math.min(Math.max(referencedStoryCount, images.length), 4);
+
+  return hasDirector && scheduleCount >= 2 && storyCount >= 4 && roleUnits >= 8;
+}
+
 function sourceTopologyCandidate(
   input: AdaptiveLayoutInput,
   plan: EditorialPlan,
@@ -932,10 +954,7 @@ function sourceTopologyCandidate(
   const [featureA, featureB, featureC, featureD] = photoStories;
   const [briefA, briefB] = briefs;
   const usesDensePorterPacker =
-    input.gridSpec.columns === 24 &&
-    input.gridSpec.rowsPerPage === 16 &&
-    orderedArticles.length >= 9 &&
-    images.length >= 5;
+    hasDensePorterSourceShape(input, orderedArticles, images);
   if (usesDensePorterPacker) {
     if (denseMapId === "porter-guided-sparse") {
       if (firstSchedule) articleBlock(firstSchedule, 1, 1, 1, 5, 7, 2);
@@ -1185,10 +1204,7 @@ function sourceTopologyCandidates(input: AdaptiveLayoutInput, plan: EditorialPla
   const base = sourceTopologyCandidate(input, plan, "rail-mosaic");
   if (!base) return [];
   const dense =
-    input.gridSpec.columns === 24 &&
-    input.gridSpec.rowsPerPage === 16 &&
-    input.articles.filter((article) => article.source === "UPLOAD").length >= 9 &&
-    input.images.length >= 5;
+    hasDensePorterSourceShape(input, input.articles, input.images);
   if (!dense) return [base];
   return [
     base,

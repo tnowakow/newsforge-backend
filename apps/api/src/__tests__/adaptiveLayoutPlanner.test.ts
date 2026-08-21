@@ -1285,6 +1285,55 @@ describe("adaptiveLayoutPlanner.buildAdaptiveLayout", () => {
     }
   });
 
+  it("routes eight-module generic-photo Porter uploads into compound dense candidates", () => {
+    const result = buildAdaptiveLayout({
+      templateId: "v3-upload-source",
+      pageCount: 2,
+      gridSpec: { ...gridSpec, columns: 24, rowsPerPage: 16 },
+      recurringSections: [],
+      articles: [
+        article("director", "Executive Director Corner", 110, "executive-note", "UPLOAD"),
+        { ...article("legacy", "Legacy News", 48, "resident-story", "UPLOAD"), imageRefs: ["photo1.jpg"] },
+        { ...article("anniversary", "Anniversary Celebration", 45, "announcement", "UPLOAD"), imageRefs: ["photo2.jpg"] },
+        { ...article("chef", "Chef Circle", 42, "announcement", "UPLOAD"), imageRefs: ["photo3.jpg"] },
+        article("resident", "Resident Council", 26, "other", "UPLOAD"),
+        article("happy", "Happy Hours", 28, "event-recap", "UPLOAD"),
+        article("socials", "Socials", 24, "event-recap", "UPLOAD"),
+        article("brunch", "Brunch", 16, "announcement", "UPLOAD"),
+      ],
+      images: [
+        { ...image("upload-a", "landscape", "UPLOAD"), caption: "Campus group.jpg" },
+        { ...image("upload-b", "landscape", "UPLOAD"), caption: "Activity photo.jpg" },
+        { ...image("upload-c", "portrait", "UPLOAD"), caption: "Resident moment.jpg" },
+      ],
+    });
+
+    assert.ok(result.candidates.some((candidate) => candidate.id === "source-porter-guided-sparse"));
+    assert.ok(result.candidates.some((candidate) => candidate.id === "source-story-river"));
+    assert.ok(result.candidates.some((candidate) => candidate.id === "source-photo-stair"));
+
+    const blueprint = result.candidates.find((candidate) => candidate.id === "source-porter-guided-sparse");
+    assert.ok(blueprint, "expected Porter-guided candidate for eight-module packet");
+    assert.equal(blueprint.label, "Uploaded source Porter composition: Porter-guided sparse blueprint");
+    assert.ok(
+      blueprint.warnings.some((warning) => warning.startsWith("porter-unmatched-photo-refs:3:")),
+      "generic DOCX photo refs should stay visible as a pairing warning",
+    );
+    assert.notEqual(
+      blueprint.layout.blocks.find((block) => block.articleId === "anniversary")?.style?.panelRole,
+      "birthday",
+      "anniversary content should remain a story/announcement compound unit, not a birthday card",
+    );
+    const compactSchedules = blueprint.layout.blocks.filter((block) =>
+      block.kind === "list" && block.position.colSpan <= 6
+    );
+    assert.ok(compactSchedules.length >= 2, "dated rows should become compact schedule rails");
+    assert.ok(
+      blueprint.layout.blocks.some((block) => block.articleId === "director" && block.position.row <= 3),
+      "director should still anchor the first inner page",
+    );
+  });
+
   it("fails photo and rendered-quality playbook rules when loaded images are placeholders", () => {
     const layout = simpleLayout("v3-test", [
       {

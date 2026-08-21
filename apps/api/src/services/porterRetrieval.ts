@@ -89,6 +89,14 @@ const EXAMPLES: PorterExampleSignature[] = [
 
 const DATE_PATTERN = /\b(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\s+\d{1,2}\b|\b\d{1,2}[/-]\d{1,2}\b/gi;
 
+function isScheduleArticle(article: Article): boolean {
+  return (
+    /happy hours?|socials?|brunch|events?|outings?|out & about/i.test(article.title) ||
+    article.body.split(/\n+/).filter((line) => /^\d{1,2}\/\d{1,2}\s+/.test(line.trim())).length >= 2 ||
+    (article.body.match(DATE_PATTERN) ?? []).length >= 2
+  );
+}
+
 function wordBand(wordVolume: number): WordBand {
   // The supplied July demo is ~400 words after scaffolding is removed but is
   // medium-density because its ten dated rows and three feature modules carry
@@ -140,11 +148,17 @@ function familyScenario(family: PorterRetrievalFamily): PorterRetrievalResult["s
 
 export function retrievePorterExamples(articles: Article[], images: NewsImage[], k = 3): PorterRetrievalResult {
   const signature = computePorterContentSignature(articles, images);
+  const scheduleCount = articles.filter(isScheduleArticle).length;
+  const hasDirector = articles.some((article) => /executive director|director corner/i.test(article.title));
+  const hasLegacyOrSpotlight = articles.some((article) =>
+    /legacy|spotlight|resident|profile/i.test(article.title) || article.articleType === "resident-story"
+  );
   const sourceDenseIssue =
-    signature.moduleCount >= 9 &&
-    signature.photoCount >= 5 &&
+    signature.moduleCount >= 8 &&
+    signature.photoCount >= 3 &&
     signature.datedRows >= 8 &&
-    (signature.referencedPhotoPairs >= 4 || signature.wordBand === "low" || signature.hasEventRecap);
+    (signature.referencedPhotoPairs >= 3 || signature.wordBand === "low" || signature.hasEventRecap) &&
+    (signature.moduleCount >= 9 || (hasDirector && hasLegacyOrSpotlight && scheduleCount >= 2));
   const julyLikeDenseGrid =
     signature.photoCount >= 6 &&
     signature.photoCount <= 14 &&
