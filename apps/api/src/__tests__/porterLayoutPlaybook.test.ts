@@ -125,4 +125,25 @@ describe("evaluatePorterLayoutPlaybook", () => {
     assert.equal(renderedQuality?.status, "pass");
     assert.match(whiteSpace?.result ?? "", /Useful 92\.0%/);
   });
+
+  it("treats client-fill birthday placeholders as neutral signature rails", () => {
+    const placeholderLayout = fourPageLayout();
+    placeholderLayout.blocks.push(block("birthday-placeholder", 2, 1, 1, 5, 5, {
+      kind: "filler",
+      heading: "Birthday List Placeholder",
+      inlineText: "Client-fill area: Porter One adds birthdays separately.",
+      style: { panelRole: "birthday", bg: "sun" },
+    }));
+
+    const report = evaluatePorterLayoutPlaybook({
+      layout: placeholderLayout,
+      articles,
+      images: [],
+      gridSpec,
+    });
+
+    const signature = report.rules.find((item) => item.id === "signature-rail");
+    assert.equal(signature?.status, "not-applicable");
+    assert.match(signature?.result ?? "", /No inner-spread birthday block/);
+  });
 });

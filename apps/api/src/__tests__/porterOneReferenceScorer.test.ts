@@ -140,4 +140,21 @@ describe("porterOneReferenceScorer", () => {
     assert.ok(score.fullOutputScore >= 0.6, `expected wrapper-aware score to clear ship floor, got ${score.fullOutputScore}`);
     assert.equal(score.coverRenderFit, 1);
   });
+
+  it("does not count client-fill birthday placeholders as duplicate birthday content", () => {
+    const score = scoreFullNewsletterOutput(layout([
+      block("cover-birthday-placeholder", 1, 1, 1, 8, 5, {
+        kind: "filler",
+        heading: "Birthday List Placeholder",
+        inlineText: "Client-fill area: Porter One adds birthdays separately.",
+        style: { panelRole: "birthday", bg: "sun" },
+      }),
+      block("cover-title", 1, 9, 1, 8, 5, { inlineText: "June Newsletter" }),
+      block("inner-story", 2, 1, 1, 24, 16, { articleId: "a1" }),
+      block("inner-photo", 3, 1, 1, 24, 16, { imageId: "i1" }),
+      block("back-a", 4, 1, 1, 8, 8, { inlineText: "Looking ahead" }),
+    ]), 0.75);
+
+    assert.equal(score.coverDuplicateBirthdayBlocks, 0);
+  });
 });

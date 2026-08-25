@@ -415,11 +415,11 @@ function generateTrilogyMockContent(
   const seeds: StorySeed[] = [
     {
       key: "birthdays",
-      title: () => "Happy Birthday!",
-      articleType: "birthday",
-      sectionMatch: /birthday|anniversar|milestone/i,
+      title: () => "Birthday List Placeholder",
+      articleType: "announcement",
+      sectionMatch: /birthday/i,
       body: () =>
-        "RESIDENTS\nMary Ann F. 7/3\nShirley S. 7/10\nJanice F. 7/22\nMichael V. 7/27\nJoan C. 7/31\n\nSTAFF\nErica M. 7/1\nShristy P. 7/3\nJed N. 7/3\nAdam J. 7/4\nGracey C. 7/8\nDeborah R. 7/11\nMorgan C. 7/20\nKimberly H. 7/21\nDivya K. 7/24\nAlena O. 7/25\nAsenath A. 7/28",
+        "Client-fill area: Porter One or the community team adds resident and staff birthdays separately before publication.",
     },
     {
       key: "holiday",

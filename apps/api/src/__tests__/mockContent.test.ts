@@ -27,11 +27,12 @@ describe("mockContent Trilogy scenarios", () => {
     const resident = trilogyScenario("resident-feature");
     const editorial = trilogyScenario("editorial-light", 1);
 
-    assert.equal(classic.articles[0].title, "Happy Birthday!");
+    assert.equal(classic.articles[0].title, "Birthday List Placeholder");
     assert.equal(photo.articles[0].title, "Out and About");
     assert.equal(resident.articles[0].title, "Smile of the Month");
     assert.equal(editorial.articles[0].title, "Executive Director Corner");
-    assert.equal(editorial.articles[1].title, "Happy Birthday!");
+    assert.equal(editorial.articles[1].title, "Birthday List Placeholder");
+    assert.equal(classic.articles[0].body.includes("Mary Ann"), false);
     assert.notDeepEqual(
       classic.articles.slice(0, 5).map((article) => article.title),
       photo.articles.slice(0, 5).map((article) => article.title),

@@ -181,6 +181,36 @@ test("anniversary stories do not fill birthday modules", () => {
   assert.notEqual(bySlot.get("general")?.style?.panelRole, "birthday");
 });
 
+test("empty birthday modules become client-fill placeholders instead of Happy Birthday copy", () => {
+  const layout = applyVibrancyPass({
+    layout: {
+      templateId: "v3-editorial-light",
+      pageCount: 1,
+      version: 1,
+      blocks: [
+        {
+          blockId: "birthdays",
+          slotId: "birthdays",
+          page: 1,
+          position: { col: 1, row: 1, colSpan: 6, rowSpan: 5 },
+          kind: "empty",
+          styleTag: "birthdays panel:sun",
+          needsFiller: true,
+        },
+      ],
+      unfilledSlotIds: ["birthdays"],
+      stats: { placedArticles: 0, placedImages: 0, fillerBlocks: 1, emptySlots: 1 },
+    },
+    articles: [],
+    images: [],
+  });
+
+  assert.equal(layout.blocks[0]?.heading, "Birthday List Placeholder");
+  assert.match(layout.blocks[0]?.inlineText ?? "", /Client-fill area/);
+  assert.equal(layout.blocks[0]?.style?.panelRole, "birthday");
+  assert.equal(layout.blocks[0]?.style?.scriptHeading, false);
+});
+
 test("generic slots do not steal articles needed by later semantic slots", () => {
   const gridSpec: GridSpec = {
     label: "semantic-preserve",

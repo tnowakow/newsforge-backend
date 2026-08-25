@@ -51,17 +51,60 @@ function placeholderText(slotType: string, clientName: string): string {
   return `[Placeholder — ${human} block for ${clientName}. Replace with on-brand content.]`;
 }
 
+function isBirthdaySlot(block: LayoutBlock, slotType = "", styleTag = ""): boolean {
+  return /\bbirthdays?\b|\bhappy birthday\b/i.test(`${block.slotId} ${block.heading ?? ""} ${block.inlineText ?? ""} ${slotType} ${styleTag}`);
+}
+
+function birthdayPlaceholderBlock(block: LayoutBlock): LayoutBlock {
+  return {
+    ...block,
+    kind: "filler",
+    heading: "Birthday List Placeholder",
+    inlineText: "Client-fill area: Porter One or the community team adds resident and staff birthdays separately before publication.",
+    needsFiller: false,
+    style: {
+      ...(block.style ?? {}),
+      bg: block.style?.bg ?? "sun",
+      headerColor: block.style?.headerColor ?? "coral",
+      panelRole: block.style?.panelRole ?? "birthday",
+      cornerRadius: block.style?.cornerRadius ?? 0,
+      compact: block.style?.compact ?? true,
+    },
+  };
+}
+
 export async function generateFiller(input: FillerInput): Promise<FillerOutput> {
   const { layout, gridSpec, mode } = input;
   const slotsById = new Map(gridSpec.slots.map((s) => [s.id, s]));
 
-  const fillTargets = layout.blocks.filter((b) => b.needsFiller);
+  const birthdaySlotIds = new Set(
+    gridSpec.slots
+      .filter((slot) => isBirthdaySlot({ slotId: slot.id } as LayoutBlock, slot.type, slot.styleTag ?? ""))
+      .map((slot) => slot.id),
+  );
+  const layoutWithBirthdayPlaceholders: AssembledLayout = {
+    ...layout,
+    blocks: layout.blocks.map((block) =>
+      block.needsFiller && birthdaySlotIds.has(block.slotId)
+        ? birthdayPlaceholderBlock(block)
+        : block,
+    ),
+  };
+  layoutWithBirthdayPlaceholders.unfilledSlotIds = layoutWithBirthdayPlaceholders.blocks
+    .filter((block) => block.needsFiller)
+    .map((block) => block.slotId);
+  layoutWithBirthdayPlaceholders.stats = {
+    ...layoutWithBirthdayPlaceholders.stats,
+    fillerBlocks: layoutWithBirthdayPlaceholders.blocks.filter((block) => block.kind === "filler" || block.needsFiller).length,
+    emptySlots: layoutWithBirthdayPlaceholders.blocks.filter((block) => block.kind === "empty" && block.needsFiller).length,
+  };
+  const fillTargets = layoutWithBirthdayPlaceholders.blocks.filter((b) => b.needsFiller);
   if (fillTargets.length === 0) {
-    return { layout, articles: input.articles };
+    return { layout: layoutWithBirthdayPlaceholders, articles: input.articles };
   }
 
   if (mode === "PLACEHOLDER") {
-    const newBlocks: LayoutBlock[] = layout.blocks.map((b) => {
+    const newBlocks: LayoutBlock[] = layoutWithBirthdayPlaceholders.blocks.map((b) => {
       if (!b.needsFiller) return b;
       const slot = slotsById.get(b.slotId);
       return {
@@ -73,7 +116,7 @@ export async function generateFiller(input: FillerInput): Promise<FillerOutput> 
     });
     return {
       layout: {
-        ...layout,
+        ...layoutWithBirthdayPlaceholders,
         blocks: newBlocks,
         unfilledSlotIds: [],
         stats: {

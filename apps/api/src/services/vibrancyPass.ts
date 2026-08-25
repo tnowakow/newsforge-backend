@@ -169,16 +169,27 @@ function roleFor(block: LayoutBlock, title = "", body = ""): PanelRole | null {
   return null;
 }
 
+function isClientBirthdayPlaceholder(block: LayoutBlock): boolean {
+  return !block.articleId &&
+    (block.kind === "filler" || block.kind === "placeholder" || block.needsFiller) &&
+    /birthday/i.test(`${block.styleTag ?? ""} ${block.heading ?? ""} ${block.inlineText ?? ""} ${block.slotId}`);
+}
+
 function applyRoleDefaults(block: LayoutBlock, role: PanelRole): void {
   block.style ??= {};
   block.style.panelRole = block.style.panelRole ?? role;
   switch (role) {
     case "birthday":
       block.style.bg = "sun";
-      block.style.headerColor = "navy";
-      block.style.scriptHeading = true;
+      block.style.headerColor = block.style.headerColor ?? "coral";
+      block.style.scriptHeading = isClientBirthdayPlaceholder(block) ? false : true;
       block.style.cornerRadius = 0;
-      block.heading = block.heading ?? "Happy Birthday!";
+      if (isClientBirthdayPlaceholder(block)) {
+        block.heading = "Birthday List Placeholder";
+        block.inlineText = block.inlineText ?? "Client-fill area: Porter One or the community team adds resident and staff birthdays separately before publication.";
+      } else {
+        block.heading = block.heading ?? "Happy Birthday!";
+      }
       break;
     case "directorCorner":
       block.style.bg = "cream";

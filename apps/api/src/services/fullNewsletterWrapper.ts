@@ -18,13 +18,14 @@ function textBlock(
   inlineText: string,
   position: LayoutBlock["position"],
   style: LayoutBlock["style"] = {},
+  kind: LayoutBlock["kind"] = "article",
 ): LayoutBlock {
   return {
     blockId: id,
     slotId: id,
     page,
     position,
-    kind: "article",
+    kind,
     inlineText,
     heading,
     needsFiller: false,
@@ -226,16 +227,17 @@ export function wrapV3InnerSpreadForDemo({
     textBlock(
       "demo-cover-birthday",
       1,
-      "Happy Birthday!",
-      "Residents and team members celebrating this month are recognized on the posted community calendar.",
+      "Birthday List Placeholder",
+      "Client-fill area: Porter One or the community team adds resident and staff birthdays separately before publication.",
       { col: 1, row: 5, colSpan: 8, rowSpan: 5 },
       {
         bg: "sun",
         headerColor: "coral",
-        panelRole: "featureBand",
+        panelRole: "birthday",
         cornerRadius: 0,
         compact: true,
       },
+      "filler",
     ),
     textBlock(
       "demo-cover-inside",

@@ -18,7 +18,7 @@ import {
 
 export const PORTER_LAYOUT_PLAYBOOK_PROMPT = `PORTER LAYOUT DIRECTOR RULES:
 - Classify content before placing it: birthday, Executive Director note, dated schedule, resident/legacy story, photo-paired story, short brief, and footer/info module.
-- Put the signature rail first. Birthdays, when present on the inner spread, belong in the upper-left page-2 rail unless a stronger Porter family rail is already there.
+- Put the signature rail first. Real birthday rosters, when present on the inner spread, belong in the upper-left page-2 rail unless a stronger Porter family rail is already there. If birthdays are absent, leave only a client-fill placeholder and do not invent names, dates, or celebration copy.
 - Executive Director belongs in a stable top/left anchor zone with a cream panel and navy heading; do not bury it in a small random brief.
 - Happy Hour, Upcoming Events, Brunch, and outing/social schedules are narrow rails or compact two-column lists. Do not make short dated lists wide horizontal slabs.
 - Keep every uploaded photo referenced by a story next to that story, preferably same page and touching or near the story block.
@@ -61,7 +61,9 @@ function isScheduleArticle(article: Article): boolean {
 }
 
 function isBirthdayBlock(block: LayoutBlock): boolean {
-  return block.style?.panelRole === "birthday" || /birthday/i.test(`${block.heading ?? ""} ${block.slotId}`);
+  const text = `${block.heading ?? ""} ${block.inlineText ?? ""} ${block.slotId}`;
+  const isPlaceholder = !block.articleId && /placeholder|client-fill|client fill/i.test(text);
+  return !isPlaceholder && (block.style?.panelRole === "birthday" || /birthday/i.test(text));
 }
 
 function isScheduleBlock(block: LayoutBlock): boolean {

@@ -268,9 +268,14 @@ export function scoreFullNewsletterOutput(
   const coverBlocks = layout.blocks.filter((block) => coverPages.has(block.page) && block.kind !== "empty");
   const coverContentBlocks = coverBlocks.filter((block) => Boolean(block.heading || block.inlineText || block.articleId || block.listItems?.length)).length;
   const coverImageBlocks = coverBlocks.filter((block) => Boolean(block.imageId)).length;
-  const birthdayBlocks = layout.blocks.filter((block) =>
-    block.style?.panelRole === "birthday" || Boolean(block.listItems?.length && /birthday/i.test(`${block.heading ?? ""} ${block.inlineText ?? ""}`)),
-  );
+  const birthdayBlocks = layout.blocks.filter((block) => {
+    const text = `${block.heading ?? ""} ${block.inlineText ?? ""}`;
+    const isClientPlaceholder = !block.articleId && /placeholder|client-fill|client fill/i.test(text);
+    return !isClientPlaceholder && (
+      block.style?.panelRole === "birthday" ||
+      Boolean(block.listItems?.length && /birthday/i.test(text))
+    );
+  });
   const coverDuplicateBirthdayBlocks = birthdayBlocks.filter((block) => coverPages.has(block.page)).length;
   const pageMetrics = measurement?.pageMetrics ?? [];
   const coverMetrics = pageMetrics.filter((metric) => coverPages.has(metric.page));

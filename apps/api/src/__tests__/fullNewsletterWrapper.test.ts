@@ -72,7 +72,7 @@ describe("wrapV3InnerSpreadForDemo", () => {
     assert.ok(wrapped.blocks.some((block) => block.page === 1 && block.blockId === "demo-cover-title"));
     assert.ok(wrapped.blocks.some((block) => block.page === 4 && block.blockId === "demo-back-looking-ahead"));
     assert.equal(wrapped.stats.placedImages, 0);
-    assert.equal(wrapped.stats.fillerBlocks, 0);
+    assert.equal(wrapped.stats.fillerBlocks, 1);
   });
 
   it("does not wrap an already full-size run twice", () => {
@@ -156,7 +156,10 @@ describe("wrapV3InnerSpreadForDemo", () => {
     assert.equal(wrapperBlocks.some((block) => block.imageId), false);
 
     const coverBirthday = wrapped.blocks.find((block) => block.blockId === "demo-cover-birthday");
-    assert.equal(coverBirthday?.inlineText, "Residents and team members celebrating this month are recognized on the posted community calendar.");
+    assert.equal(coverBirthday?.kind, "filler");
+    assert.equal(coverBirthday?.heading, "Birthday List Placeholder");
+    assert.match(coverBirthday?.inlineText ?? "", /Client-fill area/);
+    assert.equal(coverBirthday?.style?.panelRole, "birthday");
     assert.equal(/Mary Ann|Shirley|7\/3|7\/10/.test(`${coverBirthday?.heading ?? ""}\n${coverBirthday?.inlineText ?? ""}`), false);
     assert.equal(wrapped.blocks.filter((block) => block.articleId === "birthday").length, 1);
   });
