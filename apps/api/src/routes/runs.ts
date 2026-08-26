@@ -733,8 +733,14 @@ runsRouter.post("/", async (req, res) => {
   articles = fitResult.articles;
   images = fitResult.keptImages;
   const innerImageSlotCount = effectiveGridSpec.slots.filter((slot) => slot.type === "image").length;
+  // Four-page demo runs need real visual anchors on the packet-aware cover and
+  // back. Keep two supplied photos outside the inner template when possible;
+  // the wrapper consumes only these otherwise-unused assets, never duplicates
+  // an image already placed beside its story.
+  const wrapperImageReserve = template.id.startsWith("v3-") && images.length >= 3 ? 2 : 0;
+  const innerImageBudget = Math.max(1, innerImageSlotCount - wrapperImageReserve);
   const innerImages = template.id.startsWith("v3-")
-    ? images.slice(0, innerImageSlotCount)
+    ? images.slice(0, innerImageBudget)
     : images;
   const runId = createId();
   const brandKit = {
