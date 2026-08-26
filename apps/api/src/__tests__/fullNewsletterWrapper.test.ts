@@ -93,7 +93,7 @@ describe("wrapV3InnerSpreadForDemo", () => {
     assert.deepEqual(twice.blocks.map((block) => block.page), once.blocks.map((block) => block.page));
   });
 
-  it("does not repeat inner-spread articles, story bodies, filenames, or images on wrapper pages", () => {
+  it("keeps wrappers source-aware without leaking filenames, birthday rosters, or client-fill instructions", () => {
     const birthdayArticles: Article[] = [
       {
         id: "birthday",
@@ -150,15 +150,15 @@ describe("wrapV3InnerSpreadForDemo", () => {
       .filter(Boolean)
       .join("\n");
     assert.equal(/Mary Ann|Shirley|7\/3|7\/10/.test(wrapperText), false);
-    assert.equal(/A warm note for residents|8\/10: Music social|July Newsletter Content\.docx|filename must not appear/.test(wrapperText), false);
+    assert.equal(/July Newsletter Content\.docx|filename must not appear|Client-fill area/.test(wrapperText), false);
 
     assert.equal(wrapperBlocks.some((block) => block.articleId), false);
     assert.equal(wrapperBlocks.some((block) => block.imageId), false);
 
     const coverBirthday = wrapped.blocks.find((block) => block.blockId === "demo-cover-birthday");
     assert.equal(coverBirthday?.kind, "filler");
-    assert.equal(coverBirthday?.heading, "Birthday List Placeholder");
-    assert.match(coverBirthday?.inlineText ?? "", /Client-fill area/);
+    assert.equal(coverBirthday?.heading, "Birthdays");
+    assert.match(coverBirthday?.inlineText ?? "", /when supplied/);
     assert.equal(coverBirthday?.style?.panelRole, "birthday");
     assert.equal(/Mary Ann|Shirley|7\/3|7\/10/.test(`${coverBirthday?.heading ?? ""}\n${coverBirthday?.inlineText ?? ""}`), false);
     assert.equal(wrapped.blocks.filter((block) => block.articleId === "birthday").length, 1);

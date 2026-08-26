@@ -568,6 +568,7 @@ function scoreWithMeasurement(
   const whiteSpaceCritical =
     usefulOccupancy < 0.5 ||
     minPageUtility < 0.38 ||
+    largestEmptyBandRatio > 0.2 ||
     (measurement.underfilledBlocks ?? 0) >= 12 ||
     measurement.lowUtilityBlocks >= 10;
   if (whiteSpaceCritical) warnings.push("porter-critical:white-space-repair");
