@@ -242,7 +242,9 @@ export function wrapV3InnerSpreadForDemo({
       1,
       `${clientName}`,
       `${monthLabel}\nCommunity Newsletter`,
-      { col: 1, row: 1, colSpan: 10, rowSpan: 4 },
+      // Fill the entire top-left band. Leaving columns 11–15 uncovered here
+      // created a visible accidental white notch above the director panel.
+      { col: 1, row: 1, colSpan: 15, rowSpan: 4 },
       {
         bg: "cream",
         headerColor: "primary",

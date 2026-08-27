@@ -71,6 +71,8 @@ describe("wrapV3InnerSpreadForDemo", () => {
     );
     assert.ok(wrapped.blocks.some((block) => block.page === 1 && block.blockId === "demo-cover-title"));
     assert.ok(wrapped.blocks.some((block) => block.page === 4 && block.blockId === "demo-back-looking-ahead"));
+    const coverTitle = wrapped.blocks.find((block) => block.blockId === "demo-cover-title");
+    assert.deepEqual(coverTitle?.position, { col: 1, row: 1, colSpan: 15, rowSpan: 4 });
     assert.equal(wrapped.stats.placedImages, 0);
     assert.equal(wrapped.stats.fillerBlocks, 1);
   });

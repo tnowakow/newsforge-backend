@@ -738,7 +738,13 @@ runsRouter.post("/", async (req, res) => {
   // the wrapper consumes only these otherwise-unused assets, never duplicates
   // an image already placed beside its story.
   const wrapperImageReserve = template.id.startsWith("v3-") && images.length >= 3 ? 2 : 0;
-  const innerImageBudget = Math.max(1, innerImageSlotCount - wrapperImageReserve);
+  // Reserve cover/back anchors only from a true surplus. The previous
+  // `innerImageSlotCount - reserve` rule could leave a dense uploaded packet
+  // with a single inner photo, even when it supplied five or more. That made
+  // a wrapper look better by starving the actual Porter spread and could trip
+  // required-source/photo invariants. Keep the normal inner capacity plus all
+  // but the intended wrapper anchors instead.
+  const innerImageBudget = Math.max(innerImageSlotCount, images.length - wrapperImageReserve, 1);
   const innerImages = template.id.startsWith("v3-")
     ? images.slice(0, innerImageBudget)
     : images;
