@@ -159,6 +159,16 @@ export function retrievePorterExamples(articles: Article[], images: NewsImage[],
     ((article.imageRefs?.length ?? 0) > 0 || /outing|breakfast|tea|project|joy|celebrat/i.test(`${article.title} ${article.body}`))
   ).length;
   const hasLongSchedule = articles.some((article) => isScheduleArticle(article) && porterDatedRowCount(article) >= 10);
+  // A compact packet with a photo for essentially every source story is not
+  // an Editorial Light issue just because it lacks dated schedule rows. Its
+  // editorial grammar is a photo mosaic: every inner page needs narrative
+  // content alongside the images, rather than a two-photo page with no story.
+  const photoForwardIssue =
+    signature.moduleCount >= 4 &&
+    signature.photoCount >= 4 &&
+    signature.photoCount >= signature.moduleCount - 1 &&
+    signature.datedRows < 8 &&
+    !hasLongSchedule;
   const communityCollageIssue =
     hasDirector &&
     signature.photoCount >= 5 &&
@@ -187,7 +197,9 @@ export function retrievePorterExamples(articles: Article[], images: NewsImage[],
         (communityCollageIssue && example.family === "editorial-light" ? 0.2 : 0) -
         (sourceDenseIssue && example.family === "dense-lavender-grid" ? 0.32 : 0) +
         (sourceDenseIssue && example.family === "editorial-light" ? 0.18 : 0) -
-        (julyLikeDenseGrid && example.family === "dense-lavender-grid" ? 0.25 : 0),
+        (julyLikeDenseGrid && example.family === "dense-lavender-grid" ? 0.25 : 0) -
+        (photoForwardIssue && example.family === "photo-mosaic" ? 0.3 : 0) +
+        (photoForwardIssue && example.family === "editorial-light" ? 0.2 : 0),
     }))
     .sort((a, b) => a.score - b.score || a.example.exampleId.localeCompare(b.example.exampleId))
     .slice(0, k)
@@ -198,6 +210,8 @@ export function retrievePorterExamples(articles: Article[], images: NewsImage[],
     ? "community-collage"
     : sourceDenseIssue
     ? "dense-lavender-grid"
+    : photoForwardIssue
+    ? "photo-mosaic"
     : [...familyCounts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0]?.[0] ?? "community-collage";
   const prompt = [
     `Retrieved Porter exemplars: ${examples.map((example) => `${example.exampleId} (${example.family})`).join(", ")}.`,

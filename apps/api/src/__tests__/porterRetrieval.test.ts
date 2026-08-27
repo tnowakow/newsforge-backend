@@ -78,6 +78,22 @@ test("routes dense low-word upload shape away from editorial light even when pho
   assert.equal(result.scenario, "panel-garden");
 });
 
+test("routes compact photo-forward source packets away from an empty editorial spread", () => {
+  const result = retrievePorterExamples(
+    [
+      article({ title: "Executive Director Corner", wordCount: 150 }),
+      article({ title: "Legacy News", wordCount: 80, articleType: "resident-story" }),
+      article({ title: "Summer Trips", wordCount: 120, articleType: "event-recap" }),
+      article({ title: "Lifestyle Hubs", wordCount: 95 }),
+      article({ title: "Strike Out Alzheimer's", wordCount: 75 }),
+    ],
+    Array.from({ length: 5 }, (_, index) => image(`controlled-${index}`)),
+  );
+
+  assert.equal(result.family, "photo-mosaic");
+  assert.equal(result.scenario, "photo-festival");
+});
+
 test("routes eight-module director schedule packets to dense lavender even with generic photo refs", () => {
   const articles = [
     article({ title: "Executive Director Corner", wordCount: 110 }),
