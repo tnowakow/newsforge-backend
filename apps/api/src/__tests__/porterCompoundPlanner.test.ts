@@ -152,4 +152,26 @@ describe("porterCompoundPlanner", () => {
     assert.ok(railArea(12) >= railArea(8));
     assert.ok(railArea(20) >= railArea(12));
   });
+
+  it("rejects a compound candidate rather than silently dropping a required source story", () => {
+    const crowded = [
+      ...baseArticles(),
+      ...Array.from({ length: 4 }, (_, index) => article(
+        `extra-story-${index + 1}`,
+        `Extra Community Story ${index + 1}`,
+        "A full story that must not disappear from the uploaded packet.",
+        "narrative-story",
+        [],
+        index + 7,
+      )),
+    ];
+    const layout = buildPorterCompoundLayout({
+      templateId: "v3-upload-source",
+      pageCount: 2,
+      gridSpec,
+      articles: crowded,
+      images: baseImages(),
+    });
+    assert.equal(layout, undefined);
+  });
 });

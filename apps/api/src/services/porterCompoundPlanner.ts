@@ -354,6 +354,24 @@ export function buildPorterCompoundLayout(input: PorterCompoundPlannerInput): As
 
   const laidOut = blocks.map((entry) => entry.block);
   if (laidOut.length === 0) return undefined;
+
+  // This planner is only a valid candidate when it retains every substantive
+  // uploaded source unit.  A visually attractive mosaic that silently drops a
+  // story is worse than falling back to a less ambitious, source-complete
+  // candidate; the latter can still be measured and improved downstream.
+  // Briefs are intentionally optional, but narrative stories, the director
+  // note, and structured rails are not.
+  const placedArticleIds = new Set(
+    laidOut
+      .filter((block) => Boolean(block.articleId) || block.kind === "list")
+      .map((block) => block.articleId ?? block.slotId.replace(/^source-/, "")),
+  );
+  const omittedRequiredArticle = articles.some((article) => {
+    const role = classifyPorterSourceRole(article);
+    return role !== "brief" && !placedArticleIds.has(article.id);
+  });
+  if (omittedRequiredArticle) return undefined;
+
   return {
     templateId: input.templateId,
     pageCount: input.pageCount,
