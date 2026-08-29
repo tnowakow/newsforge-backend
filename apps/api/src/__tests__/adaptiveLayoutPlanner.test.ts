@@ -631,6 +631,37 @@ describe("adaptiveLayoutPlanner.buildAdaptiveLayout", () => {
     assert.equal(chooseAdaptiveCandidate([placeholder, real], "porter-photo-gate").id, "real-photo-layout");
   });
 
+  it("preserves source units and photo adjacency before resolving remaining Porter warnings", () => {
+    const result = buildAdaptiveLayout({
+      templateId: "v3-test",
+      pageCount: 2,
+      gridSpec,
+      recurringSections: [],
+      articles: [article("director", "Executive Director Corner", 100, "executive-note", "UPLOAD")],
+      images: [],
+    });
+    const [first, second] = result.candidates;
+    assert.ok(first);
+    assert.ok(second);
+
+    const chosen = chooseAdaptiveCandidate([
+      {
+        ...first,
+        id: "drops-required-story",
+        score: 0.9,
+        warnings: ["porter-critical:source-unit-missing: Required narrative-story source unit story was not placed on the inner spread."],
+      },
+      {
+        ...second,
+        id: "source-complete-needs-fit-pass",
+        score: 0.2,
+        warnings: ["porter-critical:white-space-repair", "render-clipped-blocks:1"],
+      },
+    ], "source-integrity-first");
+
+    assert.equal(chosen.id, "source-complete-needs-fit-pass");
+  });
+
   it("prefers a clean uploaded source topology when it is close to the measured winner", () => {
     const result = buildAdaptiveLayout({
       templateId: "v3-test",

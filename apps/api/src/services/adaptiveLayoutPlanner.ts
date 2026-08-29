@@ -634,13 +634,30 @@ function hasPorterCriticalWarning(candidate: AdaptiveLayoutCandidate): boolean {
   return candidate.warnings.some((warning) => warning.startsWith("porter-critical:"));
 }
 
+// A measured clipping or whitespace warning is still a problem, but it must
+// never make us choose a candidate that silently drops a supplied story,
+// splits a referenced photo from its story, or leaves an inner page photo-only.
+// That trade-off was possible when every candidate carried *some* critical
+// warning: the generic score tie-break could select the content-losing layout.
+function hasPorterSourceIntegrityFailure(candidate: AdaptiveLayoutCandidate): boolean {
+  return candidate.warnings.some((warning) =>
+    warning.startsWith("porter-critical:source-unit-missing") ||
+    warning.startsWith("porter-critical:source-rows-dropped") ||
+    warning.startsWith("porter-critical:source-photo-not-adjacent") ||
+    warning.startsWith("porter-critical:photo-only-inner-page") ||
+    warning.startsWith("porter-critical:photo-only-page"),
+  );
+}
+
 export function chooseAdaptiveCandidate(
   candidates: AdaptiveLayoutCandidate[],
   variationSeed?: string,
 ): AdaptiveLayoutCandidate {
   const sorted = [...candidates].sort((a, b) => b.score - a.score || a.id.localeCompare(b.id));
-  const gateClean = sorted.filter((candidate) => !hasPorterCriticalWarning(candidate));
-  const ranked = gateClean.length > 0 ? gateClean : sorted;
+  const sourceIntegritySafe = sorted.filter((candidate) => !hasPorterSourceIntegrityFailure(candidate));
+  const integrityRanked = sourceIntegritySafe.length > 0 ? sourceIntegritySafe : sorted;
+  const gateClean = integrityRanked.filter((candidate) => !hasPorterCriticalWarning(candidate));
+  const ranked = gateClean.length > 0 ? gateClean : integrityRanked;
   const best = ranked[0];
   if (!best || !variationSeed) return best;
   const sourceTopology = ranked.find((candidate) => candidate.id === "source-topology");
