@@ -1445,6 +1445,11 @@ describe("adaptiveLayoutPlanner.buildAdaptiveLayout", () => {
       longOverflowBlocks.every((block) => block.position.rowSpan >= 4),
       "long no-schedule overflow stories should not be forced into 8x3 micro-cards",
     );
+    assert.equal(
+      result.chosen.warnings.some((warning) => warning.startsWith("overlap:")),
+      false,
+      "no-schedule story mosaic should not ship overlapping grid cells",
+    );
   });
 
   it("routes eight-module generic-photo Porter uploads into compound dense candidates", () => {

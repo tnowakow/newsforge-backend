@@ -1165,7 +1165,7 @@ function sourceTopologyCandidate(
       } else {
         imageBlock(takeImage(undefined, true), 2, 13, 1, 12, 5);
       }
-      if (storyD) articleBlock(storyD, 2, 1, 6, 7, 5, 5);
+      if (storyD) articleBlock(storyD, 2, 1, 6, 7, 4, 5);
       if (storyE) articleBlock(storyE, 2, 8, 6, 8, 4, 6);
       if (storyF) articleBlock(storyF, 2, 16, 6, 9, 5, 7);
       if (storyG) articleBlock(storyG, 2, 1, 11, 6, 6, 8);
