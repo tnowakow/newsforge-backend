@@ -65,6 +65,19 @@ export function evaluatePorterLayoutInvariants(input: EvaluateInput): PorterLayo
     add(failures, "hard", "source-parse-failed", "Source mode was requested but no parsed source articles/lists were available.");
   }
 
+  // A four-page Porter packet cannot be honestly composed from just a couple
+  // of text blocks and no supplied photos. Previously this shape could clear
+  // rendering checks while producing an almost-empty inner spread. Treat it
+  // as an input-completeness failure, not a layout success.
+  if (requireSource && images.length === 0 && sourceArticles.length < 4) {
+    add(
+      failures,
+      "hard",
+      "source-packet-insufficient",
+      `Only ${sourceArticles.length} parsed source units and no uploaded photos were supplied; add the photo files and the required newsworthy articles before exporting a four-page newsletter.`,
+    );
+  }
+
   for (const unit of units) {
     for (const articleId of unit.articleIds) {
       const block = sourceUnitBlock(blocks, articleId);
@@ -137,4 +150,3 @@ export function evaluatePorterLayoutInvariants(input: EvaluateInput): PorterLayo
     failures,
   };
 }
-

@@ -65,6 +65,25 @@ function layout(blocks: LayoutBlock[]): AssembledLayout {
 }
 
 describe("porterLayoutInvariants", () => {
+  it("blocks a sparse four-page source packet before it becomes an empty-looking export", () => {
+    const report = evaluatePorterLayoutInvariants({
+      layout: layout([
+        block("director", 1, 1, 1, 8, 5, { articleId: "director" }),
+        block("legacy", 2, 1, 1, 8, 5, { articleId: "legacy" }),
+        block("events", 2, 10, 1, 8, 5, { articleId: "events", kind: "list", listItems: [] }),
+      ]),
+      articles: [
+        article("director", "Executive Director Corner", "A director note with useful content."),
+        article("legacy", "Legacy News", "A resident story with useful content."),
+        article("events", "July Entertainment", "2nd Country Gentlemen\n3rd Don Smithey"),
+      ],
+      images: [],
+    });
+
+    assert.equal(report.passed, false);
+    assert.match(report.hardFailures.join(" "), /source-packet-insufficient/);
+  });
+
   it("fails photo-only pages and lets the quality gate block a high score", () => {
     const report = evaluatePorterLayoutInvariants({
       layout: layout([
@@ -112,4 +131,3 @@ describe("porterLayoutInvariants", () => {
     assert.match(report.warnings.join(" "), /source-photo-unresolved/);
   });
 });
-
