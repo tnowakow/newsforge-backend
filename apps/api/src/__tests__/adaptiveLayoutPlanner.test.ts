@@ -1313,6 +1313,93 @@ describe("adaptiveLayoutPlanner.buildAdaptiveLayout", () => {
     }
   });
 
+  it("adds a compact story mosaic for five-story uploaded Porter packets", () => {
+    const result = buildAdaptiveLayout({
+      templateId: "v3-upload-source",
+      pageCount: 2,
+      gridSpec: { ...gridSpec, columns: 24, rowsPerPage: 16 },
+      recurringSections: [],
+      articles: [
+        article("director", "Executive Director Corner", 160, "executive-note", "UPLOAD"),
+        { ...article("legacy", "Legacy News", 78, "resident-story", "UPLOAD"), imageRefs: ["Legacy.jpg"] },
+        article("summer", "Summer Trips", 146, "other", "UPLOAD"),
+        article("lifestyle", "Lifestyle Hubs", 135, "other", "UPLOAD"),
+        article("strikeout", "Strike Out Alzheimer’s Fundraiser", 126, "other", "UPLOAD"),
+      ],
+      images: [
+        { ...image("photo-a", "landscape", "UPLOAD"), caption: "Summer gathering.jpg" },
+        { ...image("photo-b", "landscape", "UPLOAD"), caption: "Resident group.jpg" },
+        { ...image("photo-c", "landscape", "UPLOAD"), caption: "Activity day.jpg" },
+        { ...image("photo-d", "landscape", "UPLOAD"), caption: "Campus moment.jpg" },
+        { ...image("legacy-photo", "landscape", "UPLOAD"), caption: "Legacy.jpg" },
+      ],
+    });
+
+    const mosaic = result.candidates.find((candidate) => candidate.id === "source-compact-story-mosaic");
+    assert.ok(mosaic, "expected compact story mosaic candidate");
+    assert.equal(result.chosen.id, "source-compact-story-mosaic");
+    assert.equal(mosaic.label, "Uploaded source Porter composition: compact story mosaic");
+    assert.equal(mosaic.warnings.includes("porter-photo-pairing:1/1"), true);
+    assert.equal(mosaic.warnings.some((warning) => warning.startsWith("porter-critical:source-unit-missing")), false);
+    assert.equal(mosaic.warnings.includes("porter-critical:photo-story-pairing"), false);
+
+    const placedArticleIds = new Set(mosaic.layout.blocks.map((block) => block.articleId).filter(Boolean));
+    assert.deepEqual(
+      [...placedArticleIds].sort(),
+      ["director", "legacy", "lifestyle", "strikeout", "summer"],
+    );
+    const legacy = mosaic.layout.blocks.find((block) => block.articleId === "legacy");
+    const legacyPhoto = mosaic.layout.blocks.find((block) => block.imageId === "legacy-photo");
+    assert.equal(legacyPhoto?.page, legacy?.page);
+    assert.equal(legacy?.position.row, 1);
+    assert.equal(legacyPhoto?.position.row, 1);
+
+    const lowerPageTwoStories = mosaic.layout.blocks.filter((block) =>
+      block.page === 2 && block.articleId && block.position.row === 8
+    );
+    assert.equal(lowerPageTwoStories.length, 3);
+    assert.ok(
+      lowerPageTwoStories.every((block) => block.position.rowSpan === 9),
+      "short stories should receive the lower band instead of clipping in three-row cards",
+    );
+    assert.equal(mosaic.layout.blocks.filter((block) => block.imageId).length, 4);
+  });
+
+  it("uses compact story mosaic to keep short two-story packets from becoming top-heavy", () => {
+    const result = buildAdaptiveLayout({
+      templateId: "v3-upload-source",
+      pageCount: 2,
+      gridSpec: { ...gridSpec, columns: 24, rowsPerPage: 16 },
+      recurringSections: [],
+      articles: [
+        article("director", "Executive Director Corner", 165, "executive-note", "UPLOAD"),
+        { ...article("legacy", "Legacy News", 28, "resident-story", "UPLOAD"), imageRefs: ["Legacy.jpg"] },
+      ],
+      images: [
+        { ...image("photo-a", "landscape", "UPLOAD"), caption: "Campus garden.jpg" },
+        { ...image("photo-b", "portrait", "UPLOAD"), caption: "Dining room.jpg" },
+        { ...image("photo-c", "landscape", "UPLOAD"), caption: "Veterans visit.jpg" },
+        { ...image("photo-d", "landscape", "UPLOAD"), caption: "Resident friends.jpg" },
+        { ...image("legacy-photo", "landscape", "UPLOAD"), caption: "Legacy.jpg" },
+      ],
+    });
+
+    const mosaic = result.candidates.find((candidate) => candidate.id === "source-compact-story-mosaic");
+    assert.ok(mosaic, "expected compact story mosaic for short uploaded packet");
+    assert.equal(result.chosen.id, "source-compact-story-mosaic");
+    assert.equal(mosaic.warnings.includes("porter-photo-pairing:1/1"), true);
+    assert.equal(mosaic.warnings.some((warning) => warning.startsWith("porter-critical:photo-only")), false);
+
+    const pageOneBlocks = mosaic.layout.blocks.filter((block) => block.page === 1);
+    const pageTwoBlocks = mosaic.layout.blocks.filter((block) => block.page === 2);
+    assert.ok(pageOneBlocks.some((block) => block.articleId === "director" && block.position.rowSpan >= 8));
+    assert.ok(pageTwoBlocks.some((block) => block.articleId === "legacy"));
+    assert.ok(
+      pageTwoBlocks.some((block) => block.imageId && block.position.row >= 8 && block.position.rowSpan >= 9),
+      "surplus photos should occupy the second-page lower band instead of leaving it blank",
+    );
+  });
+
   it("routes eight-module generic-photo Porter uploads into compound dense candidates", () => {
     const result = buildAdaptiveLayout({
       templateId: "v3-upload-source",
