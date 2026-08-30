@@ -5,6 +5,7 @@ import type {
   AssembledLayout,
   GridSpec,
   LayoutBlock,
+  NewsImage,
 } from "@newsforge/shared/schemas";
 import { evaluatePorterLayoutPlaybook } from "../services/porterLayoutPlaybook.js";
 
@@ -33,6 +34,33 @@ const articles: Article[] = [
     isFiller: false,
     source: "UPLOAD",
     articleType: "resident-story",
+  },
+];
+
+const images: NewsImage[] = [
+  {
+    id: "i1",
+    url: "https://example.com/i1.jpg",
+    caption: "Campus in Color",
+    aspect: "landscape",
+    isPlaceholder: false,
+    source: "UPLOAD",
+  },
+  {
+    id: "i2",
+    url: "https://example.com/i2.jpg",
+    caption: "Residents creating art",
+    aspect: "landscape",
+    isPlaceholder: false,
+    source: "UPLOAD",
+  },
+  {
+    id: "i3",
+    url: "https://example.com/i3.jpg",
+    caption: "Community snapshot",
+    aspect: "portrait",
+    isPlaceholder: false,
+    source: "UPLOAD",
   },
 ];
 
@@ -145,5 +173,46 @@ describe("evaluatePorterLayoutPlaybook", () => {
     const signature = report.rules.find((item) => item.id === "signature-rail");
     assert.equal(signature?.status, "not-applicable");
     assert.match(signature?.result ?? "", /No inner-spread birthday block/);
+  });
+
+  it("counts supplied photos placed on demo wrappers for photo usage", () => {
+    const layout = fourPageLayout();
+    layout.blocks[0] = {
+      ...layout.blocks[0],
+      kind: "image",
+      imageId: "i3",
+      caption: "Community snapshot",
+      inlineText: undefined,
+    };
+
+    const report = evaluatePorterLayoutPlaybook({
+      layout,
+      articles,
+      images,
+      gridSpec,
+      measurement: {
+        candidateId: "selected",
+        clippedBlocks: 0,
+        clippedBlockIds: [],
+        underfilledBlocks: 0,
+        fillRatios: [],
+        clipDetails: [],
+        overflowBlocks: 0,
+        missingImages: 0,
+        renderedImages: 3,
+        placeholderImages: 0,
+        realRenderedImages: 3,
+        totalImages: 3,
+        usefulOccupancy: 0.92,
+        geometricCoverage: 0.96,
+        minPageUtility: 0.86,
+        largestEmptyBandRatio: 0,
+        lowUtilityBlocks: 0,
+      },
+    });
+
+    const photoUse = report.rules.find((rule) => rule.id === "photo-use-captions");
+    assert.equal(photoUse?.status, "pass");
+    assert.match(photoUse?.result ?? "", /3\/3 supplied photos placed; 3\/3 rendered as real photos/);
   });
 });

@@ -116,6 +116,7 @@ export function evaluatePorterLayoutPlaybook(input: EvaluateInput): PorterLayout
     .filter((block) => block.kind !== "empty");
   const articleBlocks = innerBlocks.filter((block) => block.articleId);
   const imageBlocks = innerBlocks.filter((block) => block.imageId);
+  const fullImageBlocks = layout.blocks.filter((block) => block.kind !== "empty" && block.imageId);
   const rules: PorterLayoutRuleResult[] = [];
   const invariantReport = evaluatePorterLayoutInvariants({ layout, articles, images, measurement });
   rules.push(rule(
@@ -229,19 +230,32 @@ export function evaluatePorterLayoutPlaybook(input: EvaluateInput): PorterLayout
   }
 
   const usedUploadedImages = images.filter((image) => image.source === "UPLOAD" || images.length > 0);
-  const imageUseRatio = usedUploadedImages.length ? imageBlocks.length / usedUploadedImages.length : 1;
-  const filenameCaptions = imageBlocks.filter((block) => isFilenameCaption(block.caption)).length;
+  const suppliedImageIds = new Set(usedUploadedImages.map((image) => image.id));
+  const suppliedImageBlocks = fullImageBlocks.filter((block) => block.imageId && suppliedImageIds.has(block.imageId));
+  const placedSuppliedImageIds = new Set(suppliedImageBlocks.map((block) => block.imageId));
+  const duplicateSuppliedPlacements = Math.max(0, suppliedImageBlocks.length - placedSuppliedImageIds.size);
+  const imageUseRatio = usedUploadedImages.length ? placedSuppliedImageIds.size / usedUploadedImages.length : 1;
+  const filenameCaptions = fullImageBlocks.filter((block) => isFilenameCaption(block.caption)).length;
   const suppliedPlaceholderImages = usedUploadedImages.filter((image) => image.isPlaceholder).length;
   const measuredPlaceholderImages = measurement?.placeholderImages ?? 0;
   const placeholderImages = Math.max(suppliedPlaceholderImages, measuredPlaceholderImages);
-  const realRenderedImages = measurement?.realRenderedImages ?? Math.max(0, imageBlocks.length - placeholderImages);
+  const realRenderedImages = measurement?.realRenderedImages ?? Math.max(0, fullImageBlocks.length - placeholderImages);
   rules.push(rule(
     "photo-use-captions",
     "Real photos and human captions",
-    placeholderImages > 0 ? "fail" : imageUseRatio >= 1 && filenameCaptions === 0 ? "pass" : imageUseRatio >= 0.85 && filenameCaptions <= 1 ? "warn" : "fail",
-    Math.min(1, imageUseRatio) * (filenameCaptions === 0 ? 1 : 0.75) * (placeholderImages === 0 ? 1 : 0.35),
+    placeholderImages > 0 || duplicateSuppliedPlacements > 0
+      ? "fail"
+      : imageUseRatio >= 1 && filenameCaptions === 0
+        ? "pass"
+        : imageUseRatio >= 0.85 && filenameCaptions <= 1
+          ? "warn"
+          : "fail",
+    Math.min(1, imageUseRatio) *
+      (filenameCaptions === 0 ? 1 : 0.75) *
+      (placeholderImages === 0 ? 1 : 0.35) *
+      (duplicateSuppliedPlacements === 0 ? 1 : 0.5),
     "Use all supplied real photos once, avoid filename captions, and reject rendered placeholder/test images.",
-    `${imageBlocks.length}/${usedUploadedImages.length} supplied photos placed; ${realRenderedImages}/${imageBlocks.length} rendered as real photos; ${placeholderImages} placeholder/test images; ${filenameCaptions} filename-like captions.`,
+    `${placedSuppliedImageIds.size}/${usedUploadedImages.length} supplied photos placed; ${realRenderedImages}/${fullImageBlocks.length} rendered as real photos; ${placeholderImages} placeholder/test images; ${filenameCaptions} filename-like captions${duplicateSuppliedPlacements > 0 ? `; ${duplicateSuppliedPlacements} duplicate supplied-photo placements` : ""}.`,
   ));
 
   const pageCount = Math.max(playbookPageCount, 1);
