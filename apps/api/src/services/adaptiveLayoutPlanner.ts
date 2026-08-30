@@ -1328,8 +1328,14 @@ function sourceTopologyCandidate(
     const position = candidates.find((candidate) => isOpen(page, candidate));
     return position ? { page, position } : undefined;
   };
+  const noScheduleOverflowRun = scheduleArticles.length === 0 && overflowArticles.length >= 6;
   for (const [index, article] of overflowArticles.entries()) {
-    const placement = findOpenRect(2, 8, 3) ?? findOpenRect(1, 8, 3);
+    const preferredRowSpan = noScheduleOverflowRun && article.wordCount >= 30 ? 4 : 3;
+    const placement =
+      findOpenRect(2, 8, preferredRowSpan) ??
+      findOpenRect(1, 8, preferredRowSpan) ??
+      findOpenRect(2, 8, 3) ??
+      findOpenRect(1, 8, 3);
     if (!placement) continue;
     articleBlock(
       article,

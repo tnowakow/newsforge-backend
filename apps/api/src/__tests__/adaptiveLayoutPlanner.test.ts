@@ -1401,6 +1401,52 @@ describe("adaptiveLayoutPlanner.buildAdaptiveLayout", () => {
     );
   });
 
+  it("gives no-schedule Porter overflow stories enough height to avoid micro-card clipping", () => {
+    const result = buildAdaptiveLayout({
+      templateId: "v3-upload-source",
+      pageCount: 2,
+      gridSpec: { ...gridSpec, columns: 24, rowsPerPage: 16 },
+      recurringSections: [],
+      articles: [
+        article("director", "Executive Director Corner", 160, "executive-note", "UPLOAD"),
+        { ...article("legacy", "Legacy News", 78, "resident-story", "UPLOAD"), imageRefs: ["Legacy.jpg"] },
+        article("market", "Farmer's Market", 38, "other", "UPLOAD"),
+        article("class", "Life Enrichment Specialist", 34, "other", "UPLOAD"),
+        article("then", "Then & Now", 12, "other", "UPLOAD"),
+        article("america", "As America celebrates its 250th anniversary in 2026", 42, "announcement", "UPLOAD"),
+        article("wagon", "In 1776, most people traveled on foot", 47, "other", "UPLOAD"),
+        article("rail", "During the 1800s, canals and railroads transformed transportation", 41, "other", "UPLOAD"),
+        article("auto", "The twentieth century introduced the automobile", 39, "other", "UPLOAD"),
+        article("today", "Today, Americans enjoy transportation technologies", 36, "other", "UPLOAD"),
+        article("spirit", "Transportation reminds us of invention", 44, "other", "UPLOAD"),
+        article("talent", "Do you have a talent you would like featured", 37, "other", "UPLOAD"),
+      ],
+      images: [
+        { ...image("photo-a", "landscape", "UPLOAD"), caption: "Campus gathering.jpg" },
+        { ...image("photo-b", "landscape", "UPLOAD"), caption: "Resident friends.jpg" },
+        { ...image("photo-c", "landscape", "UPLOAD"), caption: "Activity afternoon.jpg" },
+        { ...image("photo-d", "landscape", "UPLOAD"), caption: "Veterans visit.jpg" },
+        { ...image("legacy-photo", "landscape", "UPLOAD"), caption: "Legacy.jpg" },
+      ],
+    });
+
+    assert.equal(result.chosen.id, "source-topology");
+    const placedArticleIds = new Set(result.chosen.layout.blocks.map((block) => block.articleId).filter(Boolean));
+    assert.deepEqual(
+      [...placedArticleIds].sort(),
+      ["america", "auto", "class", "director", "legacy", "market", "rail", "spirit", "talent", "then", "today", "wagon"],
+    );
+
+    const longOverflowBlocks = result.chosen.layout.blocks.filter((block) =>
+      block.articleId && !["director", "legacy", "then"].includes(block.articleId)
+    );
+    assert.ok(longOverflowBlocks.length >= 8);
+    assert.ok(
+      longOverflowBlocks.every((block) => block.position.rowSpan >= 4),
+      "long no-schedule overflow stories should not be forced into 8x3 micro-cards",
+    );
+  });
+
   it("routes eight-module generic-photo Porter uploads into compound dense candidates", () => {
     const result = buildAdaptiveLayout({
       templateId: "v3-upload-source",
