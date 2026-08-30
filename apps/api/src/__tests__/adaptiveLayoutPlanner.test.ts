@@ -1394,9 +1394,10 @@ describe("adaptiveLayoutPlanner.buildAdaptiveLayout", () => {
     const pageTwoBlocks = mosaic.layout.blocks.filter((block) => block.page === 2);
     assert.ok(pageOneBlocks.some((block) => block.articleId === "director" && block.position.rowSpan >= 8));
     assert.ok(pageTwoBlocks.some((block) => block.articleId === "legacy"));
+    assert.equal(mosaic.layout.blocks.filter((block) => block.imageId).length, 5);
     assert.ok(
-      pageTwoBlocks.some((block) => block.imageId && block.position.row >= 8 && block.position.rowSpan >= 9),
-      "surplus photos should occupy the second-page lower band instead of leaving it blank",
+      pageTwoBlocks.filter((block) => block.imageId && block.position.row >= 8 && block.position.rowSpan >= 9).length >= 2,
+      "surplus photos should occupy both columns of the second-page lower band instead of leaving it blank",
     );
   });
 

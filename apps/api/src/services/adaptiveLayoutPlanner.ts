@@ -1089,11 +1089,14 @@ function sourceTopologyCandidate(
         article.id !== primary.id &&
         article.id !== secondary?.id
       );
+      const sparseTwoStory = remaining.length === 0;
 
       articleBlock(primary, 1, 1, 1, 10, 8, 0);
       imageBlock(takeImage(primary, true), 1, 11, 1, 14, 8, primary);
-      imageBlock(takeImage(undefined, true), 1, 1, 9, 12, 8);
-      imageBlock(takeImage(undefined, true), 1, 13, 9, 12, 8);
+      imageBlock(takeImage(undefined, true), 1, 1, 9, sparseTwoStory ? 24 : 12, 8);
+      if (!sparseTwoStory) {
+        imageBlock(takeImage(undefined, true), 1, 13, 9, 12, 8);
+      }
 
       if (secondary) {
         articleBlock(secondary, 2, 1, 1, 10, 7, 1);
