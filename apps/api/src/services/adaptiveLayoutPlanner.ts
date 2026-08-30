@@ -851,6 +851,7 @@ type DenseLavenderMapId =
   | "porter-guided-sparse"
   | "compact-director-mosaic"
   | "community-collage"
+  | "community-story-mosaic"
   | "compact-story-mosaic";
 
 function denseLavenderMapLabel(mapId: DenseLavenderMapId): string {
@@ -861,6 +862,7 @@ function denseLavenderMapLabel(mapId: DenseLavenderMapId): string {
     "porter-guided-sparse": "Uploaded source Porter composition: Porter-guided sparse blueprint",
     "compact-director-mosaic": "Uploaded source Porter composition: compact director mosaic",
     "community-collage": "Uploaded source Porter composition: community collage grammar",
+    "community-story-mosaic": "Uploaded source Porter composition: community story mosaic",
     "compact-story-mosaic": "Uploaded source Porter composition: compact story mosaic",
   }[mapId];
 }
@@ -877,6 +879,22 @@ function hasCommunityCollageSourceShape(input: AdaptiveLayoutInput, articles: Ar
     ((article.imageRefs?.length ?? 0) > 0 || /outing|breakfast|tea|project|joy|celebrat/i.test(`${article.title} ${article.body}`))
   ).length;
   return hasDirector && hasLongSchedule && photoStoryCount >= 3;
+}
+
+function hasCommunityStoryMosaicSourceShape(input: AdaptiveLayoutInput, articles: Article[], images: NewsImage[]): boolean {
+  if (input.gridSpec.columns !== 24 || input.gridSpec.rowsPerPage !== 16) return false;
+  const uploadedArticles = articles.filter((article) => article.source === "UPLOAD");
+  if (uploadedArticles.length < 8 || uploadedArticles.length > 14 || images.length < 5) return false;
+  if (uploadedArticles.some(isScheduleArticle)) return false;
+  const hasDirector = uploadedArticles.some((article) => /executive director|director corner/i.test(article.title));
+  const hasLegacyOrSpotlight = uploadedArticles.some((article) =>
+    /legacy|spotlight|resident|profile/i.test(article.title) || article.articleType === "resident-story"
+  );
+  const narrativeCount = uploadedArticles.filter((article) =>
+    article.articleType !== "birthday" &&
+    !/executive director|director corner/i.test(article.title)
+  ).length;
+  return hasDirector && hasLegacyOrSpotlight && narrativeCount >= 7;
 }
 
 function hasDensePorterSourceShape(input: AdaptiveLayoutInput, articles: Article[], images: NewsImage[]): boolean {
@@ -1059,6 +1077,7 @@ function sourceTopologyCandidate(
   const usesDensePorterPacker =
     (denseMapId === "compact-story-mosaic" && hasCompactStoryMosaicSourceShape(input, orderedArticles, images)) ||
     hasDensePorterSourceShape(input, orderedArticles, images) ||
+    (denseMapId === "community-story-mosaic" && hasCommunityStoryMosaicSourceShape(input, orderedArticles, images)) ||
     (denseMapId === "community-collage" && hasCommunityCollageSourceShape(input, orderedArticles, images));
   if (usesDensePorterPacker) {
     if (denseMapId === "community-collage") {
@@ -1117,6 +1136,42 @@ function sourceTopologyCandidate(
         imageBlock(takeImage(undefined, true), 2, 1, 8, 12, 9);
         imageBlock(takeImage(undefined, true), 2, 13, 8, 12, 9);
       }
+    } else if (denseMapId === "community-story-mosaic") {
+      const primary = director;
+      const secondary = legacy && legacy.id !== primary.id
+        ? legacy
+        : orderedArticles.find((article) =>
+          article.id !== primary.id &&
+          article.articleType !== "birthday"
+        );
+      const remaining = orderedArticles.filter((article) =>
+        article.id !== primary.id &&
+        article.id !== secondary?.id
+      );
+      const [storyA, storyB, storyC, storyD, storyE, storyF, storyG, storyH, storyI, storyJ] = remaining;
+
+      articleBlock(primary, 1, 1, 1, 16, 7, 0);
+      if (storyA) articleBlock(storyA, 1, 17, 1, 8, 4, 2);
+      if (storyB) articleBlock(storyB, 1, 17, 5, 8, 4, 3);
+      imageBlock(takeImage(primary, true), 1, 1, 8, 8, 5, primary);
+      imageBlock(takeImage(storyA, true), 1, 9, 8, 8, 5, storyA);
+      imageBlock(takeImage(undefined, true), 1, 17, 9, 8, 4);
+      imageBlock(takeImage(undefined, true), 1, 1, 13, 12, 4);
+      if (storyC) articleBlock(storyC, 1, 13, 13, 12, 4, 4);
+
+      if (secondary) {
+        articleBlock(secondary, 2, 1, 1, 12, 5, 1);
+        imageBlock(takeImage(secondary, true), 2, 13, 1, 12, 5, secondary);
+      } else {
+        imageBlock(takeImage(undefined, true), 2, 13, 1, 12, 5);
+      }
+      if (storyD) articleBlock(storyD, 2, 1, 6, 7, 5, 5);
+      if (storyE) articleBlock(storyE, 2, 8, 6, 8, 4, 6);
+      if (storyF) articleBlock(storyF, 2, 16, 6, 9, 5, 7);
+      if (storyG) articleBlock(storyG, 2, 1, 11, 6, 6, 8);
+      if (storyH) articleBlock(storyH, 2, 7, 10, 5, 7, 9);
+      if (storyI) articleBlock(storyI, 2, 16, 11, 9, 6, 10);
+      if (storyJ) articleBlock(storyJ, 2, 12, 10, 4, 7, 11);
     } else if (denseMapId === "compact-director-mosaic") {
       if (firstSchedule) articleBlock(firstSchedule, 1, 1, 1, 5, 6, 2);
       if (secondSchedule) articleBlock(secondSchedule, 1, 1, 7, 5, 5, 3);
@@ -1395,7 +1450,7 @@ function sourceTopologyCandidate(
     label: usesDensePorterPacker ? denseLavenderMapLabel(denseMapId) : "Uploaded source topology",
     geometryVariant: "source-topology",
     layout,
-    score: scored.score + (usesDensePorterPacker ? (denseMapId === "compact-director-mosaic" ? 0.24 : denseMapId === "community-collage" ? 0.22 : denseMapId === "compact-story-mosaic" ? 0.22 : denseMapId === "porter-guided-sparse" ? 0.2 : 0.12) : 0.08),
+    score: scored.score + (usesDensePorterPacker ? (denseMapId === "compact-director-mosaic" ? 0.24 : denseMapId === "community-collage" ? 0.22 : denseMapId === "community-story-mosaic" ? 0.22 : denseMapId === "compact-story-mosaic" ? 0.22 : denseMapId === "porter-guided-sparse" ? 0.2 : 0.12) : 0.08),
     subscores: scored.subscores,
     warnings: scored.warnings,
   };
@@ -1409,11 +1464,13 @@ function sourceTopologyCandidates(input: AdaptiveLayoutInput, plan: EditorialPla
   const compact = hasCompactPorterSourceShape(input, input.articles, input.images);
   const compactStory = hasCompactStoryMosaicSourceShape(input, input.articles, input.images);
   const communityCollage = hasCommunityCollageSourceShape(input, input.articles, input.images);
-  if (!dense && !communityCollage && !compactStory) return [base];
+  const communityStoryMosaic = hasCommunityStoryMosaicSourceShape(input, input.articles, input.images);
+  if (!dense && !communityCollage && !compactStory && !communityStoryMosaic) return [base];
   return [
     base,
     compactStory ? sourceTopologyCandidate(input, plan, "compact-story-mosaic") : undefined,
     communityCollage ? sourceTopologyCandidate(input, plan, "community-collage") : undefined,
+    communityStoryMosaic ? sourceTopologyCandidate(input, plan, "community-story-mosaic") : undefined,
     compact ? sourceTopologyCandidate(input, plan, "compact-director-mosaic") : undefined,
     sourceTopologyCandidate(input, plan, "porter-guided-sparse"),
     sourceTopologyCandidate(input, plan, "story-river"),

@@ -1430,7 +1430,7 @@ describe("adaptiveLayoutPlanner.buildAdaptiveLayout", () => {
       ],
     });
 
-    assert.equal(result.chosen.id, "source-topology");
+    assert.equal(result.chosen.id, "source-community-story-mosaic");
     const placedArticleIds = new Set(result.chosen.layout.blocks.map((block) => block.articleId).filter(Boolean));
     assert.deepEqual(
       [...placedArticleIds].sort(),
@@ -1693,6 +1693,71 @@ describe("adaptiveLayoutPlanner.buildAdaptiveLayout", () => {
     assert.equal(playbook.rules.find((rule) => rule.id === "schedule-rails")?.status, "pass");
     assert.equal(playbook.rules.find((rule) => rule.id === "photo-story-pairing")?.status, "pass");
     assert.equal(playbook.rules.find((rule) => rule.id === "no-photo-only-pages")?.status, "pass");
+  });
+
+  it("uses a filled story mosaic for no-schedule community packets with many stories", () => {
+    const articles = [
+      {
+        ...article("director", "Executive Director Corner", 180, "executive-note", "UPLOAD"),
+        body: "Happy July, everyone! Our campus has been full of summer gatherings, neighborly visits, and moments worth celebrating together.",
+      },
+      {
+        ...article("legacy", "Legacy News", 86, "resident-story", "UPLOAD"),
+        body: "Families are encouraged to share photos, stories, and memories that can be incorporated into reminiscing activities.",
+        imageRefs: ["Legacy News.jpg"],
+      },
+      ...Array.from({ length: 10 }, (_, index) => ({
+        ...article(`story-${index + 1}`, index < 2 ? "Then & Now" : `Community Story ${index + 1}`, index < 2 ? 52 : 42, "event-recap", "UPLOAD"),
+        body: `Residents gathered for community moment ${index + 1}, sharing conversation, music, and summer traditions across campus.`,
+      })),
+    ];
+    const images = [
+      { ...image("photo-director", "landscape", "UPLOAD"), caption: "Director Corner.jpg" },
+      { ...image("photo-legacy", "landscape", "UPLOAD"), caption: "Legacy News.jpg" },
+      { ...image("photo-a", "landscape", "UPLOAD"), caption: "Farmers Market.jpg" },
+      { ...image("photo-b", "landscape", "UPLOAD"), caption: "Veterans Moment.jpg" },
+      { ...image("photo-c", "landscape", "UPLOAD"), caption: "Community Friends.jpg" },
+    ];
+
+    const result = buildAdaptiveLayout({
+      templateId: "v3-upload-source",
+      pageCount: 2,
+      gridSpec: { ...gridSpec, columns: 24, rowsPerPage: 16 },
+      recurringSections: [],
+      articles,
+      images,
+    });
+
+    const mosaic = result.candidates.find((candidate) => candidate.id === "source-community-story-mosaic");
+    assert.ok(mosaic, "expected no-schedule community story mosaic candidate");
+    assert.equal(result.chosen.id, "source-community-story-mosaic");
+    assert.equal(mosaic.layout.blocks.filter((block) => block.imageId).length, 5);
+
+    for (const sourceArticle of articles) {
+      assert.ok(
+        mosaic.layout.blocks.some((block) => block.articleId === sourceArticle.id || block.slotId === `source-${sourceArticle.id}`),
+        `${sourceArticle.id} should be retained`,
+      );
+    }
+
+    const legacyBlock = mosaic.layout.blocks.find((block) => block.articleId === "legacy");
+    const legacyPhoto = mosaic.layout.blocks.find((block) => block.imageId === "photo-legacy");
+    assert.equal(legacyPhoto?.page, legacyBlock?.page);
+    assert.ok((legacyPhoto?.position.col ?? 0) > (legacyBlock?.position.col ?? 0), "legacy photo stays beside legacy story");
+
+    const pageOneBottomBlocks = mosaic.layout.blocks.filter((block) =>
+      block.page === 1 &&
+      block.position.row + block.position.rowSpan - 1 >= 16
+    );
+    assert.ok(pageOneBottomBlocks.length >= 2, "first inner page lower band should be occupied");
+
+    const pageTwoArticleWidths = new Set(
+      mosaic.layout.blocks
+        .filter((block) => block.page === 2 && (block.articleId || block.kind === "article" || block.kind === "recurring"))
+        .map((block) => block.position.colSpan),
+    );
+    assert.ok(pageTwoArticleWidths.size >= 4, "second inner page should avoid repeated same-width micro-card stacks");
+    assert.equal(mosaic.warnings.some((warning) => warning.startsWith("porter-critical:source-unit-missing")), false);
   });
 
   it("vetoes photo-only inner pages as a Porter critical failure", () => {
