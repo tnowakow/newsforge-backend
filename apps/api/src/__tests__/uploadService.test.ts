@@ -204,6 +204,46 @@ test("Porter parser preserves Example-6 style principles without name-specific r
   assert.deepEqual(runArticles.find((article) => article.title === "Outings")?.imageRefs, ["Outings 1.jpg", "Outings 2.jpg"]);
 });
 
+test("Porter parser preserves official month-local entertainment rails", () => {
+  const parsed = service.parsePorterSubmissionText(`
+    Required Articles
+
+    REQUIRED - Executive Directors Corner
+    A director note with useful content.
+
+    REQUIRED - Upcoming Campus Events
+    July Entertainment:
+    2nd-Country Gentlemen
+    3rd-Don Smithey
+    10th-Bill Jennings
+    16th-Men In Black
+    17th-Wesley Hill
+    24th-Jeff Davis
+    31st-Mark Nightingale
+
+    REQUIRED - PHOTO CAPTIONS
+    Caption copy belongs with separately uploaded photos.
+    PHOTOS: 4,5,6
+
+    REQUIRED - INTERESTING AND NEWSWORTHY
+    4. (Optional)
+
+    Optional Article Suggestions
+  `);
+
+  const entertainment = parsed.lists.find((list) => list.label === "July Entertainment");
+  assert.deepEqual(entertainment?.rows, [
+    { value: "2nd", label: "Country Gentlemen" },
+    { value: "3rd", label: "Don Smithey" },
+    { value: "10th", label: "Bill Jennings" },
+    { value: "16th", label: "Men In Black" },
+    { value: "17th", label: "Wesley Hill" },
+    { value: "24th", label: "Jeff Davis" },
+    { value: "31st", label: "Mark Nightingale" },
+  ]);
+  assert.equal(service.porterParseToArticles(parsed).some((article) => article.title === "July Entertainment"), true);
+});
+
 test("missing Porter markers enters explicit fallback state", () => {
   const parsed = service.parsePorterSubmissionText("A loose document with no structural markers.");
   assert.equal(parsed.fallbackRequired, true);

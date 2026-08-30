@@ -213,7 +213,16 @@ function datedRowsFromText(line: string): ParsedListRow[] {
     .filter(Boolean)
     .flatMap((part) => {
       const match = part.match(/^(\d{1,2}\/\d{1,2})\s+(.+)$/);
-      return match ? [{ value: match[1], label: match[2].trim() }] : [];
+      if (match) return [{ value: match[1], label: match[2].trim() }];
+
+      // Trilogy's campus template also uses month-local ordinal dates, for
+      // example "2nd-Country Gentlemen" beneath "July Entertainment".
+      // These are real schedule rows, not prose, and must not disappear just
+      // because the campus did not write them as 7/2.
+      const ordinal = part.match(/^(\d{1,2})(st|nd|rd|th)\s*[-–—:]\s*(.+)$/i);
+      return ordinal
+        ? [{ value: `${ordinal[1]}${ordinal[2].toLowerCase()}`, label: ordinal[3].trim() }]
+        : [];
     });
 }
 
@@ -318,6 +327,17 @@ export function parsePorterSubmissionText(rawText: string): ParsedPorterSubmissi
           lists.push(current);
           const after = line.replace(label[0], "").trim();
           current.rows.push(...datedRowsFromText(after));
+          continue;
+        }
+        // Some official monthly packets label their event rail by month and
+        // type ("July Entertainment:") rather than "Upcoming Events".
+        // Keep the campus-provided label while treating its ordinal rows as a
+        // schedule rail.
+        const entertainment = line.match(/^(.+?\s+Entertainment)\s*:\s*(.*)$/i);
+        if (entertainment) {
+          current = { label: entertainment[1].trim(), panelRole: "upcomingEvents", rows: [] };
+          lists.push(current);
+          current.rows.push(...datedRowsFromText(entertainment[2]));
           continue;
         }
         if (current) current.rows.push(...datedRowsFromText(line));
