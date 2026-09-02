@@ -63,6 +63,19 @@ function excerpt(article: Article | undefined, fallback: string, maxWords = 44):
   return words.slice(0, maxWords).join(" ") + (words.length > maxWords ? "…" : "");
 }
 
+function wrapperNavigation(article: Article | undefined, fallback: string): string {
+  if (!article?.title.trim()) return fallback;
+  return "Read the full story inside this issue.";
+}
+
+function birthdayArticle(articles: Article[]): Article | undefined {
+  return articles.find((article) =>
+    article.articleType === "birthday" ||
+    article.sourceRole === "birthday-roster" ||
+    /birthday/i.test(`${article.title}\n${article.body}`),
+  );
+}
+
 function dedupeBirthdayBlocks(blocks: LayoutBlock[], articles: Article[]): LayoutBlock[] {
   const birthdayIds = new Set(
     articles
@@ -218,9 +231,15 @@ export function wrapV3InnerSpreadForDemo({
     return layout;
   }
 
-  const innerBlocks = dedupeBirthdayBlocks(layout.templateId === "v3-spread-classic"
+  const normalizedInnerBlocks = dedupeBirthdayBlocks(layout.templateId === "v3-spread-classic"
     ? compactGatewayInnerBlocks(layout.blocks)
     : layout.blocks, articles);
+  const suppliedBirthday = birthdayArticle(articles);
+  // A real roster belongs on the cover exactly once. Keep the client-fill
+  // panel for packets with no roster, but do not render the real roster twice.
+  const innerBlocks = suppliedBirthday
+    ? normalizedInnerBlocks.filter((block) => block.articleId !== suppliedBirthday.id)
+    : normalizedInnerBlocks;
 
   const shiftedInnerBlocks = innerBlocks.map((block) => ({
     ...block,
@@ -232,9 +251,12 @@ export function wrapV3InnerSpreadForDemo({
   const feature = sourceArticles.find((article) => article.id !== director?.id) ?? director;
   const closing = sourceArticles.find((article) => article.id !== director?.id && article.id !== feature?.id) ?? feature;
   const placedImageIds = new Set(innerBlocks.flatMap((block) => block.imageId ? [block.imageId] : []));
-  const wrapperImages = (images ?? []).filter((image) => !placedImageIds.has(image.id));
-  const coverImage = wrapperImages[0];
-  const backImage = wrapperImages[1];
+  const suppliedImages = (images ?? []).filter((image) => !image.isPlaceholder);
+  const wrapperImages = suppliedImages.filter((image) => !placedImageIds.has(image.id));
+  // A cover/back page must never degrade to an empty color field simply
+  // because the inner spread already placed every supplied image.
+  const coverImage = wrapperImages[0] ?? suppliedImages[0];
+  const backImage = wrapperImages[1] ?? suppliedImages.find((image) => image.id !== coverImage?.id);
 
   const coverBlocks: LayoutBlock[] = [
     textBlock(
@@ -258,7 +280,7 @@ export function wrapV3InnerSpreadForDemo({
       "demo-cover-birthday",
       1,
       "Birthdays",
-      "Resident and team celebrations appear here when supplied with the monthly packet.",
+      suppliedBirthday?.body.trim() || "Resident and team celebrations appear here when supplied with the monthly packet.",
       { col: 1, row: 5, colSpan: 5, rowSpan: 4 },
       {
         bg: "sun",
@@ -267,7 +289,7 @@ export function wrapV3InnerSpreadForDemo({
         cornerRadius: 0,
         compact: true,
       },
-      "filler",
+      suppliedBirthday ? "article" : "filler",
     ),
     textBlock(
       "demo-cover-inside",
@@ -288,7 +310,7 @@ export function wrapV3InnerSpreadForDemo({
       "demo-cover-director",
       1,
       director?.title ?? "From Our Community",
-      excerpt(director, `${clientName} celebrates the people, moments, and connections that shape our month.`),
+      wrapperNavigation(director, `${clientName} celebrates the people, moments, and connections that shape our month.`),
       { col: 6, row: 5, colSpan: 10, rowSpan: 7 },
       {
         bg: "cream",
@@ -302,7 +324,7 @@ export function wrapV3InnerSpreadForDemo({
       "demo-cover-events",
       1,
       feature?.title ?? "Community Highlights",
-      excerpt(feature, "Discover this month's resident stories, campus moments, and upcoming opportunities to connect.", 26),
+      wrapperNavigation(feature, "Discover this month's resident stories, campus moments, and upcoming opportunities to connect."),
       { col: 6, row: 12, colSpan: 10, rowSpan: 5 },
       {
         bg: "sky",
@@ -330,6 +352,12 @@ export function wrapV3InnerSpreadForDemo({
     ),
   ];
 
+  const coverBirthday = coverBlocks.find((block) => block.blockId === "demo-cover-birthday");
+  if (coverBirthday && suppliedBirthday) {
+    coverBirthday.articleId = suppliedBirthday.id;
+    coverBirthday.sourceRole = suppliedBirthday.sourceRole ?? "birthday-roster";
+  }
+
   if (coverImage?.id) {
     const coverPhoto = coverBlocks.find((block) => block.blockId === "demo-cover-community");
     if (coverPhoto) {
@@ -347,7 +375,7 @@ export function wrapV3InnerSpreadForDemo({
       "demo-back-looking-ahead",
       4,
       closing?.title ?? "More From Our Community",
-      excerpt(closing, "More resident stories, events, and campus highlights are shared throughout this issue."),
+      wrapperNavigation(closing, "More resident stories, events, and campus highlights are shared throughout this issue."),
       { col: 1, row: 1, colSpan: 10, rowSpan: 7 },
       {
         bg: "navy",

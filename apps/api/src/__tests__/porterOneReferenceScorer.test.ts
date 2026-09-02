@@ -112,7 +112,7 @@ describe("porterOneReferenceScorer", () => {
     assert.equal(score.diagnostics.narrowRailCount, 0);
   });
 
-  it("does not let sparse static wrapper pages sink a strong inner spread", () => {
+  it("fails a strong inner spread when static wrapper pages are visibly sparse", () => {
     const strongInnerMeasurement = {
       usefulOccupancy: 0.58,
       geometricCoverage: 0.96,
@@ -137,7 +137,7 @@ describe("porterOneReferenceScorer", () => {
       block("back-c", 4, 17, 1, 8, 8, { inlineText: "Thank you" }),
     ]), 0.48, strongInnerMeasurement);
 
-    assert.ok(score.fullOutputScore >= 0.6, `expected wrapper-aware score to clear ship floor, got ${score.fullOutputScore}`);
+    assert.ok(score.fullOutputScore < 0.6, `expected sparse wrappers to miss ship floor, got ${score.fullOutputScore}`);
     assert.equal(score.coverRenderFit, 1);
   });
 

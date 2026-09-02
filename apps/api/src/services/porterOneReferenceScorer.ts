@@ -276,7 +276,7 @@ export function scoreFullNewsletterOutput(
       Boolean(block.listItems?.length && /birthday/i.test(text))
     );
   });
-  const coverDuplicateBirthdayBlocks = birthdayBlocks.filter((block) => coverPages.has(block.page)).length;
+  const coverDuplicateBirthdayBlocks = Math.max(0, birthdayBlocks.length - 1);
   const pageMetrics = measurement?.pageMetrics ?? [];
   const coverMetrics = pageMetrics.filter((metric) => coverPages.has(metric.page));
   const coverRenderFit = coverMetrics.length
@@ -301,6 +301,9 @@ export function scoreFullNewsletterOutput(
   const innerUtilityMinimum = innerMetrics.length
     ? Math.min(...innerMetrics.map((metric) => metric.usefulOccupancy))
     : measurement?.usefulOccupancy ?? 1;
+  const wrapperUtilityMinimum = coverMetrics.length
+    ? Math.min(...coverMetrics.map((metric) => metric.usefulOccupancy))
+    : 1;
   const densityScore = Math.max(
     0,
     Math.min(innerUtilityAverage, innerUtilityMinimum * 1.2),
@@ -310,6 +313,9 @@ export function scoreFullNewsletterOutput(
   const wrapperAwareUnderfillPenalty = innerUtilityMinimum < 0.72
     ? Math.min(0.24, (measurement?.underfilledBlocks ?? 0) * 0.025)
     : 0;
+  // Cover/back pages are editorial pages, not score-exempt chrome. A large
+  // empty wrapper panel must block an otherwise strong inner spread.
+  const wrapperUtilityPenalty = Math.max(0, 0.68 - wrapperUtilityMinimum) * 0.6;
   const renderPenalty = Math.max(0, 1 - innerRenderFit) * 0.18;
   const fullOutputScore = Math.max(0, Math.min(1,
     innerSpreadAffinity * 0.35 +
@@ -319,6 +325,7 @@ export function scoreFullNewsletterOutput(
       geometricCoverage * 0.15 -
       sparsePagePenalty -
       wrapperAwareUnderfillPenalty -
+      wrapperUtilityPenalty -
       renderPenalty,
   ));
   return {

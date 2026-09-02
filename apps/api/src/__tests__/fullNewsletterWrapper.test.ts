@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import type { Article, AssembledLayout } from "@newsforge/shared/schemas";
+import type { Article, AssembledLayout, NewsImage } from "@newsforge/shared/schemas";
 import { wrapV3InnerSpreadForDemo } from "../services/fullNewsletterWrapper.js";
 
 const articles: Article[] = [
@@ -95,7 +95,7 @@ describe("wrapV3InnerSpreadForDemo", () => {
     assert.deepEqual(twice.blocks.map((block) => block.page), once.blocks.map((block) => block.page));
   });
 
-  it("keeps wrappers source-aware without leaking filenames, birthday rosters, or client-fill instructions", () => {
+  it("uses a supplied birthday roster and real photos without duplicating story bodies", () => {
     const birthdayArticles: Article[] = [
       {
         id: "birthday",
@@ -138,10 +138,15 @@ describe("wrapV3InnerSpreadForDemo", () => {
         needsFiller: false,
       },
     ];
+    const images: NewsImage[] = [
+      { id: "i1", url: "https://example.com/one.jpg", caption: "Residents enjoying a summer event", aspect: "landscape", isPlaceholder: false, source: "UPLOAD" },
+      { id: "i2", url: "https://example.com/two.jpg", caption: "Community moments", aspect: "landscape", isPlaceholder: false, source: "UPLOAD" },
+    ];
 
     const wrapped = wrapV3InnerSpreadForDemo({
       layout,
       articles: birthdayArticles,
+      images,
       clientName: "Trilogy Health Services",
       monthLabel: "June 2026",
     });
@@ -151,18 +156,30 @@ describe("wrapV3InnerSpreadForDemo", () => {
       .flatMap((block) => [block.heading, block.inlineText, block.caption])
       .filter(Boolean)
       .join("\n");
-    assert.equal(/Mary Ann|Shirley|7\/3|7\/10/.test(wrapperText), false);
+    assert.equal(/Mary Ann|Shirley|7\/3|7\/10/.test(wrapperText), true);
     assert.equal(/July Newsletter Content\.docx|filename must not appear|Client-fill area/.test(wrapperText), false);
 
-    assert.equal(wrapperBlocks.some((block) => block.articleId), false);
-    assert.equal(wrapperBlocks.some((block) => block.imageId), false);
+    assert.equal(wrapperBlocks.some((block) => block.articleId === "birthday"), true);
+    assert.equal(wrapperBlocks.some((block) => block.imageId === "i1"), true);
+    assert.equal(wrapperBlocks.some((block) => block.imageId === "i2"), true);
 
     const coverBirthday = wrapped.blocks.find((block) => block.blockId === "demo-cover-birthday");
-    assert.equal(coverBirthday?.kind, "filler");
+    assert.equal(coverBirthday?.kind, "article");
     assert.equal(coverBirthday?.heading, "Birthdays");
-    assert.match(coverBirthday?.inlineText ?? "", /when supplied/);
+    assert.equal(/when supplied/.test(coverBirthday?.inlineText ?? ""), false);
     assert.equal(coverBirthday?.style?.panelRole, "birthday");
-    assert.equal(/Mary Ann|Shirley|7\/3|7\/10/.test(`${coverBirthday?.heading ?? ""}\n${coverBirthday?.inlineText ?? ""}`), false);
+    assert.equal(/Mary Ann|Shirley|7\/3|7\/10/.test(`${coverBirthday?.heading ?? ""}\n${coverBirthday?.inlineText ?? ""}`), true);
     assert.equal(wrapped.blocks.filter((block) => block.articleId === "birthday").length, 1);
+
+    const coverDirector = wrapped.blocks.find((block) => block.blockId === "demo-cover-director");
+    assert.equal(/A warm note for residents/.test(coverDirector?.inlineText ?? ""), false);
+    assert.match(coverDirector?.inlineText ?? "", /Read the full story/);
+  });
+
+  it("keeps the client-fill birthday placeholder when no roster was supplied", () => {
+    const wrapped = wrapV3InnerSpreadForDemo({ layout: innerSpread(), articles, clientName: "Trilogy Health Services", monthLabel: "August 2026" });
+    const birthday = wrapped.blocks.find((block) => block.blockId === "demo-cover-birthday");
+    assert.equal(birthday?.kind, "filler");
+    assert.match(birthday?.inlineText ?? "", /when supplied/);
   });
 });
