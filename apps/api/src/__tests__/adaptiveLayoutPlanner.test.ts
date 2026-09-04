@@ -1977,6 +1977,44 @@ function acceptedCandidate(
   return chosen;
 }
 
+describe("photo-festival inner-spread stories", () => {
+  it("places every narrative story on the inner spread instead of leaving them for the wrapper", () => {
+    const wideGrid: GridSpec = { ...gridSpec, columns: 24, rowsPerPage: 16, slots: [] };
+    const result = buildAdaptiveLayout({
+      templateId: "v3-photo-festival",
+      pageCount: 2,
+      gridSpec: wideGrid,
+      recurringSections: [],
+      articles: [
+        article("director", "Executive Director Corner", 90, "executive-note", "UPLOAD"),
+        { ...article("legacy", "Legacy News", 40, "resident-story", "UPLOAD"), imageRefs: ["Legacy.jpg"] },
+        { ...article("trips", "Summer Trips", 35, "event-recap", "UPLOAD"), imageRefs: ["Trips.jpg"] },
+        article("happy", "Happy Hours", 22, "event-recap", "UPLOAD"),
+      ],
+      images: [
+        { ...image("legacy-img", "landscape", "UPLOAD"), caption: "Legacy.jpg" },
+        { ...image("trips-img", "landscape", "UPLOAD"), caption: "Trips.jpg" },
+        { ...image("campus-img", "landscape", "UPLOAD"), caption: "Campus.jpg" },
+      ],
+    });
+    const source = result.candidates.find((candidate) => candidate.id.startsWith("source-"));
+    assert.ok(source, "expected a source topology candidate for photo-festival");
+    const placed = new Set(
+      source.layout.blocks.flatMap((block) => {
+        if (block.articleId) return [block.articleId];
+        const match = /^source-(.+)$/.exec(block.slotId);
+        return match ? [match[1]] : [];
+      }),
+    );
+    assert.ok(placed.has("director"));
+    assert.ok(placed.has("legacy"));
+    assert.ok(placed.has("trips"));
+    assert.ok(placed.has("happy"));
+    assert.equal(source.layout.blocks.every((block) => block.page === 1 || block.page === 2), true);
+    assert.ok(result.chosen.id.startsWith("source-"));
+  });
+});
+
 describe("adaptiveLayoutPlanner demo variety acceptance", () => {
   const scenarios: DemoVarietyScenario[] = [
     {

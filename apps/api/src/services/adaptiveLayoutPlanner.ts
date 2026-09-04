@@ -658,7 +658,13 @@ export function chooseAdaptiveCandidate(
   const integrityRanked = sourceIntegritySafe.length > 0 ? sourceIntegritySafe : sorted;
   const gateClean = integrityRanked.filter((candidate) => !hasPorterCriticalWarning(candidate));
   const ranked = gateClean.length > 0 ? gateClean : integrityRanked;
-  const best = ranked[0];
+  const photoFestivalSource = ranked
+    .filter((candidate) =>
+      candidate.layout.templateId === "v3-photo-festival" &&
+      (candidate.id === "source-topology" || candidate.id.startsWith("source-")),
+    )
+    .sort((a, b) => b.subscores.contentCoverage - a.subscores.contentCoverage || b.score - a.score)[0];
+  const best = photoFestivalSource ?? ranked[0];
   if (!best || !variationSeed) return best;
   const sourceTopology = ranked.find((candidate) => candidate.id === "source-topology");
   if (
@@ -882,6 +888,13 @@ function hasCommunityCollageSourceShape(input: AdaptiveLayoutInput, articles: Ar
 }
 
 function hasCommunityStoryMosaicSourceShape(input: AdaptiveLayoutInput, articles: Article[], images: NewsImage[]): boolean {
+  if (hasPhotoFestivalStorySpread(input, articles, images)) {
+    const uploadedArticles = articles.filter((article) => article.source === "UPLOAD");
+    const narrativeCount = uploadedArticles.filter((article) =>
+      article.articleType !== "birthday" && !isScheduleArticle(article),
+    ).length;
+    return narrativeCount >= 6;
+  }
   if (input.gridSpec.columns !== 24 || input.gridSpec.rowsPerPage !== 16) return false;
   const uploadedArticles = articles.filter((article) => article.source === "UPLOAD");
   if (uploadedArticles.length < 8 || uploadedArticles.length > 14 || images.length < 5) return false;
@@ -927,7 +940,18 @@ function hasCompactPorterSourceShape(input: AdaptiveLayoutInput, articles: Artic
   return uploadedArticles.length <= 9 && images.length <= 8 && scheduleCount >= 2 && referencedStoryCount >= 3;
 }
 
+function hasPhotoFestivalStorySpread(input: AdaptiveLayoutInput, articles: Article[], images: NewsImage[]): boolean {
+  if (input.templateId !== "v3-photo-festival") return false;
+  if (input.gridSpec.columns !== 24 || input.gridSpec.rowsPerPage !== 16) return false;
+  const uploadedArticles = articles.filter((article) => article.source === "UPLOAD");
+  const narrativeCount = uploadedArticles.filter((article) =>
+    article.articleType !== "birthday" && !isScheduleArticle(article),
+  ).length;
+  return narrativeCount >= 2 && images.length >= 1;
+}
+
 function hasCompactStoryMosaicSourceShape(input: AdaptiveLayoutInput, articles: Article[], images: NewsImage[]): boolean {
+  if (hasPhotoFestivalStorySpread(input, articles, images)) return true;
   if (input.gridSpec.columns !== 24 || input.gridSpec.rowsPerPage !== 16) return false;
   const uploadedArticles = articles.filter((article) => article.source === "UPLOAD");
   if (uploadedArticles.length < 2 || uploadedArticles.length > 5 || images.length < 3) return false;
@@ -1078,7 +1102,9 @@ function sourceTopologyCandidate(
     (denseMapId === "compact-story-mosaic" && hasCompactStoryMosaicSourceShape(input, orderedArticles, images)) ||
     hasDensePorterSourceShape(input, orderedArticles, images) ||
     (denseMapId === "community-story-mosaic" && hasCommunityStoryMosaicSourceShape(input, orderedArticles, images)) ||
-    (denseMapId === "community-collage" && hasCommunityCollageSourceShape(input, orderedArticles, images));
+    (denseMapId === "community-collage" && hasCommunityCollageSourceShape(input, orderedArticles, images)) ||
+    (hasPhotoFestivalStorySpread(input, orderedArticles, images) &&
+      (denseMapId === "compact-story-mosaic" || denseMapId === "community-story-mosaic"));
   if (usesDensePorterPacker) {
     if (denseMapId === "community-collage") {
       const compoundLayout = buildPorterCompoundLayout({
@@ -1465,7 +1491,8 @@ function sourceTopologyCandidates(input: AdaptiveLayoutInput, plan: EditorialPla
   const compactStory = hasCompactStoryMosaicSourceShape(input, input.articles, input.images);
   const communityCollage = hasCommunityCollageSourceShape(input, input.articles, input.images);
   const communityStoryMosaic = hasCommunityStoryMosaicSourceShape(input, input.articles, input.images);
-  if (!dense && !communityCollage && !compactStory && !communityStoryMosaic) return [base];
+  const photoFestivalStories = hasPhotoFestivalStorySpread(input, input.articles, input.images);
+  if (!dense && !communityCollage && !compactStory && !communityStoryMosaic && !photoFestivalStories) return [base];
   return [
     base,
     compactStory ? sourceTopologyCandidate(input, plan, "compact-story-mosaic") : undefined,
