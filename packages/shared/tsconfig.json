@@ -6,6 +6,6 @@
     "composite": true,
     "declaration": true
   },
-  "include": ["index.ts", "schemas/**/*.ts"],
+  "include": ["index.ts", "renderContract.ts", "schemas/**/*.ts"],
   "exclude": ["dist", "node_modules"]
 }

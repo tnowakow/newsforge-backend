@@ -11,6 +11,7 @@
  * them in sync.
  */
 import { prisma } from "../db.js";
+import { LETTER_RENDER_CONTRACT } from "@newsforge/shared";
 import { renderRunHtml } from "./renderHtml.js";
 import {
   ArticlesSchema,
@@ -121,6 +122,7 @@ export async function buildRunHtml(
     images: await inlineRemoteImages(images.data),
     recurringSections: recurring.success ? recurring.data : [],
     variant,
+    renderContract: LETTER_RENDER_CONTRACT,
   });
 
   return { ok: true, html };

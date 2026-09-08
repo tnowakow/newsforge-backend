@@ -21,6 +21,11 @@ import type {
   RecurringSection,
 } from "@newsforge/shared/schemas";
 import {
+  LETTER_RENDER_CONTRACT,
+  type RenderContract,
+  contractCss,
+} from "@newsforge/shared";
+import {
   DARK_TOKENS,
   resolveToken,
   type BrandColors,
@@ -51,6 +56,8 @@ interface RenderInput {
    * "spread" renders a PorterOne-style 17x11 inner spread on one sheet.
    */
   variant?: "web" | "print" | "spread";
+  /** Measured geometry shared by preview and PDF export. */
+  renderContract?: RenderContract;
 }
 
 function esc(s: string): string {
@@ -193,7 +200,7 @@ function renderBlock(input: RenderInput, b: LayoutBlock): string {
   }
 
   const densityClass = copyDensityClass(b, article);
-  const copyFitClass = b.style?.copyFit === "sm" ? " copy-fit-sm" : "";
+  const copyFitClass = !input.renderContract && b.style?.copyFit === "sm" ? " copy-fit-sm" : "";
   return `<div class="block${roleClass(b)}${densityClass}${copyFitClass}" data-block-id="${esc(b.blockId)}" data-slot-id="${esc(b.slotId)}" style="${outerStyle}"><div class="block-inner${bg ? " panel" : ""}${roleClass(b)}${densityClass}${copyFitClass}" style="${panelStyle}">${inner}</div></div>`;
 }
 
@@ -215,6 +222,7 @@ function masthead(input: RenderInput, page: number): string {
 }
 
 export function renderRunHtml(input: RenderInput): string {
+  const contract: RenderContract = input.renderContract ?? LETTER_RENDER_CONTRACT;
   const cols = input.gridSpec.columns;
   const rows = input.gridSpec.rowsPerPage;
   const pages = new Map<number, string[]>();
@@ -265,7 +273,7 @@ export function renderRunHtml(input: RenderInput): string {
     background:#fff; overflow:hidden; page-break-after: always;
   }
   .spread-sheet .page {
-    width: 8.5in; height: 11in; padding: 0.12in 0.13in 0.13in;
+    width: ${contract.page.widthIn}in; height: ${contract.page.heightIn}in; ${contractCss(contract).replace(`width:${contract.page.widthIn}in;height:${contract.page.heightIn}in;`, "")}
     page-break-after: auto; overflow:hidden; display:flex; flex-direction:column;
   }
   .spread-sheet .page + .page { border-left: 1px solid rgba(21,27,43,0.08); }
@@ -315,15 +323,18 @@ export function renderRunHtml(input: RenderInput): string {
 <meta charset="utf-8"/>
 <style>
   :root {
-    --heading-font: ${input.brandKit.headingFont}, Georgia, serif;
-    --body-font: ${input.brandKit.bodyFont}, Georgia, serif;
+    --heading-font: ${esc(contract.fonts.heading)}, Georgia, serif;
+    --body-font: ${esc(contract.fonts.body)}, Georgia, serif;
+    --contract-body-pt: ${contract.type.bodyPt}pt;
+    --contract-caption-pt: ${contract.type.captionPt}pt;
+    --contract-list-pt: ${contract.type.listPt}pt;
+    --contract-line-height: ${contract.type.lineHeight};
   }
   * { margin:0; padding:0; box-sizing:border-box; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
   body { font-family: var(--body-font); color:#20242B; background:#fff; }
   @page { size: letter; margin: 0; }
   .page {
-    width: 8.5in; height: 11in; position: relative;
-    padding: 0.34in 0.34in 0.4in;
+    ${contractCss(contract)} position: relative;
     page-break-after: always; overflow: hidden;
     display: flex; flex-direction: column;
   }
@@ -484,10 +495,18 @@ export function renderRunHtml(input: RenderInput): string {
     .role-infoFooter .body { font-size: 8.1pt; font-weight: 600; line-height:1.12; }
   .pagefoot { margin-top: 0.05in; padding-top: 3pt; border-top: 2px solid; display:flex; justify-content:space-between; font-size: 7.2pt; letter-spacing: 0.1em; text-transform: uppercase; color:#666; }
   ${pageCss}
+  .render-contract .body { font-size: var(--contract-body-pt) !important; line-height: var(--contract-line-height) !important; }
+  .render-contract .list-body { font-size: var(--contract-list-pt) !important; line-height: var(--contract-line-height) !important; }
+  .render-contract .photo figcaption { font-size: var(--contract-caption-pt) !important; line-height: 1.08 !important; }
+  .render-contract .section-heading { font-size: 15pt !important; }
+  .render-contract .script-heading { font-size: 18pt !important; }
+  .render-contract .director-heading { font-size: 23pt !important; }
+  .render-contract .masthead h1 { font-size: 26pt !important; }
+  .render-contract .copy-fit-sm .body,
+  .render-contract .copy-fit-sm .list-body { font-size: inherit !important; line-height: inherit !important; }
 </style>
 </head>
-<body>
-${pageSections}
+<body class="render-contract" data-render-contract="${esc(contract.id)}">${pageSections}
 </body>
 </html>`;
 }

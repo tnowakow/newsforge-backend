@@ -7,6 +7,7 @@ import type {
   NewsImage,
 } from "@newsforge/shared/schemas";
 import { renderRunHtml } from "../services/renderHtml.js";
+import { LETTER_RENDER_CONTRACT } from "@newsforge/shared";
 
 const gridSpec: GridSpec = {
   label: "render-test",
@@ -147,5 +148,18 @@ describe("renderRunHtml personality classes", () => {
 
     assert.match(html, /class="block role-outingList copy-fill-lg"/);
     assert.match(html, /\.copy-fill-lg \.body/);
+  });
+
+  it("disables tiny copy-fit escape route under measured contract", () => {
+    const measured = layout("v3-spread-classic");
+    measured.blocks[0].style = { ...measured.blocks[0].style, copyFit: "sm" };
+    const html = renderRunHtml({
+      clientName: "Trilogy Health Services",
+      monthLabel: "July 2026",
+      brandKit: { primaryColor: "#1B365D", secondaryColor: "#6FAE6B", accentColor: "#E8762C", headingFont: "Georgia", bodyFont: "Georgia", logoUrl: null },
+      gridSpec, layout: measured, articles, images, recurringSections: [], renderContract: LETTER_RENDER_CONTRACT,
+    });
+    assert.doesNotMatch(html, /class="block[^\"]*copy-fit-sm/);
+    assert.match(html, /data-render-contract="letter-inner-v1"/);
   });
 });

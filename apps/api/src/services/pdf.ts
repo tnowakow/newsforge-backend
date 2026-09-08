@@ -38,6 +38,22 @@ export async function generatePdfForRun(
 
   const page = await getPage();
   await page.goto(renderUrl, { waitUntil: "networkidle0", timeout: 30_000 });
+  await page.evaluate(async () => {
+    const doc = (globalThis as unknown as { document: any }).document;
+    await doc.fonts.ready;
+    const required = ["Georgia"];
+    for (const family of required) {
+      if (!doc.fonts.check(`10pt "${family}"`)) {
+        throw new Error(`render contract font unavailable: ${family}`);
+      }
+    }
+    const images: any[] = Array.from(doc.images);
+    await Promise.all(images.map((image) => image.decode().catch(() => undefined)));
+    const bodyFont = doc.defaultView.getComputedStyle(doc.body).fontFamily;
+    if (!bodyFont.trim().startsWith("Georgia")) {
+      throw new Error(`render contract body font mismatch: ${bodyFont}`);
+    }
+  });
 
   if (variant === "print") {
     await page.pdf({
