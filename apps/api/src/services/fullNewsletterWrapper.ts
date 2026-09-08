@@ -11,6 +11,7 @@ interface WrapperInput {
   images?: NewsImage[];
   clientName: string;
   monthLabel: string;
+  layoutMode?: "full-issue" | "campus-inner-spread";
 }
 
 function textBlock(
@@ -226,7 +227,20 @@ export function wrapV3InnerSpreadForDemo({
   images,
   clientName,
   monthLabel,
+  layoutMode = "full-issue",
 }: WrapperInput): AssembledLayout {
+  // Source-only exports are already the complete campus inside spread. Keep
+  // their local geometry immutable and expose the logical newsletter offset;
+  // outer pages are never fabricated by this path.
+  if (layoutMode === "campus-inner-spread") {
+    return {
+      ...layout,
+      layoutMode,
+      logicalPageOffset: 1,
+      pageCount: 2,
+    };
+  }
+
   if (!layout.templateId.startsWith("v3-") || layout.pageCount >= 4) {
     return layout;
   }

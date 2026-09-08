@@ -116,8 +116,15 @@ export const LayoutBlockSchema = z.object({
 });
 export type LayoutBlock = z.infer<typeof LayoutBlockSchema>;
 
+export const LayoutModeSchema = z.enum(["full-issue", "campus-inner-spread"]);
+export type LayoutMode = z.infer<typeof LayoutModeSchema>;
+
 export const AssembledLayoutSchema = z.object({
   templateId: z.string(),
+  /** Explicit source scope; inner layouts use local pages 1–2. */
+  layoutMode: LayoutModeSchema.optional(),
+  /** Offset from layout-local page numbers to newsletter logical pages. */
+  logicalPageOffset: z.number().int().min(0).optional(),
   pageCount: z.number().int().min(1),
   visualPersonality: VisualPersonalitySchema.optional(),
   blocks: z.array(LayoutBlockSchema),

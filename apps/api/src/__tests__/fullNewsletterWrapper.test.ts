@@ -182,4 +182,16 @@ describe("wrapV3InnerSpreadForDemo", () => {
     assert.equal(birthday?.kind, "filler");
     assert.match(birthday?.inlineText ?? "", /when supplied/);
   });
+
+  it("keeps source-only inner geometry and content immutable", () => {
+    const layout = innerSpread();
+    layout.blocks[0].heading = "Exact source heading";
+    const before = structuredClone(layout.blocks);
+    const result = wrapV3InnerSpreadForDemo({ layout, articles, clientName: "Any Campus", monthLabel: "July 2026", layoutMode: "campus-inner-spread" });
+    assert.equal(result.pageCount, 2);
+    assert.equal(result.layoutMode, "campus-inner-spread");
+    assert.equal(result.logicalPageOffset, 1);
+    assert.deepEqual(result.blocks, before);
+    assert.equal(result.blocks.some((block) => block.blockId.startsWith("demo-")), false);
+  });
 });

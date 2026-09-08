@@ -559,6 +559,7 @@ const CreateRunBody = z.object({
   templateId: z.string().min(1).optional(),
   monthLabel: z.string().min(1).optional(),
   fillerMode: FillerModeSchema.optional(),
+  layoutMode: z.enum(["full-issue", "campus-inner-spread"]).optional(),
   password: z.string().optional(),
   articles: ArticlesSchema.optional(),
   images: ImagesSchema.optional(),
@@ -591,11 +592,16 @@ runsRouter.post("/", async (req, res) => {
     return;
   }
   const body = parsed.data;
+  if (body.layoutMode === "campus-inner-spread" && (!body.articles || !body.images)) {
+    res.status(400).json({ error: "inner_spread_requires_source_packet" });
+    return;
+  }
   let articles = await expandCollapsedPorterUploadArticles(body.articles);
   const hasUploadedArticleContent = (articles ?? []).some(
     (article) => article.source === "UPLOAD",
   );
-  const sourceOnlyUploadedRun = hasUploadedArticleContent;
+  const sourceOnlyLayoutMode = body.layoutMode === "campus-inner-spread";
+  const sourceOnlyUploadedRun = sourceOnlyLayoutMode || hasUploadedArticleContent;
   const fillerMode = hasUploadedArticleContent ? "PLACEHOLDER" : body.fillerMode ?? "GENERATE";
 
   if (fillerMode === "GENERATE" && !hasAiUnlockCookie(req)) {
@@ -737,7 +743,7 @@ runsRouter.post("/", async (req, res) => {
   // back. Keep two supplied photos outside the inner template when possible;
   // the wrapper consumes only these otherwise-unused assets, never duplicates
   // an image already placed beside its story.
-  const wrapperImageReserve = template.id.startsWith("v3-") && images.length >= 3 ? 2 : 0;
+  const wrapperImageReserve = !sourceOnlyLayoutMode && template.id.startsWith("v3-") && images.length >= 3 ? 2 : 0;
   // Reserve cover/back anchors only from a true surplus. The previous
   // `innerImageSlotCount - reserve` rule could leave a dense uploaded packet
   // with a single inner photo, even when it supplied five or more. That made
@@ -834,6 +840,7 @@ runsRouter.post("/", async (req, res) => {
     images,
     clientName: client.name,
     monthLabel,
+    layoutMode: sourceOnlyLayoutMode ? "campus-inner-spread" : "full-issue",
   });
 
   let adaptiveCandidatesForReport = designed.adaptiveCandidates;
@@ -1830,12 +1837,16 @@ runsRouter.post("/:id/ai-arrange", aiRateLimit, async (req, res) => {
   );
   const recurring = recurringParsed.success ? recurringParsed.data : [];
 
+  const sourceOnlyLayoutMode =
+    (run.assembledLayout as { layoutMode?: unknown } | null)?.layoutMode === "campus-inner-spread";
   const scoreableChosen: ScoreableTemplate = {
     id: chosenTemplate.id,
     pageCount: chosenTemplate.pageCount,
     gridSpec: chosenTemplate.gridSpec,
   };
-  const fitResult = fitContent(articles, images, scoreableChosen);
+  const fitResult = sourceOnlyLayoutMode
+    ? sourceOnlyFitResult(articles, images, scoreableChosen)
+    : fitContent(articles, images, scoreableChosen);
   const newLayout = assembleLayout({
     templateId: chosenTemplate.id,
     pageCount: chosenTemplate.pageCount,
@@ -1852,6 +1863,7 @@ runsRouter.post("/:id/ai-arrange", aiRateLimit, async (req, res) => {
       images: fitResult.keptImages,
       clientName: run.client.name,
       monthLabel: run.monthLabel,
+      layoutMode: sourceOnlyLayoutMode ? "campus-inner-spread" : "full-issue",
     }),
     version: bumpedVersion,
   };
