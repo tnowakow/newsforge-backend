@@ -7,6 +7,7 @@ import type {
   VisualPersonality,
 } from "@newsforge/shared/schemas";
 import { normalizePanelStyle } from "./designLanguage.js";
+import { validateStoryCompound } from "./storyModuleMeasurement.js";
 import {
   buildPorterSourceUnits,
   classifyPorterSourceRole,
@@ -354,6 +355,20 @@ export function buildPorterCompoundLayout(input: PorterCompoundPlannerInput): As
 
   const laidOut = blocks.map((entry) => entry.block);
   if (laidOut.length === 0) return undefined;
+
+  // A candidate is invalid when a confirmed source photo has no member in the
+  // same story compound. This prevents the fitter from trading source fidelity
+  // for a superficially better mosaic.
+  for (const article of articles.filter((candidate) => {
+    const role = classifyPorterSourceRole(candidate);
+    return role === "narrative-story" || role === "profile-story" || role === "director-note";
+  })) {
+    try {
+      validateStoryCompound(laidOut, article, images);
+    } catch {
+      return undefined;
+    }
+  }
 
   // This planner is only a valid candidate when it retains every substantive
   // uploaded source unit.  A visually attractive mosaic that silently drops a
