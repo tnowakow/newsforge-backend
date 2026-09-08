@@ -34,6 +34,7 @@ interface DomMeasurement {
   clipDetails: Array<{ blockId: string; overflowPx: number }>;
   overflowBlocks: number;
   missingImages: number;
+  missingFonts: string[];
   renderedImages: number;
   placeholderImages: number;
   realRenderedImages: number;
@@ -124,20 +125,20 @@ async function measureCandidate(input: Omit<MeasureInput, "candidates"> & {
   await page.evaluate(() => (globalThis as any).document?.fonts?.ready).catch(() => {
     // Font readiness is best-effort; continue with layout measurement either way.
   });
-  const measured = await page.evaluate((): DomMeasurement => {
+  const measured = await page.evaluate(({ headingFont, bodyFont }): DomMeasurement => {
     const doc = (globalThis as any).document;
     const blocks = Array.from(doc.querySelectorAll(".block")) as any[];
     const clippedBlockSet = new Set<any>();
     const clipDetails: Array<{ blockId: string; overflowPx: number }> = [];
     const clipTargets = Array.from(doc.querySelectorAll(
-      ".body,.list-body",
+      ".body,.list-body,.section-heading,.script-heading,figcaption",
     )) as any[];
     for (const target of clipTargets) {
       const clipsVertically = target.scrollHeight > target.clientHeight + 1;
       const clipsHorizontally = target.scrollWidth > target.clientWidth + 1;
       if (clipsVertically || clipsHorizontally) {
         const owner = target.closest(".block");
-        if (owner && !owner.querySelector(".photo")) {
+        if (owner) {
           clippedBlockSet.add(owner);
           const blockId = owner.getAttribute("data-block-id");
           if (blockId) {
@@ -361,6 +362,9 @@ async function measureCandidate(input: Omit<MeasureInput, "candidates"> & {
         usefulOccupancy: pageUtility,
       });
     }
+    const missingFonts = [headingFont, bodyFont]
+      .filter((font, index, list) => list.indexOf(font) === index)
+      .filter((font) => !doc.fonts.check(`16px "${font}"`));
     return {
       clippedBlocks,
       clippedBlockIds,
@@ -369,6 +373,7 @@ async function measureCandidate(input: Omit<MeasureInput, "candidates"> & {
       clipDetails,
       overflowBlocks,
       missingImages: images.length - renderedImages,
+      missingFonts,
       renderedImages,
       placeholderImages,
       realRenderedImages,
@@ -380,7 +385,9 @@ async function measureCandidate(input: Omit<MeasureInput, "candidates"> & {
       lowUtilityBlocks,
       pageMetrics,
     };
-  });
+  }, { headingFont: input.brandKit.headingFont, bodyFont: input.brandKit.bodyFont });
+  if (measured.missingImages > 0) throw new Error(`layout measurement missing ${measured.missingImages} image(s)`);
+  if (measured.missingFonts.length > 0) throw new Error(`layout measurement missing font(s): ${measured.missingFonts.join(", ")}`);
   return {
     candidateId: input.candidate.id,
     ...measured,
