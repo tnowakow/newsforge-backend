@@ -25,6 +25,7 @@ import {
 } from "@/components/CompliancePanel";
 import { ChangeTemplateModal } from "@/components/ChangeTemplateModal";
 import { AiRearrangeModal } from "@/components/AiRearrangeModal";
+import { SourcePreflight } from "@/components/SourcePreflight";
 
 type Tone = "warm" | "formal" | "playful" | "civic";
 type IncludeKey = "director" | "spotlight" | "events" | "menu" | "opEd";
@@ -326,8 +327,13 @@ export default function Workspace() {
               id: f.id,
               url: f.url ?? "",
               alt: f.originalName,
-              aspect: "landscape",
-              fitMode: autoSizePictures ? "cover" : "fill",
+              originalName: f.originalName,
+              width: f.width,
+              height: f.height,
+              orientation: f.orientation,
+              caption: f.caption,
+              aspect: f.orientation,
+              fitMode: "cover",
               source: "UPLOAD",
             };
             return {
@@ -380,7 +386,7 @@ export default function Workspace() {
     setUploads((cur) =>
       cur.map((item) =>
         item.image
-          ? { ...item, image: { ...item.image, fitMode: enabled ? "cover" : "fill" } }
+          ? { ...item, image: { ...item.image, fitMode: enabled ? "cover" : "contain" } }
           : item,
       ),
     );
@@ -409,6 +415,15 @@ export default function Workspace() {
     ]);
     setPasteText("");
     toast("Added pasted text", { tone: "success" });
+  };
+
+  const resolvePhotoAlias = (articleId: string, reference: string, imageId: string) => {
+    setUploads((current) => current.map((item) => {
+      if (!item.article || item.article.id !== articleId) return item;
+      const refs = item.article.imageRefs ?? [];
+      return { ...item, article: { ...item.article, imageRefs: refs.map((ref) => ref === reference ? imageId : ref) } };
+    }));
+    toast(`Mapped ${reference} for this upload packet.`, { tone: "success" });
   };
 
   const removeUpload = (id: string) => {
@@ -441,23 +456,26 @@ export default function Workspace() {
       ...uploads.map((u) => u.image).filter((i): i is NewsImage => !!i),
     ];
     const hasUploadedArticleContent = uploads.some((u) => u.article?.source === "UPLOAD");
+    const isRealUploadMode = tab === "upload" && uploads.length > 0;
     const fillerModeForRun: FillerMode = hasUploadedArticleContent ? "PLACEHOLDER" : filler;
 
     try {
       const newRun = await api.createRun({
         clientId: client.id,
         templateId:
-          demoTemplateId ??
-          (client.name === "Trilogy Health Services"
+          isRealUploadMode
             ? undefined
-            : client.defaultTemplate?.id ?? undefined),
+            : demoTemplateId ??
+              (client.name === "Trilogy Health Services"
+                ? undefined
+                : client.defaultTemplate?.id ?? undefined),
         monthLabel: month,
         fillerMode: fillerModeForRun,
         ...(password ? { password } : {}),
         articles,
         images,
-        scenario: demoScenario,
-        ...(contentGenerationAudit ? { contentGenerationAudit } : {}),
+        ...(isRealUploadMode ? {} : { scenario: demoScenario }),
+        ...(contentGenerationAudit && !isRealUploadMode ? { contentGenerationAudit } : {}),
       });
       // Honour minimum overlay duration of 2.5s
       const elapsed = Date.now() - start;
@@ -628,7 +646,7 @@ export default function Workspace() {
               }
               onClick={handleAssembleClick}
             >
-              Assemble Newsletter →
+              Assemble {tab === "upload" ? "Inside Spread" : "Newsletter"} →
             </Button>
           </div>
         </div>
@@ -660,7 +678,19 @@ export default function Workspace() {
             <h2 className="font-display font-semibold text-base mb-3">Content</h2>
             <Tabs
               value={tab}
-              onChange={(k) => setTab(k as "mock" | "upload")}
+              onChange={(k) => {
+                const next = k as "mock" | "upload";
+                setTab(next);
+                if (next === "upload") {
+                  // A real packet must never inherit generated articles, images,
+                  // presets, or their audit metadata.
+                  setGeneratedArticles([]);
+                  setGeneratedImages([]);
+                  setContentGenerationAudit(null);
+                  setDemoTemplateId(undefined);
+                  setDemoScenario(undefined);
+                }
+              }}
               tabs={[
                 { key: "mock", label: "Generate Mock", count: generatedArticles.length },
                 { key: "upload", label: "Upload", count: uploads.length },
@@ -693,6 +723,7 @@ export default function Workspace() {
                 onPreset={applyDemoPreset}
               />
             ) : (
+              <>
               <UploadTab
                 uploads={uploads}
                 onFiles={handleFiles}
@@ -704,6 +735,12 @@ export default function Workspace() {
                 autoSizePictures={autoSizePictures}
                 onAutoSizePicturesChange={handleAutoSizePicturesChange}
               />
+              <SourcePreflight
+                articles={uploads.map((item) => item.article).filter((article): article is Article => !!article)}
+                images={uploads.map((item) => item.image).filter((image): image is NewsImage => !!image)}
+                onResolve={resolvePhotoAlias}
+              />
+              </>
             )}
           </div>
         </section>

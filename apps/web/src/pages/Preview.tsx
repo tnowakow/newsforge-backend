@@ -19,7 +19,6 @@ import { normalizeApprovalStatus } from "@/lib/types";
 import { Button } from "@/components/ui/Button";
 import { Tag } from "@/components/ui/Tag";
 import { PageSkeleton, Skeleton } from "@/components/ui/LoadingSkeleton";
-import { NewsletterRender } from "@/components/NewsletterRender";
 import { EditableCanvas } from "@/components/EditableCanvas";
 import { ProcessingOverlay } from "@/components/ProcessingOverlay";
 import { AiPromptModal } from "@/components/AiPromptModal";
@@ -426,6 +425,11 @@ export default function Preview() {
   const approvalStatus = normalizeApprovalStatus(run?.approvalStatus);
   const clientPrimary = run?.client?.primaryColor ?? "#4FB6D9";
   const isPrintMode = pdfVariant === "print";
+  // The read-only preview is the same server HTML used by the PDF renderer.
+  // Keep it in a sandboxed iframe so its document cannot modify the SPA.
+  const authoritativePreviewUrl = run
+    ? `/api/runs/${encodeURIComponent(run.id)}/preview-html?variant=${isPrintMode ? "print" : "web"}`
+    : null;
   const unresolvedCompliance = (run?.complianceFlags ?? []).filter(
     (f) => !api.isComplianceFlagAcknowledged(run?.id ?? "", f.id),
   ).length;
@@ -473,6 +477,12 @@ export default function Preview() {
         />
       )}
 
+      {editMode && (
+        <div role="note" className="border-b border-amber-200 bg-amber-50 px-10 py-2 text-xs text-amber-900">
+          Legacy layout editor: changes are local until saved and are revalidated by the server. The server-rendered preview remains authoritative for exported PDF geometry.
+        </div>
+      )}
+
       {/* Body */}
       <div className="flex-1 min-h-0 flex">
         <ThumbSidebar
@@ -503,21 +513,20 @@ export default function Preview() {
             </>
           )}
           {!renderLayout && <PageSkeleton />}
-          {renderLayout && run?.client && !editMode && (
-            <NewsletterRender
-              layout={renderLayout}
-              articles={run.articles ?? []}
-              images={run.images ?? []}
-              client={run.client}
-              monthLabel={run.monthLabel ?? undefined}
-              editable={false}
-              selectedBlockId={selectedBlockId}
-              onSelectBlock={(id) => setSelectedBlockId(id)}
-              registerPage={(page, el) => {
-                if (el) pageRefs.current.set(page, el);
-                else pageRefs.current.delete(page);
-              }}
-            />
+          {renderLayout && run?.client && !editMode && authoritativePreviewUrl && (
+            <section className="mx-auto w-full max-w-[1100px]" aria-label="Authoritative server-rendered preview">
+              <div className="mb-3 flex items-center justify-between gap-3 text-xs text-ink-muted">
+                <span>Read-only preview — served by the PDF renderer</span>
+                <span>{isPrintMode ? "Print geometry" : "Web geometry"}</span>
+              </div>
+              <iframe
+                key={authoritativePreviewUrl}
+                title="Server-rendered newsletter preview"
+                src={authoritativePreviewUrl}
+                sandbox="allow-same-origin"
+                className="h-[calc(100vh-230px)] min-h-[760px] w-full rounded-lg border border-rule bg-white shadow-card"
+              />
+            </section>
           )}
           {renderLayout && run?.client && editMode && pendingLayout && (
           <EditableCanvas

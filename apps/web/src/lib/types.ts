@@ -97,6 +97,11 @@ export interface Article {
 export interface NewsImage {
   id: string;
   url: string;
+  /** Original upload metadata used by source review and print rendering. */
+  originalName?: string;
+  width?: number;
+  height?: number;
+  orientation?: "portrait" | "landscape" | "square";
   caption?: string;
   alt?: string;
   description?: string;
@@ -582,6 +587,10 @@ export interface UploadResult {
     source?: "MOCK" | "UPLOAD" | "GENERATED";
     bytes?: number;
     originalName?: string;
+    width?: number;
+    height?: number;
+    orientation?: "portrait" | "landscape" | "square";
+    caption?: string;
   }>;
 }
 

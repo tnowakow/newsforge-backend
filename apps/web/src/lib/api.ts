@@ -147,6 +147,10 @@ export const api = {
             meta?: {
               originalFilename?: string;
               size?: number;
+              width?: number;
+              height?: number;
+              orientation?: "portrait" | "landscape" | "square";
+              caption?: string;
               wordCount?: number;
               porterParse?: {
                 parsedArticles?: Array<{
@@ -178,10 +182,14 @@ export const api = {
         if (asset.type === "IMAGE") {
           return {
             id: asset.id,
-            kind: "image",
+            kind: "image" as const,
             url: asset.contentOrUrl,
             bytes: asset.meta?.size,
             originalName,
+            width: asset.meta?.width,
+            height: asset.meta?.height,
+            orientation: asset.meta?.orientation,
+            caption: asset.meta?.caption,
           };
         }
         const parsedArticles = Array.isArray(asset.meta?.porterParse?.parsedArticles)
