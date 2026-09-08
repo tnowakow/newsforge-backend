@@ -403,3 +403,36 @@ export async function measureAdaptiveCandidates(
   }
   return measurements;
 }
+
+/** Measure the delivered layout, even when adaptive/AI metadata is absent. */
+export async function measureFinalLayout(
+  input: Omit<MeasureInput, "candidates"> & { layout: AdaptiveLayoutCandidate["layout"] },
+): Promise<{ status: "passed"; measurement: CandidateMeasurement } | { status: "failed" | "unknown"; error?: string }> {
+  try {
+    const { layout, ...measurementInput } = input;
+    const [measurement] = await measureAdaptiveCandidates({
+      ...measurementInput,
+      candidates: [{
+        id: "final-delivered-layout",
+        label: "Final delivered layout",
+        geometryVariant: "fixed",
+        layout: input.layout,
+        score: 0,
+        subscores: {
+          occupancy: 0,
+          contentCoverage: 0,
+          requiredCoverage: 0,
+          balance: 0,
+          clippingRisk: 0,
+          geometryValidity: 0,
+          photoImpact: 0,
+          grammarAffinity: 0,
+        },
+        warnings: [],
+      }],
+    });
+    return { status: "passed", measurement };
+  } catch (error) {
+    return { status: "failed", error: error instanceof Error ? error.message : String(error) };
+  }
+}

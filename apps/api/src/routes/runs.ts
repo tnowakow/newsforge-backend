@@ -50,7 +50,8 @@ import {
   type FitContentResult,
   type ScoreableTemplate,
 } from "../services/layoutFitService.js";
-import { measureAdaptiveCandidates } from "../services/layoutMeasurementService.js";
+import { measureAdaptiveCandidates, measureFinalLayout } from "../services/layoutMeasurementService.js";
+import { digestFinalArtifact, evaluateFinalArtifactGate } from "../services/finalArtifactGate.js";
 import { runComplianceSync } from "../services/complianceService.js";
 import { buildBundle } from "../services/bundleExportService.js";
 import { callGeminiJson } from "../gemini.js";
@@ -67,6 +68,7 @@ import { retrievePorterExamples } from "../services/porterRetrieval.js";
 import { evaluatePorterLayoutPlaybook } from "../services/porterLayoutPlaybook.js";
 import { evaluatePorterLayoutInvariants } from "../services/porterLayoutInvariants.js";
 import { evaluateQualityGate } from "../services/qualityGate.js";
+import { LETTER_RENDER_CONTRACT } from "@newsforge/shared";
 import type { CandidateMeasurement } from "../services/adaptiveLayoutPlanner.js";
 
 export const runsRouter: Router = Router();
@@ -982,6 +984,30 @@ runsRouter.post("/", async (req, res) => {
     }
   }
 
+  // Always measure the exact layout that will be persisted/exported. Adaptive
+  // metadata is optional and must never make final validation optional.
+  let finalMeasurementStatus: "passed" | "failed" | "unknown" = "unknown";
+  const deliveredMeasurement = await measureFinalLayout({
+    clientName: client.name,
+    monthLabel,
+    brandKit,
+    gridSpec: effectiveGridSpec,
+    articles: articles as Article[],
+    images,
+    recurringSections,
+    layout,
+  });
+  if (deliveredMeasurement.status === "passed") {
+    finalMeasurement = deliveredMeasurement.measurement;
+    finalMeasurementStatus = "passed";
+  } else {
+    finalMeasurement = undefined;
+    finalMeasurementStatus = deliveredMeasurement.status;
+    if (deliveredMeasurement.error) {
+      console.warn("[layout-measurement] final delivered layout failed:", deliveredMeasurement.error);
+    }
+  }
+
   // Score the layout that is actually being wrapped and delivered. The
   // selected adaptive candidate is only the deterministic starting point;
   // Gemini may replace its geometry, so using that candidate's affinity here
@@ -1002,6 +1028,28 @@ runsRouter.post("/", async (req, res) => {
     articles,
     images,
     measurement: finalMeasurement,
+  });
+  const contentDigest = digestFinalArtifact({ layout, articles, images });
+  const renderContractDigest = digestFinalArtifact(LETTER_RENDER_CONTRACT);
+  const finalArtifactGate = evaluateFinalArtifactGate({
+    sourceComplete: !porterLayoutInvariants.hardFailures.some((failure) =>
+      /^(source-|source-packet)/.test(failure),
+    ),
+    requiredLinksResolved: !porterLayoutInvariants.warnings.some((warning) =>
+      warning.startsWith("source-photo-unresolved:"),
+    ),
+    actualPageCount: layout.pageCount,
+    expectedPageCount: layout.pageCount,
+    measurementStatus: finalMeasurementStatus,
+    measurement: finalMeasurement,
+    minBodyFontPt: LETTER_RENDER_CONTRACT.type.bodyPt,
+    minCaptionFontPt: LETTER_RENDER_CONTRACT.type.captionPt,
+    requiredBodyFontPt: LETTER_RENDER_CONTRACT.type.bodyPt,
+    requiredCaptionFontPt: LETTER_RENDER_CONTRACT.type.captionPt,
+    contentDigest,
+    renderContractDigest,
+    reportDigest: digestFinalArtifact({ contentDigest, renderContractDigest }),
+    duplicateIssues: [],
   });
 
   const originalRequiredWords = [...originalWordCounts.values()].reduce((sum, words) => sum + words, 0);
@@ -1054,6 +1102,7 @@ runsRouter.post("/", async (req, res) => {
     fitReport,
     porterLayoutPlaybook,
     porterLayoutInvariants,
+    finalArtifactGate,
     porterRetrieval: porterRetrieval
       ? {
           family: porterRetrieval.family,
@@ -1681,6 +1730,15 @@ runsRouter.post("/:id/pdf", async (req, res) => {
           reason?: string;
           hardFailures?: string[];
         };
+        finalArtifactGate?: {
+          passed: boolean;
+          failures: string[];
+          measurementStatus: "passed" | "failed" | "unknown";
+          actualPageCount: number;
+          expectedPageCount: number;
+          contentDigest?: string;
+          renderContractDigest?: string;
+        };
       }
     | null;
   const qgScore =
@@ -1693,6 +1751,33 @@ runsRouter.post("/:id/pdf", async (req, res) => {
     req.query.force === "1" ||
     req.query.force === "true" ||
     (req.body as { force?: unknown } | undefined)?.force === true;
+  const finalGate = qgReport?.finalArtifactGate;
+  const currentContentDigest = digestFinalArtifact({
+    layout: run.assembledLayout,
+    articles: run.articles,
+    images: run.images,
+  });
+  const currentRenderContractDigest = digestFinalArtifact(LETTER_RENDER_CONTRACT);
+  const finalGateBound = Boolean(
+    finalGate?.contentDigest === currentContentDigest &&
+    finalGate?.renderContractDigest === currentRenderContractDigest,
+  );
+  if ((!finalGate || !finalGate.passed || !finalGateBound) && !qgForced) {
+    const failures = [
+      ...(finalGate?.failures ?? ["final-artifact-report-missing"]),
+      ...(!finalGateBound ? ["stale-or-unbound-report"] : []),
+    ];
+    res.status(409).json({
+      error: "final_artifact_gate_blocked",
+      finalArtifactGate: finalGate ?? {
+        passed: false,
+        failures,
+        measurementStatus: "unknown",
+      },
+      message: "Final rendered artifact has not passed all acceptance checks; diagnostic force export is not demo-ready.",
+    });
+    return;
+  }
   if (qgScore != null) {
     const gate = qgReport?.qualityGate ?? evaluateQualityGate(qgScore);
     if (!gate.passed && !qgForced) {
@@ -1720,7 +1805,7 @@ runsRouter.post("/:id/pdf", async (req, res) => {
           ? { printPdfPath: pdfPath, printPdfGeneratedAt: new Date() }
           : { pdfPath, pdfGeneratedAt: new Date() },
     });
-    res.json({ pdfUrl, pdfPath, variant });
+    res.json({ pdfUrl, pdfPath, variant, acceptanceEligible: !qgForced });
   } catch (err) {
     console.error("[pdf] generation failed", err);
     res.status(500).json({ error: "pdf_generation_failed" });

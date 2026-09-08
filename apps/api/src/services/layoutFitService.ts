@@ -440,6 +440,7 @@ export function buildLayoutFitReport(input: {
   porterRetrieval?: LayoutFitReport["porterRetrieval"];
   porterLayoutPlaybook?: LayoutFitReport["porterLayoutPlaybook"];
   porterLayoutInvariants?: LayoutFitReport["porterLayoutInvariants"];
+  finalArtifactGate?: LayoutFitReport["finalArtifactGate"];
 }): LayoutFitReport {
   const pick =
     input.pickResult ??
@@ -488,6 +489,7 @@ export function buildLayoutFitReport(input: {
     fitReport: input.fitReport,
     porterLayoutPlaybook: input.porterLayoutPlaybook,
     porterLayoutInvariants: input.porterLayoutInvariants,
+    finalArtifactGate: input.finalArtifactGate,
     editorialPlan: input.design?.editorialPlan,
     adaptiveCandidates: input.design?.adaptiveCandidates,
     candidates: pick.candidates,

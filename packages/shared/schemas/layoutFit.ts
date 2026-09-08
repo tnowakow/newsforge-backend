@@ -226,10 +226,22 @@ export const PorterLayoutInvariantReportSchema = z.object({
 });
 export type PorterLayoutInvariantReport = z.infer<typeof PorterLayoutInvariantReportSchema>;
 
+export const FinalArtifactGateReportSchema = z.object({
+  passed: z.boolean(),
+  failures: z.array(z.string()),
+  measurementStatus: z.enum(["passed", "failed", "unknown"]),
+  actualPageCount: z.number().int().nonnegative(),
+  expectedPageCount: z.number().int().nonnegative(),
+  contentDigest: z.string().optional(),
+  renderContractDigest: z.string().optional(),
+});
+export type FinalArtifactGateReport = z.infer<typeof FinalArtifactGateReportSchema>;
+
 export const LayoutFitReportSchema = z.object({
   chosenTemplateId: z.string(),
   score: z.number(),
   qualityGate: QualityGateReportSchema.optional(),
+  finalArtifactGate: FinalArtifactGateReportSchema.optional(),
   /** v3 — whether the layout was Gemini-designed or styled by fallback. */
   designMode: z.enum(["ai", "deterministic"]).optional(),
   designNotes: z.string().optional(),
