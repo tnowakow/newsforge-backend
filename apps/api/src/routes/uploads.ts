@@ -7,7 +7,8 @@ import mammoth from "mammoth";
 import { createId } from "@paralleldrive/cuid2";
 import { prisma } from "../db.js";
 import { env } from "../env.js";
-import { extractImageMeta, parsePorterSubmissionText, porterParseToArticles } from "../services/uploadService.js";
+import { extractImageMeta, parsePorterSubmissionText, porterParseToArticles, assetImageToNewsImage } from "../services/uploadService.js";
+import { buildSourceManifest } from "../services/sourceManifest.js";
 
 export const uploadsRouter: Router = Router();
 const require = createRequire(import.meta.url);
@@ -146,6 +147,14 @@ uploadsRouter.post("/", upload.array("files", 30), async (req, res) => {
         const text = result.value;
         const porterParse = parsePorterSubmissionText(text);
         const parsedArticles = porterParse.fallbackRequired ? [] : porterParseToArticles(porterParse);
+        const sourceManifest = buildSourceManifest({
+          sourceFilename: file.originalname,
+          sourceText: text,
+          parsed: porterParse,
+          images: created
+            .filter((asset) => asset.type === "IMAGE")
+            .map((asset) => assetImageToNewsImage({ id: String(asset.id), contentOrUrl: String(asset.contentOrUrl), meta: asset.meta })),
+        });
         const parsedArticlesMeta = JSON.parse(JSON.stringify(parsedArticles));
         const cleanedText = porterParse.fallbackRequired
           ? text
@@ -176,6 +185,7 @@ uploadsRouter.post("/", upload.array("files", 30), async (req, res) => {
                 warnings: porterParse.warnings,
                 imageAssociations: porterParse.imageAssociations,
                 captions: porterParse.captions,
+                sourceManifest,
                 parsedArticles: parsedArticlesMeta,
               },
               // mammoth Message[] is a class instance array — stringify

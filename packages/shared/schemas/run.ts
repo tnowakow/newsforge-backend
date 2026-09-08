@@ -55,7 +55,12 @@ export const ImageSchema = z.object({
   /** True if this image is a placeholder rather than real content. */
   isPlaceholder: z.boolean().default(false),
   source: z.enum(["MOCK", "UPLOAD", "GENERATED", "STOCK"]).default("MOCK"),
-  /** Source dimensions for non-blocking print-resolution guidance. */
+  /** Original uploaded filename, retained for deterministic source matching. */
+  originalName: z.string().optional(),
+  /** EXIF orientation after metadata inspection, if present. */
+  exifOrientation: z.number().int().min(1).max(8).optional(),
+  /** Whether the image was physically oriented before rendering. */
+  orientationApplied: z.boolean().optional(),
   width: z.number().int().positive().optional(),
   height: z.number().int().positive().optional(),
 });

@@ -34,10 +34,16 @@ export function normalizePorterText(value: string | undefined): string {
 export function porterImageMatchesRef(image: NewsImage, ref: string): boolean {
   const needle = normalizePorterText(ref);
   if (!needle) return false;
-  return [image.caption, image.alt, image.description, image.url].some((value) => {
+  // Match complete normalized filenames/metadata tokens only. Substring
+  // matching makes `Photo 1` incorrectly resolve to `Photo 10`.
+  return [((image as NewsImage & { originalName?: string }).originalName), image.caption, image.alt, image.description, image.url].some((value) => {
     const candidate = normalizePorterText(value);
-    return Boolean(candidate && (candidate.includes(needle) || needle.includes(candidate)));
+    return Boolean(candidate && candidate === needle);
   });
+}
+
+export function normalizePorterFilename(value: string): string {
+  return normalizePorterText(value);
 }
 
 export function porterDatedRowsFromText(text: string): PorterSourceRow[] {
@@ -46,7 +52,7 @@ export function porterDatedRowsFromText(text: string): PorterSourceRow[] {
     .map((line) => line.trim())
     .filter(Boolean)
     .flatMap((line) => {
-      const match = line.match(/^(\d{1,2}\/\d{1,2})\s+(.+)$/);
+      const match = line.match(/^(\d{1,2}\/\d{1,2})[.!]?\s+(.+?)\s*[.!]?$/);
       return match ? [{ value: match[1], label: match[2].trim() }] : [];
     });
 }

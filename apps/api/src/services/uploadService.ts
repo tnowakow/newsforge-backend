@@ -128,7 +128,8 @@ function featureTitleAndBody(rawBody: string): { title: string; body: string } {
     };
   }
 
-  const labeled = rawBody.match(/^\s*([^:–—-]{3,80}?)\s*[:–—-]\s*(.{20,})$/s);
+  const labeled = rawBody.match(/^\s*([^:–—-]{3,80}?)\s*[:–—]\s*(.{20,})$/s)
+    ?? rawBody.match(/^\s*([^:–—-]{3,40}?)\s*-\s*(.{20,})$/s);
   if (labeled) {
     const label = cleanArticleTitle(labeled[1]);
     const rest = labeled[2].trim();
@@ -228,11 +229,17 @@ function datedRowsFromText(line: string): ParsedListRow[] {
 
 function birthdayRowsFromText(lines: string[]): ParsedListRow[] {
   const rows: ParsedListRow[] = [];
-  for (const rawLine of lines) {
-    const line = rawLine.trim();
+  // DOCX extraction can place group labels and several entries in one
+  // paragraph. Turn labels into boundaries before parsing individual facts.
+  const expanded = lines.flatMap((rawLine) => rawLine
+    .replace(/\b(RESIDENTS?|STAFF|TEAM MEMBERS?)\s*:/gi, "\n$1:\n")
+    .split(/[;\n]+/));
+  for (const rawLine of expanded) {
+    const line = rawLine.trim().replace(/[.!?]+$/, "");
     if (!line || isInstructionLine(line)) continue;
-    if (/^(residents?|staff|team members?)$/i.test(line)) {
-      rows.push({ label: line.toUpperCase(), value: "" });
+    const group = line.match(/^(residents?|staff|team members?)\s*:?[ ]*$/i);
+    if (group) {
+      rows.push({ label: group[1].toUpperCase(), value: "" });
       continue;
     }
     const match = line.match(/^(.+?)\s+(\d{1,2}\/\d{1,2})$/);
@@ -296,10 +303,13 @@ export function parsePorterSubmissionText(rawText: string): ParsedPorterSubmissi
     if (section.id === "deptheads") continue;
     if (section.id === "captions") {
       for (const line of section.paragraphs) {
-        if (isInstructionLine(line)) continue;
-        const match = line.match(/^(.+?\.(?:jpe?g|png|gif|webp|heic|heif|tiff?)):\s*(.+)$/i);
+        // Caption instructions and the real entries are sometimes one DOCX
+        // paragraph. Discard only the instruction prose, never the entries.
+        const captionText = line.replace(/^.*?(?=(?:[\w’' -]+\.(?:jpe?g|png|gif|webp|heic|heif|tiff?)\s*[-–—:]))/i, "");
+        if (!captionText || !/\.(?:jpe?g|png|gif|webp|heic|heif|tiff?)/i.test(captionText)) continue;
+        const match = captionText.match(/^(.+?\.(?:jpe?g|png|gif|webp|heic|heif|tiff?)):\s*(.+)$/i);
         if (match) captions[match[1].trim()] = match[2].trim();
-        parseCaptionEntries(line, captions, imageAssociations);
+        parseCaptionEntries(captionText, captions, imageAssociations);
       }
       continue;
     }
@@ -352,12 +362,22 @@ export function parsePorterSubmissionText(rawText: string): ParsedPorterSubmissi
       const photo = parsePhotoRefs(line);
       refs.push(...photo.refs);
       if (photo.body) content.push({ body: photo.body, refs: photo.refs });
+      else if (photo.refs.length && content.length) {
+        // A Photos paragraph immediately following a story belongs to that
+        // story, not to the section as a whole.
+        content[content.length - 1]!.refs.push(...photo.refs);
+      }
     }
     if (refs.length) addPhotoAssociations(refs, section.id, imageAssociations);
     if (section.id === "features") {
       for (const item of content) {
         const { title, body } = featureTitleAndBody(item.body);
         if (body.length < 20) continue;
+        if (/happy birthdays?|birthdays?/i.test(title) || /happy birthdays?|birthdays?/i.test(body.slice(0, 100))) {
+          const rows = birthdayRowsFromText([body]);
+          if (rows.length) lists.push({ label: "Happy Birthday!", panelRole: "birthday", rows });
+          continue;
+        }
         if (item.refs.length) addPhotoAssociations(item.refs, title, imageAssociations);
         articles.push({
           title,
@@ -374,19 +394,34 @@ export function parsePorterSubmissionText(rawText: string): ParsedPorterSubmissi
       if (content.length === 0) continue;
       const title = section.id === "director" ? "Executive Director Corner" : section.id === "legacy" ? "Legacy News" : section.header;
       const body = content.map((item) => item.body).join("\n\n");
+      const suppliedByline = section.id === "director"
+        ? body.match(/(?:Yours in Service|Sincerely|Regards)[, ]+\s*([^\n]+?)(?:\s+Executive Director)?(?:\n|$)/i)?.[1]?.trim()
+        : undefined;
       articles.push({
         title,
         body,
         wordCount: wordCount(body),
         articleType: section.id === "director" ? "executive-note" : section.id === "legacy" ? "resident-story" : "other",
         sectionId: section.id,
-        byline: section.id === "director" ? "From the Executive Director" : undefined,
+        byline: suppliedByline,
         imageRefs: refs,
       });
     }
   }
 
-  const birthdayPresent = sections.some((section) => /birthday/i.test(`${section.id} ${section.header}`));
+  // Caption associations are source-of-truth links too; merge them into the
+  // article refs without inventing links for unrelated stories.
+  for (const [filename, labels] of Object.entries(imageAssociations)) {
+    for (const label of labels) {
+      const article = articles.find((candidate) => {
+        if (candidate.sectionId === "director" && /ed corner|executive director/i.test(label)) return true;
+        return candidate.title.toLowerCase() === label.toLowerCase();
+      });
+      if (article) article.imageRefs = [...new Set([...(article.imageRefs ?? []), filename])];
+    }
+  }
+
+  const birthdayPresent = sections.some((section) => /birthday/i.test(`${section.id} ${section.header}`)) || lists.some((list) => list.panelRole === "birthday");
   if (!birthdayPresent) warnings.push("birthday-source-missing: use recurring roster or evergreen teaser");
   if (sections.some((section) => section.id === "custom")) warnings.push("custom-section-preserved");
   return { articles, lists, captions, imageAssociations, warnings, markers, fallbackRequired: false, birthdayPresent };
@@ -726,6 +761,9 @@ export function assetImageToNewsImage(row: {
   return {
     id: row.id,
     url: row.contentOrUrl,
+    originalName: typeof meta.originalFilename === "string" ? meta.originalFilename : undefined,
+    exifOrientation: typeof meta.exifOrientation === "number" ? meta.exifOrientation : undefined,
+    orientationApplied: typeof meta.orientationApplied === "boolean" ? meta.orientationApplied : undefined,
     caption: typeof meta.caption === "string" ? meta.caption : undefined,
     alt: typeof meta.alt === "string" ? meta.alt : undefined,
     aspect:
@@ -738,5 +776,5 @@ export function assetImageToNewsImage(row: {
     source: "UPLOAD",
     width: typeof meta.width === "number" ? meta.width : undefined,
     height: typeof meta.height === "number" ? meta.height : undefined,
-  };
+  } as NewsImage;
 }
