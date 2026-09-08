@@ -1,0 +1,92 @@
+{
+  "name": "NewsForge Demo Baseline Fixtures",
+  "version": "1.0.0",
+  "packets": [
+    {
+      "name": "Ashford Place - July 2026",
+      "docx": "/home/tom/.hermes/plans/newsforge-demo-2026-09-10/inputs/ashford/Ashford_Place_July_Newsletter_Content.docx",
+      "docx_sha256": "4372ccc0b4d16432c29c5c2f49b370ef8e0f95e1981de1e5e10307ce7a6fffe7",
+      "reference_pdf": "/home/tom/.openclaw/workspace/dev-team/newsforge/newsforge-backend/apps/api/src/reference/porter-examples/example-06.pdf",
+      "images": [        {
+          "path": "/home/tom/.hermes/plans/newsforge-demo-2026-09-10/inputs/ashford/Outings 2.jpg",
+          "sha256": "57f6e6c3296ce137512bb1320a9a7d376b3c7b2d4ecbd39085fdf9a354c0be11",
+          "id": "Outings 2.jpg"
+        },
+        {
+          "path": "/home/tom/.hermes/plans/newsforge-demo-2026-09-10/inputs/ashford/Mothers Tea 1.jpg",
+          "sha256": "d801bf049c927aa7121677b8dbadaeabc73e78081a6bbe4e2a38139113b0cd1d",
+          "id": "Mothers Tea 1.jpg"
+        },
+        {
+          "path": "/home/tom/.hermes/plans/newsforge-demo-2026-09-10/inputs/ashford/Mens Breakfast 1.jpg",
+          "sha256": "d7f88874b37f47984c0bf6efd61d42b28b8082619fb8fd67af219b0ed3c6e5f8",
+          "id": "Mens Breakfast 1.jpg"
+        },
+        {
+          "path": "/home/tom/.hermes/plans/newsforge-demo-2026-09-10/inputs/ashford/Mothers Tea 3.jpg",
+          "sha256": "4d967ab14add5cce151cc505874c4826d674a0960068d1a0a212a5320498cb23",
+          "id": "Mothers Tea 3.jpg"
+        },
+        {
+          "path": "/home/tom/.hermes/plans/newsforge-demo-2026-09-10/inputs/ashford/Wings of Joy 2.jpg",
+          "sha256": "477483edef5ea86f3cdc1fe8e39ef62fb8077b3b69b84eed4ee974826022633c",
+          "id": "Wings of Joy 2.jpg"
+        },
+        {
+          "path": "/home/tom/.hermes/plans/newsforge-demo-2026-09-10/inputs/ashford/Zach Simpson.jpg",
+          "sha256": "43587643d39885506a148fc96fac48450065cb2954d138b11cb6f150a2250df9",
+          "id": "Zach Simpson.jpg"
+        },
+        {
+          "path": "/home/tom/.hermes/plans/newsforge-demo-2026-09-10/inputs/ashford/Mothers Tea 2.jpg",
+          "sha256": "671178b1ad33e76752f0444f5dbcd469266e3d242ae53407e32a12487d74d609",
+          "id": "Mothers Tea 2.jpg"
+        },
+        {
+          "path": "/home/tom/.hermes/plans/newsforge-demo-2026-09-10/inputs/ashford/Mothers Tea 4.jpg",
+          "sha256": "0d3f5bcb9a931b0fa0895b42035d2cfb31125894e51da6aabeed4fd1d7929e9f",
+          "id": "Mothers Tea 4.jpg"
+        },
+        {
+          "path": "/home/tom/.hermes/plans/newsforge-demo-2026-09-10/inputs/ashford/Outings 1.jpg",
+          "sha256": "e10cc8011dd54a2287cc8a02e3fff5b1b68fc6dd013fdcb84ae9832077bb2b0e",
+          "id": "Outings 1.jpg"
+        },
+        {
+          "path": "/home/tom/.hermes/plans/newsforge-demo-2026-09-10/inputs/ashford/Wings of Joy 1.jpg",
+          "sha256": "6fdf5969b51ce183355e460fd8063c36271a63921c0ca41c53f869542cf6552a",
+          "id": "Wings of Joy 1.jpg"
+        },
+        {
+          "path": "/home/tom/.hermes/plans/newsforge-demo-2026-09-10/inputs/ashford/Mens Breakfast 2.jpg",
+          "sha256": "1516f5590549ee0c1243100ea8b014e60352a366e8a072e828baf8a520ee2500",
+          "id": "Mens Breakfast 2.jpg"
+        }
+      ],
+      "reference_sha256": "d292994b7eab6c79d28998a651b5340f67ff61cdf89aaf1b7e788081e73cc39e",
+      "pdfPageMapping": {
+        "pdfPage1": "logical newsletter page 2",
+        "pdfPage2": "logical newsletter page 3"
+      },
+      "sourceNotes": {
+        "innerScope": "Campus supplies inside portion; central office supplies front/back and Word Search.",
+        "frontBackOnly": ["department heads", "front/back articles", "Word Search"],
+        "optionalBlankFields": ["photo captions not present in source", "Mothers Tea 3.jpg", "Mothers Tea 4.jpg"],
+        "birthdayPolicy": "Roster is source content; do not move or delete it during baseline composition."
+      },
+      "sourceLedger": [
+        {"id":"paragraph-01","kind":"source-instruction","originalText":"Campus is responsible for the inside portion; Campus Home Office supplies front/back articles and Word Search.","placement":"outer","required":true},
+        {"id":"article-director","kind":"article","originalText":"Executive Director Corner / ED Corner – July 2026","placement":"inner","required":true,"photoRefs":[]},
+        {"id":"article-wings-of-joy","kind":"article","originalText":"Wings of Joy Project","placement":"inner","required":true,"photoRefs":["Wings of Joy 1.jpg","Wings of Joy 2.jpg"]},
+        {"id":"article-mens-breakfast","kind":"article","originalText":"Men’s Breakfast","placement":"inner","required":true,"photoRefs":["Mens Breakfast 1.jpg","Mens Breakfast 2.jpg"]},
+        {"id":"article-mothers-tea","kind":"article","originalText":"Celebrating the Mothers","placement":"inner","required":true,"photoRefs":["Mothers Tea 1.jpg","Mothers Tea 2.jpg"],"optionalPhotoRefs":["Mothers Tea 3.jpg","Mothers Tea 4.jpg"]},
+        {"id":"article-outings","kind":"article","originalText":"Outings","placement":"inner","required":true,"photoRefs":["Outings 1.jpg","Outings 2.jpg"]},
+        {"id":"article-birthdays","kind":"birthday-roster","originalText":"Happy Birthday - RESIDENTS: Jerry L. 7/8; Michael J. 7/12; Eleanor B. 7/14; John B. 7/15; Nicholas R. 7/31. STAFF: Lillian S. 7/2; Carla M. 7/3; Amanda I. 7/6; Miranda W. 7/8; Sharon T. 7/19; Debbie M. 7/21; Austin L. 7/22; Lillie-Ann B. 7/28.","placement":"inner","required":true,"photoRefs":[]},
+        {"id":"article-upcoming-events","kind":"event-list","originalText":"Upcoming Events - 7/1 Music by Greg & Tony; 7/2 Men’s Breakfast, Bible Study with Carolyn, and Country Cruise; 7/3 Happy Hour with Don Stegemiller; 7/6 Resident Council; 7/7 Country Cruise; 7/8 Music by Tom Brown; 7/9 Picnic in the Park & Splash Pad at Blue River Memorial Park; 7/10 Happy Hour with The Rusty Strings; 7/14 Country Cruise; 7/15 Senior Karaoke at Capone’s Speakeasy; 7/16 Franklin Artcraft Theater: Ma+Pa Kettle at Home; 7/17 Happy Hour with Gary Phelps; 7/18 Bingo Bonanza and Saturday Happy Hour with Steve Elston; 7/21 Lunch at Cow Palace; 7/22 Music by Tyler Wilson; 7/23 Country Cruise; 7/24 Happy Hour with Mike Small; 7/28 Lunch at Clubhouse Dining and Horse Racing at Horseshoe Indianapolis; 7/29 Music by Highway 46; 7/30 Country Cruise; 7/31 Happy Hour with Johnny A.","placement":"inner","required":true,"photoRefs":[]},
+        {"id":"list-happy-hours","kind":"event-list","originalText":"7/3 Happy Hour with Don Stegemiller; 7/10 Happy Hour with The Rusty Strings; 7/17 Happy Hour with Gary Phelps; 7/24 Happy Hour with Mike Small; 7/31 Happy Hour with Johnny A.","placement":"inner","required":true,"photoRefs":[]},
+        {"id":"photo-mothers-tea-3","kind":"unassigned-photo","originalText":"Mothers Tea 3.jpg","placement":"unresolved","required":false,"photoRefs":[]},
+        {"id":"photo-mothers-tea-4","kind":"unassigned-photo","originalText":"Mothers Tea 4.jpg","placement":"unresolved","required":false,"photoRefs":[]}
+      ]
+    }
+  ]
+}
