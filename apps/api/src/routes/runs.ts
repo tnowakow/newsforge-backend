@@ -783,6 +783,7 @@ runsRouter.post("/", async (req, res) => {
     monthLabel: body.monthLabel,
     variationSeed: runId,
     porterRetrievalPrompt: porterRetrieval?.prompt,
+    layoutMode: sourceOnlyLayoutMode ? "campus-inner-spread" : "full-issue",
   });
   if (sourceOnlyArticlesBeforeDesign) {
     articles = sourceOnlyArticlesBeforeDesign;

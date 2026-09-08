@@ -45,6 +45,7 @@ import {
 } from "./porterOneReferenceScorer.js";
 import { evaluatePorterLayoutInvariants } from "./porterLayoutInvariants.js";
 import type { CandidateMeasurement } from "./adaptiveLayoutPlanner.js";
+import { composeInnerSpread } from "./innerSpreadComposer.js";
 
 /** Layout design returns full spread JSON; production smokes can take 30-75s. */
 const DESIGN_TIMEOUT_MS = env.AI_PROVIDER === "local" ? 300_000 : 90_000;
@@ -70,6 +71,7 @@ export interface DesignLayoutInput {
   previousVersion?: number;
   variationSeed?: string;
   porterRetrievalPrompt?: string;
+  layoutMode?: "full-issue" | "campus-inner-spread";
 }
 
 export interface DesignLayoutResult {
@@ -338,6 +340,20 @@ function reattachMissingImages(
 export async function designLayout(
   input: DesignLayoutInput,
 ): Promise<DesignLayoutResult> {
+  if (input.layoutMode === "campus-inner-spread") {
+    const composed = await composeInnerSpread({
+      source: input.articles,
+      images: input.images,
+      contract: { gridSpec: input.gridSpec, pageCount: 2, minBodyFontSizePt: 10.5 },
+    });
+    return {
+      layout: composed.layout,
+      mode: "deterministic",
+      designNotes: composed.status === "fit" ? "bounded deterministic inside-spread composition" : `overflow: ${composed.overflow?.reason ?? "required content did not fit"}`,
+      fallbackReason: composed.status === "fit" ? undefined : "inner_spread_overflow",
+      promptAudit: { systemPrompt: "deterministic inner spread contract", userPrompt: "", provider: "deterministic", model: "bounded-inner-spread", durationMs: 0 },
+    };
+  }
   const adaptive = buildAdaptiveLayout(input);
   let adaptiveCandidates = adaptive.candidates;
   let adaptiveChosen = adaptive.chosen;
