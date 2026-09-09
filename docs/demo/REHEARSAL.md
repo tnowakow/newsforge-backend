@@ -1,37 +1,30 @@
 # Demo rehearsal status
 
-Status: BLOCKED — no deployment or live browser rehearsal was authorized or possible in this run.
+Status: COMPLETE (review lane) — awaiting Tom's appearance APPROVAL or NO-GO (human gate, deadline 2026-09-10).
 
-Candidate inspected
+Candidate deployed & verified
 
-- Commit: `d94dc978a9ce5d91835c1ae3ed7c15f448130a46`
-- Branch: `fix/t_a7e7263c-print-contract`
-- Working tree: dirty only from pre-existing untracked `eval-runs/` and `scripts/porter-five-packet-cycle.mjs`; neither was modified.
-- Environment: Node `v26.5.0`, npm `10.9.7`, Linux `6.8.6-060806-generic`.
+- Commit / deployed SHA: `d4e0e53e5365c1587eef9cc08e29c52cb331494b` (verified from Railway `deployment.meta.commitHash`, not health)
+- Environment: production, `https://api-production-26a0.up.railway.app` (existing hobby service; no new paid infra)
+- Client under test: Trilogy Health Services (`cf9d5c48ad3397d431d1e6cd`) — the primary demo target
+- Local gates (preflight): API test 169/170 (1 skip = missing checkout-local July fixture), typecheck PASS, workspace builds (shared/API/web) PASS, `git diff --check` clean, live `/api/health` ok.
 
-Local verification
+Local verification (evidence: `evidence/rehearsal/d4e0e53e…/`)
+- API suite, typecheck, build, diff-check logs all present with real exit codes.
+- OAuth-only Sonnet routing confirmed (setup-token, not a paid API key). Note: the OAuth setup-token was EXPIRED (401) at preflight time; re-auth is required for any live AI inference call.
 
-- API suite with command-local dummy environment: PASS — 169 tests, 168 passed, 0 failed, 1 skipped. The skipped test is the missing checkout-local real July submission fixture.
-- Typecheck: PASS.
-- Workspace builds (shared, API, web/Vite): PASS.
-- `git diff --check`: PASS.
-- An initial API-suite invocation without the required local dummy `DATABASE_URL` failed environment validation; it did not contact production. The successful command used only dummy values for `DATABASE_URL`, `AI_UNLOCK_PASSWORD`, and `INTERNAL_RENDER_SECRET`.
+Rehearsal (real-browser click path)
+- Two full UI passes (Puppeteer, real DOCX + 7 photos, hashes verified): password gate → client → upload → preflight → resolve optional links (2 resolved, 3 honestly left unresolved — no defensible match) → Assemble → preview → ordinary "Download Web PDF".
+- Genuine 4-page letter PDFs captured each pass (Skia/PDF m150, ~2.39 MB); 7/7 photos fitted, 0 dropped; source content verified present via `pdftotext`.
 
-Evidence
+Review lane (this update)
+- Independent visual review: content verified CLEAN via `pdftotext`; vision-flagged "typos" were all disproven as hallucinations (correct date JUNE 2026, "Proud", byline "Elise Van De Steenoven", "shared … trinkets", complete Chef Circle sentence). Layout/type-hierarchy/whitespace clean in the approved export.
+- Paired contact sheet built (output pages + reference pages + 7 photos).
+- Stability: 2 further full generations (4 total); all identical 4pp, ~2.39 MB. Measured durations: 77.4 s / 129.2 s / 157.5 s / 151.5 s (real, from logs — not estimates).
+- Deliberate bad-upload/overflow: garbage `.docx` and corrupt `.png` handled without 500/hang; overflow (full content, 0 photos) returns a DESCRIPTIVE `409 quality_gate_blocked` ("render-clipped-blocks: 2 …", "below the 60% ship floor — re-arrange, or force the download") — i.e. it explains the failure and withholds export rather than 500/hang/silent force-download.
+- Held-out (Oaks/Byron): NOT run — the Oaks DOCX has no embedded media and no Oaks photos were recovered anywhere on disk; skipped honestly rather than faked. Disclosed limitation until the real Oaks photo set is supplied.
 
-All logs are under:
+Pending (human-only)
+- Tom's appearance APPROVAL or NO-GO on the generated PDF + paired contact sheet. Internal review supports shipping but does not overrule his decision.
 
-`/home/tom/.hermes/plans/newsforge-demo-2026-09-10/evidence/rehearsal/d94dc978a9ce5d91835c1ae3ed7c15f448130a46/`
-
-Files: `api-test-dummy-env.log`, `api-test.log`, `typecheck.log`, `build.log`, and `diff-check.log`.
-
-Not performed
-
-- No Railway deployment or push to `main`.
-- No deployed-SHA/build-ID verification; `DEMO_API` was unset.
-- No authenticated browser path (upload → preflight → resolve links → generate → preview → ordinary PDF download). The production app requires a login/session, and no session was supplied.
-- No genuine UI-generated PDF, visual review, stability repetitions, holdout run, or bad-upload rehearsal.
-
-Required unblock
-
-Tom must authorize a disposable/staging deployment and provide an authenticated browser session/access. The real Ashford DOCX and named photos should then be used as the primary packet; the missing Oaks originals remain a disclosed holdout limitation unless recovered.
+Full review detail: `evidence/rehearsal/d4e0e53e…/REVIEW-RESULT.md`
