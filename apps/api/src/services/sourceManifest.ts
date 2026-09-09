@@ -1,9 +1,10 @@
 import type { NewsImage } from "@newsforge/shared/schemas";
 import type { ParsedPorterSubmission } from "./uploadService.js";
 import { normalizePorterFilename } from "./porterSourceSemantics.js";
+import { assignUnresolvedPhotos, type PhotoAssignment } from "./photoAssignment.js";
 
 export type SourcePlacement = "inner" | "outer" | "unresolved";
-export type PhotoLinkStatus = "exact" | "operator-confirmed" | "unresolved" | "ambiguous";
+export type PhotoLinkStatus = "exact" | "operator-confirmed" | "semantic-assigned" | "unresolved" | "ambiguous";
 export type PhotoLink = {
   originalRef: string;
   imageId?: string;
@@ -17,6 +18,8 @@ export type SourceUnit = {
   required: boolean;
   placement: SourcePlacement;
   photoLinks: PhotoLink[];
+  /** Semantic fallback decisions for unresolved filename references. */
+  photoAssignments?: PhotoAssignment[];
 };
 export type SourceManifest = {
   sourceFilename?: string;
@@ -71,6 +74,20 @@ export function buildSourceManifest(input: SourceManifestInput): SourceManifest 
       warnings.push(`unresolved-photo:${originalRef}`);
       return { originalRef, status: "unresolved" };
     });
+    const unresolvedRefs = photoLinks.filter((link) => link.status === "unresolved").map((link) => link.originalRef);
+    const photoAssignments = unresolvedRefs.length
+      ? assignUnresolvedPhotos(article, unresolvedRefs, images, used)
+      : [];
+    for (const assignment of photoAssignments) {
+      if (assignment.chosenImageId) {
+        used.add(assignment.chosenImageId);
+        const link = photoLinks.find((candidate) => candidate.originalRef === assignment.originalRef);
+        if (link) {
+          link.imageId = assignment.chosenImageId;
+          link.status = "semantic-assigned";
+        }
+      }
+    }
     units.push({
       id: `source-unit-${String(index + 1).padStart(4, "0")}`,
       sourceParagraphIds: [paragraphs[index]?.id ?? `paragraph-${String(index + 1).padStart(4, "0")}`],
@@ -79,6 +96,7 @@ export function buildSourceManifest(input: SourceManifestInput): SourceManifest 
       required: true,
       placement: "inner",
       photoLinks,
+      ...(photoAssignments.length ? { photoAssignments } : {}),
     });
   }
   for (const [index, list] of input.parsed.lists.entries()) {
@@ -99,5 +117,5 @@ export function buildSourceManifest(input: SourceManifestInput): SourceManifest 
 }
 
 export function sourceUnitFullyResolved(unit: SourceUnit): boolean {
-  return unit.photoLinks.every((link) => link.status === "exact" || link.status === "operator-confirmed");
+  return unit.photoLinks.every((link) => link.status === "exact" || link.status === "operator-confirmed" || link.status === "semantic-assigned");
 }

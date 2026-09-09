@@ -45,6 +45,25 @@ test("manifest resolves each reference independently and is stable under image r
   assert.equal(sourceUnitFullyResolved(unresolved.units[0]!), false);
 });
 
+test("unresolved references receive semantic reasoning without filename evidence", () => {
+  const parsed = parsePorterSubmissionText("Required Articles\n\nREQUIRED - Legacy News\n\nVeterans remembered their military service. Photos: Legacy.jpg, Legacy 2.jpg\n\nOptional Article Suggestions");
+  const manifest = buildSourceManifest({ parsed, images: [
+    { id: "veteran", url: "veteran.jpg", originalName: "photo2.jpg", description: "Two veterans recalling WWII, Korea, Air Force and Vietnam service", tags: ["military", "community"], aspect: "landscape", isPlaceholder: false, source: "UPLOAD" },
+    { id: "meal", url: "meal.jpg", originalName: "photo5.jpg", description: "Residents sharing a meal at the dining table", tags: ["food"], aspect: "landscape", isPlaceholder: false, source: "UPLOAD" },
+  ] as never[] });
+  const unit = manifest.units[0]!;
+  assert.equal(unit.photoAssignments?.length, 2);
+  assert.equal(unit.photoAssignments?.[0]?.chosenImageId, "veteran");
+  assert.equal(unit.photoAssignments?.[0]?.status, "assigned");
+  assert.ok(unit.photoAssignments?.[0]?.why);
+  assert.ok(Array.isArray(unit.photoAssignments?.[0]?.alternates));
+  assert.equal(unit.photoAssignments?.[1]?.status, "unassigned");
+  assert.match(unit.photoAssignments?.[1]?.why ?? "", /UNASSIGNED/);
+  assert.equal(unit.photoLinks[0]?.status, "semantic-assigned");
+  assert.equal(unit.photoLinks[1]?.status, "unresolved");
+});
+
+
 test("manifest marks normalized filename collisions ambiguous", () => {
   const parsed = parsePorterSubmissionText("Required Articles\n\nREQUIRED - Legacy News\n\nStory body with enough content. Photos: Photo.jpg\n\nOptional Article Suggestions");
   const manifest = buildSourceManifest({ parsed, images: [

@@ -80,6 +80,13 @@ async function normalizeImageUpload(file: Express.Multer.File): Promise<{
 uploadsRouter.post("/", upload.array("files", 30), async (req, res) => {
   const files = (req.files as Express.Multer.File[] | undefined) ?? [];
   const clientId = typeof req.body.clientId === "string" ? req.body.clientId : null;
+  // DOCX manifests need the complete image batch, regardless of multipart order.
+  // Keep the original order among images and among documents for stable responses.
+  const processingFiles = [...files].sort((a, b) => {
+    const aIsDocx = path.extname(a.originalname).toLowerCase() === ".docx";
+    const bIsDocx = path.extname(b.originalname).toLowerCase() === ".docx";
+    return Number(aIsDocx) - Number(bIsDocx);
+  });
 
   if (clientId) {
     const exists = await prisma.client.findUnique({ where: { id: clientId } });
@@ -92,7 +99,7 @@ uploadsRouter.post("/", upload.array("files", 30), async (req, res) => {
   const created: Array<Record<string, unknown>> = [];
   const skipped: Array<{ filename: string; reason: string }> = [];
 
-  for (const file of files) {
+  for (const file of processingFiles) {
     const ext = path.extname(file.originalname).toLowerCase();
     try {
       if (IMAGE_EXTS.has(ext)) {
