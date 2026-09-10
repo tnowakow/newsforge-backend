@@ -8,3 +8,4 @@ export * from "./layoutFit.js";
 export * from "./compliance.js";
 export * from "./bundle.js";
 export * from "./approval.js";
+export * from "./sourceContract.js";
