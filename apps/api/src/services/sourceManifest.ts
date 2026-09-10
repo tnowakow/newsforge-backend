@@ -239,7 +239,10 @@ export function buildSourceManifest(input: SourceManifestInput): SourceManifest 
 }
 
 export function sourceUnitFullyResolved(unit: SourceUnit): boolean {
-  return unit.photoLinks.every((link) => link.status === "exact" || link.status === "operator-confirmed" || link.status === "semantic-assigned");
+  // A semantic (inferred) assignment is a suggestion, not a confirmation —
+  // every link must be exact or operator-confirmed for the unit to count
+  // as fully resolved.
+  return unit.photoLinks.every((link) => link.status === "exact" || link.status === "operator-confirmed");
 }
 
 /**

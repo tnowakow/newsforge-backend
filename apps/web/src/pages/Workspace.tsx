@@ -418,10 +418,13 @@ export default function Workspace() {
   };
 
   const resolvePhotoAlias = (articleId: string, reference: string, imageId: string) => {
+    // TRI-R04: record the alias as a real link record (reference → image ID)
+    // instead of rewriting imageRefs — the original ref text stays for audit
+    // and resolution is deterministic in preflight, planner and saved run.
     setUploads((current) => current.map((item) => {
       if (!item.article || item.article.id !== articleId) return item;
-      const refs = item.article.imageRefs ?? [];
-      return { ...item, article: { ...item.article, imageRefs: refs.map((ref) => ref === reference ? imageId : ref) } };
+      const existing = item.article.operatorAliases ?? {};
+      return { ...item, article: { ...item.article, operatorAliases: { ...existing, [reference]: imageId } } };
     }));
     toast(`Mapped ${reference} for this upload packet.`, { tone: "success" });
   };

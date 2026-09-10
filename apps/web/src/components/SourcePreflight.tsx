@@ -3,15 +3,27 @@ import type { Article, NewsImage } from "@/lib/types";
 export interface SourcePreflightProps {
   articles: Article[];
   images: NewsImage[];
+  /** Optional operator alias records: original reference → target image id. */
+  aliases?: Record<string, string>;
   onResolve?: (articleId: string, reference: string, imageId: string) => void;
 }
 
 /** A deliberately honest review of what the upload packet contains. */
-export function SourcePreflight({ articles, images, onResolve }: SourcePreflightProps) {
+export function SourcePreflight({ articles, images, aliases, onResolve }: SourcePreflightProps) {
   const byName = new Map(images.flatMap((image) => image.originalName ? [[image.originalName.trim().toLocaleLowerCase(), image] as const] : []));
-  const refs = articles.flatMap((article) => (article.imageRefs ?? []).map((reference) => ({ article, reference })));
-  const unresolved = refs.filter(({ reference }) => !byName.has(reference.trim().toLocaleLowerCase()));
-  const assigned = new Set(refs.map(({ reference }) => byName.get(reference.trim().toLocaleLowerCase())?.id).filter((id): id is string => Boolean(id)));
+  const byId = new Map(images.map((image) => [image.id, image] as const));
+  const resolveRef = (article: Article, reference: string): NewsImage | undefined => {
+    const byNameHit = byName.get(reference.trim().toLocaleLowerCase());
+    if (byNameHit) return byNameHit;
+    // Alias as a real link record: resolved when the target is a known image.
+    const aliasValue = article.operatorAliases?.[reference] ?? aliases?.[reference];
+    if (aliasValue) return byId.get(aliasValue);
+    return undefined;
+  };
+  const refs = articles.flatMap((article) => (article.imageRefs ?? []).map((reference) => ({ article, reference, target: resolveRef(article, reference) })));
+  const unresolved = refs.filter(({ target }) => !target);
+  const resolved = refs.filter(({ target }) => target !== undefined);
+  const assigned = new Set(refs.map(({ target }) => target?.id).filter((id): id is string => Boolean(id)));
   const unassigned = images.filter((image) => !assigned.has(image.id));
   const outer = articles.filter((article) => article.sourceRole === "brief").length;
   const inner = articles.length - outer;
@@ -34,6 +46,16 @@ export function SourcePreflight({ articles, images, onResolve }: SourcePreflight
         <Metric label="Inner allocation" value={`${inner} unit${inner === 1 ? "" : "s"}`} />
         <Metric label="Outer allocation" value={outer ? `${outer} unit${outer === 1 ? "" : "s"}` : "Missing / not supplied"} />
       </div>
+      {resolved.length > 0 && (
+        <div className="mt-3 space-y-2">
+          {resolved.map(({ article, reference, target }) => (
+            <div key={`resolved:${article.id}:${reference}`} className="flex items-center justify-between gap-2 rounded border border-success/30 bg-success/5 px-3 py-2">
+              <span className="min-w-0 truncate text-xs"><strong>{article.title}</strong> · {reference} → {target?.originalName ?? target?.id}</span>
+              {target?.caption && <span className="min-w-0 truncate text-xs text-ink-muted italic">{target.caption}</span>}
+            </div>
+          ))}
+        </div>
+      )}
       {(unresolved.length > 0 || unassigned.length > 0) && (
         <div className="mt-3 space-y-2">
           {unresolved.map(({ article, reference }) => (

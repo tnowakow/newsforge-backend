@@ -86,6 +86,8 @@ export interface Article {
   byline?: string;
   sectionId?: string;
   imageRefs?: string[];
+  /** TRI-R04 — operator-confirmed alias records: "reference → target image ID". */
+  operatorAliases?: Record<string, string>;
   isFiller?: boolean;
   source?: "MOCK" | "UPLOAD" | "GENERATED";
   articleType?: ArticleType;
