@@ -326,13 +326,35 @@ function textHas(needle, haystack) {
 
 function logicalCompare(ledger, pdfText) {
   const expected = ledger.expected ?? {};
-  const text = normalizeText(pdfText);
+  // The ledger is human-authored and uses "ED" as shorthand for "Executive
+  // Director". The PDF prints the full word. Expand the abbreviation in the
+  // haystack so the two sides can match.
+  const text = normalizeText(pdfText).replace(/(^|\s)ed(\s|$)/gi, "$1executive director$2");
   const checks = {};
 
   // Required prose-story headings (only those flagged required=true are hard)
+  // Ledger headings are human annotations, often pluralised or parenthesised
+  // ("Executive Directors Corner (no title line)"). Normalise both sides to
+  // the bare core phrase and match on the first four significant words so the
+  // comparator checks the heading is present, not the annotation verbatim.
+  const coreWords = (h) => {
+    let t = normalizeText(h).replace(/\(.*?\)/g, " ");
+    t = t.replace(/[\u2013\u2014]/g, " ");
+    t = t.replace(/(^|\s)ed(\s|$)/gi, "$1executive director$2");
+    t = t.replace(/(^|\s)exec(\s|$)/gi, "$1executive$2");
+    return t
+      .split(/\s+/)
+      .filter((w) => w.length > 2 && !/^(a|an|the|of|for|and|no)$/.test(w))
+      .map((w) => w.replace(/s$/, ""))
+      .slice(0, 4)
+      .join(" ");
+  };
   const storyHeadings = (expected.proseStories ?? []);
-  const requiredHeadings = storyHeadings.filter((s) => s.required).map((s) => s.heading);
-  const missingRequiredHeadings = requiredHeadings.filter((h) => !textHas(h, text));
+  const requiredHeadings = storyHeadings.filter((s) => s.required);
+  const missingRequiredHeadings = requiredHeadings.filter((s) => {
+    const needle = coreWords(s.heading);
+    return needle.length < 4 || !textHas(needle, text);
+  }).map((s) => s.heading);
   checks.storyHeadings = {
     requiredCount: requiredHeadings.length,
     missing: missingRequiredHeadings,

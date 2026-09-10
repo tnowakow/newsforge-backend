@@ -102,6 +102,26 @@ function renderList(block: LayoutBlock): string {
   return `<div class="list-body">${rows}</div>`;
 }
 
+function denseRows(body: string): string[] {
+  const lines = (body ?? "").split(/\n+/).map((l) => l.trim()).filter(Boolean);
+  if (lines.length < 4) return [];
+  const dated = lines.filter((l) => /^\d{1,2}\/\d{1,2}\s+\S/.test(l)).length;
+  const roled = lines.filter((l) => /\s[-\u2013]\s/.test(l)).length;
+  return dated >= 4 || roled >= 4 ? lines : [];
+}
+
+function renderDenseList(rows: string[]): string {
+  return `<div class="dense-list">${rows
+    .map((r) => {
+      const m = r.match(/^(\d{1,2}\/\d{1,2})\s+(.+)$/);
+      if (m) return `<div class="list-row"><span class="list-label">${esc(m[1])}</span><span class="list-value">${esc(m[2])}</span></div>`;
+      const d = r.match(/^(.*?)(\s[-\u2013]\s)(.+)$/);
+      if (d) return `<div class="list-row"><span class="list-label">${esc(d[1])}</span><span class="list-value">${esc(d[3])}</span></div>`;
+      return `<div class="list-row"><span class="list-value">${esc(r)}</span></div>`;
+    })
+    .join("")}</div>`;
+}
+
 function roleClass(b: LayoutBlock): string {
   return b.style?.panelRole ? ` role-${b.style.panelRole}` : "";
 }
@@ -173,7 +193,8 @@ function renderBlock(input: RenderInput, b: LayoutBlock): string {
   let inner = "";
 
   if (b.kind === "list") {
-    inner = `${b.heading ? headingHtml(b.heading) : ""}${renderList(b)}`;
+    const rows = (b.listItems && b.listItems.length ? undefined : (article ? denseRows(article.body) : []));
+    inner = `${b.heading ? headingHtml(b.heading) : ""}${rows && rows.length >= 4 ? renderDenseList(rows) : renderList(b)}`;
   } else if (b.kind === "image" && b.imageId) {
     const img = imagesById.get(b.imageId);
     if (img) {
@@ -185,11 +206,14 @@ function renderBlock(input: RenderInput, b: LayoutBlock): string {
     }
   } else if (b.kind === "article" || b.kind === "recurring" || b.kind === "filler") {
     const title = b.heading ?? article?.title ?? section?.title ?? "";
-    const bodyHtml = article
-      ? paragraphs(article.body)
-      : b.inlineText
-        ? paragraphs(b.inlineText)
-        : "";
+    const dense = article ? denseRows(article.body) : [];
+    const bodyHtml = dense.length >= 4
+      ? renderDenseList(dense)
+      : article
+        ? paragraphs(article.body)
+        : b.inlineText
+          ? paragraphs(b.inlineText)
+          : "";
     inner = `
       ${title ? headingHtml(title) : ""}
       ${article?.byline ? `<div class="byline">By ${esc(article.byline)}</div>` : ""}
@@ -284,6 +308,9 @@ export function renderRunHtml(input: RenderInput): string {
   .spread-sheet .body { font-size: 8.2pt; line-height: 1.16; }
   .spread-sheet .body.compact { font-size: 7.9pt; line-height: 1.12; }
   .spread-sheet .list-body { font-size: 8.4pt; line-height: 1.12; }
+  .spread-sheet .dense-list { column-count: 2; column-gap: 12px; font-size: 8.0pt; line-height: 1.12; }
+  .spread-sheet .dense-list .list-row { break-inside: avoid; }
+  .spread-sheet .dense-list .list-label { font-weight: 600; }
   .spread-sheet .photo figcaption { font-size: 5.4pt; line-height:0.95; max-height: 10pt; letter-spacing:0.04em; }
   .spread-sheet .role-photoCluster .photo figcaption { display:none; }
   .spread-sheet .copy-fill-lg,

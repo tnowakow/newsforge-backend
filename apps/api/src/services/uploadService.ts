@@ -212,6 +212,8 @@ function parseCaptionEntries(
 }
 
 function datedRowsFromText(line: string): ParsedListRow[] {
+  const MONTHS = ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"];
+  const monthPrefix = `(?:${MONTHS.join("|")})`;
   return line
     .split(/\s*;\s*/)
     .map((part) => part.trim())
@@ -225,8 +227,14 @@ function datedRowsFromText(line: string): ParsedListRow[] {
       // These are real schedule rows, not prose, and must not disappear just
       // because the campus did not write them as 7/2.
       const ordinal = part.match(/^(\d{1,2})(st|nd|rd|th)\s*[-–—:]\s*(.+)$/i);
-      return ordinal
-        ? [{ value: `${ordinal[1]}${ordinal[2].toLowerCase()}`, label: ordinal[3].trim() }]
+      if (ordinal) return [{ value: `${ordinal[1]}${ordinal[2].toLowerCase()}`, label: ordinal[3].trim() }];
+
+      // Full "July 4th - Event name" rows appear under Upcoming Campus
+      // Events. Keep the original display text as the value (R03: preserve
+      // original display text, normalise once).
+      const monthly = part.match(new RegExp(`^(${monthPrefix})\\s+(\\d{1,2})(st|nd|rd|th)\\s*[-–—:,.]?\\s*(.+)$`, "i"));
+      return monthly
+        ? [{ value: `${monthly[1].toLowerCase()} ${monthly[2]}${monthly[3].toLowerCase()}`, label: monthly[4].trim() }]
         : [];
     });
 }
@@ -288,7 +296,7 @@ export function parsePorterSubmissionText(rawText: string): ParsedPorterSubmissi
       if (headerMatch) {
         sections.push({ id: sectionIdForHeader(headerMatch[1]), header: headerMatch[1], paragraphs: [] });
         const remainder = sectionHeaderRemainder(lineText, sectionIdForHeader(headerMatch[1]));
-        if (remainder && !isInstructionLine(remainder) && sectionIdForHeader(headerMatch[1]) !== "events") {
+        if (remainder && !isInstructionLine(remainder)) {
           sections.at(-1)?.paragraphs.push(remainder);
         }
       } else if (sections.length > 0) {
@@ -304,7 +312,27 @@ export function parsePorterSubmissionText(rawText: string): ParsedPorterSubmissi
   const warnings: string[] = [];
 
   for (const section of sections) {
-    if (section.id === "deptheads") continue;
+    if (section.id === "deptheads") {
+      // Preserve the department-head roster — R03 acceptance: a real roster
+      // keeps every entry. Emit one staff-directory article that carries
+      // each "Name - Title" line verbatim (normalised) so the PDF text
+      // check finds every name+role pair.
+      const names = section.paragraphs
+        .map((l) => l.replace(/^(.{2,60}?)\s*-\s*(.+)$/, "$1 - $2").trim())
+        .filter((l) => l.length > 0 && !isInstructionLine(l));
+      if (names.length > 0) {
+        const body = names.join("\n");
+        articles.push({
+          title: "Department Heads",
+          body,
+          wordCount: wordCount(body),
+          articleType: "other",
+          sectionId: "deptheads",
+          imageRefs: [],
+        });
+      }
+      continue;
+    }
     if (section.id === "captions") {
       for (const line of section.paragraphs) {
         // Caption instructions and the real entries are sometimes one DOCX
@@ -324,6 +352,13 @@ export function parsePorterSubmissionText(rawText: string): ParsedPorterSubmissi
     }
     if (section.id === "events") {
       let current: ParsedSubmissionList | undefined;
+      // The section header itself ("Upcoming Campus Events") is a valid rail
+      // label even when the campus never writes a sub-label — seed a default
+      // list so its dated rows are not orphaned.
+      if (/upcoming (campus )?events/i.test(section.header)) {
+        current = { label: "Upcoming Events", panelRole: "upcomingEvents", rows: [] };
+        lists.push(current);
+      }
       const allLines = [section.header, ...section.paragraphs];
       for (const rawLine of allLines) {
         const line = rawLine.trim();
@@ -374,15 +409,59 @@ export function parsePorterSubmissionText(rawText: string): ParsedPorterSubmissi
     }
     if (refs.length) addPhotoAssociations(refs, section.id, imageAssociations);
     if (section.id === "features") {
-      for (const item of content) {
-        const { title, body } = featureTitleAndBody(item.body);
-        if (body.length < 20) continue;
-        if (item.refs.length) addPhotoAssociations(item.refs, title, imageAssociations);
+      // Consolidate the DOCX paragraphs into stories (R03 acceptance:
+      // "keep short source headings", "Content5 transportation remains one
+      // story with all six paragraphs"). The DOCX emits each paragraph as a
+      // separate submission paragraph; the structural pattern is:
+      //   short line (< 70 chars, no trailing sentence punctuation)
+      //     followed by one or more long lines (>= 20 chars)
+      // The short line is a supplied heading; the following lines are its
+      // story body. A short line NOT followed by a long line is a standalone
+      // brief. Numbered "N. (Optional)" markers end a story.
+      const items = content.map((c) => c.body.trim()).filter(Boolean);
+      const isHeadingLikeLine = (line: string, idx: number): boolean =>
+        line.length < 70 &&
+        !/[.;:]$/.test(line) &&
+        !/^(?:happy hours?|upcoming events?|socials?|brunch)\b/i.test(line) &&
+        idx + 1 < items.length &&
+        items[idx + 1].length >= 20;
+      const stories: Array<{ title: string; body: string; refs: string[] }> = [];
+      let i = 0;
+      while (i < items.length) {
+        const line = items[i];
+        if (/^\d+\.\s*\(optional\)$/i.test(line)) { i += 1; continue; }
+        if (isHeadingLikeLine(line, i)) {
+          const title = cleanArticleTitle(line);
+          const bodyParts: string[] = [];
+          const refs: string[] = [...(content[i]?.refs ?? [])];
+          let j = i + 1;
+          while (
+            j < items.length &&
+            items[j].length >= 20 &&
+            !isHeadingLikeLine(items[j], j)
+          ) {
+            bodyParts.push(items[j]);
+            refs.push(...(content[j]?.refs ?? []));
+            j += 1;
+          }
+          stories.push({ title, body: bodyParts.join("\n\n"), refs });
+          i = j;
+          continue;
+        }
+        // Standalone paragraph — use the existing labelled/numbered heuristics
+        // for its title when they match.
+        const { title, body } = featureTitleAndBody(line);
+        stories.push({ title, body, refs: [...(content[i]?.refs ?? [])] });
+        i += 1;
+      }
+      for (const item of stories) {
+        if (item.body.length < 20) continue;
+        if (item.refs.length) addPhotoAssociations(item.refs, item.title, imageAssociations);
         articles.push({
-          title,
-          body,
-          wordCount: wordCount(body),
-          articleType: /anniversary|color|chef/i.test(body) ? "announcement" : "other",
+          title: item.title,
+          body: item.body,
+          wordCount: wordCount(item.body),
+          articleType: /anniversary|color|chef/i.test(item.body) ? "announcement" : "other",
           sectionId: "features",
           imageRefs: item.refs,
         });
