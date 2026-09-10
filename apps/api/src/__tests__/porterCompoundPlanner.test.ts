@@ -289,4 +289,36 @@ describe("porterCompoundPlanner", () => {
     assert.deepEqual([...captionsTwo].sort(), ["Community Trips", "Community Trips"], `alias-two captions ${JSON.stringify(captionsTwo)}`);
     assert.ok(!captionsTwo.includes(teaCaption), "previous alias target's caption must not follow the old pairing");
   });
+
+  it("resolves 'Photo 1.jpg' and 'Photo 10.jpg' to distinct exact photos — no normalization collision (TRI-R04 acceptance)", () => {
+    // Regression: prefix/substring matching used to let a ref for 'Photo 1'
+    // also claim 'Photo 10', stealing an exact match from its real owner.
+    const articles: Article[] = [
+      { ...article("roster", "Happy Birthday!", "RESIDENTS\nJerry L. 7/8\nMichael J. 7/12\nSTAFF\nCarla M. 7/3", "birthday-roster", [], 0) },
+      { ...article("note", "Executive Director Corner", "A letter from the executive director about the month ahead and the team's work.", "director-note", [], 1) },
+      { ...article("story1", "Legacy News", "Residents shared a lively afternoon together with old friends from across the neighborhood.", "narrative-story", ["Photo 1.jpg"], 2) },
+      { ...article("story10", "Anniversary Celebration", "The community marked a milestone year with music and a shared lunch on the lawn.", "narrative-story", ["Photo 10.jpg"], 3) },
+      { ...article("story2", "Chef Circle", "Chef Circle brought residents together for a hands-on culinary gathering with the dining team.", "narrative-story", [], 4) },
+      { ...article("rail", "Upcoming Events", ["7/1 Music", "7/2 Brunch", "7/3 Happy Hour", "7/9 Picnic", "7/10 Happy Hour", "7/14 Cruise", "7/15 Karaoke", "7/17 Happy Hour"].join("\n"), "dated-list", [], 5) },
+    ];
+    const images: NewsImage[] = [
+      { ...image("p1", "Photo 1.jpg"), originalName: "Photo 1.jpg" },
+      { ...image("p10", "Photo 10.jpg"), originalName: "Photo 10.jpg" },
+      { ...image("p2", "Photo 2.jpg"), originalName: "Photo 2.jpg" },
+    ];
+
+    const layout = build(articles, images);
+    const story1Photos = layout.blocks.filter((block) => block.imageId && (articles.find((a) => a.id === "story1")!.imageRefs ?? []).some((ref) => ref === images.find((i) => i.id === block.imageId)?.caption)).map((block) => block.imageId);
+    const story10Photos = layout.blocks.filter((block) => block.imageId && (articles.find((a) => a.id === "story10")!.imageRefs ?? []).some((ref) => ref === images.find((i) => i.id === block.imageId)?.caption)).map((block) => block.imageId);
+
+    assert.ok(story1Photos.includes("p1"), "story1 keeps its exact 'Photo 1.jpg' match");
+    assert.ok(!story1Photos.includes("p10"), "'Photo 1.jpg' must not resolve to 'Photo 10.jpg'");
+    assert.ok(story10Photos.includes("p10"), "story10 keeps its exact 'Photo 10.jpg' match");
+    assert.ok(!story10Photos.includes("p1"), "'Photo 10.jpg' must not steal 'Photo 1.jpg'");
+    // Neither story borrows the other's exact photo to fill a slot.
+    const p1Owner = layout.blocks.find((block) => block.imageId === "p1");
+    const p10Owner = layout.blocks.find((block) => block.imageId === "p10");
+    assert.equal(p1Owner?.compoundId, "compound-story1");
+    assert.equal(p10Owner?.compoundId, "compound-story10");
+  });
 });

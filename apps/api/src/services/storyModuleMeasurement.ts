@@ -134,7 +134,14 @@ export async function measureStoryModules(inputs: StoryModuleInput[]): Promise<S
 
 /** Validate that a planned compound retains all required source children. */
 export function validateStoryCompound(blocks: LayoutBlock[], article: Article, images: NewsImage[]): void {
-  const articleBlocks = blocks.filter((block) => block.articleId === article.id || block.compoundId === article.compoundId);
+  // The planner stamps every member of a story's compound with
+  // `compound-${article.id}` (see porterCompoundPlanner / adaptiveLayoutPlanner).
+  // `article.compoundId` is optional and frequently absent, so comparing it
+  // directly against `block.compoundId` silently degrades to
+  // `undefined === undefined` and matches unpaired outer photos instead of
+  // the story's own images. Resolve the canonical key explicitly.
+  const compoundKey = article.compoundId ?? `compound-${article.id}`;
+  const articleBlocks = blocks.filter((block) => block.articleId === article.id || block.compoundId === compoundKey);
   const imageIds = new Set(articleBlocks.map((block) => block.imageId).filter((id): id is string => Boolean(id)));
   // TRI-R04b2 — operator-confirmed alias records (ref → imageId) are
   // consulted first; the id/originalName equality is the fallback for

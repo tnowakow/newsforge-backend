@@ -479,26 +479,29 @@ export function applyVibrancyPass(input: VibrancyInput): AssembledLayout {
     if (next.kind === "image" && next.imageId) {
       const img = imageById.get(next.imageId);
       if (isFilenameLikeCaption(next.caption)) next.caption = undefined;
-      if (
-        img?.source === "STOCK" &&
-        !/p2-photo-|photo-stack|outing|out[- ]?and[- ]?about/i.test(`${next.slotId} ${next.styleTag ?? ""}`)
-      ) {
-        next.caption = undefined;
-      }
       const isCluster = next.style?.panelRole === "photoCluster" || /collage|photo[- ]?cluster/i.test(next.styleTag ?? "");
       if (!next.caption && !isCluster) {
-        // TRI-R04b2 — the image's own caption is the caption of record. A
-        // nearby story's heading may only stand in when the image carries no
-        // usable caption of its own, and never for a real uploaded photo
-        // (that would let one story's heading caption a different asset).
+        // TRI-R04 item 5 — the image's own *supplied* caption is the caption
+        // of record, but only when it is a real caption, not a bare filename.
+        // A nearby narrative story's heading may stand in for a photo with no
+        // usable caption of its own (filename or generic stock), and may also
+        // replace a filename caption. An uploaded photo whose caption is a real
+        // caption of its own is never overwritten — that would let one story's
+        // heading caption a different asset.
         const ownCaption = isFilenameLikeCaption(img?.caption) ? undefined : img?.caption;
-        const isRealUpload = img?.source === "UPLOAD";
-        const nearbyArticle = isRealUpload
-          ? undefined
-          : findNearbyNarrativeArticle(next, input.layout.blocks, articleById);
+        // A nearby narrative story's heading may stand in for a photo with no
+        // real caption of its own. A generic stock caption is not a *supplied*
+        // caption for the story it illustrates — the nearby story grounds it.
+        // An uploaded photo carrying a real caption of its own is the only case
+        // where the own caption wins outright.
+        const isGenericStock = img?.source === "STOCK";
+        const nearbyArticle =
+          ownCaption?.trim() && !isGenericStock
+            ? undefined
+            : findNearbyNarrativeArticle(next, input.layout.blocks, articleById);
         const proposedCaption =
-          ownCaption ??
           (nearbyArticle ? captionFromArticle(nearbyArticle) : undefined) ??
+          ownCaption ??
           (img?.alt ? firstSentence(img.alt) : undefined) ??
           "A wonderful moment around campus!";
         const used = usedCaptionsByPage.get(next.page) ?? new Set<string>();
