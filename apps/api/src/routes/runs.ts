@@ -19,6 +19,7 @@ import {
   type GridSpec,
   type LayoutBlock,
   type NewsImage,
+  type SourceAssetContract,
   type FitAction,
   type FitReport,
 } from "@newsforge/shared/schemas";
@@ -166,6 +167,33 @@ function porterSourceManifestFromMeta(meta: unknown): SourceManifest | undefined
   if (!manifest || typeof manifest !== "object") return undefined;
   if (!Array.isArray((manifest as { units?: unknown }).units)) return undefined;
   return manifest as SourceManifest;
+}
+
+/**
+ * Resolve the run's canonical source/asset contract from the stored upload
+ * manifest. Shared by the layout-design path (planner reservation guard) and
+ * the post-layout persistence path (decision finalization). Audit metadata
+ * only: any failure degrades to "no contract" and never fails run creation.
+ */
+async function resolveRunSourceAssetContract(
+  clientId: string,
+): Promise<SourceAssetContract | undefined> {
+  try {
+    const manifestAssets = await prisma.assetLibrary.findMany({
+      where: { clientId, type: "ARTICLE", source: "UPLOAD" },
+      orderBy: { createdAt: "desc" },
+      take: 10,
+      select: { meta: true },
+    });
+    const manifest = manifestAssets
+      .map((asset) => porterSourceManifestFromMeta(asset.meta))
+      .find((candidate) => candidate !== undefined);
+    if (!manifest) return undefined;
+    return toSourceAssetContract(manifest);
+  } catch (err) {
+    console.warn("[runs] sourceAssetContract resolution skipped:", err);
+    return undefined;
+  }
 }
 
 function normalizeSourceKey(value: string | undefined): string {
@@ -781,6 +809,12 @@ runsRouter.post("/", async (req, res) => {
   // v3: the AI layout designer produces the styled layout (panels, colored
   // headers, list blocks, captions). Falls back to the deterministic fitter
   // + vibrancy pass internally, so this never throws and is always styled.
+  // TRI-R04 — resolve the source/asset contract before design so the
+  // planner's reserved-image guard sees the same reservations that get
+  // persisted after layout (single source of truth, no second query).
+  const runSourceAssetContract = hasUploadedArticleContent
+    ? await resolveRunSourceAssetContract(client.id)
+    : undefined;
   const sourceOnlyArticlesBeforeDesign = sourceOnlyUploadedRun
     ? articles.map((article) => ({ ...article }))
     : undefined;
@@ -798,6 +832,7 @@ runsRouter.post("/", async (req, res) => {
     variationSeed: runId,
     porterRetrievalPrompt: porterRetrieval?.prompt,
     layoutMode: sourceOnlyLayoutMode ? "campus-inner-spread" : "full-issue",
+    sourceAssetContract: runSourceAssetContract,
   });
   if (sourceOnlyArticlesBeforeDesign) {
     articles = sourceOnlyArticlesBeforeDesign;
@@ -1132,30 +1167,20 @@ runsRouter.post("/", async (req, res) => {
   // TRI-R04 item 4 — persist the canonical source/asset contract with
   // per-asset placement decisions (placed page / recorded rejection reason).
   // Source: the uploaded Porter packet's manifest (assetLibrary meta),
-  // merged with the layout pipeline's own assetDecisions from the composed
-  // layout. Layout decisions take precedence; the manifest supplies
-  // decisions for assets the layout never saw. Validated against the shared
-  // schema before it is written, so downstream readers can trust its shape.
+  // resolved once above before layout design so the planner's reserved-image
+  // guard and this persisted copy share one source of truth. Merged with the
+  // layout pipeline's own assetDecisions from the composed layout. Layout
+  // decisions take precedence; the manifest supplies decisions for assets
+  // the layout never saw. Validated against the shared schema before it is
+  // written, so downstream readers can trust its shape.
   let sourceAssetContractForRun: unknown;
-  if (hasUploadedArticleContent) {
+  if (hasUploadedArticleContent && runSourceAssetContract) {
     try {
-      const manifestAssets = await prisma.assetLibrary.findMany({
-        where: { clientId: client.id, type: "ARTICLE", source: "UPLOAD" },
-        orderBy: { createdAt: "desc" },
-        take: 10,
-        select: { meta: true },
+      sourceAssetContractForRun = finalizeSourceAssetContract({
+        contract: runSourceAssetContract,
+        layoutAssetDecisions: layout.assetDecisions,
+        images,
       });
-      const manifest = manifestAssets
-        .map((asset) => porterSourceManifestFromMeta(asset.meta))
-        .find((candidate) => candidate !== undefined);
-      if (manifest) {
-        const contract = toSourceAssetContract(manifest);
-        sourceAssetContractForRun = finalizeSourceAssetContract({
-          contract,
-          layoutAssetDecisions: layout.assetDecisions,
-          images,
-        });
-      }
     } catch (err) {
       // Contract persistence is audit metadata; never fail run creation
       // because the stored manifest was missing or stale.

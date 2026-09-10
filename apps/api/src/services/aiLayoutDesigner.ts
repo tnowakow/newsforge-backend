@@ -23,6 +23,7 @@ import {
   type LayoutBlock,
   type NewsImage,
   type RecurringSection,
+  type SourceAssetContract,
 } from "@newsforge/shared/schemas";
 import { callGeminiJson } from "../gemini.js";
 import { env } from "../env.js";
@@ -72,6 +73,12 @@ export interface DesignLayoutInput {
   variationSeed?: string;
   porterRetrievalPrompt?: string;
   layoutMode?: "full-issue" | "campus-inner-spread";
+  /**
+   * TRI-R04 — canonical source/asset contract (persisted on the run). The
+   * adaptive planner uses its reservations to keep reserved image ids out
+   * of unrelated articles' fallback slots.
+   */
+  sourceAssetContract?: SourceAssetContract;
 }
 
 export interface DesignLayoutResult {
@@ -354,7 +361,10 @@ export async function designLayout(
       promptAudit: { systemPrompt: "deterministic inner spread contract", userPrompt: "", provider: "deterministic", model: "bounded-inner-spread", durationMs: 0 },
     };
   }
-  const adaptive = buildAdaptiveLayout(input);
+  const adaptive = buildAdaptiveLayout({
+    ...input,
+    sourceAssetContract: input.sourceAssetContract,
+  });
   let adaptiveCandidates = adaptive.candidates;
   let adaptiveChosen = adaptive.chosen;
   try {

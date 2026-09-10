@@ -243,6 +243,72 @@ export function sourceUnitFullyResolved(unit: SourceUnit): boolean {
 }
 
 /**
+ * Build the reserved-ownership guard for the layout planners (TRI-R04).
+ *
+ * From the canonical shared contract, map every reserved image ID
+ * (exact / operator-confirmed reservation) to the image refs the owning
+ * unit used to claim it. A layout pairing may only hand out a reserved
+ * image to the article that actually references it — never to an
+ * unrelated article as a fallback fill.
+ *
+ * Article matching is by the unit's own original refs (the planner's
+ * article.imageRefs are the same parsed refs the manifest was built
+ * from); a text-overlap fallback covers articles whose refs were
+ * stripped or trimmed upstream. Returns undefined when there is nothing
+ * to guard (no contract, no reservations) so callers keep the legacy
+ * behavior unchanged for non-Porter runs.
+ */
+export function reservedImageOwnerRefsFromContract(
+  contract: SourceAssetContract | null | undefined,
+  articles: Array<{ id: string; imageRefs?: string[] }>,
+): Map<string, string[]> | undefined {
+  const reservations = contract?.reservations;
+  if (!reservations?.length) return undefined;
+  const units = contract?.units ?? [];
+  const guard = new Map<string, string[]>();
+  for (const reservation of reservations) {
+    if (guard.has(reservation.imageId)) continue;
+    const unit = units.find((candidate) => candidate.id === reservation.reservedByUnitId);
+    const refs = (unit?.links ?? [])
+      .filter((link) => link.originalRef === reservation.originalRef || link.resolvedImageId === reservation.imageId)
+      .map((link) => link.originalRef)
+      .filter((ref): ref is string => Boolean(ref));
+    guard.set(reservation.imageId, refs);
+  }
+  const unitForArticle = (article: { imageRefs?: string[] }) => {
+    const refs = article.imageRefs ?? [];
+    if (!refs.length) return undefined;
+    let unit = units.find((candidate) => {
+      const unitRefs = (candidate.links ?? []).map((link) => link.originalRef);
+      return refs.some((ref) => unitRefs.includes(ref));
+    });
+    if (!unit) {
+      unit = units.find((candidate) => {
+        const candidateText = (candidate.links ?? []).map((link) => link.originalRef).join(" ");
+        if (!candidateText) return false;
+        return candidateText.split(/\s+/).some((token) => refs.some((ref) => ref.includes(token) || token.includes(ref)));
+      });
+    }
+    return unit;
+  };
+  for (const article of articles) {
+    const unit = unitForArticle(article);
+    if (!unit) continue;
+    for (const link of unit.links ?? []) {
+      if (link.resolvedImageId && guard.has(link.resolvedImageId)) {
+        const refs = guard.get(link.resolvedImageId) ?? [];
+        const articleRefs = article.imageRefs ?? [];
+        for (const ref of articleRefs) {
+          if (!refs.includes(ref)) refs.push(ref);
+        }
+        guard.set(link.resolvedImageId, refs);
+      }
+    }
+  }
+  return guard.size ? guard : undefined;
+}
+
+/**
  * Project a manifest onto the canonical shared SourceAssetContract (TRI-R04).
  * The result is zod-validated so downstream tasks can trust its shape.
  */

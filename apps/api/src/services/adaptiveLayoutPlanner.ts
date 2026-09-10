@@ -9,6 +9,7 @@ import type {
   TemplateSlot,
   VisualPersonality,
 } from "@newsforge/shared/schemas";
+import type { SourceAssetContract } from "@newsforge/shared/schemas";
 import { assembleLayout } from "./layoutAssembly.js";
 import { chooseVisualPersonality, normalizePanelStyle } from "./designLanguage.js";
 import {
@@ -25,6 +26,7 @@ import {
   porterDatedRowCount,
   porterImageMatchesRef,
 } from "./porterSourceSemantics.js";
+import { reservedImageOwnerRefsFromContract } from "./sourceManifest.js";
 
 type EditorialRole =
   | "lead"
@@ -189,6 +191,13 @@ interface AdaptiveLayoutInput {
   clientName?: string;
   previousVersion?: number;
   variationSeed?: string;
+  /**
+   * TRI-R04 — canonical source/asset contract for the run. When present,
+   * the source-topology planners honor its reservations: a layout pairing
+   * may never assign a reserved image id to an article that is not the
+   * image's reserved owner.
+   */
+  sourceAssetContract?: SourceAssetContract;
 }
 
 function roleForArticle(article: Article): EditorialRole {
@@ -996,6 +1005,36 @@ function sourceTopologyCandidate(
   ];
   const images = orderImages(input.images, "uploadedFirst");
   const usedImages = new Set<string>();
+  // TRI-R04 — reserved-ownership guard: an image reserved for one source
+  // unit (exact / operator-confirmed link) must not be handed to an
+  // unrelated article as a fallback fill. porterImageMatchesRef is kept
+  // for every call site; this only constrains WHO may receive a reserved
+  // id.
+  const reservedImageOwnerRefs = reservedImageOwnerRefsFromContract(
+    input.sourceAssetContract,
+    orderedArticles,
+  );
+  const isImageReserved = (image: NewsImage): boolean =>
+    Boolean(reservedImageOwnerRefs?.has(image.id));
+  const imageAllowedForArticle = (
+    image: NewsImage,
+    article: Article | undefined,
+  ): boolean => {
+    if (!isImageReserved(image)) return true;
+    const ownerRefs = reservedImageOwnerRefs?.get(image.id) ?? [];
+    if (article) {
+      const articleRefs = article.imageRefs ?? [];
+      if (articleRefs.some((ref) => ownerRefs.includes(ref))) return true;
+      // Normalized equivalence: the article names the very file the owner
+      // reserved (e.g. "Photo 1.JPG" vs "photo 1.jpg") — co-ownership, not theft.
+      if (articleRefs.some((ref) => porterImageMatchesRef(image, ref) && ownerRefs.some((owner) => porterImageMatchesRef(image, owner)))) {
+        return true;
+      }
+      return false;
+    }
+    // Unpaired slot: a reserved image is never a generic filler.
+    return false;
+  };
   const imageIsReferenced = (image: NewsImage): boolean =>
     orderedArticles.some((article) =>
       (article.imageRefs ?? []).some((ref) => imageMatchesRef(image, ref)),
@@ -1003,13 +1042,13 @@ function sourceTopologyCandidate(
   const takeImage = (article?: Article, allowFallback = false): NewsImage | undefined => {
     const refs = article?.imageRefs ?? [];
     const matched = refs.length
-      ? images.find((image) => !usedImages.has(image.id) && refs.some((ref) => imageMatchesRef(image, ref)))
+      ? images.find((image) => !usedImages.has(image.id) && imageAllowedForArticle(image, article) && refs.some((ref) => imageMatchesRef(image, ref)))
       : undefined;
     const fallback = matched ??
       (allowFallback
-        ? images.find((image) => !usedImages.has(image.id) && !isScreenshotLikeImage(image) && !imageIsReferenced(image)) ??
-          images.find((image) => !usedImages.has(image.id) && !isScreenshotLikeImage(image)) ??
-          images.find((image) => !usedImages.has(image.id))
+        ? images.find((image) => !usedImages.has(image.id) && !isScreenshotLikeImage(image) && !imageIsReferenced(image) && imageAllowedForArticle(image, article)) ??
+          images.find((image) => !usedImages.has(image.id) && !isScreenshotLikeImage(image) && imageAllowedForArticle(image, article)) ??
+          images.find((image) => !usedImages.has(image.id) && imageAllowedForArticle(image, article))
         : undefined);
     if (fallback) usedImages.add(fallback.id);
     return fallback;
