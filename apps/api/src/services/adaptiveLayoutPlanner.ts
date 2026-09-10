@@ -1,5 +1,6 @@
 import type {
   Article,
+  AssetDecisionRecord,
   AssembledLayout,
   GridSpec,
   LayoutBlock,
@@ -1014,6 +1015,9 @@ function sourceTopologyCandidate(
     return fallback;
   };
   const blocks: LayoutBlock[] = [];
+  // TRI-R04 item 4 — per-asset decisions from the compound planner (when the
+  // community-collage packer is used) are carried onto the candidate layout.
+  let compoundAssetDecisions: AssetDecisionRecord[] | undefined;
   const articleBlock = (
     article: Article,
     page: number,
@@ -1118,6 +1122,7 @@ function sourceTopologyCandidate(
       });
       if (!compoundLayout) return undefined;
       blocks.push(...compoundLayout.blocks);
+      compoundAssetDecisions = compoundLayout.assetDecisions;
       for (const block of compoundLayout.blocks) {
         if (block.imageId) usedImages.add(block.imageId);
       }
@@ -1468,6 +1473,7 @@ function sourceTopologyCandidate(
       fillerBlocks: 0,
       emptySlots: 0,
     },
+    ...(compoundAssetDecisions?.length ? { assetDecisions: compoundAssetDecisions } : {}),
     version: (input.previousVersion ?? 0) + 1,
   };
   const scored = scoreCandidate(layout, { ...input, articles: orderedArticles, images }, plan);

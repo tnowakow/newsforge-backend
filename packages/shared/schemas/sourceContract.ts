@@ -66,6 +66,43 @@ export const AssetCaptionSchema = z.object({
 });
 export type AssetCaption = z.infer<typeof AssetCaptionSchema>;
 
+// ── Asset decision record (TRI-R04 item 4) ─────────────────────────
+//
+// One entry per source unit and per asset that the layout pipeline
+// either placed or rejected. "Rejected" is not "dropped" — a rejected
+// asset must carry a recorded reason so the operator can audit why an
+// accepted brief, story, or photo did not land on pages 2–3.
+//
+// `placement` distinguishes:
+//   "placed"        — the asset appears in the final layout.
+//   "rejected"      — the asset was explicitly not placed; `reason` required.
+//   "unresolved"    — the asset could not be linked to a source unit yet.
+//
+// `page` is the logical newsletter page (2 or 3 for inner spread) when
+// placement is "placed"; undefined otherwise.
+
+export const AssetPlacementOutcomeSchema = z.enum(["placed", "rejected", "unresolved"]);
+export type AssetPlacementOutcome = z.infer<typeof AssetPlacementOutcomeSchema>;
+
+export const AssetDecisionRecordSchema = z.object({
+  /** Stable asset identifier: source-unit id, image id, or photo ref text. */
+  assetId: z.string(),
+  /** Source unit id the decision belongs to (if any). */
+  unitId: z.string().optional(),
+  /** Asset kind for operator clarity. */
+  kind: z.enum(["article", "photo", "roster", "schedule", "list"]).default("article"),
+  outcome: AssetPlacementOutcomeSchema,
+  /** Required when outcome is "rejected"; explains why the asset did not land on pages 2–3. */
+  reason: z.string().optional(),
+  /** Logical newsletter page (2 or 3) when outcome is "placed". */
+  page: z.number().int().min(1).max(4).optional(),
+  /** Whether the operator marked this asset as required (must appear). */
+  required: z.boolean().default(true),
+  /** Deterministic trace for downstream audit (e.g. "inner-spread-overflow", "brief-capacity"). */
+  decisionCode: z.string().optional(),
+});
+export type AssetDecisionRecord = z.infer<typeof AssetDecisionRecordSchema>;
+
 // ── Link record ─────────────────────────────────────────────────────
 //
 // A "real link record" — replaces the legacy ref→imageId substitution.
@@ -152,6 +189,13 @@ export const SourceAssetContractSchema = z.object({
   captions: z.array(AssetCaptionSchema).default([]),
   /** Image IDs not claimed by any unit. */
   unassignedImageIds: z.array(z.string()).default([]),
+  /**
+   * Per-asset placement decisions (placed/rejected with recorded reasons).
+   * TRI-R04 item 4: "a brief is not automatically outer content; require a
+   * recorded reason for any rejected asset." Every accepted story/photo
+   * either lands on pages 2–3 or carries a reason for not landing.
+   */
+  assetDecisions: z.array(AssetDecisionRecordSchema).default([]),
   /** Warnings generated during contract construction. */
   warnings: z.array(z.string()).default([]),
 });

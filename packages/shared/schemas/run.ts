@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { ArticleTypeSchema } from "./layoutFit.js";
 import { BlockStyleSchema, ListItemsSchema, VisualPersonalitySchema } from "./blockStyle.js";
+import { AssetDecisionRecordSchema } from "./sourceContract.js";
 
 /**
  * One article in a newsletter run.
@@ -16,6 +17,13 @@ export const ArticleSchema = z.object({
   sectionId: z.string().optional(),
   /** Uploaded photo filenames explicitly associated with this article. */
   imageRefs: z.array(z.string()).default([]).optional(),
+  /**
+   * TRI-R04 — operator-confirmed alias records: "reference → target image ID".
+   * Stored as real link records (not ref→ID substitution in imageRefs), so
+   * the original ref text is preserved for audit and resolution is
+   * deterministic across preflight, planner and saved run.
+   */
+  operatorAliases: z.record(z.string()).optional(),
   /** True if this body was AI-generated as filler. */
   isFiller: z.boolean().default(false),
   source: z.enum(["MOCK", "UPLOAD", "GENERATED"]).default("MOCK"),
@@ -137,6 +145,12 @@ export const AssembledLayoutSchema = z.object({
     fillerBlocks: z.number().int().nonnegative(),
     emptySlots: z.number().int().nonnegative(),
   }),
+  /**
+   * Per-asset placement decisions (placed/rejected with recorded reasons).
+   * TRI-R04 item 4: rejected assets must carry a stored reason so layout
+   * decisions are traceable to the shared source/asset contract.
+   */
+  assetDecisions: z.array(AssetDecisionRecordSchema).optional(),
   /** Bumped by edits. */
   version: z.number().int().min(1).default(1),
 });

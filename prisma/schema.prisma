@@ -145,6 +145,10 @@ model NewsletterRun {
   bundleZipPath        String?
   bundleBuiltAt        DateTime?
   bundleLayoutVersion  Int?
+  /// SourceAssetContract (see @newsforge/shared/schemas/sourceContract.ts).
+  /// TRI-R04: canonical per-asset placement + rejection records; persisted at
+  /// run creation from the composed layout + source manifest.
+  sourceAssetContract  Json?
 
   client   Client   @relation(fields: [clientId], references: [id])
   template Template @relation(fields: [templateId], references: [id])

@@ -1,5 +1,6 @@
 import type {
   Article,
+  AssetDecisionRecord,
   AssembledLayout,
   GridSpec,
   LayoutBlock,
@@ -325,7 +326,13 @@ export function buildPorterCompoundLayout(input: PorterCompoundPlannerInput): As
   }
 
   const pageTwoBottomCols = eventRailCol - 1;
-  for (const image of takeImages(undefined, 3)) {
+  // TRI-R04 item 4 — record an explicit rejection reason for every asset this
+  // planner silently skips, so layout decisions stay traceable to the shared
+  // contract instead of vanishing into a `continue`.
+  const skippedArticleIds = new Set<string>();
+  const skippedPhotoRefs: string[] = [];
+  const pageTwoBottomImages = takeImages(undefined, 3);
+  for (const image of pageTwoBottomImages) {
     const used = blocks.filter((entry) => entry.block.page === 2).map((entry) => entry.block);
     const preferred: LayoutBlock["position"][] = [
       { col: 1, row: 11, colSpan: 6, rowSpan: 6 },
@@ -335,7 +342,10 @@ export function buildPorterCompoundLayout(input: PorterCompoundPlannerInput): As
     const position = preferred.find((candidate) =>
       candidate.colSpan > 0 && !used.some((block) => positionsOverlap(block.position, candidate)),
     );
-    if (!position) continue;
+    if (!position) {
+      skippedPhotoRefs.push(image.id);
+      continue;
+    }
     imageBlock(image, 2, position.col, position.row, position.colSpan, position.rowSpan);
   }
 
@@ -349,7 +359,10 @@ export function buildPorterCompoundLayout(input: PorterCompoundPlannerInput): As
     const placement = positions.find(({ page, position }) =>
       !blocks.some((entry) => entry.block.page === page && positionsOverlap(entry.block.position, position)),
     );
-    if (!placement) continue;
+    if (!placement) {
+      skippedArticleIds.add(article.id);
+      continue;
+    }
     articleBlock(article, placement.page, placement.position.col, placement.position.row, placement.position.colSpan, placement.position.rowSpan, 7);
   }
 
@@ -387,6 +400,37 @@ export function buildPorterCompoundLayout(input: PorterCompoundPlannerInput): As
   });
   if (omittedRequiredArticle) return undefined;
 
+  // TRI-R04 item 4 — every asset is accounted for: placed with its page, or
+  // rejected with a recorded reason. Briefs are intentionally optional and a
+  // skipped brief is a rejection with a reason, never a silent outer default.
+  const assetDecisions: AssetDecisionRecord[] = [];
+  const placedArticleBlocks = laidOut.filter((block) => block.articleId || block.kind === "list");
+  for (const article of articles) {
+    const kind: AssetDecisionRecord["kind"] =
+      classifyPorterSourceRole(article) === "birthday-roster" ? "roster"
+      : classifyPorterSourceRole(article) === "dated-list" ? "schedule"
+      : "article";
+    const placedBlock = placedArticleBlocks.find((block) => block.articleId === article.id || (block.kind === "list" && block.slotId.replace(/^source-/, "") === article.id));
+    if (placedBlock) {
+      assetDecisions.push({ assetId: article.id, kind, outcome: "placed", page: placedBlock.page, required: true, decisionCode: "compound-alloc" });
+    } else if (skippedArticleIds.has(article.id)) {
+      assetDecisions.push({ assetId: article.id, kind, outcome: "rejected", reason: classifyPorterSourceRole(article) === "brief" ? "brief exceeded the compound template's brief slots (page 2 bottom rail); briefs are optional modules, not outer content" : "no non-overlapping slot remained in the compound template", required: classifyPorterSourceRole(article) !== "brief", decisionCode: "compound-slot-exhausted" });
+    } else {
+      assetDecisions.push({ assetId: article.id, kind, outcome: "rejected", reason: "article was not selected by the compound layout's role-based slots (director/birthday/schedules/stories/briefs)", required: false, decisionCode: "compound-not-selected" });
+    }
+  }
+  for (const image of images) {
+    const placedImageBlock = laidOut.find((block) => block.imageId === image.id);
+    if (placedImageBlock) {
+      assetDecisions.push({ assetId: image.id, kind: "photo", outcome: "placed", page: placedImageBlock.page, required: true, decisionCode: "compound-alloc-photo" });
+    } else if (skippedPhotoRefs.includes(image.id)) {
+      assetDecisions.push({ assetId: image.id, kind: "photo", outcome: "rejected", reason: "photo was a top-3 candidate for the page 2 bottom rail but no non-overlapping slot remained", required: true, decisionCode: "compound-photo-slot-exhausted" });
+    } else {
+      assetDecisions.push({ assetId: image.id, kind: "photo", outcome: "rejected", reason: "photo was not matched to a compound story slot; unplaced campus photos stay out of the inner spread rather than becoming outer content", required: false, decisionCode: "compound-photo-unmatched" });
+    }
+  }
+  assetDecisions.sort((a, b) => a.assetId.localeCompare(b.assetId));
+
   return {
     templateId: input.templateId,
     pageCount: input.pageCount,
@@ -399,6 +443,7 @@ export function buildPorterCompoundLayout(input: PorterCompoundPlannerInput): As
       fillerBlocks: 0,
       emptySlots: 0,
     },
+    assetDecisions,
     version: (input.previousVersion ?? 0) + 1,
   };
 }

@@ -1,6 +1,7 @@
 import {
   legacyProvenanceToCanonical,
   type AssetCaption,
+  type AssetDecisionRecord,
   type AssetLinkRecord,
   type AssetProvenance,
   type AssetReservation,
@@ -255,6 +256,40 @@ export function toSourceAssetContract(manifest: SourceManifest): SourceAssetCont
       ...(link.caption ? { caption: link.caption } : {}),
     })),
   );
+  // TRI-R04 item 4 — project each source unit's manifest placement into a
+  // per-asset decision record. Rejected/unresolved units carry their
+  // recorded reason so layout decisions remain traceable to the contract.
+  const assetDecisions: AssetDecisionRecord[] = manifest.units.flatMap((unit) => {
+    const kind: AssetDecisionRecord["kind"] = unit.role === "birthday-roster" ? "roster" : unit.role === "dated-list" ? "schedule" : "article";
+    const base = { assetId: unit.id, unitId: unit.id, kind, required: unit.required };
+    const photoDecision = (link: PhotoLink, unitOutcome: "placed" | "rejected" | "unresolved"): AssetDecisionRecord => ({
+      assetId: link.imageId ?? link.originalRef,
+      unitId: unit.id,
+      kind: "photo",
+      outcome: link.imageId ? unitOutcome : "unresolved",
+      reason: link.imageId
+        ? (unitOutcome === "placed" ? "photo allocated with its source unit to inner pages 2\u20133" : unit.rejectionReason ?? "photo rejected with its source unit")
+        : "photo reference unresolved: no uploaded image matched the operator's original ref",
+      required: unit.required,
+      decisionCode: unitOutcome === "placed" ? "manifest-inner-photo" : unitOutcome === "rejected" ? "manifest-photo-rejected" : "manifest-photo-unresolved",
+    });
+    if (unit.placement === "inner") {
+      return [
+        { ...base, outcome: "placed" as const, reason: "allocated to inner pages 2\u20133 by source manifest", decisionCode: "manifest-inner-alloc" },
+        ...unit.photoLinks.map((link) => photoDecision(link, "placed")),
+      ];
+    }
+    if (unit.placement === "unresolved") {
+      return [
+        { ...base, outcome: "unresolved" as const, reason: unit.rejectionReason ?? "unit placement not yet resolved by the layout pipeline", decisionCode: "manifest-unresolved" },
+        ...unit.photoLinks.map((link) => photoDecision(link, "unresolved")),
+      ];
+    }
+    return [
+      { ...base, outcome: "rejected" as const, reason: unit.rejectionReason ?? "source unit explicitly not allocated to inner pages 2\u20133", decisionCode: "manifest-rejected" },
+      ...unit.photoLinks.map((link) => photoDecision(link, "rejected")),
+    ];
+  });
   const contract: SourceAssetContract = {
     version: 1,
     ...(manifest.sourceFilename ? { sourceFilename: manifest.sourceFilename } : {}),
@@ -283,6 +318,7 @@ export function toSourceAssetContract(manifest: SourceManifest): SourceAssetCont
     aliases: manifest.aliases,
     captions: manifest.captions,
     unassignedImageIds: manifest.unassignedImageIds,
+    assetDecisions,
     warnings: manifest.warnings,
   };
   // Self-check: the projection must satisfy the canonical schema.

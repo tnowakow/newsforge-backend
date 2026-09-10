@@ -174,4 +174,34 @@ describe("porterCompoundPlanner", () => {
     });
     assert.equal(layout, undefined);
   });
+
+  it("records a decision for every article and photo; rejections carry a stored reason (TRI-R04 item 4)", () => {
+    const articles = baseArticles();
+    const images = baseImages();
+    const layout = build(articles, images);
+
+    const decisions = layout.assetDecisions ?? [];
+    assert.ok(decisions.length > 0, "assetDecisions must be present");
+    const byAsset = new Map(decisions.map((decision) => [decision.assetId, decision]));
+
+    for (const article of articles) {
+      const decision = byAsset.get(article.id);
+      assert.ok(decision, `article ${article.id} has a decision record`);
+      if (decision.outcome === "placed") {
+        assert.ok(decision.page === 1 || decision.page === 2, "placed article records its page");
+      } else {
+        assert.ok(decision.reason && decision.reason.trim().length > 0, `rejected article ${article.id} carries a stored reason`);
+        assert.ok(decision.decisionCode, "rejected article carries a decisionCode");
+      }
+    }
+    for (const image of images) {
+      const decision = byAsset.get(image.id);
+      assert.ok(decision, `photo ${image.id} has a decision record`);
+      if (decision.outcome === "placed") {
+        assert.ok(decision.page === 1 || decision.page === 2, "placed photo records its page");
+      } else {
+        assert.ok(decision.reason && decision.reason.trim().length > 0, `rejected photo ${image.id} carries a stored reason`);
+      }
+    }
+  });
 });

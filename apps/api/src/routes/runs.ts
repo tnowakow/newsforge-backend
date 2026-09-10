@@ -2,6 +2,8 @@ import { Router } from "express";
 import { z } from "zod";
 import { createId } from "@paralleldrive/cuid2";
 import { prisma } from "../db.js";
+import { finalizeSourceAssetContract } from "../services/assetDecisions.js";
+import { toSourceAssetContract, type SourceManifest } from "../services/sourceManifest.js";
 import {
   ArticleSchema,
   ArticlesSchema,
@@ -154,6 +156,16 @@ async function expandCollapsedPorterUploadArticles(articles: Article[] | undefin
   if (expandedByAssetId.size === 0) return articles;
 
   return articles.flatMap((article) => expandedByAssetId.get(article.id) ?? [article]);
+}
+
+function porterSourceManifestFromMeta(meta: unknown): SourceManifest | undefined {
+  if (!meta || typeof meta !== "object") return undefined;
+  const porterParse = (meta as { porterParse?: unknown }).porterParse;
+  if (!porterParse || typeof porterParse !== "object") return undefined;
+  const manifest = (porterParse as { sourceManifest?: unknown }).sourceManifest;
+  if (!manifest || typeof manifest !== "object") return undefined;
+  if (!Array.isArray((manifest as { units?: unknown }).units)) return undefined;
+  return manifest as SourceManifest;
 }
 
 function normalizeSourceKey(value: string | undefined): string {
@@ -1117,6 +1129,40 @@ runsRouter.post("/", async (req, res) => {
   // Run compliance sync detectors (Vitaly rule 18 seeded on create).
   const complianceFlags = runComplianceSync({ articles, images });
 
+  // TRI-R04 item 4 — persist the canonical source/asset contract with
+  // per-asset placement decisions (placed page / recorded rejection reason).
+  // Source: the uploaded Porter packet's manifest (assetLibrary meta),
+  // merged with the layout pipeline's own assetDecisions from the composed
+  // layout. Layout decisions take precedence; the manifest supplies
+  // decisions for assets the layout never saw. Validated against the shared
+  // schema before it is written, so downstream readers can trust its shape.
+  let sourceAssetContractForRun: unknown;
+  if (hasUploadedArticleContent) {
+    try {
+      const manifestAssets = await prisma.assetLibrary.findMany({
+        where: { clientId: client.id, type: "ARTICLE", source: "UPLOAD" },
+        orderBy: { createdAt: "desc" },
+        take: 10,
+        select: { meta: true },
+      });
+      const manifest = manifestAssets
+        .map((asset) => porterSourceManifestFromMeta(asset.meta))
+        .find((candidate) => candidate !== undefined);
+      if (manifest) {
+        const contract = toSourceAssetContract(manifest);
+        sourceAssetContractForRun = finalizeSourceAssetContract({
+          contract,
+          layoutAssetDecisions: layout.assetDecisions,
+          images,
+        });
+      }
+    } catch (err) {
+      // Contract persistence is audit metadata; never fail run creation
+      // because the stored manifest was missing or stale.
+      console.warn("[runs] sourceAssetContract persistence skipped:", err);
+    }
+  }
+
   const run = await prisma.newsletterRun.create({
     data: {
       id: runId,
@@ -1131,6 +1177,7 @@ runsRouter.post("/", async (req, res) => {
       layoutVersion: layout.version,
       layoutFitReport: layoutFitReport as unknown as object,
       complianceFlags: complianceFlags as unknown as object,
+      ...(sourceAssetContractForRun ? { sourceAssetContract: sourceAssetContractForRun as object } : {}),
     },
   });
 
