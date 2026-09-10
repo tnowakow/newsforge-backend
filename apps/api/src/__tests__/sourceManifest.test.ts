@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { parsePorterSubmissionFile, parsePorterSubmissionText } from "../services/uploadService.js";
-import { buildSourceManifest, sourceUnitFullyResolved } from "../services/sourceManifest.js";
+import { buildSourceManifest, sourceUnitFullyResolved, toSourceAssetContract } from "../services/sourceManifest.js";
+import { SourceAssetContractSchema } from "@newsforge/shared/schemas";
 
 process.env.DATABASE_URL ??= "postgresql://test:x@127.0.0.1:5432/test";
 process.env.AI_UNLOCK_PASSWORD ??= "test-unlock";
@@ -71,4 +72,119 @@ test("manifest marks normalized filename collisions ambiguous", () => {
     { id: "b", url: "b", originalName: "photo", aspect: "landscape", isPlaceholder: false, source: "UPLOAD" },
   ] as never[] });
   assert.equal(manifest.units[0]?.photoLinks[0]?.status, "ambiguous");
+});
+
+// ── R05 regression: upload order must not change confirmed assignments ──
+// For each scenario the manifest is built twice — once per upload order —
+// and the confirmed (resolved) assignments must be identical.
+
+function confirmedAssignments(manifest: ReturnType<typeof buildSourceManifest>) {
+  return manifest.units.map((unit) =>
+    unit.photoLinks.map((link) => ({ ref: link.originalRef, imageId: link.imageId, status: link.status, provenance: link.provenance })),
+  );
+}
+
+const uploadImage = (id: string, originalName: string, extra: Record<string, unknown> = {}) => ({
+  id, url: `/uploads/${id}.jpg`, originalName, aspect: "landscape", isPlaceholder: false, source: "UPLOAD", ...extra,
+}) as unknown as import("@newsforge/shared/schemas").NewsImage;
+
+test("R05-1: unit0 exact 'Photo 1.jpg' + unresolved 'Photo 2.jpg' / unit1 exact 'Photo 1.jpg' + 'Photo 3.jpg' — stable under upload reorder", () => {
+  const parsed = parsePorterSubmissionText(
+    "Required Articles\n\nREQUIRED - INTERESTING AND NEWSWORTHY\n\nResidents shared a lively afternoon together. Photos: Photo 1.jpg, Photo 2.jpg\n\nThe community celebrated the season. Photos: Photo 1.jpg, Photo 3.jpg\n\nOptional Article Suggestions",
+  );
+  const ordered = [uploadImage("p1", "Photo 1.jpg"), uploadImage("p3", "Photo 3.jpg")];
+  const a = buildSourceManifest({ parsed, images: ordered });
+  const b = buildSourceManifest({ parsed, images: [...ordered].reverse() });
+
+  assert.deepEqual(confirmedAssignments(a), confirmedAssignments(b));
+
+  const [u0, u1] = [a.units[0]!, a.units[1]!];
+  assert.equal(u0.photoLinks[0]?.originalRef, "Photo 1.jpg");
+  assert.equal(u0.photoLinks[0]?.imageId, "p1");
+  assert.equal(u0.photoLinks[0]?.status, "exact");
+  assert.equal(u0.photoLinks[1]?.originalRef, "Photo 2.jpg");
+  assert.equal(u0.photoLinks[1]?.imageId, undefined);
+  assert.equal(u0.photoLinks[1]?.status, "unresolved");
+  assert.equal(u1.photoLinks[0]?.imageId, "p1");
+  assert.equal(u1.photoLinks[0]?.status, "exact");
+  assert.equal(u1.photoLinks[1]?.imageId, "p3");
+  assert.equal(u1.photoLinks[1]?.status, "exact");
+});
+
+test("R05-2: unit0 + unit1 both unresolved / unit2 exact 'Photo 1.jpg' — stable under upload reorder", () => {
+  const parsed = parsePorterSubmissionText(
+    "Required Articles\n\nREQUIRED - INTERESTING AND NEWSWORTHY\n\nThe Alpha program held its garden day. Photos: Alpha.jpg\n\nThe Beta club enjoyed a social afternoon. Photos: Beta.jpg\n\nThe season opened with a garden party. Photos: Photo 1.jpg\n\nOptional Article Suggestions",
+  );
+  const ordered = [
+    uploadImage("photo1", "Photo 1.jpg", { description: "Community Alpha program garden day", tags: ["alpha", "garden"] }),
+    uploadImage("photo2", "Photo 2.jpg", { description: "Beta club social afternoon", tags: ["beta", "social"] }),
+  ];
+  const a = buildSourceManifest({ parsed, images: ordered });
+  const b = buildSourceManifest({ parsed, images: [...ordered].reverse() });
+
+  assert.deepEqual(confirmedAssignments(a), confirmedAssignments(b));
+
+  const [u0, u1, u2] = [a.units[0]!, a.units[1]!, a.units[2]!];
+  // Filename resolution is unresolved for units 0 and 1; the semantic pass
+  // must be deterministic and never steal the exact 'Photo 1.jpg' asset.
+  assert.equal(u0.photoLinks[0]?.originalRef, "Alpha.jpg");
+  assert.equal(u0.photoLinks[0]?.imageId, "photo1");
+  assert.equal(u0.photoLinks[0]?.status, "semantic-assigned");
+  assert.equal(u0.photoLinks[0]?.provenance, "inferred");
+  assert.equal(u1.photoLinks[0]?.originalRef, "Beta.jpg");
+  assert.equal(u1.photoLinks[0]?.imageId, "photo2");
+  assert.equal(u1.photoLinks[0]?.status, "semantic-assigned");
+  assert.equal(u2.photoLinks[0]?.originalRef, "Photo 1.jpg");
+  assert.equal(u2.photoLinks[0]?.imageId, "photo1");
+  assert.equal(u2.photoLinks[0]?.status, "exact");
+  assert.equal(sourceUnitFullyResolved(u2), true);
+});
+
+test("R05-3: unit0 exact 'Photo 1.jpg' / unit1 unresolved 'Photo 2.jpg' + 'Photo 3.jpg' — stable under upload reorder", () => {
+  const parsed = parsePorterSubmissionText(
+    "Required Articles\n\nREQUIRED - INTERESTING AND NEWSWORTHY\n\nThe season opened with a garden party. Photos: Photo 1.jpg\n\nNeighbors gathered for the fall market. Photos: Photo 2.jpg, Photo 3.jpg\n\nOptional Article Suggestions",
+  );
+  const ordered = [uploadImage("one", "Photo 1.jpg"), uploadImage("twelve", "Photo 12.jpg")];
+  const a = buildSourceManifest({ parsed, images: ordered });
+  const b = buildSourceManifest({ parsed, images: [...ordered].reverse() });
+
+  assert.deepEqual(confirmedAssignments(a), confirmedAssignments(b));
+
+  const [u0, u1] = [a.units[0]!, a.units[1]!];
+  assert.equal(u0.photoLinks[0]?.imageId, "one");
+  assert.equal(u0.photoLinks[0]?.status, "exact");
+  assert.equal(u1.photoLinks[0]?.originalRef, "Photo 2.jpg");
+  assert.equal(u1.photoLinks[0]?.imageId, undefined);
+  assert.equal(u1.photoLinks[0]?.status, "unresolved");
+  assert.equal(u1.photoLinks[1]?.originalRef, "Photo 3.jpg");
+  assert.equal(u1.photoLinks[1]?.imageId, undefined);
+  assert.equal(u1.photoLinks[1]?.status, "unresolved");
+  assert.equal(sourceUnitFullyResolved(u1), false);
+  // 'Photo 12.jpg' must not collide with the 'Photo 1.jpg' exact match.
+  assert.equal(a.units[0]?.photoLinks[0]?.status, "exact");
+  assert.ok(!a.units[0]?.photoLinks.some((link) => link.imageId === "twelve"));
+});
+
+test("toSourceAssetContract round-trips through the canonical schema", () => {
+  const parsed = parsePorterSubmissionText(
+    "Required Articles\n\nREQUIRED - INTERESTING AND NEWSWORTHY\n\nA story about the annual garden party. Photos: Photo 1.jpg, Photo 2.jpg\n\nOptional Article Suggestions",
+  );
+  const manifest = buildSourceManifest({ parsed, images: [uploadImage("a", "Photo 1.jpg"), uploadImage("b", "Photo 2.jpg")], captions: { "Photo 1.jpg": "The garden party crowd" } });
+  const contract = toSourceAssetContract(manifest);
+
+  // Round-trip: re-parsing the projected contract against the canonical
+  // schema must succeed and be lossless.
+  const revalidated = SourceAssetContractSchema.parse(JSON.parse(JSON.stringify(contract)));
+  assert.deepEqual(revalidated, contract);
+
+  assert.equal(contract.version, 1);
+  assert.equal(contract.units.length, manifest.units.length);
+  assert.equal(contract.units.length, 1);
+  assert.equal(contract.links.length, 2);
+  assert.ok(contract.reservations.length >= 2);
+  assert.ok(contract.assetDecisions.length >= 3, "unit + one decision per photo link");
+  const link = contract.units[0]?.links.find((candidate) => candidate.originalRef === "Photo 1.jpg");
+  assert.equal(link?.resolvedImageId, "a");
+  assert.equal(link?.provenance, "exact");
+  assert.equal(link?.caption, "The garden party crowd");
 });
