@@ -47,6 +47,18 @@ function image(id: string, caption: string): NewsImage {
   };
 }
 
+/** Image whose metadata is deliberately opaque: no usable text caption. */
+function opaqueImage(id: string, originalName: string): NewsImage {
+  return {
+    id,
+    url: `/uploads/photo-${id}.jpg`,
+    aspect: "landscape",
+    source: "UPLOAD",
+    isPlaceholder: false,
+    originalName,
+  };
+}
+
 function baseArticles(eventRows = 12): Article[] {
   return [
     article("birthday", "Milestone List", "RESIDENTS\nJerry L. 7/8\nSTAFF\nCarla M. 7/3", "birthday-roster", [], 0, "birthday"),
@@ -203,5 +215,78 @@ describe("porterCompoundPlanner", () => {
         assert.ok(decision.reason && decision.reason.trim().length > 0, `rejected photo ${image.id} carries a stored reason`);
       }
     }
+  });
+
+  it("changing an operator alias changes the paired final image and caption (TRI-R04b3 acceptance)", () => {
+    // 'Outings 2.jpg' has no uploaded exact photo: the operator must alias it.
+    // The exact 'Outings 1.jpg' upload is opaque (no usable caption text), so
+    // the article title is the only caption the planner can fall back to.
+    const outing = opaqueImage("outings-a", "Outings 1.jpg");
+    // Alias targets are uploads no other article references by name.
+    const targetOne = { ...opaqueImage("alias-one", "campus-one.jpg"), caption: "Tea Club at the table" };
+    const targetTwo = opaqueImage("alias-two", "campus-two.jpg");
+    const images = [
+      image("director-img", "Director Portrait.jpg"),
+      outing,
+      image("wings-a", "Wings of Joy 1.jpg"),
+      image("wings-b", "Wings of Joy 2.jpg"),
+      image("breakfast-a", "Mens Breakfast 1.jpg"),
+      image("breakfast-b", "Mens Breakfast 2.jpg"),
+      image("tea-a", "Mothers Tea 1.jpg"),
+      image("tea-b", "Mothers Tea 2.jpg"),
+    ];
+    const articlesFor = (aliasValue: string) => [
+      article("birthday", "Milestone List", "RESIDENTS\nJerry L. 7/8\nSTAFF\nCarla M. 7/3", "birthday-roster", [], 0, "birthday"),
+      article("director", "Campus Leader Note", "A warm note from the campus leader about the month ahead.", "director-note", ["Director Portrait.jpg"], 1, "executive-note"),
+      {
+        ...article("outings", "Community Trips", "Residents enjoyed time together around town.", "narrative-story", ["Outings 1.jpg", "Outings 2.jpg"], 2),
+        operatorAliases: { "Outings 2.jpg": aliasValue },
+      },
+      article("wings", "Creative Partnership", "Residents and students worked together on a colorful project.", "narrative-story", ["Wings of Joy 1.jpg", "Wings of Joy 2.jpg"], 3),
+      article("breakfast", "Morning Gathering", "Neighbors gathered for breakfast and conversation.", "narrative-story", ["Mens Breakfast 1.jpg", "Mens Breakfast 2.jpg"], 4),
+      article("tea", "Tea Celebration", "The community honored mothers and motherly figures.", "narrative-story", ["Mothers Tea 1.jpg", "Mothers Tea 2.jpg"], 5),
+      article("events", "Community Calendar", Array.from({ length: 12 }, (_, index) => `7/${index + 1} Event ${index + 1}`).join("\n"), "dated-list", [], 6),
+    ];
+
+    // Save 1: the operator aliases 'Outings 2.jpg' to a photo that carries
+    // its own supplied caption.
+    const layoutOne = buildPorterCompoundLayout({
+      templateId: "v3-upload-source",
+      pageCount: 2,
+      gridSpec,
+      articles: articlesFor(targetOne.id),
+      images: [...images, targetOne],
+    });
+    // Save 2: same packet, alias changed to a different photo whose metadata
+    // carries no usable caption — the fallback must be the story title.
+    const layoutTwo = buildPorterCompoundLayout({
+      templateId: "v3-upload-source",
+      pageCount: 2,
+      gridSpec,
+      articles: articlesFor(targetTwo.id),
+      images: [...images, targetTwo],
+    });
+    assert.ok(layoutOne, "expected compound layout for alias one");
+    assert.ok(layoutTwo, "expected compound layout for alias two");
+
+    const outingsBlocks = (layout: NonNullable<typeof layoutOne>) =>
+      layout.blocks.filter((block) => block.compoundId === "compound-outings" && block.imageId);
+    const outingsPhotosOne = outingsBlocks(layoutOne).map((block) => block.imageId).sort();
+    const outingsPhotosTwo = outingsBlocks(layoutTwo).map((block) => block.imageId).sort();
+    const captionsOne = outingsBlocks(layoutOne).map((block) => block.caption);
+    const captionsTwo = outingsBlocks(layoutTwo).map((block) => block.caption);
+
+    // The alias drives which photo the paired story receives.
+    assert.deepEqual(outingsPhotosOne, [outing.id, targetOne.id].sort(), "alias target paired with the outings story");
+    assert.deepEqual(outingsPhotosTwo, [outing.id, targetTwo.id].sort(), "changed alias target paired with the outings story");
+    assert.notDeepEqual(outingsPhotosOne, outingsPhotosTwo, "changing the alias must change the paired final image");
+
+    // …and the paired block's caption follows the new asset: the photo with a
+    // real caption keeps it; the opaque photo falls back to the story title;
+    // and one save's caption never leaks into the other pairing.
+    const teaCaption = "Tea Club at the table";
+    assert.deepEqual([...captionsOne].sort(), ["Community Trips", teaCaption].sort(), `alias-one captions ${JSON.stringify(captionsOne)}`);
+    assert.deepEqual([...captionsTwo].sort(), ["Community Trips", "Community Trips"], `alias-two captions ${JSON.stringify(captionsTwo)}`);
+    assert.ok(!captionsTwo.includes(teaCaption), "previous alias target's caption must not follow the old pairing");
   });
 });

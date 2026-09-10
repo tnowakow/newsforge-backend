@@ -46,6 +46,26 @@ test("manifest resolves each reference independently and is stable under image r
   assert.equal(sourceUnitFullyResolved(unresolved.units[0]!), false);
 });
 
+test("two-photo story with one exact + one semantic-assigned is NOT fully resolved (TRI-R04b3 acceptance)", () => {
+  // One reference resolves by exact filename; the other is filled in by the
+  // semantic pass. Both links now point at real images — yet the unit must
+  // still be reported as NOT fully resolved: a semantic assignment is a
+  // suggestion the operator can still change, not a confirmation.
+  const parsed = parsePorterSubmissionText(
+    "Required Articles\n\nREQUIRED - Legacy News\n\nVeterans remembered their military service. Photos: Legacy 1.jpg, Legacy 2.jpg\n\nOptional Article Suggestions",
+  );
+  const manifest = buildSourceManifest({ parsed, images: [
+    { id: "exact", url: "exact.jpg", originalName: "Legacy 1.jpg", aspect: "landscape", isPlaceholder: false, source: "UPLOAD" },
+    { id: "inferred", url: "inferred.jpg", originalName: "photo9.jpg", description: "Two veterans recalling their service", tags: ["military"], aspect: "landscape", isPlaceholder: false, source: "UPLOAD" },
+  ] as never[] });
+  const unit = manifest.units[0]!;
+  assert.equal(unit.photoLinks[0]?.status, "exact");
+  assert.equal(unit.photoLinks[0]?.imageId, "exact");
+  assert.equal(unit.photoLinks[1]?.status, "semantic-assigned");
+  assert.equal(unit.photoLinks[1]?.imageId, "inferred");
+  assert.equal(sourceUnitFullyResolved(unit), false);
+});
+
 test("unresolved references receive semantic reasoning without filename evidence", () => {
   const parsed = parsePorterSubmissionText("Required Articles\n\nREQUIRED - Legacy News\n\nVeterans remembered their military service. Photos: Legacy.jpg, Legacy 2.jpg\n\nOptional Article Suggestions");
   const manifest = buildSourceManifest({ parsed, images: [
