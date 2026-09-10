@@ -845,6 +845,25 @@ export function assetImageToNewsImage(row: {
   meta: unknown;
 }): NewsImage {
   const meta = (row.meta ?? {}) as Record<string, unknown>;
+  const contentAnalysis =
+    meta.contentAnalysis && typeof meta.contentAnalysis === "object"
+      ? (meta.contentAnalysis as NewsImage["contentAnalysis"])
+      : undefined;
+  const analysisStatus =
+    meta.analysisStatus === "vision" ||
+    meta.analysisStatus === "fixture" ||
+    meta.analysisStatus === "unavailable" ||
+    meta.analysisStatus === "skipped"
+      ? meta.analysisStatus
+      : contentAnalysis?.scene
+        ? "vision"
+        : undefined;
+  const aspectFromAnalysis =
+    contentAnalysis?.orientation === "square" ||
+    contentAnalysis?.orientation === "portrait" ||
+    contentAnalysis?.orientation === "landscape"
+      ? contentAnalysis.orientation
+      : undefined;
   return {
     id: row.id,
     url: row.contentOrUrl,
@@ -853,15 +872,27 @@ export function assetImageToNewsImage(row: {
     orientationApplied: typeof meta.orientationApplied === "boolean" ? meta.orientationApplied : undefined,
     caption: typeof meta.caption === "string" ? meta.caption : undefined,
     alt: typeof meta.alt === "string" ? meta.alt : undefined,
+    description: typeof meta.description === "string" ? meta.description : contentAnalysis?.scene,
+    tags: Array.isArray(meta.tags) ? (meta.tags as string[]) : contentAnalysis?.objects,
     aspect:
-      meta.aspect === "square" ||
+      aspectFromAnalysis ??
+      (meta.aspect === "square" ||
       meta.aspect === "portrait" ||
       meta.aspect === "landscape"
         ? meta.aspect
-        : "landscape",
+        : "landscape"),
     isPlaceholder: false,
     source: "UPLOAD",
     width: typeof meta.width === "number" ? meta.width : undefined,
     height: typeof meta.height === "number" ? meta.height : undefined,
+    contentAnalysis,
+    analysisStatus,
+    focalX: typeof meta.focalX === "number" ? meta.focalX : undefined,
+    focalY: typeof meta.focalY === "number" ? meta.focalY : undefined,
+    zoom: typeof meta.zoom === "number" ? meta.zoom : undefined,
+    fitMode:
+      meta.fitMode === "cover" || meta.fitMode === "contain" || meta.fitMode === "fill"
+        ? meta.fitMode
+        : undefined,
   } as NewsImage;
 }

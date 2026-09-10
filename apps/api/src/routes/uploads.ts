@@ -9,6 +9,8 @@ import { prisma } from "../db.js";
 import { env } from "../env.js";
 import { extractImageMeta, parsePorterSubmissionText, porterParseToArticles, assetImageToNewsImage } from "../services/uploadService.js";
 import { buildSourceManifest } from "../services/sourceManifest.js";
+import { applyImageDescription, describeImagePixels } from "../services/imageDescription.js";
+import { applySubjectSafeCrop } from "../services/subjectSafeCrop.js";
 
 export const uploadsRouter: Router = Router();
 const require = createRequire(import.meta.url);
@@ -109,6 +111,40 @@ uploadsRouter.post("/", upload.array("files", 30), async (req, res) => {
           originalName: file.originalname,
           mime: normalized.mime,
         });
+        // TRI-R05 — describe pixels when a vision provider is configured.
+        // Failures stay explicit (analysisStatus=unavailable); never invent content.
+        const bytes = await fs.readFile(normalized.filePath);
+        const described = await describeImagePixels({
+          bytes,
+          mimeType: normalized.mime,
+          filePath: normalized.filePath,
+        });
+        let newsImage = assetImageToNewsImage({
+          id: "pending",
+          contentOrUrl: normalized.url,
+          meta: {
+            originalFilename: file.originalname,
+            width: dimensions.width,
+            height: dimensions.height,
+            aspect:
+              dimensions.width && dimensions.height
+                ? dimensions.width === dimensions.height
+                  ? "square"
+                  : dimensions.width > dimensions.height
+                    ? "landscape"
+                    : "portrait"
+                : "landscape",
+          },
+        });
+        newsImage = applyImageDescription(newsImage, described);
+        // Default subject-safe crop for a moderate landscape frame; layout may re-choose.
+        newsImage = applySubjectSafeCrop(newsImage, {
+          aspectRatio:
+            dimensions.width && dimensions.height && dimensions.height > 0
+              ? dimensions.width / dimensions.height
+              : 1.4,
+          label: "upload-default",
+        });
         const asset = await prisma.assetLibrary.create({
           data: {
             id: createId(),
@@ -125,6 +161,20 @@ uploadsRouter.post("/", upload.array("files", 30), async (req, res) => {
               height: dimensions.height,
               format: dimensions.format,
               convertedFrom: normalized.convertedFrom,
+              aspect: newsImage.aspect,
+              description: newsImage.description,
+              tags: newsImage.tags,
+              contentAnalysis: newsImage.contentAnalysis,
+              analysisStatus: newsImage.analysisStatus ?? (described.ok ? "vision" : "unavailable"),
+              analysisProvider: described.ok
+                ? described.analysis.provider
+                : described.provider,
+              analysisReason: described.ok ? undefined : described.reason,
+              focalX: newsImage.focalX,
+              focalY: newsImage.focalY,
+              zoom: newsImage.zoom,
+              fitMode: newsImage.fitMode,
+              cropAlternatives: newsImage.cropAlternatives,
             },
           },
         });

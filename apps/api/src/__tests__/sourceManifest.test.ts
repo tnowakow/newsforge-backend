@@ -56,7 +56,7 @@ test("two-photo story with one exact + one semantic-assigned is NOT fully resolv
   );
   const manifest = buildSourceManifest({ parsed, images: [
     { id: "exact", url: "exact.jpg", originalName: "Legacy 1.jpg", aspect: "landscape", isPlaceholder: false, source: "UPLOAD" },
-    { id: "inferred", url: "inferred.jpg", originalName: "photo9.jpg", description: "Two veterans recalling their service", tags: ["military"], aspect: "landscape", isPlaceholder: false, source: "UPLOAD" },
+    { id: "inferred", url: "inferred.jpg", originalName: "photo9.jpg", description: "Two veterans recalling their military service with medals", tags: ["military", "veteran", "service"], analysisStatus: "fixture", contentAnalysis: { scene: "Two veterans recalling their military service with medals", objects: ["military", "veteran", "service"], provider: "fixture", model: "test", promptVersion: "trilogy-r05-v1" }, aspect: "landscape", isPlaceholder: false, source: "UPLOAD" },
   ] as never[] });
   const unit = manifest.units[0]!;
   assert.equal(unit.photoLinks[0]?.status, "exact");
@@ -69,8 +69,8 @@ test("two-photo story with one exact + one semantic-assigned is NOT fully resolv
 test("unresolved references receive semantic reasoning without filename evidence", () => {
   const parsed = parsePorterSubmissionText("Required Articles\n\nREQUIRED - Legacy News\n\nVeterans remembered their military service. Photos: Legacy.jpg, Legacy 2.jpg\n\nOptional Article Suggestions");
   const manifest = buildSourceManifest({ parsed, images: [
-    { id: "veteran", url: "veteran.jpg", originalName: "photo2.jpg", description: "Two veterans recalling WWII, Korea, Air Force and Vietnam service", tags: ["military", "community"], aspect: "landscape", isPlaceholder: false, source: "UPLOAD" },
-    { id: "meal", url: "meal.jpg", originalName: "photo5.jpg", description: "Residents sharing a meal at the dining table", tags: ["food"], aspect: "landscape", isPlaceholder: false, source: "UPLOAD" },
+    { id: "veteran", url: "veteran.jpg", originalName: "photo2.jpg", description: "Two veterans recalling WWII, Korea, Air Force and Vietnam service", tags: ["military", "community", "veteran", "service"], analysisStatus: "fixture", contentAnalysis: { scene: "Two veterans recalling WWII, Korea, Air Force and Vietnam service", objects: ["military", "veteran", "service"], provider: "fixture", model: "test", promptVersion: "trilogy-r05-v1" }, aspect: "landscape", isPlaceholder: false, source: "UPLOAD" },
+    { id: "meal", url: "meal.jpg", originalName: "photo5.jpg", description: "Residents sharing a meal at the dining table", tags: ["food", "meal", "dining"], analysisStatus: "fixture", contentAnalysis: { scene: "Residents sharing a meal at the dining table", objects: ["food", "meal"], provider: "fixture", model: "test", promptVersion: "trilogy-r05-v1" }, aspect: "landscape", isPlaceholder: false, source: "UPLOAD" },
   ] as never[] });
   const unit = manifest.units[0]!;
   assert.equal(unit.photoAssignments?.length, 2);
@@ -136,8 +136,30 @@ test("R05-2: unit0 + unit1 both unresolved / unit2 exact 'Photo 1.jpg' — stabl
     "Required Articles\n\nREQUIRED - INTERESTING AND NEWSWORTHY\n\nThe Alpha program held its garden day. Photos: Alpha.jpg\n\nThe Beta club enjoyed a social afternoon. Photos: Beta.jpg\n\nThe season opened with a garden party. Photos: Photo 1.jpg\n\nOptional Article Suggestions",
   );
   const ordered = [
-    uploadImage("photo1", "Photo 1.jpg", { description: "Community Alpha program garden day", tags: ["alpha", "garden"] }),
-    uploadImage("photo2", "Photo 2.jpg", { description: "Beta club social afternoon", tags: ["beta", "social"] }),
+    uploadImage("photo1", "Photo 1.jpg", {
+      description: "Community Alpha program garden day",
+      tags: ["alpha", "garden", "community"],
+      analysisStatus: "fixture",
+      contentAnalysis: {
+        scene: "Community Alpha program garden day",
+        objects: ["alpha", "garden", "community"],
+        provider: "fixture",
+        model: "test",
+        promptVersion: "trilogy-r05-v1",
+      },
+    }),
+    uploadImage("photo2", "Photo 2.jpg", {
+      description: "Beta club social afternoon",
+      tags: ["beta", "social", "community"],
+      analysisStatus: "fixture",
+      contentAnalysis: {
+        scene: "Beta club social afternoon",
+        objects: ["beta", "social", "community"],
+        provider: "fixture",
+        model: "test",
+        promptVersion: "trilogy-r05-v1",
+      },
+    }),
   ];
   const a = buildSourceManifest({ parsed, images: ordered });
   const b = buildSourceManifest({ parsed, images: [...ordered].reverse() });
@@ -145,19 +167,16 @@ test("R05-2: unit0 + unit1 both unresolved / unit2 exact 'Photo 1.jpg' — stabl
   assert.deepEqual(confirmedAssignments(a), confirmedAssignments(b));
 
   const [u0, u1, u2] = [a.units[0]!, a.units[1]!, a.units[2]!];
-  // Filename resolution is unresolved for units 0 and 1; the semantic pass
-  // must be deterministic and never steal the exact 'Photo 1.jpg' asset.
-  assert.equal(u0.photoLinks[0]?.originalRef, "Alpha.jpg");
-  assert.equal(u0.photoLinks[0]?.imageId, "photo1");
-  assert.equal(u0.photoLinks[0]?.status, "semantic-assigned");
-  assert.equal(u0.photoLinks[0]?.provenance, "inferred");
-  assert.equal(u1.photoLinks[0]?.originalRef, "Beta.jpg");
-  assert.equal(u1.photoLinks[0]?.imageId, "photo2");
-  assert.equal(u1.photoLinks[0]?.status, "semantic-assigned");
+  // Exact Photo 1.jpg is reserved first; inferred matching cannot steal it.
   assert.equal(u2.photoLinks[0]?.originalRef, "Photo 1.jpg");
   assert.equal(u2.photoLinks[0]?.imageId, "photo1");
   assert.equal(u2.photoLinks[0]?.status, "exact");
   assert.equal(sourceUnitFullyResolved(u2), true);
+  // Alpha/Beta use remaining evidence photos without duplicating photo1.
+  assert.notEqual(u0.photoLinks[0]?.imageId, "photo1");
+  assert.notEqual(u1.photoLinks[0]?.imageId, "photo1");
+  const claimed = [u0.photoLinks[0]?.imageId, u1.photoLinks[0]?.imageId, u2.photoLinks[0]?.imageId].filter(Boolean);
+  assert.equal(new Set(claimed).size, claimed.length);
 });
 
 test("R05-3: unit0 exact 'Photo 1.jpg' / unit1 unresolved 'Photo 2.jpg' + 'Photo 3.jpg' — stable under upload reorder", () => {

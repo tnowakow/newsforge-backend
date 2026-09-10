@@ -24,3 +24,9 @@ Current integrated SHA: 6eaaeec5f0e3e9e9e9e9e9e9e9e9e9e9e9e9e9e9 (HEAD)
 - Evidence path: docs/trilogy-review-2026-09-09/ (PLAN.md, REVIEW.md, this ledger)
 
 This satisfies the new completion contract: integrated SHA + checks + evidence path. Old approvals preserved as history.
+
+## TRI-R05 — image understanding + subject-safe crops
+- Modules: `imageDescription.ts`, rewritten `photoAssignment.ts`, `subjectSafeCrop.ts`; `sourceManifest` two-pass; upload meta; `renderHtml` frame-aware crop
+- Verification: typecheck + build pass; `photoAssignment.r05` + `sourceManifest` 18/19 (Ashford birthdayPresent pre-existing on clean main)
+- Evidence: `docs/trilogy-review-2026-09-09/evidence/TRI-R05/`
+- No production deployment

@@ -43,6 +43,54 @@ export const ArticlesSchema = z.array(ArticleSchema);
 /**
  * One image asset attached to a run.
  */
+/** Normalized subject box in percent of the image (0..100). TRI-R05. */
+export const SubjectBoundsSchema = z.object({
+  left: z.number().min(0).max(100),
+  top: z.number().min(0).max(100),
+  right: z.number().min(0).max(100),
+  bottom: z.number().min(0).max(100),
+});
+export type SubjectBounds = z.infer<typeof SubjectBoundsSchema>;
+
+/**
+ * TRI-R05 — visible-content analysis of actual image pixels.
+ * Never stores personal identities or medical inferences.
+ */
+export const ImageContentAnalysisSchema = z.object({
+  /** Short scene description of what is visibly present. */
+  scene: z.string(),
+  /** Visible objects / activities (no person names). */
+  objects: z.array(z.string()).default([]),
+  /** Image orientation from pixels. */
+  orientation: z.enum(["landscape", "portrait", "square"]).optional(),
+  /** Inclusive subject-safe bounds covering people and primary content. */
+  subjectBounds: SubjectBoundsSchema.optional(),
+  /** Count of visible people only — never identities. */
+  peopleCount: z.number().int().min(0).optional(),
+  /** Provider that produced this analysis (gemini, openai, fixture, unavailable). */
+  provider: z.string(),
+  model: z.string(),
+  /** Prompt/schema version used for cache keys. */
+  promptVersion: z.string(),
+  /** SHA-256 of image bytes used for cache lookup. */
+  contentHash: z.string().optional(),
+  cached: z.boolean().optional(),
+});
+export type ImageContentAnalysis = z.infer<typeof ImageContentAnalysisSchema>;
+
+/** Crop alternative offered when layout/frame choice must stay subject-safe. */
+export const CropAlternativeSchema = z.object({
+  label: z.string(),
+  fitMode: z.enum(["cover", "contain", "fill"]),
+  focalX: z.number().min(0).max(100),
+  focalY: z.number().min(0).max(100),
+  zoom: z.number().min(1).max(3),
+  /** True when this option would clip subject bounds under cover. */
+  clipsSubject: z.boolean().default(false),
+  reason: z.string(),
+});
+export type CropAlternative = z.infer<typeof CropAlternativeSchema>;
+
 export const ImageSchema = z.object({
   id: z.string(),
   url: z.string(),
@@ -71,6 +119,15 @@ export const ImageSchema = z.object({
   orientationApplied: z.boolean().optional(),
   width: z.number().int().positive().optional(),
   height: z.number().int().positive().optional(),
+  /**
+   * TRI-R05 — pixel-derived content analysis. When absent and analysisStatus
+   * is "unavailable", assignment must stay unassigned (no metadata scorer).
+   */
+  contentAnalysis: ImageContentAnalysisSchema.optional(),
+  /** How description evidence was obtained. */
+  analysisStatus: z.enum(["vision", "fixture", "unavailable", "skipped"]).optional(),
+  /** Subject-safe crop alternatives for the current / last frame choice. */
+  cropAlternatives: z.array(CropAlternativeSchema).optional(),
 });
 export type NewsImage = z.infer<typeof ImageSchema>;
 export const ImagesSchema = z.array(ImageSchema);

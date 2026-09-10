@@ -30,6 +30,7 @@ import {
   resolveToken,
   type BrandColors,
 } from "./designLanguage.js";
+import { applySubjectSafeCrop, frameAspectFromGrid } from "./subjectSafeCrop.js";
 
 interface RenderInput {
   clientName: string;
@@ -74,11 +75,21 @@ function token(input: RenderInput, t: PanelToken | undefined): string | null {
   return resolveToken(t, brand);
 }
 
-function imageInlineStyle(img: NewsImage): string {
-  const focalX = img.focalX ?? 50;
-  const focalY = img.focalY ?? 50;
-  const zoom = img.zoom ?? 1;
-  const fitMode = img.fitMode === "contain" ? "contain" : "cover";
+function imageInlineStyle(
+  img: NewsImage,
+  frame?: { colSpan: number; rowSpan: number },
+): string {
+  // TRI-R05 — re-evaluate subject-safe crop against the actual block frame.
+  const resolved = frame
+    ? applySubjectSafeCrop(img, {
+        aspectRatio: frameAspectFromGrid(frame),
+        label: `block-${frame.colSpan}x${frame.rowSpan}`,
+      })
+    : img;
+  const focalX = resolved.focalX ?? 50;
+  const focalY = resolved.focalY ?? 50;
+  const zoom = resolved.zoom ?? 1;
+  const fitMode = resolved.fitMode === "contain" ? "contain" : "cover";
   return `object-fit:${fitMode};object-position:${focalX}% ${focalY}%;transform:scale(${zoom});transform-origin:${focalX}% ${focalY}%;`;
 }
 
@@ -200,7 +211,7 @@ function renderBlock(input: RenderInput, b: LayoutBlock): string {
     if (img) {
       inner = `
         <figure class="photo${photoClass(b)}">
-          <div class="photo-frame"><img src="${esc(img.url)}" alt="${esc(img.alt ?? "")}" data-placeholder="${img.isPlaceholder ? "true" : "false"}" style="${imageInlineStyle(img)}"/></div>
+          <div class="photo-frame"><img src="${esc(img.url)}" alt="${esc(img.alt ?? "")}" data-placeholder="${img.isPlaceholder ? "true" : "false"}" style="${imageInlineStyle(img, b.position)}"/></div>
           ${b.caption ? `<figcaption>${esc(b.caption)}</figcaption>` : ""}
         </figure>`;
     }

@@ -12,7 +12,7 @@ import {
 import type { NewsImage } from "@newsforge/shared/schemas";
 import type { ParsedPorterSubmission } from "./uploadService.js";
 import { normalizePorterFilename } from "./porterSourceSemantics.js";
-import { assignUnresolvedPhotos, type PhotoAssignment } from "./photoAssignment.js";
+import { assignUnresolvedPhotosGlobally, type PhotoAssignment } from "./photoAssignment.js";
 
 export type SourcePlacement = "inner" | "outer" | "unresolved";
 /**
@@ -151,6 +151,15 @@ export function buildSourceManifest(input: SourceManifestInput): SourceManifest 
   };
 
   const articles = input.parsed.articles;
+  // Pass 1 — exact / operator-confirmed only. Reserve across the whole packet
+  // before any inferred matching so later exact links cannot be stolen.
+  type DraftUnit = {
+    id: string;
+    index: number;
+    article: (typeof articles)[number];
+    photoLinks: PhotoLink[];
+  };
+  const drafts: DraftUnit[] = [];
   for (const [index, article] of articles.entries()) {
     const unitId = `source-unit-${String(index + 1).padStart(4, "0")}`;
     const refs = article.imageRefs ?? [];
@@ -163,52 +172,83 @@ export function buildSourceManifest(input: SourceManifestInput): SourceManifest 
       if (alias) {
         const target = resolveAliasTarget(images, alias);
         if (target) {
+          // Exact/confirmed links may share an image across units; inferred matching cannot.
           used.add(target.id);
           const linkCaption = caption(target);
           recordAlias(originalRef, target.id);
           if (linkCaption) recordCaption(target.id, linkCaption);
           recordReservation(target, unitId, originalRef, "operator-confirmed");
-          return { originalRef, imageId: target.id, status: "operator-confirmed", provenance: "operator-confirmed", alias, caption: linkCaption };
+          return { originalRef, imageId: target.id, status: "operator-confirmed" as const, provenance: "operator-confirmed" as const, alias, caption: linkCaption };
         }
         warnings.push(`unresolved-alias:${originalRef}`);
-        return { originalRef, status: "unresolved", provenance: "unresolved", alias };
+        return { originalRef, status: "unresolved" as const, provenance: "unresolved" as const, alias };
       }
 
-      if (matches.length > 1) return { originalRef, status: "ambiguous", provenance: "unresolved" };
+      if (matches.length > 1) return { originalRef, status: "ambiguous" as const, provenance: "unresolved" as const };
       if (matches.length === 1) {
         const match = matches[0]!;
+        // Multiple exact refs may legitimately point at the same uploaded file.
+        // Mark reserved so later inferred matching cannot steal it.
         used.add(match.id);
         const linkCaption = caption(match);
         if (linkCaption) recordCaption(match.id, linkCaption);
         recordReservation(match, unitId, originalRef, "exact");
-        return { originalRef, imageId: match.id, status: "exact", provenance: "exact", caption: linkCaption };
+        return { originalRef, imageId: match.id, status: "exact" as const, provenance: "exact" as const, caption: linkCaption };
       }
       warnings.push(`unresolved-photo:${originalRef}`);
-      return { originalRef, status: "unresolved", provenance: "unresolved" };
+      return { originalRef, status: "unresolved" as const, provenance: "unresolved" as const };
     });
-    const unresolvedRefs = photoLinks.filter((link) => link.status === "unresolved").map((link) => link.originalRef);
-    const photoAssignments = unresolvedRefs.length
-      ? assignUnresolvedPhotos(article, unresolvedRefs, images, used)
-      : [];
-    for (const assignment of photoAssignments) {
-      if (assignment.chosenImageId) {
-        used.add(assignment.chosenImageId);
-        const link = photoLinks.find((candidate) => candidate.originalRef === assignment.originalRef);
-        if (link) {
-          link.imageId = assignment.chosenImageId;
-          link.status = "semantic-assigned";
-          link.provenance = "inferred";
-        }
+    drafts.push({ id: unitId, index, article, photoLinks });
+  }
+
+  // Pass 2 — global visible-evidence ranking for remaining unresolved refs.
+  const slots = drafts.flatMap((draft) =>
+    draft.photoLinks
+      .filter((link) => link.status === "unresolved")
+      .map((link) => ({
+        unitId: draft.id,
+        originalRef: link.originalRef,
+        article: { title: draft.article.title, body: draft.article.body },
+      })),
+  );
+  const globalAssignments = slots.length
+    ? assignUnresolvedPhotosGlobally(slots, images, used)
+    : [];
+  const assignmentsByUnit = new Map<string, PhotoAssignment[]>();
+  for (const assignment of globalAssignments) {
+    const unitId = assignment.unitId ?? "";
+    const list = assignmentsByUnit.get(unitId) ?? [];
+    list.push(assignment);
+    assignmentsByUnit.set(unitId, list);
+    if (assignment.chosenImageId) {
+      used.add(assignment.chosenImageId);
+      const draft = drafts.find((d) => d.id === unitId);
+      const link = draft?.photoLinks.find((candidate) => candidate.originalRef === assignment.originalRef);
+      if (link) {
+        link.imageId = assignment.chosenImageId;
+        link.status = "semantic-assigned";
+        link.provenance = "inferred";
+      }
+    } else if (assignment.status === "ambiguous") {
+      const draft = drafts.find((d) => d.id === unitId);
+      const link = draft?.photoLinks.find((candidate) => candidate.originalRef === assignment.originalRef);
+      if (link) {
+        link.status = "ambiguous";
+        link.provenance = "unresolved";
       }
     }
+  }
+
+  for (const draft of drafts) {
+    const photoAssignments = assignmentsByUnit.get(draft.id) ?? [];
     units.push({
-      id: unitId,
-      sourceParagraphIds: [paragraphs[index]?.id ?? `paragraph-${String(index + 1).padStart(4, "0")}`],
-      role: article.sectionId ?? article.articleType ?? "article",
-      originalText: article.body,
+      id: draft.id,
+      sourceParagraphIds: [paragraphs[draft.index]?.id ?? `paragraph-${String(draft.index + 1).padStart(4, "0")}`],
+      role: draft.article.sectionId ?? draft.article.articleType ?? "article",
+      originalText: draft.article.body,
       required: true,
       placement: "inner",
-      photoLinks,
+      photoLinks: draft.photoLinks,
       ...(photoAssignments.length ? { photoAssignments } : {}),
     });
   }
