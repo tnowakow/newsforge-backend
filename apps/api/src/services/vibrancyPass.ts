@@ -487,27 +487,25 @@ export function applyVibrancyPass(input: VibrancyInput): AssembledLayout {
       }
       const isCluster = next.style?.panelRole === "photoCluster" || /collage|photo[- ]?cluster/i.test(next.styleTag ?? "");
       if (!next.caption && !isCluster) {
-        const uploadCaption = isFilenameLikeCaption(img?.caption) ? undefined : img?.caption;
-        const isRealUpload = img?.source === "UPLOAD" && !!uploadCaption;
+        // TRI-R04b2 — the image's own caption is the caption of record. A
+        // nearby story's heading may only stand in when the image carries no
+        // usable caption of its own, and never for a real uploaded photo
+        // (that would let one story's heading caption a different asset).
+        const ownCaption = isFilenameLikeCaption(img?.caption) ? undefined : img?.caption;
+        const isRealUpload = img?.source === "UPLOAD";
         const nearbyArticle = isRealUpload
           ? undefined
           : findNearbyNarrativeArticle(next, input.layout.blocks, articleById);
-        const stockOwnCaption =
-          img?.source === "STOCK" && /p2-photo-|photo-stack|outing|out[- ]?and[- ]?about/i.test(`${next.slotId} ${next.styleTag ?? ""}`)
-            ? img.caption
-            : undefined;
         const proposedCaption =
-          (isRealUpload ? uploadCaption : undefined) ??
-          stockOwnCaption ??
+          ownCaption ??
           (nearbyArticle ? captionFromArticle(nearbyArticle) : undefined) ??
-          (img?.source === "STOCK" ? img.caption : undefined) ??
           (img?.alt ? firstSentence(img.alt) : undefined) ??
           "A wonderful moment around campus!";
         const used = usedCaptionsByPage.get(next.page) ?? new Set<string>();
         const candidates = [
           proposedCaption,
           ...(nearbyArticle ? nearbyArticle.body.replace(/\s+/g, " ").split(/(?<=[.!?])\s+/).filter((sentence) => sentence.length >= 15).slice(1, 4) : []),
-          uploadCaption,
+          ownCaption,
           img?.alt ? firstSentence(img.alt) : undefined,
         ].filter((caption): caption is string => Boolean(caption?.trim()));
         next.caption = candidates.find((caption) => !used.has(caption.trim().toLowerCase())) ?? undefined;

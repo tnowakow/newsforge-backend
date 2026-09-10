@@ -19,6 +19,7 @@ import {
 import { evaluatePorterLayoutInvariants } from "./porterLayoutInvariants.js";
 import { buildPorterCompoundLayout } from "./porterCompoundPlanner.js";
 import {
+  articleImageMatchesRef,
   classifyPorterSourceRole,
   isPorterNarrativeOutingArticle,
   isPorterScheduleArticle,
@@ -404,7 +405,7 @@ function photoStoryPairingRatio(
     const articleBlock = layout.blocks.find((block) => block.articleId === article.id);
     if (!articleBlock) continue;
     const matchedImageIds = images
-      .filter((image) => (article.imageRefs ?? []).some((ref) => imageMatchesRef(image, ref)))
+      .filter((image) => (article.imageRefs ?? []).some((ref) => imageMatchesRef(image, ref, article)))
       .map((image) => image.id);
     const near = imageBlocks.some((imageBlock) =>
       imageBlock.imageId &&
@@ -418,7 +419,10 @@ function photoStoryPairingRatio(
 
 function unmatchedPhotoRefs(articles: Article[], images: NewsImage[]): string[] {
   const refs = articles.flatMap((article) => article.imageRefs ?? []);
-  const unmatched = refs.filter((ref) => !images.some((image) => imageMatchesRef(image, ref)));
+  const unmatched = refs.filter((ref) => {
+    const owner = articles.find((article) => (article.imageRefs ?? []).includes(ref));
+    return !images.some((image) => imageMatchesRef(image, ref, owner));
+  });
   return [...new Set(unmatched)];
 }
 
@@ -835,7 +839,12 @@ function isScreenshotLikeImage(image: NewsImage): boolean {
   );
 }
 
-function imageMatchesRef(image: NewsImage, ref: string): boolean {
+/**
+ * TRI-R04b2 — ref resolution for a specific article: operator-confirmed
+ * alias records first, then exact filename/caption matching.
+ */
+function imageMatchesRef(image: NewsImage, ref: string, article?: Article): boolean {
+  if (article) return articleImageMatchesRef(image, article, ref);
   return porterImageMatchesRef(image, ref);
 }
 
@@ -1023,6 +1032,9 @@ function sourceTopologyCandidate(
     if (!isImageReserved(image)) return true;
     const ownerRefs = reservedImageOwnerRefs?.get(image.id) ?? [];
     if (article) {
+      // TRI-R04b2 — an operator-confirmed alias record pointing at this
+      // image is a direct claim, consulted before any ref-text fallback.
+      if (Object.values(article.operatorAliases ?? {}).includes(image.id)) return true;
       const articleRefs = article.imageRefs ?? [];
       if (articleRefs.some((ref) => ownerRefs.includes(ref))) return true;
       // Normalized equivalence: the article names the very file the owner
@@ -1037,12 +1049,12 @@ function sourceTopologyCandidate(
   };
   const imageIsReferenced = (image: NewsImage): boolean =>
     orderedArticles.some((article) =>
-      (article.imageRefs ?? []).some((ref) => imageMatchesRef(image, ref)),
+      (article.imageRefs ?? []).some((ref) => imageMatchesRef(image, ref, article)),
     );
   const takeImage = (article?: Article, allowFallback = false): NewsImage | undefined => {
     const refs = article?.imageRefs ?? [];
     const matched = refs.length
-      ? images.find((image) => !usedImages.has(image.id) && imageAllowedForArticle(image, article) && refs.some((ref) => imageMatchesRef(image, ref)))
+      ? images.find((image) => !usedImages.has(image.id) && imageAllowedForArticle(image, article) && refs.some((ref) => imageMatchesRef(image, ref, article)))
       : undefined;
     const fallback = matched ??
       (allowFallback

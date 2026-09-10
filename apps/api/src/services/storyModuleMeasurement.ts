@@ -1,5 +1,6 @@
 import type { Article, LayoutBlock, NewsImage } from "@newsforge/shared/schemas";
 import { getPage } from "../browser.js";
+import { articleImageMatchesRef } from "./porterSourceSemantics.js";
 
 export type StoryModuleKind =
   | "director"
@@ -135,7 +136,12 @@ export async function measureStoryModules(inputs: StoryModuleInput[]): Promise<S
 export function validateStoryCompound(blocks: LayoutBlock[], article: Article, images: NewsImage[]): void {
   const articleBlocks = blocks.filter((block) => block.articleId === article.id || block.compoundId === article.compoundId);
   const imageIds = new Set(articleBlocks.map((block) => block.imageId).filter((id): id is string => Boolean(id)));
-  const requiredImageIds = images.filter((image) => (article.imageRefs ?? []).some((ref) => image.id === ref || image.originalName === ref)).map((image) => image.id);
+  // TRI-R04b2 — operator-confirmed alias records (ref → imageId) are
+  // consulted first; the id/originalName equality is the fallback for
+  // refs with no alias record.
+  const requiredImageIds = images
+    .filter((image) => (article.imageRefs ?? []).some((ref) => image.id === ref || image.originalName === ref || articleImageMatchesRef(image, article, ref)))
+    .map((image) => image.id);
   if (articleBlocks.length === 0) throw new Error(`story compound omitted source article ${article.id}`);
   const missing = requiredImageIds.filter((id) => !imageIds.has(id));
   if (missing.length > 0) throw new Error(`story compound omitted linked images: ${missing.join(", ")}`);

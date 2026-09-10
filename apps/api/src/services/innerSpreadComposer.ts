@@ -1,6 +1,6 @@
 import type { Article, AssembledLayout, GridSpec, LayoutBlock, NewsImage } from "@newsforge/shared/schemas";
 import type { AssetDecisionRecord, AssetPlacementOutcome } from "@newsforge/shared/schemas";
-import { classifyPorterSourceRole, porterImageMatchesRef } from "./porterSourceSemantics.js";
+import { articleImageMatchesRef, classifyPorterSourceRole } from "./porterSourceSemantics.js";
 
 export type InnerSpreadSkeleton = "rail-two-story" | "wide-feature-supporting" | "text-photo-mosaic";
 
@@ -94,7 +94,7 @@ function unitsFrom(source: InnerSpreadComposeInput["source"]): InnerSpreadSource
 
 function imageLinks(unit: InnerSpreadSourceUnit, images: NewsImage[]): NewsImage[] {
   const refs = unit.photoRefs ?? [];
-  return images.filter((image) => refs.some((ref) => porterImageMatchesRef(image, ref)));
+  return images.filter((image) => refs.some((ref) => articleImageMatchesRef(image, unit.article, ref)));
 }
 
 function estimatedRows(unit: InnerSpreadSourceUnit, imageCount: number, grid: GridSpec): number {
@@ -205,7 +205,7 @@ export function buildInnerAssetDecisions(input: {
     // Per-photo decisions for this unit's refs.
     const refs = unit.photoRefs ?? [];
     for (const ref of refs) {
-      const matched = images.find((image) => porterImageMatchesRef(image, ref));
+      const matched = images.find((image) => articleImageMatchesRef(image, unit.article, ref));
       if (matched && placedImageIds.has(matched.id)) {
         decisions.push({ assetId: matched.id, unitId: unit.id, kind: "photo", outcome: "placed" as AssetPlacementOutcome, page: pageByUnit.get(unit.id), required, decisionCode: "inner-alloc-photo" });
       } else if (!matched) {
@@ -228,7 +228,7 @@ export function buildInnerAssetDecisions(input: {
 export async function composeInnerSpread(input: InnerSpreadComposeInput): Promise<InnerSpreadComposeResult> {
   const contract = input.contract;
   const units = unitsFrom(input.source);
-  const unresolvedRequiredPhotoRefs = units.flatMap((unit) => (unitRequired(unit) ? (unit.photoRefs ?? []).filter((ref) => !input.images.some((image) => porterImageMatchesRef(image, ref))) : []));
+  const unresolvedRequiredPhotoRefs = units.flatMap((unit) => (unitRequired(unit) ? (unit.photoRefs ?? []).filter((ref) => !input.images.some((image) => articleImageMatchesRef(image, unit.article, ref))) : []));
   const maxCandidates = Math.min(12, Math.max(1, contract.maxCandidates ?? 12));
   let best: CandidateResult | undefined;
   let bestScore = Number.POSITIVE_INFINITY;

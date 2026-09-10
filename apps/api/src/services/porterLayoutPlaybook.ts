@@ -10,6 +10,7 @@ import type {
 import type { CandidateMeasurement } from "./adaptiveLayoutPlanner.js";
 import { evaluatePorterLayoutInvariants } from "./porterLayoutInvariants.js";
 import {
+  articleImageMatchesRef,
   isPorterScheduleArticle,
   normalizePorterText,
   porterBlocksAreAdjacent,
@@ -44,7 +45,12 @@ function normalize(value: string | undefined): string {
   return normalizePorterText(value);
 }
 
-function imageMatchesRef(image: NewsImage, ref: string): boolean {
+/**
+ * TRI-R04b2 — article-facing ref resolution: operator-confirmed alias
+ * records first, then exact filename/caption matching.
+ */
+function imageMatchesRef(image: NewsImage, ref: string, article?: Article): boolean {
+  if (article) return articleImageMatchesRef(image, article, ref);
   return porterImageMatchesRef(image, ref);
 }
 
@@ -193,7 +199,7 @@ export function evaluatePorterLayoutPlaybook(input: EvaluateInput): PorterLayout
     for (const article of referencedArticles) {
       const textBlock = articleBlocks.find((block) => block.articleId === article.id);
       const matchedImageIds = images
-        .filter((image) => (article.imageRefs ?? []).some((ref) => imageMatchesRef(image, ref)))
+        .filter((image) => (article.imageRefs ?? []).some((ref) => imageMatchesRef(image, ref, article)))
         .map((image) => image.id);
       const matchingImageBlocks = innerBlocks.filter((block) => block.imageId && matchedImageIds.includes(block.imageId));
       const near = Boolean(textBlock && matchingImageBlocks.some((imageBlock) => touchesOrNear(textBlock, imageBlock)));

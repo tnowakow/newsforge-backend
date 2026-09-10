@@ -10,6 +10,7 @@ import type {
 import { normalizePanelStyle } from "./designLanguage.js";
 import { validateStoryCompound } from "./storyModuleMeasurement.js";
 import {
+  articleImageMatchesRef,
   buildPorterSourceUnits,
   classifyPorterSourceRole,
   isPorterDirectorArticle,
@@ -18,7 +19,6 @@ import {
   porterBirthdayRowsFromText,
   porterDatedRowCount,
   porterDatedRowsFromText,
-  porterImageMatchesRef,
 } from "./porterSourceSemantics.js";
 
 interface PorterCompoundPlannerInput {
@@ -45,10 +45,16 @@ function isFilenameCaption(caption: string | undefined): boolean {
 }
 
 function captionForArticle(article: Article | undefined, image: NewsImage): string | undefined {
-  if (!article) return isFilenameCaption(image.caption) ? undefined : image.caption;
-  const title = cleanTitle(article.title);
-  if (title.length >= 4) return title;
-  return isFilenameCaption(image.caption) ? undefined : image.caption;
+  // TRI-R04b2 — the image's own caption is the caption of record; the
+  // article title is a fallback only when the image carries no usable
+  // caption. An adjacent story's heading must never become the caption of
+  // a photo the story does not describe.
+  if (!isFilenameCaption(image.caption) && image.caption?.trim()) return image.caption;
+  if (article) {
+    const title = cleanTitle(article.title);
+    if (title.length >= 4) return title;
+  }
+  return undefined;
 }
 
 function listRowsForArticle(article: Article): LayoutBlock["listItems"] {
@@ -147,7 +153,7 @@ function sortSourceArticles(articles: Article[]): Article[] {
 
 function scoreImageForArticle(image: NewsImage, article: Article): number {
   const refs = article.imageRefs ?? [];
-  if (refs.some((ref) => porterImageMatchesRef(image, ref))) return 100;
+  if (refs.some((ref) => articleImageMatchesRef(image, article, ref))) return 100;
   const title = article.title.toLowerCase();
   const imageText = `${image.caption ?? ""} ${image.alt ?? ""} ${image.description ?? ""} ${image.url ?? ""}`.toLowerCase();
   if (isPorterDirectorArticle(article) && /director|headshot|portrait|leader|administrator/.test(imageText)) return 70;
@@ -175,7 +181,7 @@ export function buildPorterCompoundLayout(input: PorterCompoundPlannerInput): As
   const explicitReservedImageIds = new Set(
     articles.flatMap((article) =>
       (article.imageRefs ?? []).flatMap((ref) =>
-        images.filter((image) => porterImageMatchesRef(image, ref)).map((image) => image.id),
+        images.filter((image) => articleImageMatchesRef(image, article, ref)).map((image) => image.id),
       ),
     ),
   );
@@ -216,7 +222,7 @@ export function buildPorterCompoundLayout(input: PorterCompoundPlannerInput): As
     const explicitMatches = article
       ? images.filter((image) =>
         !usedImages.has(image.id) &&
-        (article.imageRefs ?? []).some((ref) => porterImageMatchesRef(image, ref)),
+        (article.imageRefs ?? []).some((ref) => articleImageMatchesRef(image, article, ref)),
       )
       : [];
     if (explicitMatches.length > 0) return explicitMatches.slice(0, count);

@@ -1,9 +1,9 @@
 import type { Article, AssembledLayout, LayoutBlock, NewsImage } from "@newsforge/shared/schemas";
 import type { CandidateMeasurement } from "./adaptiveLayoutPlanner.js";
 import {
+  articleImageMatchesRef,
   buildPorterSourceUnits,
   porterBlocksAreAdjacent,
-  porterImageMatchesRef,
   sourceUnitBlock,
 } from "./porterSourceSemantics.js";
 
@@ -120,7 +120,7 @@ export function evaluatePorterLayoutInvariants(input: EvaluateInput): PorterLayo
     const textBlock = sourceUnitBlock(blocks, article.id);
     if (!textBlock) continue;
     const matchedImageIds = images
-      .filter((image) => refs.some((ref) => porterImageMatchesRef(image, ref)))
+      .filter((image) => refs.some((ref) => articleImageMatchesRef(image, article, ref)))
       .map((image) => image.id);
     if (matchedImageIds.length === 0) {
       add(failures, "warning", "source-photo-unresolved", `${article.title} references ${refs.join(", ")} but no uploaded filename/caption matched exactly.`);

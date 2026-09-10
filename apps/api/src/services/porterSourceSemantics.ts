@@ -46,6 +46,18 @@ export function normalizePorterFilename(value: string): string {
   return normalizePorterText(value);
 }
 
+/**
+ * TRI-R04b2 — article-facing ref resolution. Operator-confirmed alias
+ * records (`article.operatorAliases[ref] = imageId`) are consulted FIRST;
+ * `porterImageMatchesRef` is kept for every ref that has no alias record.
+ * Alias values are target image IDs, so the match is exact by id.
+ */
+export function articleImageMatchesRef(image: NewsImage, article: Article, ref: string): boolean {
+  const aliasTarget = article.operatorAliases?.[ref];
+  if (aliasTarget && aliasTarget === image.id) return true;
+  return porterImageMatchesRef(image, ref);
+}
+
 export function porterDatedRowsFromText(text: string): PorterSourceRow[] {
   return text
     .split(/\n+|;\s*/)
@@ -119,7 +131,7 @@ export function buildPorterSourceUnits(articles: Article[], images: NewsImage[] 
   return articles.map((article, index) => {
     const role = classifyPorterSourceRole(article);
     const imageRefs = article.imageRefs ?? [];
-    const explicit = imageRefs.some((ref) => images.some((image) => porterImageMatchesRef(image, ref)));
+    const explicit = imageRefs.some((ref) => images.some((image) => articleImageMatchesRef(image, article, ref)));
     const rows = role === "birthday-roster"
       ? porterBirthdayRowsFromText(article.body)
       : role === "dated-list"
