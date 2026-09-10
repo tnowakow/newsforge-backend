@@ -1,0 +1,67 @@
+{
+  "label": "july-content-6",
+  "sourceDocx": "/mnt/4tb/downloads/Will/Template Test/July Newsletter Content6.docx",
+  "file": "July Newsletter Content6.docx",
+  "sha256": "e298b1fcad09c38a8c07f8b7c62d5fc871ed7fd56b8d7d8271ed497aabe14af8",
+  "byteSize": 34790,
+  "role": "filled",
+  "monthLabel": "July 2026",
+  "derivedBy": "manual-plain-text-review (pandoc plain, not the app parser)",
+  "expected": {
+    "proseStories": [
+      { "id": "c6-story-ed-corner", "kind": "prose-story", "heading": "ED Corner – July 2026", "required": true, "originalText": "Happy July, everyone! It's been an amazing summer so far of cookouts, nights spent with friends, and of course, refreshing Happy Hours to help us cool down. ... Have a great month! Yours in Service, Olivia Hermiller, Executive Director", "photoRefs": [] },
+      { "id": "c6-story-legacy-balloon-release", "kind": "prose-story", "heading": "Legacy News — Dementia Action Week balloon release", "required": true, "originalText": "We honored Dementia Action Week with a special balloon release in memory of those we have lost to dementia and in support of everyone affected by it. Our residents enjoyed the sunshine on such a beautiful day.", "photoRefs": ["PHOTOS 1,2,3"] }
+    ],
+    "scheduleGroups": [
+      { "id": "c6-sched-july-entertainment", "name": "July Entertainment", "entryCount": 7 }
+    ],
+    "scheduleEntries": [
+      { "group": "July Entertainment", "date": "2nd", "text": "Country Gentlemen" },
+      { "group": "July Entertainment", "date": "3rd", "text": "Don Smithey" },
+      { "group": "July Entertainment", "date": "10th", "text": "Bill Jennings" },
+      { "group": "July Entertainment", "date": "16th", "text": "Men In Black" },
+      { "group": "July Entertainment", "date": "17th", "text": "Wesley Hill" },
+      { "group": "July Entertainment", "date": "24th", "text": "Jeff Davis" },
+      { "group": "July Entertainment", "date": "31st", "text": "Mark Nightingale" }
+    ],
+    "photoCaptionBlocks": [
+      { "ref": "PHOTOS 4,5,6,7,8", "caption": "Sunshine, smiles, and plenty of fun! We're so grateful for these special moments that bring joy, connection, and a little extra sparkle to our residents' days!" },
+      { "ref": "PHOTOS 9,10", "caption": "Our residents had a wonderful time celebrating Senior Day with a fun-filled outing! We always enjoy creating moments like these for our residents to relax, connect, and have a fantastic time out in the community!" }
+    ],
+    "namedReferences": [],
+    "untaggedUploadedPhotos": [],
+    "interestingAndNewsworthy": {
+      "requiredSlots": 3,
+      "filledSlots": 0,
+      "note": "ALL THREE REQUIRED interesting-and-newsworthy slots are EMPTY in this packet — this is the R02/R03 failure mode: a required field is missing, and the parser must flag the packet as incomplete rather than fabricating articles."
+    },
+    "departmentHeads": [
+      "Assistant Director of Health Services - Kelly Brokamp",
+      "Business Office Manager - Abby Schmitz",
+      "Environmental Service Director - Stevee Doeden"
+    ]
+  },
+  "expectedCounts": {
+    "proseStories": 2,
+    "scheduleGroups": 1,
+    "scheduleEntries": 7,
+    "photoCaptionBlocks": 2,
+    "namedReferences": 0,
+    "untaggedUploadedPhotos": 0,
+    "departmentHeads": 3,
+    "interestingAndNewsworthyFilled": 0
+  },
+  "completenessFlags": [
+    "INCOMPLETE: required INTERESTING AND NEWSWORTHY section has zero filled articles (minimum required is 3) — acceptance should mark this packet incomplete.",
+    "Photo references are numeric slots (PHOTOS 1,2,3 / PHOTOS 4-8 / PHOTOS 9,10), not file names — 10 photo slots referenced, no caption per slot, two grouped caption blocks.",
+    "Only 3 department heads supplied (template requests 10-12) — another incompleteness signal, not a failure on its own."
+  ],
+  "credentialRedaction": [
+    "The document body contains a plaintext portal submission password (Campus Newsletter Submission section, step 2: 'Enter the password: <value>'). The value itself MUST NOT be reproduced in any fixture, ledger, log, or parser output — reference its location only, and treat it as a redacted credential to be excluded from all downstream output."
+  ],
+  "acceptanceNotes": [
+    "Two prose stories: ED Corner (Olivia Hermiller) and Legacy balloon-release story.",
+    "Seven July Entertainment schedule entries — a complete month of entertainment.",
+    "Empty required interesting-and-newsworthy slots must trigger an incompleteness flag, not silent zero-story output (R02)."
+  ]
+}

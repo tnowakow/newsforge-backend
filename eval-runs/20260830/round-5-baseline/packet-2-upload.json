@@ -1,0 +1,193 @@
+{
+  "created": [
+    {
+      "id": "p9vtpak9u2cpd4j4y09co7ci",
+      "clientId": "cf9d5c48ad3397d431d1e6cd",
+      "type": "ARTICLE",
+      "contentOrUrl": "Executive Director Corner\nHappy July, everyone!\n\nIt’s been an amazing summer so far of cookouts, nights spent with friends, and of course, refreshing Happy Hours to help us cool down. In our childhoods, it was around this time of year that many of us started looking towards the dreaded return to the classroom – but here at our campus, the middle of July means that the party is just getting started.\n\nAs we head deeper into the season, there’s still plenty to look forward to around campus. From live entertainment and themed events to afternoons spent outside enjoying the sunshine, summer always has a way of bringing people together. It’s been wonderful seeing everyone catching up with neighbors, welcoming visiting family members, and making the most of these longer days. We hope you’ll continue joining us for all the fun, laughter, and little moments that make this time of year so special.\n\nHave a great month!\n\nYours in Service,\n\nAlicia Lambert\n\nExecutive Director\n\nLegacy News\nAt Bethany Pointe Legacy Neighborhood, we are creating new lifestyle hubs that support independent engagement and personal interests. These spaces are designed for residents who enjoy a more independent lifestyle or prefer activities outside of traditional group settings. We are currently developing a library hub, a bird-watching hub, and a flower-arranging hub, with even more engagement opportunities on the way. Stop in and see all of the exciting upgrades we are making to enhance resident life and independence!\n\nSummer Trips\nSummer Trips - Summer is the perfect time to get out, explore, and make lasting memories—and we have an exciting season of special trips planned for our residents and their loved ones! From a fun-filled visit to the Indianapolis Zoo to relaxing days spent fishing, there is something for everyone to enjoy. Residents can also experience the thrill of horse racing at the casino and take part in a variety of other outings designed to make the most of the beautiful summer weather. These trips provide wonderful opportunities to connect with friends, spend quality time with family, and enjoy new experiences in the community. Whether you're looking for adventure, relaxation, or simply a chance to enjoy the sunshine, our summer outings have something to offer. We hope you and your loved ones will join us as we take full advantage of everything summer has to offer.\n\nLifestyle Hubs\nLifestyle Hubs - We're excited to introduce our new Lifestyle Hubs, now available throughout campus for everyone to enjoy! Designed to encourage connection, engagement, and meaningful moments, these welcoming spaces offer a variety of activities and experiences. Curl up with a good book in our cozy Reading Nook, complete with a community bookshelf. Take a trip down memory lane at Music & Memories, where you can enjoy favorite tunes on a vinyl record player. Or gather with family and friends to enjoy a selection of games and activities together. Best of all, our Lifestyle Hubs are open and accessible to everyone, anytime. Whether you're looking to relax, reminisce, socialize, or simply try something new, there's a hub waiting for you. Be sure to keep an eye out for these exciting spaces as you explore campus!\n\nStrike Out Alzheimer’s Fundraiser\nStrike Out Alzheimer’s Fundraiser - Gather your friends, lace up your bowling shoes, and join us for an afternoon of fun while supporting an important cause at our Strike Out Alzheimer's Fundraising Event! On Saturday, August 1st, beginning at 1:00 PM, we'll be heading to Championship Lanes for an exciting day of bowling, prizes, and community support as we raise money for the Alzheimer's Association. Whether you're a seasoned bowler or just looking for a fun way to give back, this event is a great opportunity to make a difference. Form a team of four bowlers and come enjoy an afternoon filled with friendly competition and fundraising activities. To learn more or register your team, please call today and ask for Ashley Miller or Hallee Acree.",
+      "source": "UPLOAD",
+      "meta": {
+        "mime": "application/octet-stream",
+        "size": 37912,
+        "wordCount": 1502,
+        "porterParse": {
+          "markers": {
+            "end": true,
+            "start": true
+          },
+          "captions": {},
+          "warnings": [
+            "birthday-source-missing: use recurring roster or evergreen teaser"
+          ],
+          "listCount": 0,
+          "articleCount": 5,
+          "datedRowCount": 0,
+          "parsedArticles": [
+            {
+              "id": "akdyhpdstaqqat8qo9fxz2u8",
+              "body": "Happy July, everyone!\n\nIt’s been an amazing summer so far of cookouts, nights spent with friends, and of course, refreshing Happy Hours to help us cool down. In our childhoods, it was around this time of year that many of us started looking towards the dreaded return to the classroom – but here at our campus, the middle of July means that the party is just getting started.\n\nAs we head deeper into the season, there’s still plenty to look forward to around campus. From live entertainment and themed events to afternoons spent outside enjoying the sunshine, summer always has a way of bringing people together. It’s been wonderful seeing everyone catching up with neighbors, welcoming visiting family members, and making the most of these longer days. We hope you’ll continue joining us for all the fun, laughter, and little moments that make this time of year so special.\n\nHave a great month!\n\nYours in Service,\n\nAlicia Lambert\n\nExecutive Director",
+              "title": "Executive Director Corner",
+              "byline": "From the Executive Director",
+              "source": "UPLOAD",
+              "isFiller": false,
+              "imageRefs": [],
+              "sectionId": "director",
+              "wordCount": 160,
+              "compoundId": "compound-akdyhpdstaqqat8qo9fxz2u8",
+              "sourceRole": "director-note",
+              "articleType": "executive-note",
+              "sourceOrder": 0
+            },
+            {
+              "id": "l8tdfvbjstb5nho53fx2q1ti",
+              "body": "At Bethany Pointe Legacy Neighborhood, we are creating new lifestyle hubs that support independent engagement and personal interests. These spaces are designed for residents who enjoy a more independent lifestyle or prefer activities outside of traditional group settings. We are currently developing a library hub, a bird-watching hub, and a flower-arranging hub, with even more engagement opportunities on the way. Stop in and see all of the exciting upgrades we are making to enhance resident life and independence!",
+              "title": "Legacy News",
+              "source": "UPLOAD",
+              "isFiller": false,
+              "imageRefs": [],
+              "sectionId": "legacy",
+              "wordCount": 78,
+              "compoundId": "compound-l8tdfvbjstb5nho53fx2q1ti",
+              "sourceRole": "profile-story",
+              "articleType": "resident-story",
+              "sourceOrder": 1
+            },
+            {
+              "id": "lnvrairyi6hm7gqn5385aydt",
+              "body": "Summer Trips - Summer is the perfect time to get out, explore, and make lasting memories—and we have an exciting season of special trips planned for our residents and their loved ones! From a fun-filled visit to the Indianapolis Zoo to relaxing days spent fishing, there is something for everyone to enjoy. Residents can also experience the thrill of horse racing at the casino and take part in a variety of other outings designed to make the most of the beautiful summer weather. These trips provide wonderful opportunities to connect with friends, spend quality time with family, and enjoy new experiences in the community. Whether you're looking for adventure, relaxation, or simply a chance to enjoy the sunshine, our summer outings have something to offer. We hope you and your loved ones will join us as we take full advantage of everything summer has to offer.",
+              "title": "Summer Trips",
+              "source": "UPLOAD",
+              "isFiller": false,
+              "imageRefs": [],
+              "sectionId": "features",
+              "wordCount": 146,
+              "compoundId": "compound-lnvrairyi6hm7gqn5385aydt",
+              "sourceRole": "narrative-story",
+              "articleType": "other",
+              "sourceOrder": 2
+            },
+            {
+              "id": "fihbfg25fouc4wmwjun5r4po",
+              "body": "Lifestyle Hubs - We're excited to introduce our new Lifestyle Hubs, now available throughout campus for everyone to enjoy! Designed to encourage connection, engagement, and meaningful moments, these welcoming spaces offer a variety of activities and experiences. Curl up with a good book in our cozy Reading Nook, complete with a community bookshelf. Take a trip down memory lane at Music & Memories, where you can enjoy favorite tunes on a vinyl record player. Or gather with family and friends to enjoy a selection of games and activities together. Best of all, our Lifestyle Hubs are open and accessible to everyone, anytime. Whether you're looking to relax, reminisce, socialize, or simply try something new, there's a hub waiting for you. Be sure to keep an eye out for these exciting spaces as you explore campus!",
+              "title": "Lifestyle Hubs",
+              "source": "UPLOAD",
+              "isFiller": false,
+              "imageRefs": [],
+              "sectionId": "features",
+              "wordCount": 135,
+              "compoundId": "compound-fihbfg25fouc4wmwjun5r4po",
+              "sourceRole": "narrative-story",
+              "articleType": "other",
+              "sourceOrder": 3
+            },
+            {
+              "id": "grrs15xhf6d0vhnjpvrzkon2",
+              "body": "Strike Out Alzheimer’s Fundraiser - Gather your friends, lace up your bowling shoes, and join us for an afternoon of fun while supporting an important cause at our Strike Out Alzheimer's Fundraising Event! On Saturday, August 1st, beginning at 1:00 PM, we'll be heading to Championship Lanes for an exciting day of bowling, prizes, and community support as we raise money for the Alzheimer's Association. Whether you're a seasoned bowler or just looking for a fun way to give back, this event is a great opportunity to make a difference. Form a team of four bowlers and come enjoy an afternoon filled with friendly competition and fundraising activities. To learn more or register your team, please call today and ask for Ashley Miller or Hallee Acree.",
+              "title": "Strike Out Alzheimer’s Fundraiser",
+              "source": "UPLOAD",
+              "isFiller": false,
+              "imageRefs": [],
+              "sectionId": "features",
+              "wordCount": 126,
+              "compoundId": "compound-grrs15xhf6d0vhnjpvrzkon2",
+              "sourceRole": "narrative-story",
+              "articleType": "other",
+              "sourceOrder": 4
+            }
+          ],
+          "fallbackRequired": false,
+          "imageAssociations": {}
+        },
+        "mammothMessages": [],
+        "originalFilename": "July_Newsletter_Content2.docx"
+      },
+      "createdAt": "2026-08-30T09:41:17.960Z"
+    },
+    {
+      "id": "vigducpe2wbggmfu0yscajtx",
+      "clientId": "cf9d5c48ad3397d431d1e6cd",
+      "type": "IMAGE",
+      "contentOrUrl": "/uploads/jql2mbt59p8bmd18d70of69l.jpg",
+      "source": "UPLOAD",
+      "meta": {
+        "mime": "application/octet-stream",
+        "size": 159673,
+        "width": 641,
+        "format": "jpeg",
+        "height": 895,
+        "originalMime": "application/octet-stream",
+        "originalFilename": "photo1.jpg"
+      },
+      "createdAt": "2026-08-30T09:41:17.970Z"
+    },
+    {
+      "id": "rqoq3fz4txwso7pqu4088w9t",
+      "clientId": "cf9d5c48ad3397d431d1e6cd",
+      "type": "IMAGE",
+      "contentOrUrl": "/uploads/ya8colwopzuuvlwsj45bhfsl.jpg",
+      "source": "UPLOAD",
+      "meta": {
+        "mime": "application/octet-stream",
+        "size": 676166,
+        "width": 1382,
+        "format": "jpeg",
+        "height": 2115,
+        "originalMime": "application/octet-stream",
+        "originalFilename": "photo2.jpg"
+      },
+      "createdAt": "2026-08-30T09:41:17.975Z"
+    },
+    {
+      "id": "luebvhep07q1prj73fk7lpvl",
+      "clientId": "cf9d5c48ad3397d431d1e6cd",
+      "type": "IMAGE",
+      "contentOrUrl": "/uploads/ahdhgl7csmut2pulv7t5bq8r.jpg",
+      "source": "UPLOAD",
+      "meta": {
+        "mime": "application/octet-stream",
+        "size": 410499,
+        "width": 927,
+        "format": "jpeg",
+        "height": 619,
+        "originalMime": "application/octet-stream",
+        "originalFilename": "photo3.jpg"
+      },
+      "createdAt": "2026-08-30T09:41:17.981Z"
+    },
+    {
+      "id": "d6n18dzxpmbsm9ybw8eywh07",
+      "clientId": "cf9d5c48ad3397d431d1e6cd",
+      "type": "IMAGE",
+      "contentOrUrl": "/uploads/qdpyp4mm0mpjbpbvlyzs4ap7.jpg",
+      "source": "UPLOAD",
+      "meta": {
+        "mime": "application/octet-stream",
+        "size": 215194,
+        "width": 864,
+        "format": "jpeg",
+        "height": 576,
+        "originalMime": "application/octet-stream",
+        "originalFilename": "photo4.jpg"
+      },
+      "createdAt": "2026-08-30T09:41:17.986Z"
+    },
+    {
+      "id": "rlp9ptcv188j0q0iajs6971s",
+      "clientId": "cf9d5c48ad3397d431d1e6cd",
+      "type": "IMAGE",
+      "contentOrUrl": "/uploads/e181z6t9b337ldziw21jqk2d.jpg",
+      "source": "UPLOAD",
+      "meta": {
+        "mime": "application/octet-stream",
+        "size": 146252,
+        "width": 618,
+        "format": "jpeg",
+        "height": 927,
+        "originalMime": "application/octet-stream",
+        "originalFilename": "photo5.jpg"
+      },
+      "createdAt": "2026-08-30T09:41:17.990Z"
+    }
+  ],
+  "skipped": []
+}

@@ -1,0 +1,162 @@
+[
+  {
+    "packet": 2,
+    "runId": "z0537vu851042a49cbqmlant",
+    "templateId": "v3-photo-festival",
+    "score": 0.7344357048454853,
+    "forced": false,
+    "pdfUrl": "https://api-production-26a0.up.railway.app/pdfs/z0537vu851042a49cbqmlant-web-1788067136553.pdf",
+    "qualityGate": {
+      "floor": 0.6,
+      "passed": true,
+      "reason": "Final score 73.4% meets the 60% ship floor.",
+      "finalScore": 0.7344357048454853
+    },
+    "playbook": "8 passed, 0 warned, 1 failed across 9 applicable Porter layout rules.",
+    "invariants": {
+      "passed": true,
+      "failures": [],
+      "warnings": [],
+      "hardFailures": []
+    },
+    "renderEvidence": {
+      "usefulOccupancy": 0.6688111450059637,
+      "minPageUtility": 0.2155340403090148,
+      "largestEmptyBandRatio": 0,
+      "underfilledBlocks": 14,
+      "clippedBlocks": 0,
+      "overflowBlocks": 0,
+      "missingImages": 0,
+      "placeholderImages": 0,
+      "realRenderedImages": 5
+    }
+  },
+  {
+    "packet": 3,
+    "runId": "k23nsgylh1nnr6h1yypipm16",
+    "templateId": "v3-editorial-light",
+    "score": 0.7140888286313901,
+    "forced": false,
+    "pdfUrl": "https://api-production-26a0.up.railway.app/pdfs/k23nsgylh1nnr6h1yypipm16-web-1788067241015.pdf",
+    "qualityGate": {
+      "floor": 0.6,
+      "passed": true,
+      "reason": "Final score 71.4% meets the 60% ship floor.",
+      "finalScore": 0.7140888286313901
+    },
+    "playbook": "9 passed, 0 warned, 0 failed across 9 applicable Porter layout rules.",
+    "invariants": {
+      "passed": true,
+      "failures": [],
+      "warnings": [],
+      "hardFailures": []
+    },
+    "renderEvidence": {
+      "usefulOccupancy": 0.5713580972598957,
+      "minPageUtility": 0.1827386295447344,
+      "largestEmptyBandRatio": 0,
+      "underfilledBlocks": 12,
+      "clippedBlocks": 0,
+      "overflowBlocks": 0,
+      "missingImages": 0,
+      "placeholderImages": 0,
+      "realRenderedImages": 5
+    }
+  },
+  {
+    "packet": 4,
+    "runId": "iz498kmpwmfti7y15dp1ihw2",
+    "templateId": "v3-photo-festival",
+    "score": 0.6804543020013267,
+    "forced": false,
+    "pdfUrl": "https://api-production-26a0.up.railway.app/pdfs/iz498kmpwmfti7y15dp1ihw2-web-1788067338181.pdf",
+    "qualityGate": {
+      "floor": 0.6,
+      "passed": true,
+      "reason": "Final score 68% meets the 60% ship floor.",
+      "finalScore": 0.6804543020013267
+    },
+    "playbook": "8 passed, 0 warned, 1 failed across 9 applicable Porter layout rules.",
+    "invariants": {
+      "passed": true,
+      "failures": [],
+      "warnings": [],
+      "hardFailures": []
+    },
+    "renderEvidence": {
+      "usefulOccupancy": 0.6382029521098028,
+      "minPageUtility": 0.2456672254130151,
+      "largestEmptyBandRatio": 0.1875,
+      "underfilledBlocks": 10,
+      "clippedBlocks": 0,
+      "overflowBlocks": 0,
+      "missingImages": 0,
+      "placeholderImages": 0,
+      "realRenderedImages": 5
+    }
+  },
+  {
+    "packet": 5,
+    "runId": "q3l5xbj70k93iaoxoecxcytx",
+    "templateId": "v3-spread-classic",
+    "score": 0.4965570528702348,
+    "forced": true,
+    "pdfUrl": "https://api-production-26a0.up.railway.app/pdfs/q3l5xbj70k93iaoxoecxcytx-web-1788067763012.pdf",
+    "qualityGate": {
+      "floor": 0.6,
+      "passed": false,
+      "reason": "Final score 49.7% is below the 60% ship floor — export blocked until forced.",
+      "finalScore": 0.4965570528702348
+    },
+    "playbook": "6 passed, 0 warned, 3 failed across 9 applicable Porter layout rules.",
+    "invariants": {
+      "passed": true,
+      "failures": [],
+      "warnings": [],
+      "hardFailures": []
+    },
+    "renderEvidence": {
+      "usefulOccupancy": 0.4541516357756764,
+      "minPageUtility": 0.2261971746995031,
+      "largestEmptyBandRatio": 0.25,
+      "underfilledBlocks": 21,
+      "clippedBlocks": 0,
+      "overflowBlocks": 0,
+      "missingImages": 0,
+      "placeholderImages": 0,
+      "realRenderedImages": 5
+    }
+  },
+  {
+    "packet": 6,
+    "runId": "gfhbeuxicqpngwf09qwp5q6q",
+    "templateId": "v3-editorial-light",
+    "score": 0.7152763316871503,
+    "forced": false,
+    "pdfUrl": "https://api-production-26a0.up.railway.app/pdfs/gfhbeuxicqpngwf09qwp5q6q-web-1788067865319.pdf",
+    "qualityGate": {
+      "floor": 0.6,
+      "passed": true,
+      "reason": "Final score 71.5% meets the 60% ship floor.",
+      "finalScore": 0.7152763316871503
+    },
+    "playbook": "9 passed, 0 warned, 0 failed across 9 applicable Porter layout rules.",
+    "invariants": {
+      "passed": true,
+      "failures": [],
+      "warnings": [],
+      "hardFailures": []
+    },
+    "renderEvidence": {
+      "usefulOccupancy": 0.5706189877484583,
+      "minPageUtility": 0.1864947149367601,
+      "largestEmptyBandRatio": 0,
+      "underfilledBlocks": 12,
+      "clippedBlocks": 0,
+      "overflowBlocks": 0,
+      "missingImages": 0,
+      "placeholderImages": 0,
+      "realRenderedImages": 5
+    }
+  }
+]

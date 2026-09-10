@@ -1,0 +1,175 @@
+[
+  {
+    "packet": 2,
+    "runId": "kb643hoojlrwd6fv3f8vjrpp",
+    "templateId": "v3-photo-festival",
+    "score": 0,
+    "forced": true,
+    "pdfUrl": "https://api-production-26a0.up.railway.app/pdfs/kb643hoojlrwd6fv3f8vjrpp-web-1787936808273.pdf",
+    "qualityGate": {
+      "floor": 0.6,
+      "passed": false,
+      "reason": "Hard Porter invariant failed — export blocked until forced. source-unit-missing: Required narrative-story source unit cro2an4lzui8fq1tdnatl22q was not placed on the inner spread.",
+      "finalScore": 0,
+      "hardFailures": [
+        "source-unit-missing: Required narrative-story source unit cro2an4lzui8fq1tdnatl22q was not placed on the inner spread.",
+        "source-unit-missing: Required narrative-story source unit xrdqt7xanjt312133ogjsjhu was not placed on the inner spread.",
+        "source-unit-missing: Required narrative-story source unit ee2hdbdwe5xsnzvxdz8f1b2j was not placed on the inner spread.",
+        "source-photo-not-adjacent: Legacy News has an explicit associated photo that is not adjacent to its story block."
+      ]
+    },
+    "playbook": "4 passed, 0 warned, 5 failed across 9 applicable Porter layout rules.",
+    "invariants": {
+      "passed": false,
+      "failures": [
+        {
+          "id": "source-unit-missing",
+          "message": "Required narrative-story source unit cro2an4lzui8fq1tdnatl22q was not placed on the inner spread.",
+          "severity": "hard"
+        },
+        {
+          "id": "source-unit-missing",
+          "message": "Required narrative-story source unit xrdqt7xanjt312133ogjsjhu was not placed on the inner spread.",
+          "severity": "hard"
+        },
+        {
+          "id": "source-unit-missing",
+          "message": "Required narrative-story source unit ee2hdbdwe5xsnzvxdz8f1b2j was not placed on the inner spread.",
+          "severity": "hard"
+        },
+        {
+          "id": "source-photo-not-adjacent",
+          "message": "Legacy News has an explicit associated photo that is not adjacent to its story block.",
+          "severity": "hard"
+        }
+      ],
+      "warnings": [],
+      "hardFailures": [
+        "source-unit-missing: Required narrative-story source unit cro2an4lzui8fq1tdnatl22q was not placed on the inner spread.",
+        "source-unit-missing: Required narrative-story source unit xrdqt7xanjt312133ogjsjhu was not placed on the inner spread.",
+        "source-unit-missing: Required narrative-story source unit ee2hdbdwe5xsnzvxdz8f1b2j was not placed on the inner spread.",
+        "source-photo-not-adjacent: Legacy News has an explicit associated photo that is not adjacent to its story block."
+      ]
+    }
+  },
+  {
+    "packet": 3,
+    "runId": "f39nx4153u70ufmka1d2ogme",
+    "templateId": "v3-editorial-light",
+    "score": 0.2535197925456293,
+    "forced": true,
+    "pdfUrl": "https://api-production-26a0.up.railway.app/pdfs/f39nx4153u70ufmka1d2ogme-web-1787936908623.pdf",
+    "qualityGate": {
+      "floor": 0.6,
+      "passed": false,
+      "reason": "Final score 25.4% is below the 60% ship floor — export blocked until forced.",
+      "finalScore": 0.2535197925456293
+    },
+    "playbook": "6 passed, 1 warned, 3 failed across 10 applicable Porter layout rules.",
+    "invariants": {
+      "passed": true,
+      "failures": [],
+      "warnings": [],
+      "hardFailures": []
+    }
+  },
+  {
+    "packet": 4,
+    "runId": "rymgi1fsoead4rjnkf1a86za",
+    "templateId": "v3-photo-festival",
+    "score": 0,
+    "forced": true,
+    "pdfUrl": "https://api-production-26a0.up.railway.app/pdfs/rymgi1fsoead4rjnkf1a86za-web-1787937012047.pdf",
+    "qualityGate": {
+      "floor": 0.6,
+      "passed": false,
+      "reason": "Hard Porter invariant failed — export blocked until forced. source-unit-missing: Required profile-story source unit pxvs4tryshrwmi9be0fims8k was not placed on the inner spread.",
+      "finalScore": 0,
+      "hardFailures": [
+        "source-unit-missing: Required profile-story source unit pxvs4tryshrwmi9be0fims8k was not placed on the inner spread.",
+        "photo-only-inner-page: Inner page 2 contains images but no meaningful article or list content.",
+        "source-photo-not-adjacent: Legacy News has an explicit associated photo that is not adjacent to its story block."
+      ]
+    },
+    "playbook": "3 passed, 1 warned, 6 failed across 10 applicable Porter layout rules.",
+    "invariants": {
+      "passed": false,
+      "failures": [
+        {
+          "id": "source-unit-missing",
+          "message": "Required profile-story source unit pxvs4tryshrwmi9be0fims8k was not placed on the inner spread.",
+          "severity": "hard"
+        },
+        {
+          "id": "photo-only-inner-page",
+          "message": "Inner page 2 contains images but no meaningful article or list content.",
+          "severity": "hard"
+        },
+        {
+          "id": "source-photo-not-adjacent",
+          "message": "Legacy News has an explicit associated photo that is not adjacent to its story block.",
+          "severity": "hard"
+        }
+      ],
+      "warnings": [],
+      "hardFailures": [
+        "source-unit-missing: Required profile-story source unit pxvs4tryshrwmi9be0fims8k was not placed on the inner spread.",
+        "photo-only-inner-page: Inner page 2 contains images but no meaningful article or list content.",
+        "source-photo-not-adjacent: Legacy News has an explicit associated photo that is not adjacent to its story block."
+      ]
+    }
+  },
+  {
+    "packet": 5,
+    "runId": "hy1p17gjnrme586jwnr3h12c",
+    "templateId": "v3-spread-classic",
+    "score": 0.3877136517697326,
+    "forced": true,
+    "pdfUrl": "https://api-production-26a0.up.railway.app/pdfs/hy1p17gjnrme586jwnr3h12c-web-1787937156983.pdf",
+    "qualityGate": {
+      "floor": 0.6,
+      "passed": false,
+      "reason": "Hard Porter invariant failed — export blocked until forced. render-clipped-blocks: 2 clipped rendered block(s).",
+      "finalScore": 0.3877136517697326,
+      "hardFailures": [
+        "render-clipped-blocks: 2 clipped rendered block(s)."
+      ]
+    },
+    "playbook": "5 passed, 0 warned, 4 failed across 9 applicable Porter layout rules.",
+    "invariants": {
+      "passed": false,
+      "failures": [
+        {
+          "id": "render-clipped-blocks",
+          "message": "2 clipped rendered block(s).",
+          "severity": "hard"
+        }
+      ],
+      "warnings": [],
+      "hardFailures": [
+        "render-clipped-blocks: 2 clipped rendered block(s)."
+      ]
+    }
+  },
+  {
+    "packet": 6,
+    "runId": "xdh649wwemv8vxf00grywhzy",
+    "templateId": "v3-editorial-light",
+    "score": 0.2898402404386113,
+    "forced": true,
+    "pdfUrl": "https://api-production-26a0.up.railway.app/pdfs/xdh649wwemv8vxf00grywhzy-web-1787937257755.pdf",
+    "qualityGate": {
+      "floor": 0.6,
+      "passed": false,
+      "reason": "Final score 29% is below the 60% ship floor — export blocked until forced.",
+      "finalScore": 0.2898402404386113
+    },
+    "playbook": "6 passed, 1 warned, 2 failed across 9 applicable Porter layout rules.",
+    "invariants": {
+      "passed": true,
+      "failures": [],
+      "warnings": [],
+      "hardFailures": []
+    }
+  }
+]

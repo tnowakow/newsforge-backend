@@ -1,0 +1,282 @@
+[
+  {
+    "file": "example-01.pdf",
+    "fonts": [
+      {
+        "font": "AGaramondPro-Regular",
+        "sizePt": 11.5,
+        "characters": 2211
+      },
+      {
+        "font": "MuseoSans-500",
+        "sizePt": 11.5,
+        "characters": 772
+      },
+      {
+        "font": "AGaramondPro-Bold",
+        "sizePt": 11.5,
+        "characters": 98
+      },
+      {
+        "font": "MuseoSans-900",
+        "sizePt": 24.0,
+        "characters": 66
+      },
+      {
+        "font": "AGaramondPro-SemiboldItalic",
+        "sizePt": 11.5,
+        "characters": 46
+      },
+      {
+        "font": "AGaramondPro-BoldItalic",
+        "sizePt": 21.0,
+        "characters": 37
+      },
+      {
+        "font": "AGaramondPro-Bold",
+        "sizePt": 13.0,
+        "characters": 35
+      }
+    ]
+  },
+  {
+    "file": "example-02.pdf",
+    "fonts": [
+      {
+        "font": "AGaramondPro-Semibold",
+        "sizePt": 11.5,
+        "characters": 872
+      },
+      {
+        "font": "MuseoSans-500",
+        "sizePt": 11.5,
+        "characters": 772
+      },
+      {
+        "font": "AGaramondPro-Regular",
+        "sizePt": 11.5,
+        "characters": 657
+      },
+      {
+        "font": "MuseoSans-900",
+        "sizePt": 24.0,
+        "characters": 33
+      },
+      {
+        "font": "AGaramondPro-BoldItalic",
+        "sizePt": 24.0,
+        "characters": 32
+      },
+      {
+        "font": "AGaramondPro-BoldItalic",
+        "sizePt": 18.0,
+        "characters": 20
+      },
+      {
+        "font": "MuseoSans-900",
+        "sizePt": 23.0,
+        "characters": 17
+      }
+    ]
+  },
+  {
+    "file": "example-05.pdf",
+    "fonts": [
+      {
+        "font": "MuseoSans-500",
+        "sizePt": 11.5,
+        "characters": 772
+      },
+      {
+        "font": "AGaramondPro-Semibold",
+        "sizePt": 11.5,
+        "characters": 537
+      },
+      {
+        "font": "AGaramondPro-Regular",
+        "sizePt": 11.5,
+        "characters": 129
+      },
+      {
+        "font": "AGaramondPro-SemiboldItalic",
+        "sizePt": 11.5,
+        "characters": 100
+      },
+      {
+        "font": "AGaramondPro-BoldItalic",
+        "sizePt": 20.0,
+        "characters": 89
+      },
+      {
+        "font": "MuseoSans-900",
+        "sizePt": 23.0,
+        "characters": 17
+      },
+      {
+        "font": "MuseoSans-900",
+        "sizePt": 24.0,
+        "characters": 17
+      }
+    ]
+  },
+  {
+    "file": "example-11.pdf",
+    "fonts": [
+      {
+        "font": "MuseoSans-700",
+        "sizePt": 11.5,
+        "characters": 740
+      },
+      {
+        "font": "AGaramondPro-Regular",
+        "sizePt": 11.5,
+        "characters": 716
+      },
+      {
+        "font": "AGaramondPro-Bold",
+        "sizePt": 11.5,
+        "characters": 356
+      },
+      {
+        "font": "AGaramondPro-Semibold",
+        "sizePt": 11.5,
+        "characters": 202
+      },
+      {
+        "font": "MuseoSans-900",
+        "sizePt": 24.0,
+        "characters": 75
+      },
+      {
+        "font": "MuseoSans-500",
+        "sizePt": 11.5,
+        "characters": 32
+      },
+      {
+        "font": "AGaramondPro-Bold",
+        "sizePt": 21.0,
+        "characters": 30
+      }
+    ]
+  },
+  {
+    "file": "example-18.pdf",
+    "fonts": [
+      {
+        "font": "AGaramondPro-Semibold",
+        "sizePt": 11.5,
+        "characters": 2831
+      },
+      {
+        "font": "AGaramondPro-Regular",
+        "sizePt": 11.5,
+        "characters": 1385
+      },
+      {
+        "font": "MuseoSans-500",
+        "sizePt": 11.5,
+        "characters": 722
+      },
+      {
+        "font": "AGaramondPro-SemiboldItalic",
+        "sizePt": 23.0,
+        "characters": 51
+      },
+      {
+        "font": "AGaramondPro-SemiboldItalic",
+        "sizePt": 24.0,
+        "characters": 30
+      },
+      {
+        "font": "MuseoSans-900",
+        "sizePt": 22.0,
+        "characters": 28
+      },
+      {
+        "font": "MuseoSans-900",
+        "sizePt": 23.0,
+        "characters": 17
+      }
+    ]
+  },
+  {
+    "file": "example-27.pdf",
+    "fonts": [
+      {
+        "font": "AGaramondPro-Regular",
+        "sizePt": 11.5,
+        "characters": 1649
+      },
+      {
+        "font": "MuseoSans-500",
+        "sizePt": 11.5,
+        "characters": 747
+      },
+      {
+        "font": "AGaramondPro-Bold",
+        "sizePt": 11.5,
+        "characters": 461
+      },
+      {
+        "font": "AGaramondPro-Semibold",
+        "sizePt": 11.5,
+        "characters": 216
+      },
+      {
+        "font": "AGaramondPro-Italic",
+        "sizePt": 11.5,
+        "characters": 100
+      },
+      {
+        "font": "AGaramondPro-SemiboldItalic",
+        "sizePt": 11.5,
+        "characters": 93
+      },
+      {
+        "font": "AGaramondPro-BoldItalic",
+        "sizePt": 21.0,
+        "characters": 57
+      }
+    ]
+  },
+  {
+    "file": "example-30.pdf",
+    "fonts": [
+      {
+        "font": "AGaramondPro-Regular",
+        "sizePt": 11.5,
+        "characters": 1283
+      },
+      {
+        "font": "AGaramondPro-Semibold",
+        "sizePt": 11.5,
+        "characters": 1263
+      },
+      {
+        "font": "MuseoSans-500",
+        "sizePt": 12.0,
+        "characters": 730
+      },
+      {
+        "font": "AGaramondPro-Bold",
+        "sizePt": 11.5,
+        "characters": 125
+      },
+      {
+        "font": "AGaramondPro-Italic",
+        "sizePt": 11.5,
+        "characters": 79
+      },
+      {
+        "font": "MuseoSans-900",
+        "sizePt": 24.0,
+        "characters": 47
+      },
+      {
+        "font": "AGaramondPro-Bold",
+        "sizePt": 15.0,
+        "characters": 37
+      }
+    ]
+  }
+]

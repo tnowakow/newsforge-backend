@@ -1,0 +1,841 @@
+{
+  "id": "trilogy-source-asset-inventory",
+  "generatedAt": "2026-09-09T16:04:27.653Z",
+  "sourceManifest": "evidence/input-manifest.json",
+  "planNormalization": {
+    "rule": "references 01-05 split one wide page into five files; 06-30 use physical pages 1-2",
+    "logicalPageMap": {
+      "01-05": {
+        "physicalPages": 1,
+        "note": "single wide page split across example-01..05"
+      },
+      "06-30": {
+        "physicalPages": 2,
+        "note": "physical pages 1-2"
+      }
+    }
+  },
+  "counts": {
+    "docx": 9,
+    "photos": 7,
+    "referencePdfs": 30,
+    "markdownDocs": 5,
+    "total": 51
+  },
+  "entries": [
+    {
+      "path": "/mnt/4tb/downloads/Will/Newsletter Requirements and Pricing Request/00-README-package-index.md",
+      "bytes": 2295,
+      "sha256": "df8311d16c37ea52e61098535fe2d97e6a6882f2a9c78b02a671953c23d323c9",
+      "name": "00-README-package-index.md",
+      "role": "markdown-doc",
+      "present": true,
+      "bytesVerified": true,
+      "sha256Verified": true
+    },
+    {
+      "path": "/mnt/4tb/downloads/Will/Newsletter Requirements and Pricing Request/01-requirements-and-scope.md",
+      "bytes": 19074,
+      "sha256": "8c47fd490507227245f298309b1f5add68636ded2052fac52665abe90b317916",
+      "name": "01-requirements-and-scope.md",
+      "role": "markdown-doc",
+      "present": true,
+      "bytesVerified": true,
+      "sha256Verified": true
+    },
+    {
+      "path": "/mnt/4tb/downloads/Will/Newsletter Requirements and Pricing Request/02-architecture-brief.md",
+      "bytes": 19091,
+      "sha256": "01a488962fde1afe19c1414f71d24723e9b585cc2824891fbbb392ce227398d4",
+      "name": "02-architecture-brief.md",
+      "role": "markdown-doc",
+      "present": true,
+      "bytesVerified": true,
+      "sha256Verified": true
+    },
+    {
+      "path": "/mnt/4tb/downloads/Will/Newsletter Requirements and Pricing Request/03-epics-for-estimation.md",
+      "bytes": 10496,
+      "sha256": "b6701e91ab30ae1af69f8cb58a6e28bb26f22f63a784efcdf83e068c6d5bf961",
+      "name": "03-epics-for-estimation.md",
+      "role": "markdown-doc",
+      "present": true,
+      "bytesVerified": true,
+      "sha256Verified": true
+    },
+    {
+      "path": "/mnt/4tb/downloads/Will/Newsletter Requirements and Pricing Request/04-assumptions-risks-open-questions.md",
+      "bytes": 10325,
+      "sha256": "23a139b1e779cab23a6753d56c60e7dae19f7a35c31c53b5a7d6024440336de2",
+      "name": "04-assumptions-risks-open-questions.md",
+      "role": "markdown-doc",
+      "present": true,
+      "bytesVerified": true,
+      "sha256Verified": true
+    },
+    {
+      "path": "/mnt/4tb/downloads/Will/Template Test/Blank-Template.docx",
+      "bytes": 33329,
+      "sha256": "c91c0133524fa1c95dab494ec8db4b08648e609f5c8c82b7cf6f7dd71797836a",
+      "name": "Blank-Template.docx",
+      "role": "docx",
+      "kind": "blank-form",
+      "present": true,
+      "bytesVerified": true,
+      "sha256Verified": true
+    },
+    {
+      "path": "/mnt/4tb/downloads/Will/Template Test/July Campus Newsletter Content.docx",
+      "bytes": 37090,
+      "sha256": "336bcf5506985c41bc8993a63c61388cb7d60762e563cb818d3972055434729a",
+      "name": "July Campus Newsletter Content.docx",
+      "role": "docx",
+      "kind": "filled",
+      "label": "july-campus",
+      "present": true,
+      "bytesVerified": true,
+      "sha256Verified": true
+    },
+    {
+      "path": "/mnt/4tb/downloads/Will/Template Test/July Newsletter Content.docx",
+      "bytes": 36738,
+      "sha256": "d3c607ce6b1114b5dd0c485e0552847ab4756581b7e32579752688e139df5aa3",
+      "name": "July Newsletter Content.docx",
+      "role": "docx",
+      "kind": "filled",
+      "label": "july-primary",
+      "present": true,
+      "bytesVerified": true,
+      "sha256Verified": true
+    },
+    {
+      "path": "/mnt/4tb/downloads/Will/Template Test/July Newsletter Content1.docx",
+      "bytes": 36725,
+      "sha256": "b1d4d8831c4b9b66dc4ed0caa75a839bcafbc7e2556b4b9c819b9d4d20fe30c5",
+      "name": "July Newsletter Content1.docx",
+      "role": "docx",
+      "kind": "filled",
+      "label": "july-content-1",
+      "present": true,
+      "bytesVerified": true,
+      "sha256Verified": true
+    },
+    {
+      "path": "/mnt/4tb/downloads/Will/Template Test/July Newsletter Content2.docx",
+      "bytes": 37912,
+      "sha256": "ad28f704bcb7f1e2013fcbd99de640404667c7934b4f97bea62fc57462a6cdbc",
+      "name": "July Newsletter Content2.docx",
+      "role": "docx",
+      "kind": "filled",
+      "label": "july-content-2",
+      "present": true,
+      "bytesVerified": true,
+      "sha256Verified": true
+    },
+    {
+      "path": "/mnt/4tb/downloads/Will/Template Test/July Newsletter Content3.docx",
+      "bytes": 35969,
+      "sha256": "3dd4f354f5148026ffec0adc092f8f10cbfeecf5f3f76430bdb46456b1b2014f",
+      "name": "July Newsletter Content3.docx",
+      "role": "docx",
+      "kind": "filled",
+      "label": "july-content-3",
+      "present": true,
+      "bytesVerified": true,
+      "sha256Verified": true
+    },
+    {
+      "path": "/mnt/4tb/downloads/Will/Template Test/July Newsletter Content4.docx",
+      "bytes": 35583,
+      "sha256": "3ca17a77d9d0a9dd3151349d556d0e0d80f57683172ad4541d408039091ec7b8",
+      "name": "July Newsletter Content4.docx",
+      "role": "docx",
+      "kind": "filled",
+      "label": "july-content-4",
+      "present": true,
+      "bytesVerified": true,
+      "sha256Verified": true
+    },
+    {
+      "path": "/mnt/4tb/downloads/Will/Template Test/July Newsletter Content5.docx",
+      "bytes": 36869,
+      "sha256": "b757e570a577092cc782dd40ac1fc66daf84a5e76b1e27391fc7f060d7e7a37e",
+      "name": "July Newsletter Content5.docx",
+      "role": "docx",
+      "kind": "filled",
+      "label": "july-content-5",
+      "present": true,
+      "bytesVerified": true,
+      "sha256Verified": true
+    },
+    {
+      "path": "/mnt/4tb/downloads/Will/Template Test/July Newsletter Content6.docx",
+      "bytes": 34790,
+      "sha256": "e298b1fcad09c38a8c07f8b7c62d5fc871ed7fd56b8d7d8271ed497aabe14af8",
+      "name": "July Newsletter Content6.docx",
+      "role": "docx",
+      "kind": "filled",
+      "label": "july-content-6",
+      "present": true,
+      "bytesVerified": true,
+      "sha256Verified": true
+    },
+    {
+      "path": "/mnt/4tb/downloads/Will/Template Test/photo1.jpg",
+      "bytes": 159673,
+      "sha256": "07caca918aa4ecd6cdf2bd9821156ef8021b7e91698885b22c819498d58e54d8",
+      "name": "photo1.jpg",
+      "role": "photo",
+      "present": true,
+      "bytesVerified": true,
+      "sha256Verified": true,
+      "width": 641,
+      "height": 895,
+      "orientation": "portrait"
+    },
+    {
+      "path": "/mnt/4tb/downloads/Will/Template Test/photo2.jpg",
+      "bytes": 676166,
+      "sha256": "bdbef22f11990f3fa9071d0b1191c989a85525426e0a1a7761900fecd7f36ac3",
+      "name": "photo2.jpg",
+      "role": "photo",
+      "present": true,
+      "bytesVerified": true,
+      "sha256Verified": true,
+      "width": 1382,
+      "height": 2115,
+      "orientation": "portrait"
+    },
+    {
+      "path": "/mnt/4tb/downloads/Will/Template Test/photo3.jpg",
+      "bytes": 410499,
+      "sha256": "b9b67975c64c2915dab19ef5165c35bc3648d5660dccc8a816261cb673ef156e",
+      "name": "photo3.jpg",
+      "role": "photo",
+      "present": true,
+      "bytesVerified": true,
+      "sha256Verified": true,
+      "width": 927,
+      "height": 619,
+      "orientation": "landscape-or-square"
+    },
+    {
+      "path": "/mnt/4tb/downloads/Will/Template Test/photo4.jpg",
+      "bytes": 215194,
+      "sha256": "6ad9fe5cba0b54e9067ae5c745ae82930faa4f8efa227f253d0e751b0876372b",
+      "name": "photo4.jpg",
+      "role": "photo",
+      "present": true,
+      "bytesVerified": true,
+      "sha256Verified": true,
+      "width": 864,
+      "height": 576,
+      "orientation": "landscape-or-square"
+    },
+    {
+      "path": "/mnt/4tb/downloads/Will/Template Test/photo5.jpg",
+      "bytes": 146252,
+      "sha256": "82e0be3a130dd5883e009f8c82dcfff7b4443c89a77887272798b8d69dc5053a",
+      "name": "photo5.jpg",
+      "role": "photo",
+      "present": true,
+      "bytesVerified": true,
+      "sha256Verified": true,
+      "width": 618,
+      "height": 927,
+      "orientation": "portrait"
+    },
+    {
+      "path": "/mnt/4tb/downloads/Will/Template Test/photo6.jpg",
+      "bytes": 377361,
+      "sha256": "c4037c7f4cfe8d20a1907f1774bbd4deabecac0190704de591974c1ea2124758",
+      "name": "photo6.jpg",
+      "role": "photo",
+      "present": true,
+      "bytesVerified": true,
+      "sha256Verified": true,
+      "width": 927,
+      "height": 618,
+      "orientation": "landscape-or-square"
+    },
+    {
+      "path": "/mnt/4tb/downloads/Will/Template Test/photo7.jpg",
+      "bytes": 225022,
+      "sha256": "2664a770cc05c4892e3466656a07019c706760b892346ec10069dcd7ec971d3f",
+      "name": "photo7.jpg",
+      "role": "photo",
+      "present": true,
+      "bytesVerified": true,
+      "sha256Verified": true,
+      "width": 864,
+      "height": 576,
+      "orientation": "landscape-or-square"
+    },
+    {
+      "path": "/mnt/4tb/downloads/Will/newsletter examples - What we want final to look like/example-01.pdf",
+      "bytes": 2205441,
+      "sha256": "10f95f0b0b642e4202482b98092addf5ae92c5a2afcf9d7454358a9dd929d8b9",
+      "name": "example-01.pdf",
+      "role": "reference-pdf",
+      "exampleIndex": 1,
+      "pageNormalization": {
+        "logicalPages": [
+          1
+        ],
+        "note": "single wide page split into 5 reference files 01-05"
+      },
+      "present": true,
+      "bytesVerified": true,
+      "sha256Verified": true,
+      "physicalPages": 1
+    },
+    {
+      "path": "/mnt/4tb/downloads/Will/newsletter examples - What we want final to look like/example-02.pdf",
+      "bytes": 1218063,
+      "sha256": "aa9b100338bf614bf1a082f7fe4ba9606716db69d6600009df1e81c19ab1983b",
+      "name": "example-02.pdf",
+      "role": "reference-pdf",
+      "exampleIndex": 2,
+      "pageNormalization": {
+        "logicalPages": [
+          1
+        ],
+        "note": "single wide page split into 5 reference files 01-05"
+      },
+      "present": true,
+      "bytesVerified": true,
+      "sha256Verified": true,
+      "physicalPages": 1
+    },
+    {
+      "path": "/mnt/4tb/downloads/Will/newsletter examples - What we want final to look like/example-03.pdf",
+      "bytes": 661268,
+      "sha256": "63c19e116d909ac62daad1a9dcfe164261442035d37a09a2feb3a5192b1748f3",
+      "name": "example-03.pdf",
+      "role": "reference-pdf",
+      "exampleIndex": 3,
+      "pageNormalization": {
+        "logicalPages": [
+          1
+        ],
+        "note": "single wide page split into 5 reference files 01-05"
+      },
+      "present": true,
+      "bytesVerified": true,
+      "sha256Verified": true,
+      "physicalPages": 1
+    },
+    {
+      "path": "/mnt/4tb/downloads/Will/newsletter examples - What we want final to look like/example-04.pdf",
+      "bytes": 364270,
+      "sha256": "b45dbad669a983822d486480fdeced87a4bf44569e55107b0700827dd15045c7",
+      "name": "example-04.pdf",
+      "role": "reference-pdf",
+      "exampleIndex": 4,
+      "pageNormalization": {
+        "logicalPages": [
+          1
+        ],
+        "note": "single wide page split into 5 reference files 01-05"
+      },
+      "present": true,
+      "bytesVerified": true,
+      "sha256Verified": true,
+      "physicalPages": 1
+    },
+    {
+      "path": "/mnt/4tb/downloads/Will/newsletter examples - What we want final to look like/example-05.pdf",
+      "bytes": 803223,
+      "sha256": "9348a6aabd614388ec34b41f4ec1066266f4be375fc24e18120568f363ab4299",
+      "name": "example-05.pdf",
+      "role": "reference-pdf",
+      "exampleIndex": 5,
+      "pageNormalization": {
+        "logicalPages": [
+          1
+        ],
+        "note": "single wide page split into 5 reference files 01-05"
+      },
+      "present": true,
+      "bytesVerified": true,
+      "sha256Verified": true,
+      "physicalPages": 1
+    },
+    {
+      "path": "/mnt/4tb/downloads/Will/newsletter examples - What we want final to look like/example-06.pdf",
+      "bytes": 1243167,
+      "sha256": "d292994b7eab6c79d28998a651b5340f67ff61cdf89aaf1b7e788081e73cc39e",
+      "name": "example-06.pdf",
+      "role": "reference-pdf",
+      "exampleIndex": 6,
+      "pageNormalization": {
+        "logicalPages": [
+          1,
+          2
+        ],
+        "note": "physical pages 1-2"
+      },
+      "present": true,
+      "bytesVerified": true,
+      "sha256Verified": true,
+      "physicalPages": 2
+    },
+    {
+      "path": "/mnt/4tb/downloads/Will/newsletter examples - What we want final to look like/example-07.pdf",
+      "bytes": 900400,
+      "sha256": "613bc7b5085e82e47792c47a42fbcc08cfda9a9a7e36ace73a5e204108543027",
+      "name": "example-07.pdf",
+      "role": "reference-pdf",
+      "exampleIndex": 7,
+      "pageNormalization": {
+        "logicalPages": [
+          1,
+          2
+        ],
+        "note": "physical pages 1-2"
+      },
+      "present": true,
+      "bytesVerified": true,
+      "sha256Verified": true,
+      "physicalPages": 2
+    },
+    {
+      "path": "/mnt/4tb/downloads/Will/newsletter examples - What we want final to look like/example-08.pdf",
+      "bytes": 699788,
+      "sha256": "7323ba0609dcee896d2089faf450001f3f2076bd405668bbfd0d167da73a70da",
+      "name": "example-08.pdf",
+      "role": "reference-pdf",
+      "exampleIndex": 8,
+      "pageNormalization": {
+        "logicalPages": [
+          1,
+          2
+        ],
+        "note": "physical pages 1-2"
+      },
+      "present": true,
+      "bytesVerified": true,
+      "sha256Verified": true,
+      "physicalPages": 2
+    },
+    {
+      "path": "/mnt/4tb/downloads/Will/newsletter examples - What we want final to look like/example-09.pdf",
+      "bytes": 641556,
+      "sha256": "1ec4849ea2d976f270e3a5bf58ec0c6ba3007a324db0643691b8231f90754e39",
+      "name": "example-09.pdf",
+      "role": "reference-pdf",
+      "exampleIndex": 9,
+      "pageNormalization": {
+        "logicalPages": [
+          1,
+          2
+        ],
+        "note": "physical pages 1-2"
+      },
+      "present": true,
+      "bytesVerified": true,
+      "sha256Verified": true,
+      "physicalPages": 2
+    },
+    {
+      "path": "/mnt/4tb/downloads/Will/newsletter examples - What we want final to look like/example-10.pdf",
+      "bytes": 540798,
+      "sha256": "5abc32eb1fa5b40909e785187c0bbe35ecea9e35150a6ca221ce833e438b41ec",
+      "name": "example-10.pdf",
+      "role": "reference-pdf",
+      "exampleIndex": 10,
+      "pageNormalization": {
+        "logicalPages": [
+          1,
+          2
+        ],
+        "note": "physical pages 1-2"
+      },
+      "present": true,
+      "bytesVerified": true,
+      "sha256Verified": true,
+      "physicalPages": 2
+    },
+    {
+      "path": "/mnt/4tb/downloads/Will/newsletter examples - What we want final to look like/example-11.pdf",
+      "bytes": 1027244,
+      "sha256": "fe3da0d948f169bc3c42b9821d397164be83c26612bd94a52d185e9568701f5e",
+      "name": "example-11.pdf",
+      "role": "reference-pdf",
+      "exampleIndex": 11,
+      "pageNormalization": {
+        "logicalPages": [
+          1,
+          2
+        ],
+        "note": "physical pages 1-2"
+      },
+      "present": true,
+      "bytesVerified": true,
+      "sha256Verified": true,
+      "physicalPages": 2
+    },
+    {
+      "path": "/mnt/4tb/downloads/Will/newsletter examples - What we want final to look like/example-12.pdf",
+      "bytes": 1390186,
+      "sha256": "4029bb57ffb2156b516c365b12c37d475122a00505b965c90e725c08d1768dfd",
+      "name": "example-12.pdf",
+      "role": "reference-pdf",
+      "exampleIndex": 12,
+      "pageNormalization": {
+        "logicalPages": [
+          1,
+          2
+        ],
+        "note": "physical pages 1-2"
+      },
+      "present": true,
+      "bytesVerified": true,
+      "sha256Verified": true,
+      "physicalPages": 2
+    },
+    {
+      "path": "/mnt/4tb/downloads/Will/newsletter examples - What we want final to look like/example-13.pdf",
+      "bytes": 801382,
+      "sha256": "eaf83e1452a6cf7035e844f8b78d0660744a788c55dc9b3564f661ea8ad504da",
+      "name": "example-13.pdf",
+      "role": "reference-pdf",
+      "exampleIndex": 13,
+      "pageNormalization": {
+        "logicalPages": [
+          1,
+          2
+        ],
+        "note": "physical pages 1-2"
+      },
+      "present": true,
+      "bytesVerified": true,
+      "sha256Verified": true,
+      "physicalPages": 2
+    },
+    {
+      "path": "/mnt/4tb/downloads/Will/newsletter examples - What we want final to look like/example-14.pdf",
+      "bytes": 637805,
+      "sha256": "2353d0ad92c8f360c9daa70e55e08802ae2c85374e2f378d7f5de1f1b0c7ec24",
+      "name": "example-14.pdf",
+      "role": "reference-pdf",
+      "exampleIndex": 14,
+      "pageNormalization": {
+        "logicalPages": [
+          1,
+          2
+        ],
+        "note": "physical pages 1-2"
+      },
+      "present": true,
+      "bytesVerified": true,
+      "sha256Verified": true,
+      "physicalPages": 2
+    },
+    {
+      "path": "/mnt/4tb/downloads/Will/newsletter examples - What we want final to look like/example-15.pdf",
+      "bytes": 683040,
+      "sha256": "d839ea4895459fdabe9b59d6ed7face0410ef6a52f0f8edf44638e9a58cf9f92",
+      "name": "example-15.pdf",
+      "role": "reference-pdf",
+      "exampleIndex": 15,
+      "pageNormalization": {
+        "logicalPages": [
+          1,
+          2
+        ],
+        "note": "physical pages 1-2"
+      },
+      "present": true,
+      "bytesVerified": true,
+      "sha256Verified": true,
+      "physicalPages": 2
+    },
+    {
+      "path": "/mnt/4tb/downloads/Will/newsletter examples - What we want final to look like/example-16.pdf",
+      "bytes": 860264,
+      "sha256": "5802a6d01998ed203ee4a515e001fb12b8529d48363b9b4ba24727f9931e83f7",
+      "name": "example-16.pdf",
+      "role": "reference-pdf",
+      "exampleIndex": 16,
+      "pageNormalization": {
+        "logicalPages": [
+          1,
+          2
+        ],
+        "note": "physical pages 1-2"
+      },
+      "present": true,
+      "bytesVerified": true,
+      "sha256Verified": true,
+      "physicalPages": 2
+    },
+    {
+      "path": "/mnt/4tb/downloads/Will/newsletter examples - What we want final to look like/example-17.pdf",
+      "bytes": 1160581,
+      "sha256": "0a6c1f299e25a5c25a0c88e3982932dd35dfc33f1597e69ea0841c7b32617f31",
+      "name": "example-17.pdf",
+      "role": "reference-pdf",
+      "exampleIndex": 17,
+      "pageNormalization": {
+        "logicalPages": [
+          1,
+          2
+        ],
+        "note": "physical pages 1-2"
+      },
+      "present": true,
+      "bytesVerified": true,
+      "sha256Verified": true,
+      "physicalPages": 2
+    },
+    {
+      "path": "/mnt/4tb/downloads/Will/newsletter examples - What we want final to look like/example-18.pdf",
+      "bytes": 528774,
+      "sha256": "6e2f6a043ee32a1ddb61a932512e8909e8a72d433f0c97f0cec5d2b43b06f914",
+      "name": "example-18.pdf",
+      "role": "reference-pdf",
+      "exampleIndex": 18,
+      "pageNormalization": {
+        "logicalPages": [
+          1,
+          2
+        ],
+        "note": "physical pages 1-2"
+      },
+      "present": true,
+      "bytesVerified": true,
+      "sha256Verified": true,
+      "physicalPages": 2
+    },
+    {
+      "path": "/mnt/4tb/downloads/Will/newsletter examples - What we want final to look like/example-19.pdf",
+      "bytes": 2075101,
+      "sha256": "3d5b7c22ecb9250a5f6621d37a4b8c4307877220129a1c1e7f849d4f2e759553",
+      "name": "example-19.pdf",
+      "role": "reference-pdf",
+      "exampleIndex": 19,
+      "pageNormalization": {
+        "logicalPages": [
+          1,
+          2
+        ],
+        "note": "physical pages 1-2"
+      },
+      "present": true,
+      "bytesVerified": true,
+      "sha256Verified": true,
+      "physicalPages": 2
+    },
+    {
+      "path": "/mnt/4tb/downloads/Will/newsletter examples - What we want final to look like/example-20.pdf",
+      "bytes": 1020282,
+      "sha256": "a2e0d62e436feb116eef1e70fe1b87dc8354a91c9215abea90ddaf4c461e3ea7",
+      "name": "example-20.pdf",
+      "role": "reference-pdf",
+      "exampleIndex": 20,
+      "pageNormalization": {
+        "logicalPages": [
+          1,
+          2
+        ],
+        "note": "physical pages 1-2"
+      },
+      "present": true,
+      "bytesVerified": true,
+      "sha256Verified": true,
+      "physicalPages": 2
+    },
+    {
+      "path": "/mnt/4tb/downloads/Will/newsletter examples - What we want final to look like/example-21.pdf",
+      "bytes": 1326057,
+      "sha256": "355d45d11b0839cbbbfe69c6e1546e82dfeebfc937af9511f815a84cbee70bf5",
+      "name": "example-21.pdf",
+      "role": "reference-pdf",
+      "exampleIndex": 21,
+      "pageNormalization": {
+        "logicalPages": [
+          1,
+          2
+        ],
+        "note": "physical pages 1-2"
+      },
+      "present": true,
+      "bytesVerified": true,
+      "sha256Verified": true,
+      "physicalPages": 2
+    },
+    {
+      "path": "/mnt/4tb/downloads/Will/newsletter examples - What we want final to look like/example-22.pdf",
+      "bytes": 1494413,
+      "sha256": "ac2c9a8ae661861816cce533c1a57f32382750ca3e8fd47fdc7e3c87a9b06703",
+      "name": "example-22.pdf",
+      "role": "reference-pdf",
+      "exampleIndex": 22,
+      "pageNormalization": {
+        "logicalPages": [
+          1,
+          2
+        ],
+        "note": "physical pages 1-2"
+      },
+      "present": true,
+      "bytesVerified": true,
+      "sha256Verified": true,
+      "physicalPages": 2
+    },
+    {
+      "path": "/mnt/4tb/downloads/Will/newsletter examples - What we want final to look like/example-23.pdf",
+      "bytes": 2927056,
+      "sha256": "8a37fd5a0cc1dc3cae1badba032431793036dbdddbb0b304e5063c12c4d77918",
+      "name": "example-23.pdf",
+      "role": "reference-pdf",
+      "exampleIndex": 23,
+      "pageNormalization": {
+        "logicalPages": [
+          1,
+          2
+        ],
+        "note": "physical pages 1-2"
+      },
+      "present": true,
+      "bytesVerified": true,
+      "sha256Verified": true,
+      "physicalPages": 2
+    },
+    {
+      "path": "/mnt/4tb/downloads/Will/newsletter examples - What we want final to look like/example-24.pdf",
+      "bytes": 2542340,
+      "sha256": "9d8ac278e869179fed3535d47b2b379ace9e605f71bbe6f916fb5298baf21759",
+      "name": "example-24.pdf",
+      "role": "reference-pdf",
+      "exampleIndex": 24,
+      "pageNormalization": {
+        "logicalPages": [
+          1,
+          2
+        ],
+        "note": "physical pages 1-2"
+      },
+      "present": true,
+      "bytesVerified": true,
+      "sha256Verified": true,
+      "physicalPages": 2
+    },
+    {
+      "path": "/mnt/4tb/downloads/Will/newsletter examples - What we want final to look like/example-25.pdf",
+      "bytes": 2103962,
+      "sha256": "b45664a2911a20e3fcaafdc0c21627948e2ba7bc81eb2a1f7ebfd9efe2d0a8e3",
+      "name": "example-25.pdf",
+      "role": "reference-pdf",
+      "exampleIndex": 25,
+      "pageNormalization": {
+        "logicalPages": [
+          1,
+          2
+        ],
+        "note": "physical pages 1-2"
+      },
+      "present": true,
+      "bytesVerified": true,
+      "sha256Verified": true,
+      "physicalPages": 2
+    },
+    {
+      "path": "/mnt/4tb/downloads/Will/newsletter examples - What we want final to look like/example-26.pdf",
+      "bytes": 707938,
+      "sha256": "930038b8a05e55a9ab5b095eadaf9f21b3fcf3ecc91222b516473641a8d152e7",
+      "name": "example-26.pdf",
+      "role": "reference-pdf",
+      "exampleIndex": 26,
+      "pageNormalization": {
+        "logicalPages": [
+          1,
+          2
+        ],
+        "note": "physical pages 1-2"
+      },
+      "present": true,
+      "bytesVerified": true,
+      "sha256Verified": true,
+      "physicalPages": 2
+    },
+    {
+      "path": "/mnt/4tb/downloads/Will/newsletter examples - What we want final to look like/example-27.pdf",
+      "bytes": 562805,
+      "sha256": "1758e765487d7a7861f7ad1a8a1560445ffd20b336ee0e1579430f37c5862139",
+      "name": "example-27.pdf",
+      "role": "reference-pdf",
+      "exampleIndex": 27,
+      "pageNormalization": {
+        "logicalPages": [
+          1,
+          2
+        ],
+        "note": "physical pages 1-2"
+      },
+      "present": true,
+      "bytesVerified": true,
+      "sha256Verified": true,
+      "physicalPages": 2
+    },
+    {
+      "path": "/mnt/4tb/downloads/Will/newsletter examples - What we want final to look like/example-28.pdf",
+      "bytes": 2468357,
+      "sha256": "1232e7a2548e129499d4b53a77fb310ac38657a589deca1fa722c655f63ccef3",
+      "name": "example-28.pdf",
+      "role": "reference-pdf",
+      "exampleIndex": 28,
+      "pageNormalization": {
+        "logicalPages": [
+          1,
+          2
+        ],
+        "note": "physical pages 1-2"
+      },
+      "present": true,
+      "bytesVerified": true,
+      "sha256Verified": true,
+      "physicalPages": 2
+    },
+    {
+      "path": "/mnt/4tb/downloads/Will/newsletter examples - What we want final to look like/example-29.pdf",
+      "bytes": 650786,
+      "sha256": "e1a01d4ec8c0d5185272272eb2c61ebc2558496e403b69d3db7794e341fdd0e5",
+      "name": "example-29.pdf",
+      "role": "reference-pdf",
+      "exampleIndex": 29,
+      "pageNormalization": {
+        "logicalPages": [
+          1,
+          2
+        ],
+        "note": "physical pages 1-2"
+      },
+      "present": true,
+      "bytesVerified": true,
+      "sha256Verified": true,
+      "physicalPages": 2
+    },
+    {
+      "path": "/mnt/4tb/downloads/Will/newsletter examples - What we want final to look like/example-30.pdf",
+      "bytes": 1122434,
+      "sha256": "2ffa5cfc2f9f237d6d8e07801b456c40f68edf3488c92368e7733cb970a4262d",
+      "name": "example-30.pdf",
+      "role": "reference-pdf",
+      "exampleIndex": 30,
+      "pageNormalization": {
+        "logicalPages": [
+          1,
+          2
+        ],
+        "note": "physical pages 1-2"
+      },
+      "present": true,
+      "bytesVerified": true,
+      "sha256Verified": true,
+      "physicalPages": 2
+    }
+  ],
+  "problems": []
+}

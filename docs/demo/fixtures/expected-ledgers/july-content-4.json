@@ -1,0 +1,61 @@
+{
+  "label": "july-content-4",
+  "sourceDocx": "/mnt/4tb/downloads/Will/Template Test/July Newsletter Content4.docx",
+  "file": "July Newsletter Content4.docx",
+  "sha256": "3ca17a77d9d0a9dd3151349d556d0e0d80f57683172ad4541d408039091ec7b8",
+  "byteSize": 35583,
+  "role": "filled",
+  "monthLabel": "July 2026",
+  "derivedBy": "manual-plain-text-review (pandoc plain, not the app parser)",
+  "expected": {
+    "proseStories": [
+      { "id": "c4-story-ed-corner", "kind": "prose-story", "heading": "ED Corner – July 2026", "required": true, "originalText": "Happy July, everyone! It's been an amazing summer so far of cookouts, nights spent with friends, and of course, refreshing Happy Hours to help us cool down. ... Have a great month! Yours in Service, Olivia Curavo LNHA, Executive Director", "photoRefs": [] },
+      { "id": "c4-story-legacy-picnic-in-park", "kind": "prose-story", "heading": "Legacy News — Picnic in the Park", "required": true, "originalText": "There's nothing quite like enjoying a beautiful day outdoors, and our recent Picnic in the Park was the perfect opportunity to do just that! Residents gathered together to share a delicious meal, soak up the sunshine ... Moments like these remind us that some of life's best memories are made with good food, fresh air, and great friends.", "photoRefs": ["Legacy photos"] },
+      { "id": "c4-story-new-dfs-announcement", "kind": "prose-story", "heading": "New DFS Announcement (unlabeled, interesting-and-newsworthy 1)", "required": false, "originalText": "We are proud to announce that Jeremiah Bates is our new DFS at GRV. He enjoys what he does, puts the residents first and his upbeat personality is contagious!", "photoRefs": [] },
+      { "id": "c4-story-marie-class-reunion", "kind": "prose-story", "heading": "Marie's Class Reunion (unlabeled, interesting-and-newsworthy 2)", "required": false, "originalText": "Our resident Marie was unable to physically attend her class reunion states away but was able to attend virtually. We were honored to make her experience the very best! Members of our dietary staff Jerimiah and Jenny were given recipes from the small hometown restaurant ... We decorated the room in the school colors and mascot along with pictures from her yearbook as well as her senior picture. ...", "photoRefs": ["Marie's live dream"] },
+      { "id": "c4-story-blast-from-the-past", "kind": "prose-story", "heading": "Blast from the Past Happy Hour (unlabeled, interesting-and-newsworthy 3)", "required": false, "originalText": "We had amazing time jumping back into the past! Tie dye and groovy vibes were the theme! The staff and resident enjoyed making their own tie dye t-shirts and wearing them to our blast from the past happy hour.", "photoRefs": ["blast from the past happy hour"] }
+    ],
+    "scheduleGroups": [
+      { "id": "c4-sched-upcoming", "name": "Upcoming Campus Events", "entryCount": 3 }
+    ],
+    "scheduleEntries": [
+      { "group": "Upcoming Campus Events", "date": "July 4th", "text": "fireworks outing" },
+      { "group": "Upcoming Campus Events", "date": "July 12th", "text": "Sunday Brunch" },
+      { "group": "Upcoming Campus Events", "date": "July 25th", "text": "Saturday Happy Hour" }
+    ],
+    "photoCaptions": [
+      { "ref": "Legacy photos", "caption": "(grouped caption line — no individual caption text supplied)" },
+      { "ref": "Marie's live dream", "caption": "(grouped caption line — no individual caption text supplied)" },
+      { "ref": "blast from the past happy hour", "caption": "(grouped caption line — no individual caption text supplied)" },
+      { "ref": "Volunteers Charlie and Lily", "caption": "helping to make the campus beautiful by planting flowers" }
+    ],
+    "namedReferences": ["Legacy photos", "Marie's live dream", "blast from the past happy hour", "Volunteers Charlie and Lily"],
+    "untaggedUploadedPhotos": [
+      "photo1.jpg", "photo2.jpg", "photo3.jpg",
+      "photo4.jpg", "photo5.jpg", "photo6.jpg", "photo7.jpg"
+    ],
+    "departmentHeads": [
+      "NOTE: the DEPARTMENT HEADS section in this file is LEAKED — it contains the repeated 'Jeremiah Bates is our new DFS' line, not a real roster. R03 must not treat this leaked story line as a department-head entry."
+    ]
+  },
+  "expectedCounts": {
+    "proseStories": 5,
+    "scheduleGroups": 1,
+    "scheduleEntries": 3,
+    "photoCaptions": 4,
+    "namedReferences": 4,
+    "untaggedUploadedPhotos": 7,
+    "departmentHeads": 0
+  },
+  "instructionLeakageNotes": [
+    "R03 target — CONTENT4 instruction leakage: the ED Corner block still carries the template instruction 'Customize the provided Trilogy Home Office content for your campus and paste it in the space below:' immediately before the real ED Corner text. A parser must strip the instruction span while retaining the adjacent submitted copy.",
+    "R03 target — DEPARTMENT HEADS section is not a real roster: it repeats the story 'Jeremiah Bates is our new DFS'. Expected departmentHeads count is ZERO for this packet (the roster is absent); the leaked line must not be counted as a head nor as a duplicate story.",
+    "PHOTO CAPTIONS section lists four caption phrases in one grouped line (Legacy photos; Marie's live dream; blast from the past happy hour; Volunteers Charlie and Lily...) rather than one caption per named file — treat each phrase as a named reference with caption text where present."
+  ],
+  "acceptanceNotes": [
+    "Five prose stories: ED Corner (Olivia Curavo), Picnic in the Park (Legacy), New DFS (Jeremiah Bates), Marie's class reunion, Blast from the Past happy hour.",
+    "One schedule group (Upcoming Campus Events) with three entries (July 4th fireworks, July 12th brunch, July 25th happy hour).",
+    "Department Heads roster is ABSENT (leaked story instead) — expected count zero.",
+    "Caption references are descriptive phrases, not clean file names."
+  ]
+}

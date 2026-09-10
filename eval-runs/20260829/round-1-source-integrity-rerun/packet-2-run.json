@@ -1,0 +1,2450 @@
+{
+  "id": "ogpy3j08md8lbpeqr86taxgm",
+  "clientId": "cf9d5c48ad3397d431d1e6cd",
+  "templateId": "v3-photo-festival",
+  "monthLabel": "July 2026",
+  "fillerMode": "PLACEHOLDER",
+  "articles": [
+    {
+      "id": "vbgdjh4dovxqlqsbjkyv8n7n",
+      "body": "Happy July, everyone!\n\nIt’s been an amazing summer so far of cookouts, nights spent with friends, and of course, refreshing Happy Hours to help us cool down. In our childhoods, it was around this time of year that many of us started looking towards the dreaded return to the classroom – but here at our campus, the middle of July means that the party is just getting started.\n\nAs we head deeper into the season, there’s still plenty to look forward to around campus. From live entertainment and themed events to afternoons spent outside enjoying the sunshine, summer always has a way of bringing people together. It’s been wonderful seeing everyone catching up with neighbors, welcoming visiting family members, and making the most of these longer days. We hope you’ll continue joining us for all the fun, laughter, and little moments that make this time of year so special.\n\nHave a great month!\n\nYours in Service,\n\nAlicia Lambert\n\nExecutive Director",
+      "title": "Executive Director Corner",
+      "byline": "From the Executive Director",
+      "source": "UPLOAD",
+      "isFiller": false,
+      "imageRefs": [],
+      "sectionId": "director",
+      "wordCount": 160,
+      "articleType": "executive-note"
+    },
+    {
+      "id": "z4h6lt6hebjtft1ptx1l1rpk",
+      "body": "At Bethany Pointe Legacy Neighborhood, we are creating new lifestyle hubs that support independent engagement and personal interests. These spaces are designed for residents who enjoy a more independent lifestyle or prefer activities outside of traditional group settings. We are currently developing a library hub, a bird-watching hub, and a flower-arranging hub, with even more engagement opportunities on the way. Stop in and see all of the exciting upgrades we are making to enhance resident life and independence!",
+      "title": "Legacy News",
+      "source": "UPLOAD",
+      "isFiller": false,
+      "imageRefs": [
+        "1",
+        "2",
+        "3"
+      ],
+      "sectionId": "legacy",
+      "wordCount": 78,
+      "articleType": "resident-story"
+    },
+    {
+      "id": "j1j05iqslj1fe25aa6jfh8jy",
+      "body": "Summer Trips - Summer is the perfect time to get out, explore, and make lasting memories—and we have an exciting season of special trips planned for our residents and their loved ones! From a fun-filled visit to the Indianapolis Zoo to relaxing days spent fishing, there is something for everyone to enjoy. Residents can also experience the thrill of horse racing at the casino and take part in a variety of other outings designed to make the most of the beautiful summer weather. These trips provide wonderful opportunities to connect with friends, spend quality time with family, and enjoy new experiences in the community. Whether you're looking for adventure, relaxation, or simply a chance to enjoy the sunshine, our summer outings have something to offer. We hope you and your loved ones will join us as we take full advantage of everything summer has to offer.",
+      "title": "Summer Trips",
+      "source": "UPLOAD",
+      "isFiller": false,
+      "imageRefs": [],
+      "sectionId": "features",
+      "wordCount": 146,
+      "articleType": "other"
+    },
+    {
+      "id": "lw2iqmsmwiml0jri6ht04jx5",
+      "body": "Lifestyle Hubs - We're excited to introduce our new Lifestyle Hubs, now available throughout campus for everyone to enjoy! Designed to encourage connection, engagement, and meaningful moments, these welcoming spaces offer a variety of activities and experiences. Curl up with a good book in our cozy Reading Nook, complete with a community bookshelf. Take a trip down memory lane at Music & Memories, where you can enjoy favorite tunes on a vinyl record player. Or gather with family and friends to enjoy a selection of games and activities together. Best of all, our Lifestyle Hubs are open and accessible to everyone, anytime. Whether you're looking to relax, reminisce, socialize, or simply try something new, there's a hub waiting for you. Be sure to keep an eye out for these exciting spaces as you explore campus!",
+      "title": "Lifestyle Hubs",
+      "source": "UPLOAD",
+      "isFiller": false,
+      "imageRefs": [],
+      "sectionId": "features",
+      "wordCount": 135,
+      "articleType": "other"
+    },
+    {
+      "id": "mdls17s7v9knwtwcep4zx412",
+      "body": "Strike Out Alzheimer’s Fundraiser - Gather your friends, lace up your bowling shoes, and join us for an afternoon of fun while supporting an important cause at our Strike Out Alzheimer's Fundraising Event! On Saturday, August 1st, beginning at 1:00 PM, we'll be heading to Championship Lanes for an exciting day of bowling, prizes, and community support as we raise money for the Alzheimer's Association. Whether you're a seasoned bowler or just looking for a fun way to give back, this event is a great opportunity to make a difference. Form a team of four bowlers and come enjoy an afternoon filled with friendly competition and fundraising activities. To learn more or register your team, please call today and ask for Ashley Miller or Hallee Acree.",
+      "title": "Strike Out Alzheimer’s Fundraiser",
+      "source": "UPLOAD",
+      "isFiller": false,
+      "imageRefs": [],
+      "sectionId": "features",
+      "wordCount": 126,
+      "articleType": "other"
+    }
+  ],
+  "images": [
+    {
+      "id": "kf2smqaf120zyt0xkb27icb8",
+      "alt": "photo1.jpg",
+      "url": "/uploads/b811imeejl7dw1f34j2j3z4j.jpg",
+      "width": 641,
+      "aspect": "portrait",
+      "height": 895,
+      "source": "UPLOAD",
+      "isPlaceholder": false
+    },
+    {
+      "id": "op4a9niu8h7jzhqf03ye6yp4",
+      "alt": "photo2.jpg",
+      "url": "/uploads/b692jya82casum8xj6q22mit.jpg",
+      "width": 1382,
+      "aspect": "portrait",
+      "height": 2115,
+      "source": "UPLOAD",
+      "isPlaceholder": false
+    },
+    {
+      "id": "hq5gr41fh9kwboy8tyr1h54c",
+      "alt": "photo3.jpg",
+      "url": "/uploads/htws6stfbbqw9e2okz19632q.jpg",
+      "width": 927,
+      "aspect": "landscape",
+      "height": 619,
+      "source": "UPLOAD",
+      "isPlaceholder": false
+    },
+    {
+      "id": "l5p9fi0mus70gqe04nmoxqat",
+      "alt": "photo4.jpg",
+      "url": "/uploads/hi9vd3e6uo1fhdfgyb77j2oq.jpg",
+      "width": 864,
+      "aspect": "landscape",
+      "height": 576,
+      "source": "UPLOAD",
+      "isPlaceholder": false
+    },
+    {
+      "id": "tyz57a6bheflqt7gu7ydnljx",
+      "alt": "photo5.jpg",
+      "url": "/uploads/rlxysju2gqfvyebwca09pvhw.jpg",
+      "width": 618,
+      "aspect": "portrait",
+      "height": 927,
+      "source": "UPLOAD",
+      "isPlaceholder": false
+    }
+  ],
+  "assembledLayout": {
+    "stats": {
+      "emptySlots": 0,
+      "fillerBlocks": 1,
+      "placedImages": 5,
+      "placedArticles": 5
+    },
+    "blocks": [
+      {
+        "kind": "article",
+        "page": 1,
+        "style": {
+          "bg": "cream",
+          "compact": true,
+          "centered": true,
+          "panelRole": "featureBand",
+          "headerColor": "primary",
+          "cornerRadius": 0
+        },
+        "slotId": "demo-cover-title",
+        "zIndex": 0,
+        "blockId": "demo-cover-title",
+        "heading": "Trilogy Health Services",
+        "position": {
+          "col": 1,
+          "row": 1,
+          "colSpan": 15,
+          "rowSpan": 4
+        },
+        "inlineText": "July 2026\nCommunity Newsletter",
+        "needsFiller": false
+      },
+      {
+        "kind": "filler",
+        "page": 1,
+        "style": {
+          "bg": "sun",
+          "compact": true,
+          "panelRole": "birthday",
+          "headerColor": "coral",
+          "cornerRadius": 0
+        },
+        "slotId": "demo-cover-birthday",
+        "zIndex": 0,
+        "blockId": "demo-cover-birthday",
+        "heading": "Birthdays",
+        "position": {
+          "col": 1,
+          "row": 5,
+          "colSpan": 5,
+          "rowSpan": 4
+        },
+        "inlineText": "Resident and team celebrations appear here when supplied with the monthly packet.",
+        "needsFiller": false
+      },
+      {
+        "kind": "article",
+        "page": 1,
+        "style": {
+          "bg": "navy",
+          "compact": true,
+          "panelRole": "infoFooter",
+          "invertText": true,
+          "headerColor": "paper",
+          "cornerRadius": 0
+        },
+        "slotId": "demo-cover-inside",
+        "zIndex": 0,
+        "blockId": "demo-cover-inside",
+        "heading": "In This Issue",
+        "position": {
+          "col": 1,
+          "row": 9,
+          "colSpan": 5,
+          "rowSpan": 8
+        },
+        "inlineText": "- Executive Director Corner\n- Legacy News\n- Summer Trips\n- Lifestyle Hubs\n- Strike Out Alzheimer’s Fundraiser",
+        "needsFiller": false
+      },
+      {
+        "kind": "article",
+        "page": 1,
+        "style": {
+          "bg": "cream",
+          "compact": true,
+          "panelRole": "directorCorner",
+          "headerColor": "primary",
+          "cornerRadius": 10
+        },
+        "slotId": "demo-cover-director",
+        "zIndex": 0,
+        "blockId": "demo-cover-director",
+        "heading": "Executive Director Corner",
+        "position": {
+          "col": 6,
+          "row": 5,
+          "colSpan": 10,
+          "rowSpan": 7
+        },
+        "inlineText": "Happy July, everyone! It’s been an amazing summer so far of cookouts, nights spent with friends, and of course, refreshing Happy Hours to help us cool down. In our childhoods, it was around this time of year that many of us started looking towards…",
+        "needsFiller": false
+      },
+      {
+        "kind": "article",
+        "page": 1,
+        "style": {
+          "bg": "sky",
+          "compact": true,
+          "panelRole": "upcomingEvents",
+          "headerColor": "coral",
+          "cornerRadius": 0
+        },
+        "slotId": "demo-cover-events",
+        "zIndex": 0,
+        "blockId": "demo-cover-events",
+        "heading": "Legacy News",
+        "position": {
+          "col": 6,
+          "row": 12,
+          "colSpan": 10,
+          "rowSpan": 5
+        },
+        "inlineText": "At Bethany Pointe Legacy Neighborhood, we are creating new lifestyle hubs that support independent engagement and personal interests. These spaces are designed for residents who enjoy…",
+        "needsFiller": false
+      },
+      {
+        "kind": "article",
+        "page": 1,
+        "style": {
+          "bg": "leaf",
+          "compact": true,
+          "centered": true,
+          "panelRole": "infoFooter",
+          "invertText": true,
+          "headerColor": "paper",
+          "cornerRadius": 0
+        },
+        "slotId": "demo-cover-community",
+        "zIndex": 0,
+        "blockId": "demo-cover-community",
+        "heading": "Community Snapshot",
+        "position": {
+          "col": 16,
+          "row": 1,
+          "colSpan": 9,
+          "rowSpan": 16
+        },
+        "inlineText": "Legacy News",
+        "needsFiller": false
+      },
+      {
+        "kind": "recurring",
+        "page": 2,
+        "style": {
+          "bg": "cream",
+          "compact": true,
+          "panelRole": "directorCorner",
+          "invertText": false,
+          "headerColor": "navy",
+          "cornerRadius": 18,
+          "scriptHeading": true
+        },
+        "slotId": "source-vbgdjh4dovxqlqsbjkyv8n7n",
+        "zIndex": 0,
+        "blockId": "source-1",
+        "heading": "Executive Director Corner",
+        "position": {
+          "col": 1,
+          "row": 1,
+          "colSpan": 16,
+          "rowSpan": 6
+        },
+        "articleId": "vbgdjh4dovxqlqsbjkyv8n7n",
+        "compoundId": "compound-vbgdjh4dovxqlqsbjkyv8n7n",
+        "sourceRole": "director-note",
+        "needsFiller": false,
+        "sourceOrder": 0
+      },
+      {
+        "kind": "recurring",
+        "page": 3,
+        "style": {
+          "bg": "berry",
+          "compact": true,
+          "centered": true,
+          "panelRole": "spotlightRail",
+          "invertText": false,
+          "headerColor": "navy",
+          "cornerRadius": 0
+        },
+        "slotId": "source-z4h6lt6hebjtft1ptx1l1rpk",
+        "zIndex": 0,
+        "blockId": "source-2",
+        "heading": "Legacy News",
+        "position": {
+          "col": 1,
+          "row": 1,
+          "colSpan": 12,
+          "rowSpan": 5
+        },
+        "articleId": "z4h6lt6hebjtft1ptx1l1rpk",
+        "compoundId": "compound-z4h6lt6hebjtft1ptx1l1rpk",
+        "sourceRole": "profile-story",
+        "needsFiller": false,
+        "sourceOrder": 1
+      },
+      {
+        "kind": "image",
+        "page": 3,
+        "style": {
+          "cornerRadius": 6,
+          "photoTreatment": "rounded"
+        },
+        "slotId": "source-hq5gr41fh9kwboy8tyr1h54c",
+        "zIndex": 0,
+        "blockId": "source-3",
+        "caption": "Legacy News",
+        "imageId": "hq5gr41fh9kwboy8tyr1h54c",
+        "position": {
+          "col": 13,
+          "row": 1,
+          "colSpan": 12,
+          "rowSpan": 5
+        },
+        "compoundId": "compound-z4h6lt6hebjtft1ptx1l1rpk",
+        "sourceRole": "profile-story",
+        "needsFiller": false,
+        "sourceOrder": 1
+      },
+      {
+        "kind": "article",
+        "page": 3,
+        "style": {
+          "bg": "sky",
+          "compact": true,
+          "copyFit": "sm",
+          "centered": true,
+          "panelRole": "featureBand",
+          "invertText": false,
+          "headerColor": "navy",
+          "cornerRadius": 0
+        },
+        "slotId": "source-j1j05iqslj1fe25aa6jfh8jy",
+        "zIndex": 0,
+        "blockId": "source-4",
+        "heading": "Summer Trips",
+        "position": {
+          "col": 1,
+          "row": 6,
+          "colSpan": 8,
+          "rowSpan": 3
+        },
+        "articleId": "j1j05iqslj1fe25aa6jfh8jy",
+        "compoundId": "compound-j1j05iqslj1fe25aa6jfh8jy",
+        "sourceRole": "narrative-story",
+        "needsFiller": false,
+        "sourceOrder": 8
+      },
+      {
+        "kind": "article",
+        "page": 3,
+        "style": {
+          "bg": "sky",
+          "compact": true,
+          "copyFit": "sm",
+          "centered": true,
+          "panelRole": "featureBand",
+          "invertText": false,
+          "headerColor": "navy",
+          "cornerRadius": 0
+        },
+        "slotId": "source-lw2iqmsmwiml0jri6ht04jx5",
+        "zIndex": 0,
+        "blockId": "source-5",
+        "heading": "Lifestyle Hubs",
+        "position": {
+          "col": 9,
+          "row": 6,
+          "colSpan": 8,
+          "rowSpan": 3
+        },
+        "articleId": "lw2iqmsmwiml0jri6ht04jx5",
+        "compoundId": "compound-lw2iqmsmwiml0jri6ht04jx5",
+        "sourceRole": "narrative-story",
+        "needsFiller": false,
+        "sourceOrder": 9
+      },
+      {
+        "kind": "article",
+        "page": 3,
+        "style": {
+          "bg": "sky",
+          "compact": true,
+          "copyFit": "sm",
+          "centered": true,
+          "panelRole": "featureBand",
+          "invertText": false,
+          "headerColor": "navy",
+          "cornerRadius": 0
+        },
+        "slotId": "source-mdls17s7v9knwtwcep4zx412",
+        "zIndex": 0,
+        "blockId": "source-6",
+        "heading": "Strike Out Alzheimer’s Fundraiser",
+        "position": {
+          "col": 17,
+          "row": 6,
+          "colSpan": 8,
+          "rowSpan": 3
+        },
+        "articleId": "mdls17s7v9knwtwcep4zx412",
+        "compoundId": "compound-mdls17s7v9knwtwcep4zx412",
+        "sourceRole": "narrative-story",
+        "needsFiller": false,
+        "sourceOrder": 10
+      },
+      {
+        "kind": "image",
+        "page": 2,
+        "style": {
+          "panelRole": "photoCluster",
+          "cornerRadius": 8,
+          "photoTreatment": "collage"
+        },
+        "slotId": "source-l5p9fi0mus70gqe04nmoxqat",
+        "zIndex": 0,
+        "blockId": "source-7",
+        "imageId": "l5p9fi0mus70gqe04nmoxqat",
+        "position": {
+          "col": 17,
+          "row": 1,
+          "colSpan": 8,
+          "rowSpan": 3
+        },
+        "needsFiller": false
+      },
+      {
+        "kind": "image",
+        "page": 2,
+        "style": {
+          "panelRole": "photoCluster",
+          "cornerRadius": 8,
+          "photoTreatment": "collage"
+        },
+        "slotId": "source-kf2smqaf120zyt0xkb27icb8",
+        "zIndex": 0,
+        "blockId": "source-8",
+        "imageId": "kf2smqaf120zyt0xkb27icb8",
+        "position": {
+          "col": 17,
+          "row": 4,
+          "colSpan": 8,
+          "rowSpan": 3
+        },
+        "needsFiller": false
+      },
+      {
+        "kind": "image",
+        "page": 2,
+        "style": {
+          "panelRole": "photoCluster",
+          "cornerRadius": 8,
+          "photoTreatment": "collage"
+        },
+        "slotId": "source-op4a9niu8h7jzhqf03ye6yp4",
+        "zIndex": 0,
+        "blockId": "source-9",
+        "imageId": "op4a9niu8h7jzhqf03ye6yp4",
+        "position": {
+          "col": 1,
+          "row": 7,
+          "colSpan": 8,
+          "rowSpan": 3
+        },
+        "needsFiller": false
+      },
+      {
+        "kind": "image",
+        "page": 2,
+        "style": {
+          "panelRole": "photoCluster",
+          "cornerRadius": 8,
+          "photoTreatment": "collage"
+        },
+        "slotId": "source-tyz57a6bheflqt7gu7ydnljx",
+        "zIndex": 0,
+        "blockId": "source-10",
+        "imageId": "tyz57a6bheflqt7gu7ydnljx",
+        "position": {
+          "col": 9,
+          "row": 7,
+          "colSpan": 8,
+          "rowSpan": 3
+        },
+        "needsFiller": false
+      },
+      {
+        "kind": "article",
+        "page": 4,
+        "style": {
+          "bg": "navy",
+          "compact": true,
+          "centered": true,
+          "panelRole": "infoFooter",
+          "invertText": true,
+          "headerColor": "paper",
+          "cornerRadius": 0
+        },
+        "slotId": "demo-back-looking-ahead",
+        "zIndex": 0,
+        "blockId": "demo-back-looking-ahead",
+        "heading": "Summer Trips",
+        "position": {
+          "col": 1,
+          "row": 1,
+          "colSpan": 10,
+          "rowSpan": 7
+        },
+        "inlineText": "Summer Trips - Summer is the perfect time to get out, explore, and make lasting memories—and we have an exciting season of special trips planned for our residents and their loved ones! From a fun-filled visit to the Indianapolis Zoo to relaxing days spent…",
+        "needsFiller": false
+      },
+      {
+        "kind": "article",
+        "page": 4,
+        "style": {
+          "bg": "coral",
+          "compact": true,
+          "centered": true,
+          "panelRole": "upcomingEvents",
+          "invertText": true,
+          "headerColor": "paper",
+          "cornerRadius": 0
+        },
+        "slotId": "demo-back-calendar",
+        "zIndex": 0,
+        "blockId": "demo-back-calendar",
+        "heading": "Stay Connected",
+        "position": {
+          "col": 1,
+          "row": 8,
+          "colSpan": 10,
+          "rowSpan": 9
+        },
+        "inlineText": "- Executive Director Corner\n- Legacy News\n- Summer Trips\n- Lifestyle Hubs",
+        "needsFiller": false
+      },
+      {
+        "kind": "article",
+        "page": 4,
+        "style": {
+          "bg": "cream",
+          "compact": true,
+          "panelRole": "featureBand",
+          "headerColor": "primary",
+          "cornerRadius": 0
+        },
+        "slotId": "demo-back-family",
+        "zIndex": 0,
+        "blockId": "demo-back-family",
+        "heading": "Community Moments",
+        "position": {
+          "col": 11,
+          "row": 1,
+          "colSpan": 14,
+          "rowSpan": 11
+        },
+        "inlineText": "Summer Trips",
+        "needsFiller": false
+      },
+      {
+        "kind": "article",
+        "page": 4,
+        "style": {
+          "bg": "sky",
+          "compact": true,
+          "panelRole": "infoFooter",
+          "headerColor": "navy",
+          "cornerRadius": 0
+        },
+        "slotId": "demo-back-office",
+        "zIndex": 0,
+        "blockId": "demo-back-office",
+        "heading": "Thank You",
+        "position": {
+          "col": 11,
+          "row": 12,
+          "colSpan": 7,
+          "rowSpan": 5
+        },
+        "inlineText": "Trilogy Health Services is grateful for the residents, families, team members, and neighbors who make the community feel like home.",
+        "needsFiller": false
+      },
+      {
+        "kind": "article",
+        "page": 4,
+        "style": {
+          "bg": "berry",
+          "compact": true,
+          "centered": true,
+          "panelRole": "spotlightRail",
+          "invertText": true,
+          "headerColor": "paper",
+          "cornerRadius": 0
+        },
+        "slotId": "demo-back-thanks",
+        "zIndex": 0,
+        "blockId": "demo-back-thanks",
+        "heading": "Next Month",
+        "position": {
+          "col": 18,
+          "row": 12,
+          "colSpan": 7,
+          "rowSpan": 5
+        },
+        "inlineText": "Watch for new stories, events, and community updates in the next issue.",
+        "needsFiller": false
+      }
+    ],
+    "version": 1,
+    "pageCount": 4,
+    "templateId": "v3-photo-festival",
+    "unfilledSlotIds": [],
+    "visualPersonality": "photo-journal"
+  },
+  "status": "READY",
+  "errorMessage": null,
+  "pdfPath": null,
+  "pdfGeneratedAt": null,
+  "layoutVersion": 1,
+  "createdAt": "2026-08-29T22:05:46.175Z",
+  "updatedAt": "2026-08-29T22:05:46.175Z",
+  "approvalStatus": "PENDING",
+  "approvalNotes": null,
+  "approvedAt": null,
+  "approvedBy": null,
+  "printPdfPath": null,
+  "printPdfGeneratedAt": null,
+  "layoutFitReport": {
+    "score": 0.1081298340154845,
+    "photoFit": [
+      {
+        "reason": "fit",
+        "slotId": "pf-p1-img1",
+        "dropped": false,
+        "imageId": "kf2smqaf120zyt0xkb27icb8"
+      },
+      {
+        "reason": "fit",
+        "slotId": "pf-p1-img2",
+        "dropped": false,
+        "imageId": "op4a9niu8h7jzhqf03ye6yp4"
+      },
+      {
+        "reason": "fit",
+        "slotId": "pf-p1-img3",
+        "dropped": false,
+        "imageId": "hq5gr41fh9kwboy8tyr1h54c"
+      },
+      {
+        "reason": "fit",
+        "slotId": "pf-p1-img4",
+        "dropped": false,
+        "imageId": "l5p9fi0mus70gqe04nmoxqat"
+      },
+      {
+        "reason": "fit",
+        "slotId": "pf-p1-img5",
+        "dropped": false,
+        "imageId": "tyz57a6bheflqt7gu7ydnljx"
+      }
+    ],
+    "warnings": [],
+    "fitReport": {
+      "actions": [
+        {
+          "rung": 1,
+          "label": "Trilogy Health Services",
+          "action": "fit as written",
+          "blockId": "demo-cover-title"
+        },
+        {
+          "rung": 1,
+          "label": "Birthdays",
+          "action": "fit as written",
+          "blockId": "demo-cover-birthday"
+        },
+        {
+          "rung": 1,
+          "label": "In This Issue",
+          "action": "fit as written",
+          "blockId": "demo-cover-inside"
+        },
+        {
+          "rung": 1,
+          "label": "Executive Director Corner",
+          "action": "fit as written",
+          "blockId": "demo-cover-director"
+        },
+        {
+          "rung": 1,
+          "label": "Legacy News",
+          "action": "fit as written",
+          "blockId": "demo-cover-events"
+        },
+        {
+          "rung": 1,
+          "label": "Community Snapshot",
+          "action": "fit as written",
+          "blockId": "demo-cover-community"
+        },
+        {
+          "rung": 1,
+          "label": "Executive Director Corner",
+          "action": "fit as written",
+          "blockId": "source-1"
+        },
+        {
+          "rung": 1,
+          "label": "Legacy News",
+          "action": "fit as written",
+          "blockId": "source-2"
+        },
+        {
+          "rung": 3,
+          "label": "Summer Trips",
+          "action": "typography auto-fit",
+          "blockId": "source-4"
+        },
+        {
+          "rung": 3,
+          "label": "Lifestyle Hubs",
+          "action": "typography auto-fit",
+          "blockId": "source-5"
+        },
+        {
+          "rung": 3,
+          "label": "Strike Out Alzheimer’s Fundraiser",
+          "action": "typography auto-fit",
+          "blockId": "source-6"
+        },
+        {
+          "rung": 1,
+          "label": "Summer Trips",
+          "action": "fit as written",
+          "blockId": "demo-back-looking-ahead"
+        },
+        {
+          "rung": 1,
+          "label": "Stay Connected",
+          "action": "fit as written",
+          "blockId": "demo-back-calendar"
+        },
+        {
+          "rung": 1,
+          "label": "Community Moments",
+          "action": "fit as written",
+          "blockId": "demo-back-family"
+        },
+        {
+          "rung": 1,
+          "label": "Thank You",
+          "action": "fit as written",
+          "blockId": "demo-back-office"
+        },
+        {
+          "rung": 1,
+          "label": "Next Month",
+          "action": "fit as written",
+          "blockId": "demo-back-thanks"
+        }
+      ],
+      "summary": "⚠ 12 boxes remain below the Porter-like 0.80 fill target",
+      "feasibility": {
+        "status": "fit",
+        "requiredWords": 645,
+        "minimumCapacityWords": 645,
+        "measuredCapacityWords": 645
+      },
+      "truncations": [],
+      "templatePath": [
+        {
+          "action": "selected",
+          "templateId": "v3-photo-festival"
+        }
+      ],
+      "hardOverflowGate": false
+    },
+    "renderFit": 0.8571428571428572,
+    "articleFit": [
+      {
+        "slotId": "pf-p1-bday",
+        "trimmed": false,
+        "wordsIn": 160,
+        "wordsOut": 160,
+        "articleId": "vbgdjh4dovxqlqsbjkyv8n7n"
+      },
+      {
+        "slotId": "pf-p1-hh",
+        "trimmed": false,
+        "wordsIn": 78,
+        "wordsOut": 78,
+        "articleId": "z4h6lt6hebjtft1ptx1l1rpk"
+      },
+      {
+        "slotId": "pf-p1-exec",
+        "trimmed": false,
+        "wordsIn": 146,
+        "wordsOut": 146,
+        "articleId": "j1j05iqslj1fe25aa6jfh8jy"
+      },
+      {
+        "slotId": "pf-p1-head1",
+        "trimmed": false,
+        "wordsIn": 135,
+        "wordsOut": 135,
+        "articleId": "lw2iqmsmwiml0jri6ht04jx5"
+      },
+      {
+        "slotId": "pf-p1-img1",
+        "trimmed": false,
+        "wordsIn": 126,
+        "wordsOut": 126,
+        "articleId": "mdls17s7v9knwtwcep4zx412"
+      }
+    ],
+    "candidates": [
+      {
+        "score": 0.8600833333333334,
+        "subscores": {
+          "photoCount": 1,
+          "articleCount": 0.625,
+          "avgWordDelta": 0.9133333333333333,
+          "articleTypeMatch": 1
+        },
+        "templateId": "v3-editorial-light"
+      },
+      {
+        "score": 0.7972261904761906,
+        "subscores": {
+          "photoCount": 0.7142857142857143,
+          "articleCount": 0.625,
+          "avgWordDelta": 0.9990476190476191,
+          "articleTypeMatch": 1
+        },
+        "templateId": "v3-resident-feature"
+      },
+      {
+        "score": 0.5462873376623376,
+        "subscores": {
+          "photoCount": 0.7142857142857143,
+          "articleCount": 0.4545454545454546,
+          "avgWordDelta": 0.88625,
+          "articleTypeMatch": 0.4
+        },
+        "templateId": "v3-panel-garden"
+      },
+      {
+        "score": 0.5193324175824175,
+        "subscores": {
+          "photoCount": 0.3846153846153846,
+          "articleCount": 0.625,
+          "avgWordDelta": 0.8442857142857143,
+          "articleTypeMatch": 0.4
+        },
+        "templateId": "v3-photo-festival"
+      },
+      {
+        "score": 0.5289722222222222,
+        "subscores": {
+          "photoCount": 0.625,
+          "articleCount": 0.5555555555555556,
+          "avgWordDelta": 0.5827777777777778,
+          "articleTypeMatch": 0.4
+        },
+        "templateId": "v3-spread-classic"
+      }
+    ],
+    "coverScore": 0.7525,
+    "designMode": "deterministic",
+    "emptySlots": [],
+    "fillRatios": [
+      {
+        "blockId": "demo-cover-title",
+        "fillRatio": 0.3319820780883294
+      },
+      {
+        "blockId": "demo-cover-birthday",
+        "fillRatio": 0.3888770357727047
+      },
+      {
+        "blockId": "demo-cover-inside",
+        "fillRatio": 0.362005779124674
+      },
+      {
+        "blockId": "demo-cover-director",
+        "fillRatio": 0.6726752157432051
+      },
+      {
+        "blockId": "demo-cover-events",
+        "fillRatio": 0.3628479111161499
+      },
+      {
+        "blockId": "demo-cover-community",
+        "fillRatio": 0.5239774082649267
+      },
+      {
+        "blockId": "source-1",
+        "fillRatio": 0.8581612136720892
+      },
+      {
+        "blockId": "source-7",
+        "fillRatio": 1
+      },
+      {
+        "blockId": "source-8",
+        "fillRatio": 1
+      },
+      {
+        "blockId": "source-9",
+        "fillRatio": 1
+      },
+      {
+        "blockId": "source-10",
+        "fillRatio": 1
+      },
+      {
+        "blockId": "source-2",
+        "fillRatio": 0.5867868528086182
+      },
+      {
+        "blockId": "source-3",
+        "fillRatio": 1
+      },
+      {
+        "blockId": "source-4",
+        "fillRatio": 1
+      },
+      {
+        "blockId": "source-5",
+        "fillRatio": 1
+      },
+      {
+        "blockId": "source-6",
+        "fillRatio": 1
+      },
+      {
+        "blockId": "demo-back-looking-ahead",
+        "fillRatio": 0.6139047470086807
+      },
+      {
+        "blockId": "demo-back-calendar",
+        "fillRatio": 0.6013048095888333
+      },
+      {
+        "blockId": "demo-back-family",
+        "fillRatio": 0.5379084643229037
+      },
+      {
+        "blockId": "demo-back-office",
+        "fillRatio": 0.3059082165430063
+      },
+      {
+        "blockId": "demo-back-thanks",
+        "fillRatio": 0.284693597142072
+      }
+    ],
+    "qualityGate": {
+      "floor": 0.6,
+      "passed": false,
+      "reason": "Hard Porter invariant failed — export blocked until forced. render-clipped-blocks: 3 clipped rendered block(s).",
+      "finalScore": 0.1081298340154845,
+      "hardFailures": [
+        "render-clipped-blocks: 3 clipped rendered block(s)."
+      ]
+    },
+    "clippedBlocks": 3,
+    "editorialPlan": {
+      "items": [
+        {
+          "role": "lead",
+          "priority": 118,
+          "required": true,
+          "trimMode": "preserve",
+          "articleId": "z4h6lt6hebjtft1ptx1l1rpk",
+          "preferredProminence": "hero"
+        },
+        {
+          "role": "executive-note",
+          "priority": 106,
+          "required": true,
+          "trimMode": "preserve",
+          "articleId": "vbgdjh4dovxqlqsbjkyv8n7n",
+          "preferredProminence": "feature"
+        },
+        {
+          "role": "supporting",
+          "priority": 74,
+          "required": true,
+          "trimMode": "preserve",
+          "articleId": "j1j05iqslj1fe25aa6jfh8jy",
+          "preferredProminence": "standard"
+        },
+        {
+          "role": "supporting",
+          "priority": 74,
+          "required": true,
+          "trimMode": "preserve",
+          "articleId": "lw2iqmsmwiml0jri6ht04jx5",
+          "preferredProminence": "standard"
+        },
+        {
+          "role": "supporting",
+          "priority": 74,
+          "required": true,
+          "trimMode": "preserve",
+          "articleId": "mdls17s7v9knwtwcep4zx412",
+          "preferredProminence": "standard"
+        }
+      ],
+      "density": "sparse",
+      "photoGoal": "photo-led",
+      "leadArticleId": "z4h6lt6hebjtft1ptx1l1rpk",
+      "visualPersonality": "photo-journal",
+      "compositionGrammar": "photo-recap-spread",
+      "requiredArticleIds": [
+        "z4h6lt6hebjtft1ptx1l1rpk",
+        "vbgdjh4dovxqlqsbjkyv8n7n",
+        "j1j05iqslj1fe25aa6jfh8jy",
+        "lw2iqmsmwiml0jri6ht04jx5",
+        "mdls17s7v9knwtwcep4zx412"
+      ]
+    },
+    "missingImages": 0,
+    "coverRenderFit": 1,
+    "fallbackReason": "ai_layout_rejected_weighted_gate:clips=2,overflow=0,missing=0,coverage=0.463,coverageCollapse=true,utility=0.421,utilityCollapse=true,minPageUtility=0.378,pageUtilityCollapse=true,underfilled=2,invariants=1,aiScore=0.505,fallbackScore=0.399",
+    "minPageUtility": 0.2155340403090148,
+    "overflowBlocks": 0,
+    "renderedImages": 5,
+    "fullOutputScore": 0.1081298340154845,
+    "porterRetrieval": {
+      "family": "photo-mosaic",
+      "datedRows": 0,
+      "exampleIds": [
+        "03",
+        "19",
+        "16"
+      ],
+      "photoCount": 5,
+      "wordVolume": 645
+    },
+    "usefulOccupancy": 0.3494254965281154,
+    "chosenTemplateId": "v3-photo-festival",
+    "coverImageBlocks": 0,
+    "geometricCoverage": 0.7365748058913224,
+    "placeholderImages": 0,
+    "porterReferenceId": "example5-feature-band",
+    "underfilledBlocks": 12,
+    "adaptiveCandidates": [
+      {
+        "id": "briefs-first",
+        "label": "Briefs and recurring modules first",
+        "score": 0,
+        "selected": false,
+        "warnings": [
+          "porter-critical:source-unit-missing: Required narrative-story source unit j1j05iqslj1fe25aa6jfh8jy was not placed on the inner spread.",
+          "porter-critical:source-unit-missing: Required narrative-story source unit lw2iqmsmwiml0jri6ht04jx5 was not placed on the inner spread.",
+          "porter-critical:source-unit-missing: Required narrative-story source unit mdls17s7v9knwtwcep4zx412 was not placed on the inner spread.",
+          "porter-critical:source-photo-not-adjacent: Legacy News has an explicit associated photo that is not adjacent to its story block.",
+          "porter-photo-pairing:0/1",
+          "porter-critical:photo-story-pairing",
+          "underfilled-blocks:1",
+          "porter-critical:white-space-repair"
+        ],
+        "subscores": {
+          "balance": 0.4444444444444444,
+          "occupancy": 0.3439198369565217,
+          "renderFit": 1,
+          "photoImpact": 0.997037037037037,
+          "clippingRisk": 1,
+          "contentCoverage": 0.4,
+          "grammarAffinity": 0.48,
+          "usefulOccupancy": 0.2811258624087324,
+          "geometryValidity": 1,
+          "requiredCoverage": 0.4,
+          "porterReferenceId": "example5-feature-band",
+          "porterReferenceAffinity": 0.6619166666666667
+        },
+        "measurement": {
+          "fillRatios": [
+            {
+              "blockId": "kpo8fk22kk9jr8dzuhzbe7rl",
+              "fillRatio": 0.8662696455000353
+            },
+            {
+              "blockId": "lga9n45f2bg47leo7npxq4rf",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "fqa9vpndvvga9pix1ysd73ky",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "v4nnqfuw3xcdcewypo35qnmu",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "d8dqso8ly4t8eh24jqksnunq",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "t87a17uzanlfsc9i9qkwjhr2",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "gietrkxd6sqltehvop0uvjez",
+              "fillRatio": 0.4703829580627542
+            }
+          ],
+          "candidateId": "briefs-first",
+          "clipDetails": [],
+          "pageMetrics": [
+            {
+              "page": 1,
+              "renderFit": 1,
+              "blockCount": 6,
+              "imageBlocks": 5,
+              "clippedBlocks": 0,
+              "missingImages": 0,
+              "overflowBlocks": 0,
+              "usefulOccupancy": 0.4806981998099658,
+              "contentBlockCount": 6,
+              "placeholderImages": 0
+            },
+            {
+              "page": 2,
+              "renderFit": 1,
+              "blockCount": 1,
+              "imageBlocks": 0,
+              "clippedBlocks": 0,
+              "missingImages": 0,
+              "overflowBlocks": 0,
+              "usefulOccupancy": 0.08757277743945262,
+              "contentBlockCount": 1,
+              "placeholderImages": 0
+            }
+          ],
+          "totalImages": 5,
+          "clippedBlocks": 0,
+          "missingImages": 0,
+          "minPageUtility": 0.08757277743945262,
+          "overflowBlocks": 0,
+          "renderedImages": 5,
+          "clippedBlockIds": [],
+          "usefulOccupancy": 0.2811258624087324,
+          "lowUtilityBlocks": 0,
+          "geometricCoverage": 0.3066779057478298,
+          "placeholderImages": 0,
+          "underfilledBlocks": 1,
+          "realRenderedImages": 5,
+          "largestEmptyBandRatio": 0.4375
+        },
+        "geometryVariant": "brief-rail-swap"
+      },
+      {
+        "id": "editorial-priority",
+        "label": "Editorial priority",
+        "score": 0,
+        "selected": false,
+        "warnings": [
+          "porter-critical:source-unit-missing: Required narrative-story source unit j1j05iqslj1fe25aa6jfh8jy was not placed on the inner spread.",
+          "porter-critical:source-unit-missing: Required narrative-story source unit lw2iqmsmwiml0jri6ht04jx5 was not placed on the inner spread.",
+          "porter-critical:source-unit-missing: Required narrative-story source unit mdls17s7v9knwtwcep4zx412 was not placed on the inner spread.",
+          "porter-critical:photo-only-inner-page: Inner page 2 contains images but no meaningful article or list content.",
+          "porter-critical:source-photo-not-adjacent: Legacy News has an explicit associated photo that is not adjacent to its story block.",
+          "porter-photo-pairing:0/1",
+          "porter-critical:photo-story-pairing",
+          "porter-critical:photo-only-page:1",
+          "underfilled-blocks:1",
+          "porter-critical:white-space-repair"
+        ],
+        "subscores": {
+          "balance": 0.4444444444444444,
+          "occupancy": 0.3439198369565217,
+          "renderFit": 1,
+          "photoImpact": 0.922962962962963,
+          "clippingRisk": 1,
+          "contentCoverage": 0.4,
+          "grammarAffinity": 0.48,
+          "usefulOccupancy": 0.2930183585373811,
+          "geometryValidity": 1,
+          "requiredCoverage": 0.4,
+          "porterReferenceId": "example5-feature-band",
+          "porterReferenceAffinity": 0.6619166666666667
+        },
+        "measurement": {
+          "fillRatios": [
+            {
+              "blockId": "y0tons01vlujosgnh1d11lpr",
+              "fillRatio": 0.8662696455000353
+            },
+            {
+              "blockId": "o0094pp3jo9jsctf8fjmj77a",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "xdc71tvkuk6ghitwdx0w8cdb",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "tuonqmd8z0ot6ri2g0pbupwx",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "gebn4pr0wazmbyf1lf711ywg",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "y3cmbigz4hplwf6268j5lp0b",
+              "fillRatio": 0.5620429680857094
+            },
+            {
+              "blockId": "ornnqb6axpwzvfx8mxjkd9oa",
+              "fillRatio": 1
+            }
+          ],
+          "candidateId": "editorial-priority",
+          "clipDetails": [],
+          "pageMetrics": [
+            {
+              "page": 1,
+              "renderFit": 1,
+              "blockCount": 6,
+              "imageBlocks": 4,
+              "clippedBlocks": 0,
+              "missingImages": 0,
+              "overflowBlocks": 0,
+              "usefulOccupancy": 0.4529543110088653,
+              "contentBlockCount": 6,
+              "placeholderImages": 0
+            },
+            {
+              "page": 2,
+              "renderFit": 1,
+              "blockCount": 1,
+              "imageBlocks": 1,
+              "clippedBlocks": 0,
+              "missingImages": 0,
+              "overflowBlocks": 0,
+              "usefulOccupancy": 0.1379061951912169,
+              "contentBlockCount": 1,
+              "placeholderImages": 0
+            }
+          ],
+          "totalImages": 5,
+          "clippedBlocks": 0,
+          "missingImages": 0,
+          "minPageUtility": 0.1379061951912169,
+          "overflowBlocks": 0,
+          "renderedImages": 5,
+          "clippedBlockIds": [],
+          "usefulOccupancy": 0.2930183585373811,
+          "lowUtilityBlocks": 0,
+          "geometricCoverage": 0.3066779057478298,
+          "placeholderImages": 0,
+          "underfilledBlocks": 1,
+          "realRenderedImages": 5,
+          "largestEmptyBandRatio": 0.4375
+        },
+        "geometryVariant": "lead-photo-swap"
+      },
+      {
+        "id": "grammar-feature-stack",
+        "label": "Grammar: feature stack",
+        "score": 0,
+        "selected": false,
+        "warnings": [
+          "porter-critical:source-unit-missing: Required narrative-story source unit j1j05iqslj1fe25aa6jfh8jy was not placed on the inner spread.",
+          "porter-critical:source-unit-missing: Required narrative-story source unit lw2iqmsmwiml0jri6ht04jx5 was not placed on the inner spread.",
+          "porter-critical:source-unit-missing: Required narrative-story source unit mdls17s7v9knwtwcep4zx412 was not placed on the inner spread.",
+          "porter-critical:source-photo-not-adjacent: Legacy News has an explicit associated photo that is not adjacent to its story block.",
+          "porter-photo-pairing:0/1",
+          "porter-critical:photo-story-pairing",
+          "underfilled-blocks:1",
+          "porter-critical:white-space-repair"
+        ],
+        "subscores": {
+          "balance": 0.4444444444444444,
+          "occupancy": 0.3439198369565217,
+          "renderFit": 1,
+          "photoImpact": 0.997037037037037,
+          "clippingRisk": 1,
+          "contentCoverage": 0.4,
+          "grammarAffinity": 0.48,
+          "usefulOccupancy": 0.2811258624087324,
+          "geometryValidity": 1,
+          "requiredCoverage": 0.4,
+          "porterReferenceId": "example5-feature-band",
+          "porterReferenceAffinity": 0.6619166666666667
+        },
+        "measurement": {
+          "fillRatios": [
+            {
+              "blockId": "efumjmhxue055osl8p00gaiu",
+              "fillRatio": 0.8662696455000353
+            },
+            {
+              "blockId": "yr0i1tcsmljyocf18h4up9cu",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "kntcqhps5q4fw3lwhqu23r3b",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "b7k6wujtnrqyxpr2gxwpx7u0",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "bzxtkiqkx3z834lw4vgf99u5",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "w7dlgfwvbnnlf39fak2t08pj",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "hpphprr3jkp1mvf9bd1rcsv4",
+              "fillRatio": 0.4703829580627542
+            }
+          ],
+          "candidateId": "grammar-feature-stack",
+          "clipDetails": [],
+          "pageMetrics": [
+            {
+              "page": 1,
+              "renderFit": 1,
+              "blockCount": 6,
+              "imageBlocks": 5,
+              "clippedBlocks": 0,
+              "missingImages": 0,
+              "overflowBlocks": 0,
+              "usefulOccupancy": 0.4806981998099658,
+              "contentBlockCount": 6,
+              "placeholderImages": 0
+            },
+            {
+              "page": 2,
+              "renderFit": 1,
+              "blockCount": 1,
+              "imageBlocks": 0,
+              "clippedBlocks": 0,
+              "missingImages": 0,
+              "overflowBlocks": 0,
+              "usefulOccupancy": 0.08757277743945262,
+              "contentBlockCount": 1,
+              "placeholderImages": 0
+            }
+          ],
+          "totalImages": 5,
+          "clippedBlocks": 0,
+          "missingImages": 0,
+          "minPageUtility": 0.08757277743945262,
+          "overflowBlocks": 0,
+          "renderedImages": 5,
+          "clippedBlockIds": [],
+          "usefulOccupancy": 0.2811258624087324,
+          "lowUtilityBlocks": 0,
+          "geometricCoverage": 0.3066779057478298,
+          "placeholderImages": 0,
+          "underfilledBlocks": 1,
+          "realRenderedImages": 5,
+          "largestEmptyBandRatio": 0.4375
+        },
+        "geometryVariant": "grammar-feature-stack"
+      },
+      {
+        "id": "grammar-photo-mosaic",
+        "label": "Grammar: photo mosaic",
+        "score": 0,
+        "selected": false,
+        "warnings": [
+          "porter-critical:source-unit-missing: Required narrative-story source unit j1j05iqslj1fe25aa6jfh8jy was not placed on the inner spread.",
+          "porter-critical:source-unit-missing: Required narrative-story source unit lw2iqmsmwiml0jri6ht04jx5 was not placed on the inner spread.",
+          "porter-critical:source-unit-missing: Required narrative-story source unit mdls17s7v9knwtwcep4zx412 was not placed on the inner spread.",
+          "porter-critical:source-photo-not-adjacent: Legacy News has an explicit associated photo that is not adjacent to its story block.",
+          "porter-photo-pairing:0/1",
+          "porter-critical:photo-story-pairing",
+          "underfilled-blocks:1",
+          "porter-critical:white-space-repair"
+        ],
+        "subscores": {
+          "balance": 0.4444444444444444,
+          "occupancy": 0.3439198369565217,
+          "renderFit": 1,
+          "photoImpact": 0.997037037037037,
+          "clippingRisk": 1,
+          "contentCoverage": 0.4,
+          "grammarAffinity": 0.48,
+          "usefulOccupancy": 0.2811258624087324,
+          "geometryValidity": 1,
+          "requiredCoverage": 0.4,
+          "porterReferenceId": "example5-feature-band",
+          "porterReferenceAffinity": 0.6619166666666667
+        },
+        "measurement": {
+          "fillRatios": [
+            {
+              "blockId": "boh1f212mce1qclelkot8stl",
+              "fillRatio": 0.8662696455000353
+            },
+            {
+              "blockId": "z4zc6f01jy4s8xdttausqis9",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "k7mfupg9ld5b9w9txgj6hu4q",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "ycn6o1xwfibvwb3g9cp2q4mg",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "oye49zf5kbiaxy4h9ca6gavv",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "hkk5qwnjs4s5knerksflujyi",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "ixpb3i4pi9phfkwfh435tzhj",
+              "fillRatio": 0.4703829580627542
+            }
+          ],
+          "candidateId": "grammar-photo-mosaic",
+          "clipDetails": [],
+          "pageMetrics": [
+            {
+              "page": 1,
+              "renderFit": 1,
+              "blockCount": 6,
+              "imageBlocks": 5,
+              "clippedBlocks": 0,
+              "missingImages": 0,
+              "overflowBlocks": 0,
+              "usefulOccupancy": 0.4806981998099658,
+              "contentBlockCount": 6,
+              "placeholderImages": 0
+            },
+            {
+              "page": 2,
+              "renderFit": 1,
+              "blockCount": 1,
+              "imageBlocks": 0,
+              "clippedBlocks": 0,
+              "missingImages": 0,
+              "overflowBlocks": 0,
+              "usefulOccupancy": 0.08757277743945262,
+              "contentBlockCount": 1,
+              "placeholderImages": 0
+            }
+          ],
+          "totalImages": 5,
+          "clippedBlocks": 0,
+          "missingImages": 0,
+          "minPageUtility": 0.08757277743945262,
+          "overflowBlocks": 0,
+          "renderedImages": 5,
+          "clippedBlockIds": [],
+          "usefulOccupancy": 0.2811258624087324,
+          "lowUtilityBlocks": 0,
+          "geometricCoverage": 0.3066779057478298,
+          "placeholderImages": 0,
+          "underfilledBlocks": 1,
+          "realRenderedImages": 5,
+          "largestEmptyBandRatio": 0.4375
+        },
+        "geometryVariant": "grammar-photo-mosaic"
+      },
+      {
+        "id": "photo-band-expand",
+        "label": "Photo band expansion",
+        "score": 0,
+        "selected": false,
+        "warnings": [
+          "porter-critical:source-unit-missing: Required narrative-story source unit j1j05iqslj1fe25aa6jfh8jy was not placed on the inner spread.",
+          "porter-critical:source-unit-missing: Required narrative-story source unit lw2iqmsmwiml0jri6ht04jx5 was not placed on the inner spread.",
+          "porter-critical:source-unit-missing: Required narrative-story source unit mdls17s7v9knwtwcep4zx412 was not placed on the inner spread.",
+          "porter-critical:source-photo-not-adjacent: Legacy News has an explicit associated photo that is not adjacent to its story block.",
+          "porter-photo-pairing:0/1",
+          "porter-critical:photo-story-pairing",
+          "underfilled-blocks:1",
+          "porter-critical:white-space-repair"
+        ],
+        "subscores": {
+          "balance": 0.4285714285714286,
+          "occupancy": 0.3566576086956522,
+          "renderFit": 1,
+          "photoImpact": 0.96,
+          "clippingRisk": 1,
+          "contentCoverage": 0.4,
+          "grammarAffinity": 0.48,
+          "usefulOccupancy": 0.2924479476009308,
+          "geometryValidity": 1,
+          "requiredCoverage": 0.4,
+          "porterReferenceId": "example5-feature-band",
+          "porterReferenceAffinity": 0.6619166666666667
+        },
+        "measurement": {
+          "fillRatios": [
+            {
+              "blockId": "fvy1z2k665cw4xuc1xua4h0r",
+              "fillRatio": 0.8662696455000353
+            },
+            {
+              "blockId": "ijnppxqlbi6u89le8ys1roc8",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "pcq1z1q1iewpgkkcaac89rms",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "qbaryzq9sgyt99d6hczijg5u",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "exsvyzk5b3ri1i1zi0ksiota",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "d1he9jcslicnthqjl1s8ncfn",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "vlbm31iug48rqj467rvkwait",
+              "fillRatio": 0.4703829580627542
+            }
+          ],
+          "candidateId": "photo-band-expand",
+          "clipDetails": [],
+          "pageMetrics": [
+            {
+              "page": 1,
+              "renderFit": 1,
+              "blockCount": 6,
+              "imageBlocks": 5,
+              "clippedBlocks": 0,
+              "missingImages": 0,
+              "overflowBlocks": 0,
+              "usefulOccupancy": 0.5036944725069593,
+              "contentBlockCount": 6,
+              "placeholderImages": 0
+            },
+            {
+              "page": 2,
+              "renderFit": 1,
+              "blockCount": 1,
+              "imageBlocks": 0,
+              "clippedBlocks": 0,
+              "missingImages": 0,
+              "overflowBlocks": 0,
+              "usefulOccupancy": 0.08757277743945262,
+              "contentBlockCount": 1,
+              "placeholderImages": 0
+            }
+          ],
+          "totalImages": 5,
+          "clippedBlocks": 0,
+          "missingImages": 0,
+          "minPageUtility": 0.08757277743945262,
+          "overflowBlocks": 0,
+          "renderedImages": 5,
+          "clippedBlockIds": [],
+          "usefulOccupancy": 0.2924479476009308,
+          "lowUtilityBlocks": 0,
+          "geometricCoverage": 0.3179999909400282,
+          "placeholderImages": 0,
+          "underfilledBlocks": 1,
+          "realRenderedImages": 5,
+          "largestEmptyBandRatio": 0.4375
+        },
+        "geometryVariant": "photo-band-expand"
+      },
+      {
+        "id": "photo-impact",
+        "label": "Photo impact",
+        "score": 0,
+        "selected": false,
+        "warnings": [
+          "porter-critical:source-unit-missing: Required narrative-story source unit j1j05iqslj1fe25aa6jfh8jy was not placed on the inner spread.",
+          "porter-critical:source-unit-missing: Required narrative-story source unit lw2iqmsmwiml0jri6ht04jx5 was not placed on the inner spread.",
+          "porter-critical:source-unit-missing: Required narrative-story source unit mdls17s7v9knwtwcep4zx412 was not placed on the inner spread.",
+          "porter-critical:photo-only-inner-page: Inner page 2 contains images but no meaningful article or list content.",
+          "porter-critical:source-photo-not-adjacent: Legacy News has an explicit associated photo that is not adjacent to its story block.",
+          "porter-photo-pairing:0/1",
+          "porter-critical:photo-story-pairing",
+          "porter-critical:photo-only-page:1",
+          "underfilled-blocks:1",
+          "porter-critical:white-space-repair"
+        ],
+        "subscores": {
+          "balance": 0.4444444444444444,
+          "occupancy": 0.3439198369565217,
+          "renderFit": 1,
+          "photoImpact": 0.922962962962963,
+          "clippingRisk": 1,
+          "contentCoverage": 0.4,
+          "grammarAffinity": 0.48,
+          "usefulOccupancy": 0.2930183585373811,
+          "geometryValidity": 1,
+          "requiredCoverage": 0.4,
+          "porterReferenceId": "example5-feature-band",
+          "porterReferenceAffinity": 0.6619166666666667
+        },
+        "measurement": {
+          "fillRatios": [
+            {
+              "blockId": "bahdfkqaj09exkh6k908lgxj",
+              "fillRatio": 0.8662696455000353
+            },
+            {
+              "blockId": "vun8av69u8iej03m5gtlrlx8",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "vve6prp8myrbua6bol06axdy",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "molqms5ggv8yf89sg0wzocy4",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "tiqrxx7338tjzejzipfg3spi",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "hmm7f4xf2z2k25ce6mwabxgn",
+              "fillRatio": 0.5620429680857094
+            },
+            {
+              "blockId": "v44l6kj29acqdg16fxuwdwt7",
+              "fillRatio": 1
+            }
+          ],
+          "candidateId": "photo-impact",
+          "clipDetails": [],
+          "pageMetrics": [
+            {
+              "page": 1,
+              "renderFit": 1,
+              "blockCount": 6,
+              "imageBlocks": 4,
+              "clippedBlocks": 0,
+              "missingImages": 0,
+              "overflowBlocks": 0,
+              "usefulOccupancy": 0.4529543110088653,
+              "contentBlockCount": 6,
+              "placeholderImages": 0
+            },
+            {
+              "page": 2,
+              "renderFit": 1,
+              "blockCount": 1,
+              "imageBlocks": 1,
+              "clippedBlocks": 0,
+              "missingImages": 0,
+              "overflowBlocks": 0,
+              "usefulOccupancy": 0.1379061951912169,
+              "contentBlockCount": 1,
+              "placeholderImages": 0
+            }
+          ],
+          "totalImages": 5,
+          "clippedBlocks": 0,
+          "missingImages": 0,
+          "minPageUtility": 0.1379061951912169,
+          "overflowBlocks": 0,
+          "renderedImages": 5,
+          "clippedBlockIds": [],
+          "usefulOccupancy": 0.2930183585373811,
+          "lowUtilityBlocks": 0,
+          "geometricCoverage": 0.3066779057478298,
+          "placeholderImages": 0,
+          "underfilledBlocks": 1,
+          "realRenderedImages": 5,
+          "largestEmptyBandRatio": 0.4375
+        },
+        "geometryVariant": "photo-lead-swap"
+      },
+      {
+        "id": "source-order",
+        "label": "Source order",
+        "score": 0,
+        "selected": false,
+        "warnings": [
+          "porter-critical:source-unit-missing: Required narrative-story source unit j1j05iqslj1fe25aa6jfh8jy was not placed on the inner spread.",
+          "porter-critical:source-unit-missing: Required narrative-story source unit lw2iqmsmwiml0jri6ht04jx5 was not placed on the inner spread.",
+          "porter-critical:source-unit-missing: Required narrative-story source unit mdls17s7v9knwtwcep4zx412 was not placed on the inner spread.",
+          "porter-critical:source-photo-not-adjacent: Legacy News has an explicit associated photo that is not adjacent to its story block.",
+          "porter-photo-pairing:0/1",
+          "porter-critical:photo-story-pairing",
+          "underfilled-blocks:1",
+          "porter-critical:white-space-repair"
+        ],
+        "subscores": {
+          "balance": 0.4444444444444444,
+          "occupancy": 0.3439198369565217,
+          "renderFit": 1,
+          "photoImpact": 0.997037037037037,
+          "clippingRisk": 1,
+          "contentCoverage": 0.4,
+          "grammarAffinity": 0.48,
+          "usefulOccupancy": 0.2811258624087324,
+          "geometryValidity": 1,
+          "requiredCoverage": 0.4,
+          "porterReferenceId": "example5-feature-band",
+          "porterReferenceAffinity": 0.6619166666666667
+        },
+        "measurement": {
+          "fillRatios": [
+            {
+              "blockId": "kaslovio3bkq53s04jki0mgo",
+              "fillRatio": 0.8662696455000353
+            },
+            {
+              "blockId": "btuck3d0nrhtyaxpgiwb9g3s",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "o323u85mz98hqiz3z2b3gg8i",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "d33lruvhy8oa5jmg6a5hvily",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "evgs0wp0d0mci9joihmwj4u3",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "yv8gy5otzl9ls9tvw1w5dxwv",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "fstvfdvi9z7ww76tjfs9m0i6",
+              "fillRatio": 0.4703829580627542
+            }
+          ],
+          "candidateId": "source-order",
+          "clipDetails": [],
+          "pageMetrics": [
+            {
+              "page": 1,
+              "renderFit": 1,
+              "blockCount": 6,
+              "imageBlocks": 5,
+              "clippedBlocks": 0,
+              "missingImages": 0,
+              "overflowBlocks": 0,
+              "usefulOccupancy": 0.4806981998099658,
+              "contentBlockCount": 6,
+              "placeholderImages": 0
+            },
+            {
+              "page": 2,
+              "renderFit": 1,
+              "blockCount": 1,
+              "imageBlocks": 0,
+              "clippedBlocks": 0,
+              "missingImages": 0,
+              "overflowBlocks": 0,
+              "usefulOccupancy": 0.08757277743945262,
+              "contentBlockCount": 1,
+              "placeholderImages": 0
+            }
+          ],
+          "totalImages": 5,
+          "clippedBlocks": 0,
+          "missingImages": 0,
+          "minPageUtility": 0.08757277743945262,
+          "overflowBlocks": 0,
+          "renderedImages": 5,
+          "clippedBlockIds": [],
+          "usefulOccupancy": 0.2811258624087324,
+          "lowUtilityBlocks": 0,
+          "geometricCoverage": 0.3066779057478298,
+          "placeholderImages": 0,
+          "underfilledBlocks": 1,
+          "realRenderedImages": 5,
+          "largestEmptyBandRatio": 0.4375
+        },
+        "geometryVariant": "fixed"
+      },
+      {
+        "id": "source-topology",
+        "label": "Uploaded source topology",
+        "score": 0,
+        "selected": true,
+        "warnings": [
+          "porter-photo-pairing:1/1",
+          "underfilled-blocks:1",
+          "porter-critical:white-space-repair",
+          "render-clipped-blocks:3",
+          "low-utility-blocks:8"
+        ],
+        "subscores": {
+          "balance": 1,
+          "occupancy": 0.5434782608695652,
+          "renderFit": 0.8571428571428572,
+          "photoImpact": 0.8525,
+          "clippingRisk": 1,
+          "contentCoverage": 1,
+          "grammarAffinity": 0.48,
+          "usefulOccupancy": 0.3494254965281154,
+          "geometryValidity": 1,
+          "requiredCoverage": 1,
+          "geometricCoverage": 0.7365748058913224,
+          "porterReferenceId": "example5-feature-band",
+          "porterReferenceAffinity": 0.6244444444444445
+        },
+        "measurement": {
+          "fillRatios": [
+            {
+              "blockId": "demo-cover-title",
+              "fillRatio": 0.3319820780883294
+            },
+            {
+              "blockId": "demo-cover-birthday",
+              "fillRatio": 0.3888770357727047
+            },
+            {
+              "blockId": "demo-cover-inside",
+              "fillRatio": 0.362005779124674
+            },
+            {
+              "blockId": "demo-cover-director",
+              "fillRatio": 0.6726752157432051
+            },
+            {
+              "blockId": "demo-cover-events",
+              "fillRatio": 0.3628479111161499
+            },
+            {
+              "blockId": "demo-cover-community",
+              "fillRatio": 0.5239774082649267
+            },
+            {
+              "blockId": "source-1",
+              "fillRatio": 0.8581612136720892
+            },
+            {
+              "blockId": "source-7",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "source-8",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "source-9",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "source-10",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "source-2",
+              "fillRatio": 0.5867868528086182
+            },
+            {
+              "blockId": "source-3",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "source-4",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "source-5",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "source-6",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "demo-back-looking-ahead",
+              "fillRatio": 0.6139047470086807
+            },
+            {
+              "blockId": "demo-back-calendar",
+              "fillRatio": 0.6013048095888333
+            },
+            {
+              "blockId": "demo-back-family",
+              "fillRatio": 0.5379084643229037
+            },
+            {
+              "blockId": "demo-back-office",
+              "fillRatio": 0.3059082165430063
+            },
+            {
+              "blockId": "demo-back-thanks",
+              "fillRatio": 0.284693597142072
+            }
+          ],
+          "candidateId": "source-topology",
+          "clipDetails": [
+            {
+              "blockId": "source-4",
+              "overflowPx": 70
+            },
+            {
+              "blockId": "source-5",
+              "overflowPx": 70
+            },
+            {
+              "blockId": "source-6",
+              "overflowPx": 77
+            }
+          ],
+          "pageMetrics": [
+            {
+              "page": 1,
+              "renderFit": 1,
+              "blockCount": 6,
+              "imageBlocks": 0,
+              "clippedBlocks": 0,
+              "missingImages": 0,
+              "overflowBlocks": 0,
+              "usefulOccupancy": 0.2487059029951316,
+              "contentBlockCount": 6,
+              "placeholderImages": 0
+            },
+            {
+              "page": 2,
+              "renderFit": 1,
+              "blockCount": 5,
+              "imageBlocks": 4,
+              "clippedBlocks": 0,
+              "missingImages": 0,
+              "overflowBlocks": 0,
+              "usefulOccupancy": 0.4822634379881127,
+              "contentBlockCount": 5,
+              "placeholderImages": 0
+            },
+            {
+              "page": 3,
+              "renderFit": 0.4,
+              "blockCount": 5,
+              "imageBlocks": 1,
+              "clippedBlocks": 3,
+              "missingImages": 0,
+              "overflowBlocks": 0,
+              "usefulOccupancy": 0.4481608258062711,
+              "contentBlockCount": 5,
+              "placeholderImages": 0
+            },
+            {
+              "page": 4,
+              "renderFit": 1,
+              "blockCount": 5,
+              "imageBlocks": 0,
+              "clippedBlocks": 0,
+              "missingImages": 0,
+              "overflowBlocks": 0,
+              "usefulOccupancy": 0.2155340403090148,
+              "contentBlockCount": 5,
+              "placeholderImages": 0
+            }
+          ],
+          "totalImages": 5,
+          "clippedBlocks": 3,
+          "missingImages": 0,
+          "minPageUtility": 0.2155340403090148,
+          "overflowBlocks": 0,
+          "renderedImages": 5,
+          "clippedBlockIds": [
+            "source-4",
+            "source-5",
+            "source-6"
+          ],
+          "usefulOccupancy": 0.3494254965281154,
+          "lowUtilityBlocks": 8,
+          "geometricCoverage": 0.7365748058913224,
+          "placeholderImages": 0,
+          "underfilledBlocks": 12,
+          "realRenderedImages": 5,
+          "largestEmptyBandRatio": 0.5
+        },
+        "geometryVariant": "fixed"
+      },
+      {
+        "id": "text-photo-rebalance",
+        "label": "Text/photo rebalance",
+        "score": 0,
+        "selected": false,
+        "warnings": [
+          "porter-critical:source-unit-missing: Required narrative-story source unit j1j05iqslj1fe25aa6jfh8jy was not placed on the inner spread.",
+          "porter-critical:source-unit-missing: Required narrative-story source unit lw2iqmsmwiml0jri6ht04jx5 was not placed on the inner spread.",
+          "porter-critical:source-unit-missing: Required narrative-story source unit mdls17s7v9knwtwcep4zx412 was not placed on the inner spread.",
+          "porter-critical:source-photo-not-adjacent: Legacy News has an explicit associated photo that is not adjacent to its story block.",
+          "porter-photo-pairing:0/1",
+          "porter-critical:photo-story-pairing",
+          "underfilled-blocks:1",
+          "porter-critical:white-space-repair"
+        ],
+        "subscores": {
+          "balance": 0.4595744680851064,
+          "occupancy": 0.3325973731884058,
+          "renderFit": 1,
+          "photoImpact": 0.8961702127659574,
+          "clippingRisk": 1,
+          "contentCoverage": 0.4,
+          "grammarAffinity": 0.48,
+          "usefulOccupancy": 0.2707653759964053,
+          "geometryValidity": 1,
+          "requiredCoverage": 0.4,
+          "porterReferenceId": "example5-feature-band",
+          "porterReferenceAffinity": 0.6619166666666667
+        },
+        "measurement": {
+          "fillRatios": [
+            {
+              "blockId": "wykdmqhmesbbal254wip16g4",
+              "fillRatio": 0.964690957784199
+            },
+            {
+              "blockId": "xp59mpsmevf9zfltkgrz3w6l",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "xwafg7xwkuwzrxw0zi3o4oet",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "xwlpnjeh1phe53gzp3gjpteq",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "bluq36z19qdms2nyf4zdj5up",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "vk8x3vhglyrevxfg0q5dbt6r",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "oul55us7affbzsqnf1dppxq7",
+              "fillRatio": 0.4703829580627542
+            }
+          ],
+          "candidateId": "text-photo-rebalance",
+          "clipDetails": [],
+          "pageMetrics": [
+            {
+              "page": 1,
+              "renderFit": 1,
+              "blockCount": 6,
+              "imageBlocks": 5,
+              "clippedBlocks": 0,
+              "missingImages": 0,
+              "overflowBlocks": 0,
+              "usefulOccupancy": 0.4596550291601333,
+              "contentBlockCount": 6,
+              "placeholderImages": 0
+            },
+            {
+              "page": 2,
+              "renderFit": 1,
+              "blockCount": 1,
+              "imageBlocks": 0,
+              "clippedBlocks": 0,
+              "missingImages": 0,
+              "overflowBlocks": 0,
+              "usefulOccupancy": 0.08757277743945262,
+              "contentBlockCount": 1,
+              "placeholderImages": 0
+            }
+          ],
+          "totalImages": 5,
+          "clippedBlocks": 0,
+          "missingImages": 0,
+          "minPageUtility": 0.08757277743945262,
+          "overflowBlocks": 0,
+          "renderedImages": 5,
+          "clippedBlockIds": [],
+          "usefulOccupancy": 0.2707653759964053,
+          "lowUtilityBlocks": 0,
+          "geometricCoverage": 0.2963174193355027,
+          "placeholderImages": 0,
+          "underfilledBlocks": 1,
+          "realRenderedImages": 5,
+          "largestEmptyBandRatio": 0.4375
+        },
+        "geometryVariant": "text-photo-rebalance"
+      }
+    ],
+    "coverClippedBlocks": 0,
+    "coverContentBlocks": 11,
+    "coverMissingImages": 0,
+    "realRenderedImages": 5,
+    "coverOverflowBlocks": 0,
+    "innerSpreadAffinity": 0.6244444444444445,
+    "porterLayoutPlaybook": {
+      "rules": [
+        {
+          "id": "hard-source-invariants",
+          "label": "Hard source invariants",
+          "score": 0,
+          "result": "render-clipped-blocks: 3 clipped rendered block(s).",
+          "status": "fail",
+          "target": "Required source units, rows, real images, non-photo-only pages, and explicit story/photo compounds cannot fail."
+        },
+        {
+          "id": "signature-rail",
+          "label": "Signature birthday/rail anchor",
+          "score": 1,
+          "result": "No inner-spread birthday block was present in this packet.",
+          "status": "not-applicable",
+          "target": "When birthdays appear on the inner spread, place the birthday rail in the upper-left page-2 zone."
+        },
+        {
+          "id": "director-anchor",
+          "label": "Executive Director anchor",
+          "score": 1,
+          "result": "Placed page 1, col 1, row 1, area 96.",
+          "status": "pass",
+          "target": "Executive Director should hold a stable top/left cream-panel anchor."
+        },
+        {
+          "id": "photo-story-pairing",
+          "label": "Referenced photos stay with stories",
+          "score": 1,
+          "result": "1/1 referenced story/photo pairs were near. Legacy News: adjacent",
+          "status": "pass",
+          "target": "Every DOCX-referenced photo should be on the same page and near its story."
+        },
+        {
+          "id": "photo-use-captions",
+          "label": "Real photos and human captions",
+          "score": 1,
+          "result": "5/5 supplied photos placed; 5/5 rendered as real photos; 0 placeholder/test images; 0 filename-like captions.",
+          "status": "pass",
+          "target": "Use all supplied real photos once, avoid filename captions, and reject rendered placeholder/test images."
+        },
+        {
+          "id": "page-anchors",
+          "label": "Every page has a Porter anchor",
+          "score": 1,
+          "result": "2/2 pages have an anchor (p1:anchor, p2:anchor).",
+          "status": "pass",
+          "target": "Each inner page needs a visible rail, photo strip, footer band, or mosaic anchor."
+        },
+        {
+          "id": "no-photo-only-pages",
+          "label": "No photo-only inner pages",
+          "score": 1,
+          "result": "Every inner page carries editorial text or structured list content.",
+          "status": "pass",
+          "target": "A Porter inner spread should not dedicate a whole page to loose photos unless the selected family is explicitly a collage-only page."
+        },
+        {
+          "id": "white-space-repair",
+          "label": "White-space repair",
+          "score": 0.2638625405273559,
+          "result": "Useful 46.5%, min page utility 44.8%, underfilled 12, low-utility 8.",
+          "status": "fail",
+          "target": "If useful occupancy/page utility is low, grow adjacent photos, merge short text, or move lists into rails."
+        },
+        {
+          "id": "rendered-quality-gate",
+          "label": "Rendered quality gate",
+          "score": 0.41448400129567,
+          "result": "Real rendered photos 5/5; useful 46.5%; min page utility 44.8%; underfilled 12; low-utility 8.",
+          "status": "fail",
+          "target": "High symbolic Porter adherence must still produce real photos, filled pages, and low dead space."
+        },
+        {
+          "id": "module-rhythm",
+          "label": "Varied module rhythm",
+          "score": 0.6,
+          "result": "3 distinct module widths; 0 repeated same-width stacks.",
+          "status": "warn",
+          "target": "Avoid repeated same-width stacked boxes; dense grids need varied widths and staggered panels."
+        }
+      ],
+      "score": 0.6975940602025584,
+      "family": "photo-mosaic",
+      "summary": "5 passed, 1 warned, 3 failed across 9 applicable Porter layout rules."
+    },
+    "largestEmptyBandRatio": 0.5,
+    "porterLayoutInvariants": {
+      "passed": false,
+      "failures": [
+        {
+          "id": "render-clipped-blocks",
+          "message": "3 clipped rendered block(s).",
+          "severity": "hard"
+        }
+      ],
+      "warnings": [],
+      "hardFailures": [
+        "render-clipped-blocks: 3 clipped rendered block(s)."
+      ]
+    },
+    "porterReferenceAffinity": 0.6244444444444445,
+    "coverDuplicateBirthdayBlocks": 1
+  },
+  "complianceFlags": [
+    {
+      "id": "ss7lp776jtl9z6ly4wg8dmkj",
+      "reason": "Potential resident full name \"Happy Hours\"",
+      "target": {
+        "kind": "article",
+        "match": "Happy Hours",
+        "offset": 124,
+        "articleId": "vbgdjh4dovxqlqsbjkyv8n7n"
+      },
+      "category": "resident-last-name",
+      "severity": "warn",
+      "resolvedByUser": false,
+      "detectorVersion": "regex@1"
+    },
+    {
+      "id": "t6weusggjczbg3a8tx8wp0wm",
+      "reason": "Potential resident full name \"At Bethany\"",
+      "target": {
+        "kind": "article",
+        "match": "At Bethany",
+        "offset": 0,
+        "articleId": "z4h6lt6hebjtft1ptx1l1rpk"
+      },
+      "category": "resident-last-name",
+      "severity": "warn",
+      "resolvedByUser": false,
+      "detectorVersion": "regex@1"
+    },
+    {
+      "id": "ejm8ltiyq282cqek3rhl7w6l",
+      "reason": "Potential resident full name \"Pointe Legacy\"",
+      "target": {
+        "kind": "article",
+        "match": "Pointe Legacy",
+        "offset": 11,
+        "articleId": "z4h6lt6hebjtft1ptx1l1rpk"
+      },
+      "category": "resident-last-name",
+      "severity": "warn",
+      "resolvedByUser": false,
+      "detectorVersion": "regex@1"
+    },
+    {
+      "id": "qtaaqi4zt7chl64hnlcthe75",
+      "reason": "Potential resident full name \"Summer Trips\"",
+      "target": {
+        "kind": "article",
+        "match": "Summer Trips",
+        "offset": 0,
+        "articleId": "j1j05iqslj1fe25aa6jfh8jy"
+      },
+      "category": "resident-last-name",
+      "severity": "warn",
+      "resolvedByUser": false,
+      "detectorVersion": "regex@1"
+    },
+    {
+      "id": "ngpt6kbbes2v8tbbghatf7ri",
+      "reason": "Potential resident full name \"Indianapolis Zoo\"",
+      "target": {
+        "kind": "article",
+        "match": "Indianapolis Zoo",
+        "offset": 216,
+        "articleId": "j1j05iqslj1fe25aa6jfh8jy"
+      },
+      "category": "resident-last-name",
+      "severity": "warn",
+      "resolvedByUser": false,
+      "detectorVersion": "regex@1"
+    },
+    {
+      "id": "axzfmtcamyt68oy9ih1kdfgq",
+      "reason": "Potential resident full name \"Lifestyle Hubs\"",
+      "target": {
+        "kind": "article",
+        "match": "Lifestyle Hubs",
+        "offset": 0,
+        "articleId": "lw2iqmsmwiml0jri6ht04jx5"
+      },
+      "category": "resident-last-name",
+      "severity": "warn",
+      "resolvedByUser": false,
+      "detectorVersion": "regex@1"
+    },
+    {
+      "id": "i4mld1tyba9p3qnabdpn421t",
+      "reason": "Potential resident full name \"Lifestyle Hubs\"",
+      "target": {
+        "kind": "article",
+        "match": "Lifestyle Hubs",
+        "offset": 52,
+        "articleId": "lw2iqmsmwiml0jri6ht04jx5"
+      },
+      "category": "resident-last-name",
+      "severity": "warn",
+      "resolvedByUser": false,
+      "detectorVersion": "regex@1"
+    },
+    {
+      "id": "lk3p9zenfq0bi53fhb0k28ai",
+      "reason": "Potential resident full name \"Reading Nook\"",
+      "target": {
+        "kind": "article",
+        "match": "Reading Nook",
+        "offset": 300,
+        "articleId": "lw2iqmsmwiml0jri6ht04jx5"
+      },
+      "category": "resident-last-name",
+      "severity": "warn",
+      "resolvedByUser": false,
+      "detectorVersion": "regex@1"
+    },
+    {
+      "id": "t3uzfe4rty2tirw6h9i40zyg",
+      "reason": "Potential resident full name \"Lifestyle Hubs\"",
+      "target": {
+        "kind": "article",
+        "match": "Lifestyle Hubs",
+        "offset": 568,
+        "articleId": "lw2iqmsmwiml0jri6ht04jx5"
+      },
+      "category": "resident-last-name",
+      "severity": "warn",
+      "resolvedByUser": false,
+      "detectorVersion": "regex@1"
+    },
+    {
+      "id": "htb5vpwa6cxc8senvqcl0431",
+      "reason": "Potential resident full name \"Strike Out\"",
+      "target": {
+        "kind": "article",
+        "match": "Strike Out",
+        "offset": 0,
+        "articleId": "mdls17s7v9knwtwcep4zx412"
+      },
+      "category": "resident-last-name",
+      "severity": "warn",
+      "resolvedByUser": false,
+      "detectorVersion": "regex@1"
+    },
+    {
+      "id": "jsujyn071n7wjotx7kbtlp1g",
+      "reason": "Potential resident full name \"Strike Out\"",
+      "target": {
+        "kind": "article",
+        "match": "Strike Out",
+        "offset": 164,
+        "articleId": "mdls17s7v9knwtwcep4zx412"
+      },
+      "category": "resident-last-name",
+      "severity": "warn",
+      "resolvedByUser": false,
+      "detectorVersion": "regex@1"
+    },
+    {
+      "id": "evl5n6qluyrg20rfjkakaa72",
+      "reason": "Potential resident full name \"Fundraising Event\"",
+      "target": {
+        "kind": "article",
+        "match": "Fundraising Event",
+        "offset": 187,
+        "articleId": "mdls17s7v9knwtwcep4zx412"
+      },
+      "category": "resident-last-name",
+      "severity": "warn",
+      "resolvedByUser": false,
+      "detectorVersion": "regex@1"
+    },
+    {
+      "id": "k6j69y6wv7yhzwok7emyi3jc",
+      "reason": "Potential resident full name \"Championship Lanes\"",
+      "target": {
+        "kind": "article",
+        "match": "Championship Lanes",
+        "offset": 273,
+        "articleId": "mdls17s7v9knwtwcep4zx412"
+      },
+      "category": "resident-last-name",
+      "severity": "warn",
+      "resolvedByUser": false,
+      "detectorVersion": "regex@1"
+    },
+    {
+      "id": "aur5gruxt65ovj2l2l0hukhv",
+      "reason": "Potential resident full name \"Ashley Miller\"",
+      "target": {
+        "kind": "article",
+        "match": "Ashley Miller",
+        "offset": 722,
+        "articleId": "mdls17s7v9knwtwcep4zx412"
+      },
+      "category": "resident-last-name",
+      "severity": "warn",
+      "resolvedByUser": false,
+      "detectorVersion": "regex@1"
+    },
+    {
+      "id": "xovolwbw91mjanwjoi40wdle",
+      "reason": "Potential resident full name \"Hallee Acree\"",
+      "target": {
+        "kind": "article",
+        "match": "Hallee Acree",
+        "offset": 739,
+        "articleId": "mdls17s7v9knwtwcep4zx412"
+      },
+      "category": "resident-last-name",
+      "severity": "warn",
+      "resolvedByUser": false,
+      "detectorVersion": "regex@1"
+    }
+  ],
+  "bundleZipPath": null,
+  "bundleBuiltAt": null,
+  "bundleLayoutVersion": null
+}

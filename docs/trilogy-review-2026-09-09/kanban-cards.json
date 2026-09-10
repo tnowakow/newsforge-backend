@@ -1,0 +1,335 @@
+{
+  "schema": "newsforge-trilogy-followup/v1",
+  "board": "default",
+  "namespace": "trilogy-inner-review-20260909",
+  "scope": "Plan only. Stage blocked; do not dispatch or deploy.",
+  "repository": "/home/tom/.openclaw/workspace/dev-team/newsforge/newsforge-backend",
+  "review": "/home/tom/.openclaw/workspace/dev-team/newsforge/newsforge-backend/docs/trilogy-review-2026-09-09/REVIEW.md",
+  "cards": [
+    {
+      "key": "TRI-R01",
+      "title": "Reconcile completed Hermes branches into one verified candidate",
+      "priority": 100,
+      "size": "M",
+      "assignee": "default",
+      "initial_status": "blocked",
+      "depends_on": [],
+      "related_existing_tasks": [
+        "t_e30c1681",
+        "t_6d2f4141",
+        "t_73cbc1f8"
+      ],
+      "files": [
+        "git branches and worktrees",
+        "docs/demo",
+        "release/evidence manifest"
+      ],
+      "work": [
+        "Inventory main f0fd153, rehearsed d4e0e53, demo-docs a8a46e6, composer cf6fd19 and gate 23df435. Capture current branch ancestry; inspect subsequent work before editing.",
+        "Create an isolated codex/ integration branch from the selected reviewed baseline. Preserve current untracked eval-runs and runner. Review and integrate useful missing work; retain incompatible incomplete pieces behind a feature flag instead of silently enabling them.",
+        "Write a candidate ledger mapping each completed card to its included commit or an explicit remaining gap. Keep this ledger updated after every subsequent card.",
+        "Change the completion contract: worker completion requires an integrated SHA, relevant checks on that SHA, and an evidence path. Preserve old done cards and approvals as history."
+      ],
+      "acceptance": [
+        "Git ancestry proves the exact accepted implementation of T06/T08 is included or its replacement is identified; no claim that a side-branch commit is deployed.",
+        "API tests, typecheck and build run on the integrated revision. Any optional fixture skip is recorded and cannot count as benchmark coverage.",
+        "No production deployment, old-card rewriting, or new worker dispatch as part of the review import."
+      ]
+    },
+    {
+      "key": "TRI-R02",
+      "title": "Freeze independent source ledgers and failing visual benchmarks",
+      "priority": 95,
+      "size": "M",
+      "assignee": "default",
+      "initial_status": "blocked",
+      "depends_on": [
+        "TRI-R01"
+      ],
+      "related_existing_tasks": [
+        "t_15aea534"
+      ],
+      "files": [
+        "scripts/demo-benchmark.mjs",
+        "docs/demo/fixtures",
+        "reference index"
+      ],
+      "work": [
+        "Use evidence/input-manifest.json to inventory all nine DOCXs, seven photos and thirty references. Normalize logical pages: 01\u201305 split one wide page; 06\u201330 use physical pages 1\u20132.",
+        "Create manually reviewed expected ledgers for all eight filled DOCXs and a blank-form negative case. Do not derive expected values by running the same parser. Deduplicate equivalent July/Campus/Content1 cases for tuning but keep all input-file tests.",
+        "Label style-only comparisons versus true same-packet comparisons. Use recovered Ashford only as an existing Trilogy named-file regression, not another client or a replacement primary target.",
+        "Capture baseline source-to-PDF omissions, visible crop examples and fonts from the exact saved rehearsal. Once implementation is authorized, generate a fresh isolated local baseline on R01 SHA. Keep archived evidence labeled."
+      ],
+      "acceptance": [
+        "Blank expects zero stories. Content5 expects six cohesive stories, preserving the whole transportation article and the supplied short headings. Content6 expects seven July Entertainment entries.",
+        "July primary ledger records five prose stories plus three schedule groups, ten schedule entries and five named references, alongside seven untagged uploaded photos.",
+        "The benchmark fails on missing files or force export; records exact input hashes, revision, render contract, mode and output hashes. Reordering upload files is a separate test."
+      ]
+    },
+    {
+      "key": "TRI-R03",
+      "title": "Finish lossless DOCX parsing and optional birthday semantics",
+      "priority": 95,
+      "size": "M",
+      "assignee": "default",
+      "initial_status": "blocked",
+      "depends_on": [
+        "TRI-R02"
+      ],
+      "related_existing_tasks": [
+        "t_53c3881a"
+      ],
+      "files": [
+        "uploadService.ts",
+        "porterSourceSemantics.ts",
+        "sourceManifest.ts",
+        "sourceManifest and uploadService tests"
+      ],
+      "work": [
+        "Preserve DOCX paragraph order, numbering levels and useful heading/run-format evidence using Mammoth HTML or OOXML. Group continuation paragraphs under their real headings. Remove instruction spans while retaining adjacent submitted copy.",
+        "Fix Content4/blank instruction leakage and Content5 fragmentation/title loss. Keep short source headings; propose concise headings for unlabeled stories separately from immutable source text.",
+        "Build real paragraph-to-unit mappings and stable unit IDs; sourceParagraphIds must identify actual story paragraphs, not raw document array positions.",
+        "Normalize ordinal/month-based event dates once, preserving original display text and all rows. Distinguish absent birthday roster, real roster and birthday narrative. Remove evergreen-teaser suggestions and never consume a story merely for mentioning birthdays.",
+        "Preserve original copy and names/dates; keep any established sanitization or approved editorial diff separately auditable."
+      ],
+      "acceptance": [
+        "All R02 ledgers match at paragraph/row level. Blank yields zero publishable stories with a clear incomplete-input result.",
+        "Content5 transportation remains one story with all six paragraphs; Volunteers Needed and Talent Call Out retain their headings.",
+        "Absent roster creates no placeholder block; a birthday narrative survives; one real roster preserves every entry; a sparse packet is not rejected merely for lacking birthdays."
+      ]
+    },
+    {
+      "key": "TRI-R04",
+      "title": "Make one source and asset contract control placement end to end",
+      "priority": 90,
+      "size": "M",
+      "assignee": "default",
+      "initial_status": "blocked",
+      "depends_on": [
+        "TRI-R03"
+      ],
+      "related_existing_tasks": [
+        "t_d5a0d088",
+        "t_6bdbdc09"
+      ],
+      "files": [
+        "shared run schemas",
+        "sourceManifest.ts",
+        "routes/uploads.ts",
+        "routes/runs.ts",
+        "porterSourceSemantics.ts",
+        "SourcePreflight.tsx"
+      ],
+      "work": [
+        "Persist canonical source-unit IDs and resolved image IDs, including exact, operator-confirmed, inferred and unresolved provenance. Carry them from upload through save, preflight, layout, edits and export; keep original references for audit.",
+        "Reserve all exact links across the entire packet before assigning remaining photos. Eliminate incompatible filename/ID matching rules and prevent one story from stealing an exact match needed later.",
+        "Fix UI aliases to save real link records; the current ref-to-image-ID replacement must resolve correctly in both preflight and planner.",
+        "Make inner allocation explicit. A brief is not automatically outer content. Keep all accepted campus stories/photos in pages 2\u20133; require a recorded reason for any rejected asset.",
+        "Keep supplied captions attached to their asset ID; do not generate event-identifying captions from unrelated story headings."
+      ],
+      "acceptance": [
+        "Exact filenames, image IDs, operator aliases and multiple references resolve consistently across UI, stored run and final layout.",
+        "Photo1 versus photo10 and normalization collisions are covered. Upload order changes cannot change confirmed assignments.",
+        "Changing an alias changes the paired final image and caption after save/regenerate; a two-photo story cannot be reported fully resolved with only one match."
+      ]
+    },
+    {
+      "key": "TRI-R05",
+      "title": "Add image understanding and subject-preserving crop choices",
+      "priority": 85,
+      "size": "L",
+      "assignee": "default",
+      "initial_status": "blocked",
+      "depends_on": [
+        "TRI-R04"
+      ],
+      "related_existing_tasks": [
+        "t_6bdbdc09"
+      ],
+      "files": [
+        "photoAssignment.ts",
+        "image intake/description service",
+        "shared image schemas",
+        "renderer crop handling"
+      ],
+      "work": [
+        "Describe actual image pixels when a configured vision provider is used: visible scene, objects, orientation and subject bounds. Cache by image hash and model/prompt version. Describe content without identifying people or inferring medical status.",
+        "Use exact/confirmed links first. Rank remaining pictures globally using visible evidence and story context; return ambiguous/unassigned when evidence is weak. Delete the Legacy-to-veteran shortcut. Do not claim that a thematically suitable test photo documents a particular real event.",
+        "If image analysis is unavailable, preserve the unassigned state and offer manual choices. Record the actual provider/fallback; do not call a metadata word-overlap scorer image inspection.",
+        "Choose frame ratios jointly with layout. Use subject-safe focal bounds and crop alternatives; if a crop removes people or important content, change the frame or use contain. Keep low-resolution acceptance separate from crop/DPI diagnostics."
+      ],
+      "acceptance": [
+        "The dining photo is a plausible culinary suggestion; veterans are not assigned solely because a section is called Legacy. No artificial fixed photo-number mappings.",
+        "The five-person photo and chess pair preserve all intended people in approved crops; the wide family-table photo is not forced into a narrow rail without review.",
+        "No duplicate placement or invented caption; original seven assets remain recoverable. Exact assignment decisions survive analysis retries and shuffled input."
+      ]
+    },
+    {
+      "key": "TRI-R06",
+      "title": "Establish the actual Trilogy typography and reference layouts",
+      "priority": 85,
+      "size": "M",
+      "assignee": "default",
+      "initial_status": "blocked",
+      "depends_on": [
+        "TRI-R05"
+      ],
+      "related_existing_tasks": [
+        "t_a7e7263c"
+      ],
+      "files": [
+        "packages/shared/renderContract.ts",
+        "renderHtml.ts",
+        "fonts/assets",
+        "reference metadata",
+        "visual specimen"
+      ],
+      "work": [
+        "Obtain approved Museo Sans/Adobe Garamond files already available locally or identify the specific missing assets. Never extract embedded fonts from the reference PDF as an installation shortcut. If required, propose an explicit substitute and visually document it.",
+        "Use role-specific fonts/weights, physical point sizes, line heights, gutters and column rules. Verify embedded PDF fonts, not CSS names. Selected references use roughly 11\u201311.5pt body and 23\u201324pt main headings; use role-specific measured values rather than scaling everything uniformly.",
+        "Build one manually art-directed, source-complete two-page HTML/PDF specimen using the primary DOCX and all seven test photos, with no birthday roster. Use this to prove achievable design before optimizing automation.",
+        "Extract reviewed layouts from at least five existing examples spanning sparse, medium, dense, long-copy and photo-heavy input. Specify variants without birthdays and without director headshots. Add 21\u201330 to the measured reference index and remove fabricated similarity percentages."
+      ],
+      "acceptance": [
+        "The specimen has short headings, lighter readable prose, varied safe photos, balanced page 2/3, compact schedules and no clipped ending. Font inspection matches the chosen contract.",
+        "Every template family has source/geometry metadata and a rendered proof. Sparse cases do not inherit a mandatory 12\u201318-module target.",
+        "Tom/Will can select the appearance target from the concrete specimen. Font absence is explicit, never a silent FreeSerif fallback."
+      ]
+    },
+    {
+      "key": "TRI-R07",
+      "title": "Connect real module measurements to bounded page composition",
+      "priority": 85,
+      "size": "L",
+      "assignee": "default",
+      "initial_status": "blocked",
+      "depends_on": [
+        "TRI-R06"
+      ],
+      "related_existing_tasks": [
+        "t_6c49830e",
+        "t_e30c1681"
+      ],
+      "files": [
+        "storyModuleMeasurement.ts",
+        "innerSpreadComposer.ts",
+        "porterCompoundPlanner.ts",
+        "adaptiveLayoutPlanner.ts",
+        "aiLayoutDesigner.ts"
+      ],
+      "work": [
+        "Complete the existing composer rather than trusting its name: replace word-count row estimates and hardcoded clipCount=0 with actual rendered module sizes at candidate widths.",
+        "Measure with the same production module markup, CSS, font set and photo frames used for export, after fonts and images load. Include headings, all body paragraphs, lists, bylines and captions.",
+        "Search a bounded set of R06 compositions over two pages, keeping stories and linked photos together. Support flowing longer stories across columns, compact rails, grouped photo mosaics and honest sparse layouts.",
+        "Preserve all accepted images, including unassigned general-gallery images; do not silently take only the first two linked images. Constrain required content first, then readability/crop safety, then hierarchy and wasted space.",
+        "Absorb spare area into suitable photos or recomposition. If the source cannot fit at the approved type floor, produce an explicit overflow review with options; never silently trim copy, invent filler or squeeze type below the floor."
+      ],
+      "acceptance": [
+        "Production route execution proves measured functions are called and the measurements drive placement. Cache invalidates on width/text/caption/font/crop changes.",
+        "2-story sparse, primary 8-unit, Content5 long-story and dense photo cases produce valid two-page candidates or honest infeasibility; every source ending remains visible.",
+        "No tall single-row Brunch slab; no photo-only page when meaningful copy can be distributed. All candidates respect the actual available content, not a fixed module quota."
+      ]
+    },
+    {
+      "key": "TRI-R08",
+      "title": "Validate the actual final PDF and make unknown results fail",
+      "priority": 100,
+      "size": "M",
+      "assignee": "default",
+      "initial_status": "blocked",
+      "depends_on": [
+        "TRI-R07"
+      ],
+      "related_existing_tasks": [
+        "t_6d2f4141"
+      ],
+      "files": [
+        "finalArtifactGate.ts",
+        "layoutMeasurementService.ts",
+        "runs.ts PDF/edit routes",
+        "exportsV3.ts",
+        "pdf.ts"
+      ],
+      "work": [
+        "Integrate and complete the orphaned gate. Independently derive expected count from requested output mode; read actual PDF page count. Inspect effective/embedded fonts instead of copying contract values into measured fields.",
+        "Compare the immutable source ledger with visible final text and DOM/PDF clipping boundaries, including ancestor overflow, headings, captions and list rows. Text extraction alone is insufficient for partly hidden glyphs.",
+        "Gate the exact stored layout/assets/style revision being exported; regenerate measurements after all layout/crop/manual edits. Bind reports to content, asset hashes, render version and export variant. Unknown, missing or stale measurement cannot pass.",
+        "Keep correctness separate from design quality. Expose compact explanations for missing copy, broken assets and bad fits. Diagnose intentional whitespace separately from accidental empty regions.",
+        "Keep force export diagnostic-only and clearly labeled. Apply the final gate to every ordinary proof/approval/export path in scope."
+      ],
+      "acceptance": [
+        "Replay the director/anniversary clipped endings and partially clipped Chef line from the current fallback: all must fail despite source text being present upstream.",
+        "Missing font/image, parent-clipped text, stale report after crop edit and wrong page count fail. A legitimate airy sparse layout can pass correctness without pretending to be visually approved.",
+        "No route reports success from actualPageCount=expectedPageCount=the same layout field or from configured font constants. Persist reasons and output hash."
+      ]
+    },
+    {
+      "key": "TRI-R09",
+      "title": "Wire the user path to the inner spread and fixed outer pages",
+      "priority": 80,
+      "size": "M",
+      "assignee": "default",
+      "initial_status": "blocked",
+      "depends_on": [
+        "TRI-R08"
+      ],
+      "related_existing_tasks": [
+        "t_5ef145f2",
+        "t_d5a0d088"
+      ],
+      "files": [
+        "Workspace.tsx",
+        "SourcePreflight.tsx",
+        "api.ts",
+        "Preview.tsx",
+        "fullNewsletterWrapper.ts",
+        "runHtml.ts"
+      ],
+      "work": [
+        "Ensure real Trilogy uploads actually request the canonical inner-spread path. Preview uses the same render contract and media mode as the downloaded proof.",
+        "Present source stories, optional roster state, unresolved inferred associations and editable crop previews. Separate the submission form from the newsletter layout choice.",
+        "Compose pages 2\u20133 independently, then insert them between supplied/frozen outer pages for a four-page issue. Until real outer masters are available, label the existing demo shell; do not redesign it or source outer copy from inside stories.",
+        "Persist issue month and highlight a June/July source-label conflict. Save and restore all source/photo/crop choices; editing one article must not reset the rest.",
+        "Remove brief-to-outer inference and misleading resolved-link statuses. Keep the user workflow concise and useful for a designer."
+      ],
+      "acceptance": [
+        "Actual browser request contains the required mode; generated physical pages 2/3 equal the measured inner spread. Outer-page hashes or geometry/content invariants remain unchanged.",
+        "Upload \u2192 resolve/suggest photo \u2192 adjust crop \u2192 generate \u2192 preview \u2192 ordinary export \u2192 reopen is verified with the actual files.",
+        "An absent birthday list creates neither a fake panel nor a blocking error. Selecting July yields consistent issue labels or an explicit conflict to resolve."
+      ]
+    },
+    {
+      "key": "TRI-R10",
+      "title": "Prove visual quality across the corpus before closing the follow-up",
+      "priority": 75,
+      "size": "M",
+      "assignee": "default",
+      "initial_status": "blocked",
+      "depends_on": [
+        "TRI-R09"
+      ],
+      "related_existing_tasks": [
+        "t_ae43d1c6",
+        "t_73cbc1f8"
+      ],
+      "files": [
+        "benchmark harness",
+        "acceptance manifest",
+        "review contact sheets",
+        "Hermes completion records"
+      ],
+      "work": [
+        "Run all eight filled DOCX inputs with the seven supplied photos, retaining sparse/medium/long-copy variants and equivalent-file checks; the blank form is a negative test. Retain any additional real named-photo packet as a regression.",
+        "Select development and held-out cases before tuning. Repeat the primary case with reordered uploads and record each output. Label unrelated test photos/style-only reference comparisons honestly.",
+        "Have a reviewer inspect final pages at print scale against the R06 specimen and relevant original references. Score hierarchy, grouping, typography, crop safety, rhythm and wasted space separately from hard integrity gates.",
+        "Time actual designer corrections against the original \u226415-minute typical-submission goal. Report measured generation/export times with no assumed speed claim.",
+        "Produce a release manifest with integrated SHA, input/output hashes, actual provider/mode, hard checks, visual review, known limits and reproducible commands. Deployment remains a later explicit action, with the exact candidate reviewable first."
+      ],
+      "acceptance": [
+        "No hidden dropped text/photos or force-passed case. All requested packets are accounted for; unsupported dense cases have explicit failure records.",
+        "At least one untouched holdout meets the chosen appearance bar. Passing the same one-packet layout four times is stability evidence only.",
+        "Every card completion names the integrated tested SHA and review evidence. Internal score, card status and historical approval cannot substitute for the exported-page review."
+      ]
+    }
+  ]
+}

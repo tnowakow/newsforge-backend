@@ -1,0 +1,161 @@
+[
+  {
+    "packet": 2,
+    "runId": "wqk0auycfmp0bfsgc7o86c8y",
+    "templateId": "v3-photo-festival",
+    "score": 0,
+    "forced": true,
+    "pdfUrl": "https://api-production-26a0.up.railway.app/pdfs/wqk0auycfmp0bfsgc7o86c8y-web-1787790298517.pdf",
+    "qualityGate": {
+      "floor": 0.6,
+      "passed": false,
+      "reason": "Hard Porter invariant failed — export blocked until forced. source-unit-missing: Required narrative-story source unit jszgjxcxydaltdit2bkr15cf was not placed on the inner spread.",
+      "finalScore": 0,
+      "hardFailures": [
+        "source-unit-missing: Required narrative-story source unit jszgjxcxydaltdit2bkr15cf was not placed on the inner spread.",
+        "source-unit-missing: Required narrative-story source unit sdcrkc2o2nfn280033j2dkoa was not placed on the inner spread.",
+        "source-unit-missing: Required narrative-story source unit wawhmgglqaabpys0g95og6oh was not placed on the inner spread.",
+        "source-photo-not-adjacent: Legacy News has an explicit associated photo that is not adjacent to its story block."
+      ]
+    },
+    "playbook": "4 passed, 0 warned, 5 failed across 9 applicable Porter layout rules.",
+    "invariants": {
+      "passed": false,
+      "failures": [
+        {
+          "id": "source-unit-missing",
+          "message": "Required narrative-story source unit jszgjxcxydaltdit2bkr15cf was not placed on the inner spread.",
+          "severity": "hard"
+        },
+        {
+          "id": "source-unit-missing",
+          "message": "Required narrative-story source unit sdcrkc2o2nfn280033j2dkoa was not placed on the inner spread.",
+          "severity": "hard"
+        },
+        {
+          "id": "source-unit-missing",
+          "message": "Required narrative-story source unit wawhmgglqaabpys0g95og6oh was not placed on the inner spread.",
+          "severity": "hard"
+        },
+        {
+          "id": "source-photo-not-adjacent",
+          "message": "Legacy News has an explicit associated photo that is not adjacent to its story block.",
+          "severity": "hard"
+        }
+      ],
+      "warnings": [],
+      "hardFailures": [
+        "source-unit-missing: Required narrative-story source unit jszgjxcxydaltdit2bkr15cf was not placed on the inner spread.",
+        "source-unit-missing: Required narrative-story source unit sdcrkc2o2nfn280033j2dkoa was not placed on the inner spread.",
+        "source-unit-missing: Required narrative-story source unit wawhmgglqaabpys0g95og6oh was not placed on the inner spread.",
+        "source-photo-not-adjacent: Legacy News has an explicit associated photo that is not adjacent to its story block."
+      ]
+    }
+  },
+  {
+    "packet": 3,
+    "runId": "p3x06wczphqx8xonqx4pyf7b",
+    "templateId": "v3-editorial-light",
+    "score": 0.265310633551613,
+    "forced": true,
+    "pdfUrl": "https://api-production-26a0.up.railway.app/pdfs/p3x06wczphqx8xonqx4pyf7b-web-1787790393867.pdf",
+    "qualityGate": {
+      "floor": 0.6,
+      "passed": false,
+      "reason": "Hard Porter invariant failed — export blocked until forced. render-clipped-blocks: 1 clipped rendered block(s).",
+      "finalScore": 0.265310633551613,
+      "hardFailures": [
+        "render-clipped-blocks: 1 clipped rendered block(s)."
+      ]
+    },
+    "playbook": "5 passed, 2 warned, 3 failed across 10 applicable Porter layout rules.",
+    "invariants": {
+      "passed": false,
+      "failures": [
+        {
+          "id": "render-clipped-blocks",
+          "message": "1 clipped rendered block(s).",
+          "severity": "hard"
+        }
+      ],
+      "warnings": [],
+      "hardFailures": [
+        "render-clipped-blocks: 1 clipped rendered block(s)."
+      ]
+    }
+  },
+  {
+    "packet": 4,
+    "runId": "wdnts5utijhuzw5u9n5jm1ee",
+    "templateId": "v3-photo-festival",
+    "score": 0,
+    "forced": true,
+    "pdfUrl": "https://api-production-26a0.up.railway.app/pdfs/wdnts5utijhuzw5u9n5jm1ee-web-1787790498631.pdf",
+    "qualityGate": {
+      "floor": 0.6,
+      "passed": false,
+      "reason": "Hard Porter invariant failed — export blocked until forced. render-clipped-blocks: 1 clipped rendered block(s).",
+      "finalScore": 0,
+      "hardFailures": [
+        "render-clipped-blocks: 1 clipped rendered block(s)."
+      ]
+    },
+    "playbook": "5 passed, 1 warned, 3 failed across 9 applicable Porter layout rules.",
+    "invariants": {
+      "passed": false,
+      "failures": [
+        {
+          "id": "render-clipped-blocks",
+          "message": "1 clipped rendered block(s).",
+          "severity": "hard"
+        }
+      ],
+      "warnings": [],
+      "hardFailures": [
+        "render-clipped-blocks: 1 clipped rendered block(s)."
+      ]
+    }
+  },
+  {
+    "packet": 5,
+    "runId": "qqypfah1pkf7jwi5bosj3ydb",
+    "templateId": "v3-spread-classic",
+    "score": 0.003304547470156002,
+    "forced": true,
+    "pdfUrl": "https://api-production-26a0.up.railway.app/pdfs/qqypfah1pkf7jwi5bosj3ydb-web-1787790595366.pdf",
+    "qualityGate": {
+      "floor": 0.6,
+      "passed": false,
+      "reason": "Final score 0.3% is below the 60% ship floor — export blocked until forced.",
+      "finalScore": 0.003304547470156002
+    },
+    "playbook": "6 passed, 0 warned, 3 failed across 9 applicable Porter layout rules.",
+    "invariants": {
+      "passed": true,
+      "failures": [],
+      "warnings": [],
+      "hardFailures": []
+    }
+  },
+  {
+    "packet": 6,
+    "runId": "stp6jvtxhae4hbdkcho3isr6",
+    "templateId": "v3-editorial-light",
+    "score": 0.2898402404386113,
+    "forced": true,
+    "pdfUrl": "https://api-production-26a0.up.railway.app/pdfs/stp6jvtxhae4hbdkcho3isr6-web-1787790688552.pdf",
+    "qualityGate": {
+      "floor": 0.6,
+      "passed": false,
+      "reason": "Final score 29% is below the 60% ship floor — export blocked until forced.",
+      "finalScore": 0.2898402404386113
+    },
+    "playbook": "6 passed, 1 warned, 2 failed across 9 applicable Porter layout rules.",
+    "invariants": {
+      "passed": true,
+      "failures": [],
+      "warnings": [],
+      "hardFailures": []
+    }
+  }
+]

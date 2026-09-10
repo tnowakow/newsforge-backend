@@ -1,0 +1,902 @@
+[
+  {
+    "revision": "f0fd153",
+    "file": "Blank-Template.docx",
+    "units": 2,
+    "words": 35,
+    "warnings": [
+      "birthday-source-missing: use recurring roster or evergreen teaser"
+    ],
+    "fallbackRequired": false,
+    "articles": [
+      {
+        "title": "Executive Director Corner",
+        "wordCount": 17,
+        "role": "director-note",
+        "imageRefs": []
+      },
+      {
+        "title": "Legacy News",
+        "wordCount": 18,
+        "role": "profile-story",
+        "imageRefs": []
+      }
+    ]
+  },
+  {
+    "revision": "f0fd153",
+    "file": "July Campus Newsletter Content.docx",
+    "units": 8,
+    "words": 416,
+    "warnings": [
+      "birthday-source-missing: use recurring roster or evergreen teaser"
+    ],
+    "fallbackRequired": false,
+    "articles": [
+      {
+        "title": "Executive Director Corner",
+        "wordCount": 167,
+        "role": "director-note",
+        "imageRefs": []
+      },
+      {
+        "title": "Legacy News",
+        "wordCount": 29,
+        "role": "profile-story",
+        "imageRefs": [
+          "Legacy.jpg",
+          "Legacy 2.jpg"
+        ]
+      },
+      {
+        "title": "Chef Circle",
+        "wordCount": 50,
+        "role": "narrative-story",
+        "imageRefs": [
+          "Chefs Circle.jpg"
+        ]
+      },
+      {
+        "title": "Campus in Color is a Vibrant Celebration of Creativity, community and self",
+        "wordCount": 41,
+        "role": "narrative-story",
+        "imageRefs": [
+          "Campus in Color.jpg",
+          "Campus in Color 2.HEIC"
+        ]
+      },
+      {
+        "title": "The Oaks at Jamestown is Proud to celebrate its second anniversary",
+        "wordCount": 89,
+        "role": "narrative-story",
+        "imageRefs": []
+      },
+      {
+        "title": "Happy Hours",
+        "wordCount": 23,
+        "role": "dated-list",
+        "imageRefs": []
+      },
+      {
+        "title": "Socials",
+        "wordCount": 14,
+        "role": "dated-list",
+        "imageRefs": []
+      },
+      {
+        "title": "Brunch",
+        "wordCount": 3,
+        "role": "dated-list",
+        "imageRefs": []
+      }
+    ]
+  },
+  {
+    "revision": "f0fd153",
+    "file": "July Newsletter Content.docx",
+    "units": 8,
+    "words": 416,
+    "warnings": [
+      "birthday-source-missing: use recurring roster or evergreen teaser"
+    ],
+    "fallbackRequired": false,
+    "articles": [
+      {
+        "title": "Executive Director Corner",
+        "wordCount": 167,
+        "role": "director-note",
+        "imageRefs": []
+      },
+      {
+        "title": "Legacy News",
+        "wordCount": 29,
+        "role": "profile-story",
+        "imageRefs": [
+          "Legacy.jpg",
+          "Legacy 2.jpg"
+        ]
+      },
+      {
+        "title": "Chef Circle",
+        "wordCount": 50,
+        "role": "narrative-story",
+        "imageRefs": [
+          "Chefs Circle.jpg"
+        ]
+      },
+      {
+        "title": "Campus in Color is a Vibrant Celebration of Creativity, community and self",
+        "wordCount": 41,
+        "role": "narrative-story",
+        "imageRefs": [
+          "Campus in Color.jpg",
+          "Campus in Color 2.HEIC"
+        ]
+      },
+      {
+        "title": "The Oaks at Jamestown is Proud to celebrate its second anniversary",
+        "wordCount": 89,
+        "role": "narrative-story",
+        "imageRefs": []
+      },
+      {
+        "title": "Happy Hours",
+        "wordCount": 23,
+        "role": "dated-list",
+        "imageRefs": []
+      },
+      {
+        "title": "Socials",
+        "wordCount": 14,
+        "role": "dated-list",
+        "imageRefs": []
+      },
+      {
+        "title": "Brunch",
+        "wordCount": 3,
+        "role": "dated-list",
+        "imageRefs": []
+      }
+    ]
+  },
+  {
+    "revision": "f0fd153",
+    "file": "July Newsletter Content1.docx",
+    "units": 8,
+    "words": 416,
+    "warnings": [
+      "birthday-source-missing: use recurring roster or evergreen teaser"
+    ],
+    "fallbackRequired": false,
+    "articles": [
+      {
+        "title": "Executive Director Corner",
+        "wordCount": 167,
+        "role": "director-note",
+        "imageRefs": []
+      },
+      {
+        "title": "Legacy News",
+        "wordCount": 29,
+        "role": "profile-story",
+        "imageRefs": [
+          "Legacy.jpg",
+          "Legacy 2.jpg"
+        ]
+      },
+      {
+        "title": "Chef Circle",
+        "wordCount": 50,
+        "role": "narrative-story",
+        "imageRefs": [
+          "Chefs Circle.jpg"
+        ]
+      },
+      {
+        "title": "Campus in Color is a Vibrant Celebration of Creativity, community and self",
+        "wordCount": 41,
+        "role": "narrative-story",
+        "imageRefs": [
+          "Campus in Color.jpg",
+          "Campus in Color 2.HEIC"
+        ]
+      },
+      {
+        "title": "The Oaks at Jamestown is Proud to celebrate its second anniversary",
+        "wordCount": 89,
+        "role": "narrative-story",
+        "imageRefs": []
+      },
+      {
+        "title": "Happy Hours",
+        "wordCount": 23,
+        "role": "dated-list",
+        "imageRefs": []
+      },
+      {
+        "title": "Socials",
+        "wordCount": 14,
+        "role": "dated-list",
+        "imageRefs": []
+      },
+      {
+        "title": "Brunch",
+        "wordCount": 3,
+        "role": "dated-list",
+        "imageRefs": []
+      }
+    ]
+  },
+  {
+    "revision": "f0fd153",
+    "file": "July Newsletter Content2.docx",
+    "units": 5,
+    "words": 645,
+    "warnings": [
+      "birthday-source-missing: use recurring roster or evergreen teaser"
+    ],
+    "fallbackRequired": false,
+    "articles": [
+      {
+        "title": "Executive Director Corner",
+        "wordCount": 160,
+        "role": "director-note",
+        "imageRefs": []
+      },
+      {
+        "title": "Legacy News",
+        "wordCount": 78,
+        "role": "profile-story",
+        "imageRefs": []
+      },
+      {
+        "title": "Summer Trips",
+        "wordCount": 146,
+        "role": "narrative-story",
+        "imageRefs": []
+      },
+      {
+        "title": "Lifestyle Hubs",
+        "wordCount": 135,
+        "role": "narrative-story",
+        "imageRefs": []
+      },
+      {
+        "title": "Strike Out Alzheimer\u2019s Fundraiser",
+        "wordCount": 126,
+        "role": "narrative-story",
+        "imageRefs": []
+      }
+    ]
+  },
+  {
+    "revision": "f0fd153",
+    "file": "July Newsletter Content3.docx",
+    "units": 2,
+    "words": 193,
+    "warnings": [],
+    "fallbackRequired": false,
+    "articles": [
+      {
+        "title": "Executive Director Corner",
+        "wordCount": 165,
+        "role": "director-note",
+        "imageRefs": []
+      },
+      {
+        "title": "Legacy News",
+        "wordCount": 28,
+        "role": "profile-story",
+        "imageRefs": []
+      }
+    ]
+  },
+  {
+    "revision": "f0fd153",
+    "file": "July Newsletter Content4.docx",
+    "units": 5,
+    "words": 464,
+    "warnings": [
+      "birthday-source-missing: use recurring roster or evergreen teaser"
+    ],
+    "fallbackRequired": false,
+    "articles": [
+      {
+        "title": "Executive Director Corner",
+        "wordCount": 183,
+        "role": "director-note",
+        "imageRefs": []
+      },
+      {
+        "title": "Legacy News",
+        "wordCount": 109,
+        "role": "profile-story",
+        "imageRefs": []
+      },
+      {
+        "title": "We are proud to announce that Jeremiah Bates is our new DFS at GRV",
+        "wordCount": 29,
+        "role": "narrative-story",
+        "imageRefs": []
+      },
+      {
+        "title": "Our resident Marie was unable to physically attend her class reunion states away but was able to attend virtually",
+        "wordCount": 104,
+        "role": "profile-story",
+        "imageRefs": []
+      },
+      {
+        "title": "We had amazing time jumping back into the past",
+        "wordCount": 39,
+        "role": "narrative-story",
+        "imageRefs": []
+      }
+    ]
+  },
+  {
+    "revision": "f0fd153",
+    "file": "July Newsletter Content5.docx",
+    "units": 12,
+    "words": 577,
+    "warnings": [],
+    "fallbackRequired": false,
+    "articles": [
+      {
+        "title": "Executive Director Corner",
+        "wordCount": 160,
+        "role": "director-note",
+        "imageRefs": []
+      },
+      {
+        "title": "Legacy News",
+        "wordCount": 67,
+        "role": "profile-story",
+        "imageRefs": []
+      },
+      {
+        "title": "Farmer\u2019s Market\u2026Farmers\u2019 Market\u2026",
+        "wordCount": 38,
+        "role": "narrative-story",
+        "imageRefs": []
+      },
+      {
+        "title": "Let a Life Enrichment Specialist know if you are interested in teaching a class, presenting a hobby, or anything else yo",
+        "wordCount": 29,
+        "role": "narrative-story",
+        "imageRefs": []
+      },
+      {
+        "title": "\u201cThen & Now",
+        "wordCount": 9,
+        "role": "brief",
+        "imageRefs": []
+      },
+      {
+        "title": "As America celebrates its 250th anniversary in 2026, transportation offers a fascinating look at how far our nation has",
+        "wordCount": 40,
+        "role": "narrative-story",
+        "imageRefs": []
+      },
+      {
+        "title": "In 1776, most people traveled on foot, horseback, or by wagon",
+        "wordCount": 48,
+        "role": "brief",
+        "imageRefs": []
+      },
+      {
+        "title": "During the 1800s, canals, steamboats, and railroads transformed transportation",
+        "wordCount": 38,
+        "role": "narrative-story",
+        "imageRefs": []
+      },
+      {
+        "title": "The twentieth century introduced the automobile and commercial air travel",
+        "wordCount": 35,
+        "role": "narrative-story",
+        "imageRefs": []
+      },
+      {
+        "title": "Today, Americans enjoy transportation technologies that would have seemed unimaginable in 1776",
+        "wordCount": 30,
+        "role": "narrative-story",
+        "imageRefs": []
+      },
+      {
+        "title": "As we commemorate 250 years of American history, transportation reminds us of our nation's spirit of invention and deter",
+        "wordCount": 43,
+        "role": "brief",
+        "imageRefs": []
+      },
+      {
+        "title": "Do you have a talent you\u2019d like to have featured in our monthly newsletter",
+        "wordCount": 40,
+        "role": "brief",
+        "imageRefs": []
+      }
+    ]
+  },
+  {
+    "revision": "f0fd153",
+    "file": "July Newsletter Content6.docx",
+    "units": 3,
+    "words": 224,
+    "warnings": [
+      "birthday-source-missing: use recurring roster or evergreen teaser"
+    ],
+    "fallbackRequired": false,
+    "articles": [
+      {
+        "title": "Executive Director Corner",
+        "wordCount": 165,
+        "role": "director-note",
+        "imageRefs": []
+      },
+      {
+        "title": "Legacy News",
+        "wordCount": 37,
+        "role": "profile-story",
+        "imageRefs": [
+          "1",
+          "2",
+          "3"
+        ]
+      },
+      {
+        "title": "July Entertainment",
+        "wordCount": 22,
+        "role": "brief",
+        "imageRefs": []
+      }
+    ]
+  },
+  {
+    "revision": "d4e0e53",
+    "file": "Blank-Template.docx",
+    "units": 2,
+    "words": 35,
+    "warnings": [
+      "birthday-source-missing: use recurring roster or evergreen teaser"
+    ],
+    "fallbackRequired": false,
+    "articles": [
+      {
+        "title": "Executive Director Corner",
+        "wordCount": 17,
+        "role": "director-note",
+        "imageRefs": []
+      },
+      {
+        "title": "Legacy News",
+        "wordCount": 18,
+        "role": "profile-story",
+        "imageRefs": []
+      }
+    ]
+  },
+  {
+    "revision": "d4e0e53",
+    "file": "July Campus Newsletter Content.docx",
+    "units": 8,
+    "words": 414,
+    "warnings": [
+      "birthday-source-missing: use recurring roster or evergreen teaser"
+    ],
+    "fallbackRequired": false,
+    "articles": [
+      {
+        "title": "Executive Director Corner",
+        "wordCount": 167,
+        "role": "director-note",
+        "imageRefs": []
+      },
+      {
+        "title": "Legacy News",
+        "wordCount": 29,
+        "role": "profile-story",
+        "imageRefs": [
+          "Legacy.jpg",
+          "Legacy 2.jpg"
+        ]
+      },
+      {
+        "title": "Chef Circle",
+        "wordCount": 50,
+        "role": "narrative-story",
+        "imageRefs": [
+          "Chefs Circle.jpg"
+        ]
+      },
+      {
+        "title": "Campus in Color is a Vibrant Celebration of Creativity, community and self-expression",
+        "wordCount": 39,
+        "role": "narrative-story",
+        "imageRefs": [
+          "Campus in Color.jpg",
+          "Campus in Color 2.HEIC"
+        ]
+      },
+      {
+        "title": "The Oaks at Jamestown is Proud to celebrate its second anniversary",
+        "wordCount": 89,
+        "role": "narrative-story",
+        "imageRefs": []
+      },
+      {
+        "title": "Happy Hours",
+        "wordCount": 23,
+        "role": "dated-list",
+        "imageRefs": []
+      },
+      {
+        "title": "Socials",
+        "wordCount": 14,
+        "role": "dated-list",
+        "imageRefs": []
+      },
+      {
+        "title": "Brunch",
+        "wordCount": 3,
+        "role": "dated-list",
+        "imageRefs": []
+      }
+    ]
+  },
+  {
+    "revision": "d4e0e53",
+    "file": "July Newsletter Content.docx",
+    "units": 8,
+    "words": 414,
+    "warnings": [
+      "birthday-source-missing: use recurring roster or evergreen teaser"
+    ],
+    "fallbackRequired": false,
+    "articles": [
+      {
+        "title": "Executive Director Corner",
+        "wordCount": 167,
+        "role": "director-note",
+        "imageRefs": []
+      },
+      {
+        "title": "Legacy News",
+        "wordCount": 29,
+        "role": "profile-story",
+        "imageRefs": [
+          "Legacy.jpg",
+          "Legacy 2.jpg"
+        ]
+      },
+      {
+        "title": "Chef Circle",
+        "wordCount": 50,
+        "role": "narrative-story",
+        "imageRefs": [
+          "Chefs Circle.jpg"
+        ]
+      },
+      {
+        "title": "Campus in Color is a Vibrant Celebration of Creativity, community and self-expression",
+        "wordCount": 39,
+        "role": "narrative-story",
+        "imageRefs": [
+          "Campus in Color.jpg",
+          "Campus in Color 2.HEIC"
+        ]
+      },
+      {
+        "title": "The Oaks at Jamestown is Proud to celebrate its second anniversary",
+        "wordCount": 89,
+        "role": "narrative-story",
+        "imageRefs": []
+      },
+      {
+        "title": "Happy Hours",
+        "wordCount": 23,
+        "role": "dated-list",
+        "imageRefs": []
+      },
+      {
+        "title": "Socials",
+        "wordCount": 14,
+        "role": "dated-list",
+        "imageRefs": []
+      },
+      {
+        "title": "Brunch",
+        "wordCount": 3,
+        "role": "dated-list",
+        "imageRefs": []
+      }
+    ]
+  },
+  {
+    "revision": "d4e0e53",
+    "file": "July Newsletter Content1.docx",
+    "units": 8,
+    "words": 414,
+    "warnings": [
+      "birthday-source-missing: use recurring roster or evergreen teaser"
+    ],
+    "fallbackRequired": false,
+    "articles": [
+      {
+        "title": "Executive Director Corner",
+        "wordCount": 167,
+        "role": "director-note",
+        "imageRefs": []
+      },
+      {
+        "title": "Legacy News",
+        "wordCount": 29,
+        "role": "profile-story",
+        "imageRefs": [
+          "Legacy.jpg",
+          "Legacy 2.jpg"
+        ]
+      },
+      {
+        "title": "Chef Circle",
+        "wordCount": 50,
+        "role": "narrative-story",
+        "imageRefs": [
+          "Chefs Circle.jpg"
+        ]
+      },
+      {
+        "title": "Campus in Color is a Vibrant Celebration of Creativity, community and self-expression",
+        "wordCount": 39,
+        "role": "narrative-story",
+        "imageRefs": [
+          "Campus in Color.jpg",
+          "Campus in Color 2.HEIC"
+        ]
+      },
+      {
+        "title": "The Oaks at Jamestown is Proud to celebrate its second anniversary",
+        "wordCount": 89,
+        "role": "narrative-story",
+        "imageRefs": []
+      },
+      {
+        "title": "Happy Hours",
+        "wordCount": 23,
+        "role": "dated-list",
+        "imageRefs": []
+      },
+      {
+        "title": "Socials",
+        "wordCount": 14,
+        "role": "dated-list",
+        "imageRefs": []
+      },
+      {
+        "title": "Brunch",
+        "wordCount": 3,
+        "role": "dated-list",
+        "imageRefs": []
+      }
+    ]
+  },
+  {
+    "revision": "d4e0e53",
+    "file": "July Newsletter Content2.docx",
+    "units": 5,
+    "words": 645,
+    "warnings": [
+      "birthday-source-missing: use recurring roster or evergreen teaser"
+    ],
+    "fallbackRequired": false,
+    "articles": [
+      {
+        "title": "Executive Director Corner",
+        "wordCount": 160,
+        "role": "director-note",
+        "imageRefs": []
+      },
+      {
+        "title": "Legacy News",
+        "wordCount": 78,
+        "role": "profile-story",
+        "imageRefs": []
+      },
+      {
+        "title": "Summer Trips",
+        "wordCount": 146,
+        "role": "narrative-story",
+        "imageRefs": []
+      },
+      {
+        "title": "Lifestyle Hubs",
+        "wordCount": 135,
+        "role": "narrative-story",
+        "imageRefs": []
+      },
+      {
+        "title": "Strike Out Alzheimer\u2019s Fundraiser",
+        "wordCount": 126,
+        "role": "narrative-story",
+        "imageRefs": []
+      }
+    ]
+  },
+  {
+    "revision": "d4e0e53",
+    "file": "July Newsletter Content3.docx",
+    "units": 2,
+    "words": 193,
+    "warnings": [],
+    "fallbackRequired": false,
+    "articles": [
+      {
+        "title": "Executive Director Corner",
+        "wordCount": 165,
+        "role": "director-note",
+        "imageRefs": []
+      },
+      {
+        "title": "Legacy News",
+        "wordCount": 28,
+        "role": "profile-story",
+        "imageRefs": []
+      }
+    ]
+  },
+  {
+    "revision": "d4e0e53",
+    "file": "July Newsletter Content4.docx",
+    "units": 5,
+    "words": 464,
+    "warnings": [
+      "birthday-source-missing: use recurring roster or evergreen teaser"
+    ],
+    "fallbackRequired": false,
+    "articles": [
+      {
+        "title": "Executive Director Corner",
+        "wordCount": 183,
+        "role": "director-note",
+        "imageRefs": []
+      },
+      {
+        "title": "Legacy News",
+        "wordCount": 109,
+        "role": "profile-story",
+        "imageRefs": []
+      },
+      {
+        "title": "We are proud to announce that Jeremiah Bates is our new DFS at GRV",
+        "wordCount": 29,
+        "role": "narrative-story",
+        "imageRefs": []
+      },
+      {
+        "title": "Our resident Marie was unable to physically attend her class reunion states away but was able to attend virtually",
+        "wordCount": 104,
+        "role": "profile-story",
+        "imageRefs": []
+      },
+      {
+        "title": "We had amazing time jumping back into the past",
+        "wordCount": 39,
+        "role": "narrative-story",
+        "imageRefs": []
+      }
+    ]
+  },
+  {
+    "revision": "d4e0e53",
+    "file": "July Newsletter Content5.docx",
+    "units": 12,
+    "words": 577,
+    "warnings": [],
+    "fallbackRequired": false,
+    "articles": [
+      {
+        "title": "Executive Director Corner",
+        "wordCount": 160,
+        "role": "director-note",
+        "imageRefs": []
+      },
+      {
+        "title": "Legacy News",
+        "wordCount": 67,
+        "role": "profile-story",
+        "imageRefs": []
+      },
+      {
+        "title": "Farmer\u2019s Market\u2026Farmers\u2019 Market\u2026",
+        "wordCount": 38,
+        "role": "narrative-story",
+        "imageRefs": []
+      },
+      {
+        "title": "Let a Life Enrichment Specialist know if you are interested in teaching a class, presenting a hobby, or anything else yo",
+        "wordCount": 29,
+        "role": "narrative-story",
+        "imageRefs": []
+      },
+      {
+        "title": "\u201cThen & Now",
+        "wordCount": 9,
+        "role": "brief",
+        "imageRefs": []
+      },
+      {
+        "title": "As America celebrates its 250th anniversary in 2026, transportation offers a fascinating look at how far our nation has",
+        "wordCount": 40,
+        "role": "narrative-story",
+        "imageRefs": []
+      },
+      {
+        "title": "In 1776, most people traveled on foot, horseback, or by wagon",
+        "wordCount": 48,
+        "role": "brief",
+        "imageRefs": []
+      },
+      {
+        "title": "During the 1800s, canals, steamboats, and railroads transformed transportation",
+        "wordCount": 38,
+        "role": "narrative-story",
+        "imageRefs": []
+      },
+      {
+        "title": "The twentieth century introduced the automobile and commercial air travel",
+        "wordCount": 35,
+        "role": "narrative-story",
+        "imageRefs": []
+      },
+      {
+        "title": "Today, Americans enjoy transportation technologies that would have seemed unimaginable in 1776",
+        "wordCount": 30,
+        "role": "narrative-story",
+        "imageRefs": []
+      },
+      {
+        "title": "As we commemorate 250 years of American history, transportation reminds us of our nation's spirit of invention and deter",
+        "wordCount": 43,
+        "role": "brief",
+        "imageRefs": []
+      },
+      {
+        "title": "Do you have a talent you\u2019d like to have featured in our monthly newsletter",
+        "wordCount": 40,
+        "role": "brief",
+        "imageRefs": []
+      }
+    ]
+  },
+  {
+    "revision": "d4e0e53",
+    "file": "July Newsletter Content6.docx",
+    "units": 3,
+    "words": 224,
+    "warnings": [
+      "birthday-source-missing: use recurring roster or evergreen teaser"
+    ],
+    "fallbackRequired": false,
+    "articles": [
+      {
+        "title": "Executive Director Corner",
+        "wordCount": 165,
+        "role": "director-note",
+        "imageRefs": []
+      },
+      {
+        "title": "Legacy News",
+        "wordCount": 37,
+        "role": "profile-story",
+        "imageRefs": [
+          "1",
+          "2",
+          "3"
+        ]
+      },
+      {
+        "title": "July Entertainment",
+        "wordCount": 22,
+        "role": "brief",
+        "imageRefs": []
+      }
+    ]
+  }
+]

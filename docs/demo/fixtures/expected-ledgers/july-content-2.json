@@ -1,0 +1,70 @@
+{
+  "label": "july-content-2",
+  "sourceDocx": "/mnt/4tb/downloads/Will/Template Test/July Newsletter Content2.docx",
+  "file": "July Newsletter Content2.docx",
+  "sha256": "ad28f704bcb7f1e2013fcbd99de640404667c7934b4f97bea62fc57462a6cdbc",
+  "byteSize": 37912,
+  "role": "filled",
+  "monthLabel": "July 2026",
+  "derivedBy": "manual-plain-text-review (pandoc plain, not the app parser)",
+  "expected": {
+    "proseStories": [
+      { "id": "c2-story-ed-corner", "kind": "prose-story", "heading": "Executive Directors Corner (ED Corner – July 2026)", "required": true, "originalText": "Happy July, everyone! It's been an amazing summer so far of cookouts, nights spent with friends, and of course, refreshing Happy Hours to help us cool down. ... Have a great month! Yours in Service, Alicia Lambert, Executive Director", "photoRefs": [] },
+      { "id": "c2-story-legacy-news", "kind": "prose-story", "heading": "Legacy News", "required": true, "originalText": "At Bethany Pointe Legacy Neighborhood, we are creating new lifestyle hubs that support independent engagement and personal interests. ... a library hub, a bird-watching hub, and a flower-arranging hub, with even more engagement opportunities on the way. ...", "photoRefs": [] },
+      { "id": "c2-story-summer-trips", "kind": "prose-story", "heading": "Summer Trips", "required": false, "originalText": "Summer is the perfect time to get out, explore, and make lasting memories—and we have an exciting season of special trips planned for our residents and their loved ones! From a fun-filled visit to the Indianapolis Zoo to relaxing days spent fishing ...", "photoRefs": [] },
+      { "id": "c2-story-lifestyle-hubs", "kind": "prose-story", "heading": "Lifestyle Hubs", "required": false, "originalText": "We're excited to introduce our new Lifestyle Hubs, now available throughout campus for everyone to enjoy! ... Curl up with a good book in our cozy Reading Nook ... Music & Memories ...", "photoRefs": [] },
+      { "id": "c2-story-strike-out-alzheimer", "kind": "prose-story", "heading": "Strike Out Alzheimer's Fundraiser", "required": false, "originalText": "Gather your friends, lace up your bowling shoes, and join us for an afternoon of fun while supporting an important cause at our Strike Out Alzheimer's Fundraising Event! On Saturday, August 1st, beginning at 1:00 PM, we'll be heading to Championship Lanes ...", "photoRefs": [] }
+    ],
+    "scheduleGroups": [
+      { "id": "c2-sched-upcoming", "name": "Upcoming Campus Events", "entryCount": 2 }
+    ],
+    "scheduleEntries": [
+      { "group": "Upcoming Campus Events", "date": "Sunday, June 19th", "text": "Family Brunch 11am-1pm" },
+      { "group": "Upcoming Campus Events", "date": "Every Friday", "text": "Happy Hour 3pm-5pm" }
+    ],
+    "photoCaptions": [
+      { "ref": "Photo 1", "caption": "Pat enjoying the sun and spending some time fishing!" },
+      { "ref": "Photo 2", "caption": "Cheering on the Indianapolis Indians at Victory Field." },
+      { "ref": "Photo 3", "caption": "Alicia and Deidre serving up some soda" },
+      { "ref": "Photo 4", "caption": "A beautiful family enjoying Sunday Brunch together" },
+      { "ref": "Photo 5", "caption": "Reading Nook Lifestyle Hub" },
+      { "ref": "Photo 6", "caption": "Card Corner Lifestyle Hub" },
+      { "ref": "Photo 7", "caption": "Music and Memories Lifestyle Hub" },
+      { "ref": "Photo 8", "caption": "Current News Lifestyle Hub" }
+    ],
+    "namedReferences": [],
+    "untaggedUploadedPhotos": [
+      "photo1.jpg", "photo2.jpg", "photo3.jpg",
+      "photo4.jpg", "photo5.jpg", "photo6.jpg", "photo7.jpg"
+    ],
+    "departmentHeads": [
+      "Alicia Lambert - Executive Director",
+      "Tracy Wells - Administrator",
+      "Alexa Wilson - Director of Health Services",
+      "Zella Fulp - Senior Director of Environmental Services",
+      "Cherry Moran - Director of Food Services",
+      "Hallee Acree - Life Enrichment Director",
+      "Kassidy McDonald - Director of Rehabilitation",
+      "Ashley Miller - Director of Sales",
+      "Jennifer Edgecomb - Business Office Manager",
+      "Hannah Swarts - Director of Social Services",
+      "Joslyn Sloss - Villa Lifestyle Director",
+      "Logan Brand - Legacy Neighborhood Director"
+    ]
+  },
+  "expectedCounts": {
+    "proseStories": 5,
+    "scheduleGroups": 1,
+    "scheduleEntries": 2,
+    "photoCaptions": 8,
+    "namedReferences": 0,
+    "untaggedUploadedPhotos": 7,
+    "departmentHeads": 12
+  },
+  "acceptanceNotes": [
+    "Five prose stories: ED Corner (Alicia Lambert), Legacy News (Bethany Pointe), Summer Trips, Lifestyle Hubs, Strike Out Alzheimer's Fundraiser.",
+    "One schedule group (Upcoming Campus Events) with two entries (Family Brunch, Friday Happy Hour).",
+    "Eight numbered photo captions (Photo 1-8); captions reference numbered slots, not real file names — treat as caption text, not named asset references.",
+    "No named photo file references (Legacy.jpg style) in this packet."
+  ]
+}

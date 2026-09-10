@@ -1,0 +1,149 @@
+{
+  "created": [
+    {
+      "id": "ndqkensbuku3diu2nhl42lzc",
+      "clientId": "cf9d5c48ad3397d431d1e6cd",
+      "type": "ARTICLE",
+      "contentOrUrl": "Executive Director Corner\nED Corner – July 2026\n\nHappy July, everyone!\n\nIt’s been an amazing summer so far of cookouts, nights spent with friends, and of course, refreshing Happy Hours to help us cool down. In our childhoods, it was around this time of year that many of us started looking towards the dreaded return to the classroom – but here at our campus, the middle of July means that the party is just getting started.\n\nAs we head deeper into the season, there’s still plenty to look forward to around campus. From live entertainment and themed events to afternoons spent outside enjoying the sunshine, summer always has a way of bringing people together. It’s been wonderful seeing everyone catching up with neighbors, welcoming visiting family members, and making the most of these longer days. We hope you’ll continue joining us for all the fun, laughter, and little moments that make this time of year so special.\n\nHave a great month!\n\nYours in Service,\n\nJodie Bilskie\n\nExecutive Director\n\nLegacy News\nBirthdays are a time for having family around to help celebrate making everything better. Sharon’s family celebrated with her by bringing the whole lane cupcakes for her birthday.",
+      "source": "UPLOAD",
+      "meta": {
+        "mime": "application/octet-stream",
+        "size": 35969,
+        "wordCount": 1185,
+        "porterParse": {
+          "markers": {
+            "end": true,
+            "start": true
+          },
+          "captions": {},
+          "warnings": [],
+          "listCount": 0,
+          "articleCount": 2,
+          "datedRowCount": 0,
+          "parsedArticles": [
+            {
+              "id": "lhyqfd4osq0mrpn8k2eimech",
+              "body": "ED Corner – July 2026\n\nHappy July, everyone!\n\nIt’s been an amazing summer so far of cookouts, nights spent with friends, and of course, refreshing Happy Hours to help us cool down. In our childhoods, it was around this time of year that many of us started looking towards the dreaded return to the classroom – but here at our campus, the middle of July means that the party is just getting started.\n\nAs we head deeper into the season, there’s still plenty to look forward to around campus. From live entertainment and themed events to afternoons spent outside enjoying the sunshine, summer always has a way of bringing people together. It’s been wonderful seeing everyone catching up with neighbors, welcoming visiting family members, and making the most of these longer days. We hope you’ll continue joining us for all the fun, laughter, and little moments that make this time of year so special.\n\nHave a great month!\n\nYours in Service,\n\nJodie Bilskie\n\nExecutive Director",
+              "title": "Executive Director Corner",
+              "byline": "From the Executive Director",
+              "source": "UPLOAD",
+              "isFiller": false,
+              "imageRefs": [],
+              "sectionId": "director",
+              "wordCount": 165,
+              "compoundId": "compound-lhyqfd4osq0mrpn8k2eimech",
+              "sourceRole": "director-note",
+              "articleType": "executive-note",
+              "sourceOrder": 0
+            },
+            {
+              "id": "y6anx4vbw3lyqmfadx6hhfup",
+              "body": "Birthdays are a time for having family around to help celebrate making everything better. Sharon’s family celebrated with her by bringing the whole lane cupcakes for her birthday.",
+              "title": "Legacy News",
+              "source": "UPLOAD",
+              "isFiller": false,
+              "imageRefs": [],
+              "sectionId": "legacy",
+              "wordCount": 28,
+              "compoundId": "compound-y6anx4vbw3lyqmfadx6hhfup",
+              "sourceRole": "profile-story",
+              "articleType": "resident-story",
+              "sourceOrder": 1
+            }
+          ],
+          "fallbackRequired": false,
+          "imageAssociations": {}
+        },
+        "mammothMessages": [],
+        "originalFilename": "July_Newsletter_Content3.docx"
+      },
+      "createdAt": "2026-08-30T08:48:46.415Z"
+    },
+    {
+      "id": "ic2e6holg4mshdhduo46ziox",
+      "clientId": "cf9d5c48ad3397d431d1e6cd",
+      "type": "IMAGE",
+      "contentOrUrl": "/uploads/s1tmeacyiitd0xdkjhiq9shw.jpg",
+      "source": "UPLOAD",
+      "meta": {
+        "mime": "application/octet-stream",
+        "size": 159673,
+        "width": 641,
+        "format": "jpeg",
+        "height": 895,
+        "originalMime": "application/octet-stream",
+        "originalFilename": "photo1.jpg"
+      },
+      "createdAt": "2026-08-30T08:48:46.420Z"
+    },
+    {
+      "id": "bwp35z9wkucf7pzk54surj13",
+      "clientId": "cf9d5c48ad3397d431d1e6cd",
+      "type": "IMAGE",
+      "contentOrUrl": "/uploads/i7egq9ebo8o2pfmea8zjxtv7.jpg",
+      "source": "UPLOAD",
+      "meta": {
+        "mime": "application/octet-stream",
+        "size": 676166,
+        "width": 1382,
+        "format": "jpeg",
+        "height": 2115,
+        "originalMime": "application/octet-stream",
+        "originalFilename": "photo2.jpg"
+      },
+      "createdAt": "2026-08-30T08:48:46.423Z"
+    },
+    {
+      "id": "fljwkqobq9qjnk0eqok3lf6u",
+      "clientId": "cf9d5c48ad3397d431d1e6cd",
+      "type": "IMAGE",
+      "contentOrUrl": "/uploads/dre0e4nt9bp8hy65hhtnncfv.jpg",
+      "source": "UPLOAD",
+      "meta": {
+        "mime": "application/octet-stream",
+        "size": 410499,
+        "width": 927,
+        "format": "jpeg",
+        "height": 619,
+        "originalMime": "application/octet-stream",
+        "originalFilename": "photo3.jpg"
+      },
+      "createdAt": "2026-08-30T08:48:46.427Z"
+    },
+    {
+      "id": "a4kfj4a7o5ja7nd62mmie7ve",
+      "clientId": "cf9d5c48ad3397d431d1e6cd",
+      "type": "IMAGE",
+      "contentOrUrl": "/uploads/kb1o4zl1ekec1a2wblyim87h.jpg",
+      "source": "UPLOAD",
+      "meta": {
+        "mime": "application/octet-stream",
+        "size": 215194,
+        "width": 864,
+        "format": "jpeg",
+        "height": 576,
+        "originalMime": "application/octet-stream",
+        "originalFilename": "photo4.jpg"
+      },
+      "createdAt": "2026-08-30T08:48:46.429Z"
+    },
+    {
+      "id": "m2galawpj8wvn8nuk3qs4mfp",
+      "clientId": "cf9d5c48ad3397d431d1e6cd",
+      "type": "IMAGE",
+      "contentOrUrl": "/uploads/dw9nu2edshldrxwct29b3zjf.jpg",
+      "source": "UPLOAD",
+      "meta": {
+        "mime": "application/octet-stream",
+        "size": 146252,
+        "width": 618,
+        "format": "jpeg",
+        "height": 927,
+        "originalMime": "application/octet-stream",
+        "originalFilename": "photo5.jpg"
+      },
+      "createdAt": "2026-08-30T08:48:46.433Z"
+    }
+  ],
+  "skipped": []
+}

@@ -1,0 +1,70 @@
+{
+  "createdAt": "2026-09-09T13:49:21.565593+00:00",
+  "board": "/home/tom/.hermes/kanban.db",
+  "namespace": "trilogy-inner-review-20260909",
+  "taskIds": {
+    "TRI-R01": "t_9688d6fa",
+    "TRI-R02": "t_c37109ab",
+    "TRI-R03": "t_10647253",
+    "TRI-R04": "t_1cd45eca",
+    "TRI-R05": "t_2e631119",
+    "TRI-R06": "t_461a2619",
+    "TRI-R07": "t_b2541ab4",
+    "TRI-R08": "t_89a1f8f1",
+    "TRI-R09": "t_2929fc2c",
+    "TRI-R10": "t_94bfe7c0"
+  },
+  "states": {
+    "t_9688d6fa": [
+      "blocked",
+      null,
+      null
+    ],
+    "t_c37109ab": [
+      "blocked",
+      null,
+      null
+    ],
+    "t_10647253": [
+      "blocked",
+      null,
+      null
+    ],
+    "t_1cd45eca": [
+      "blocked",
+      null,
+      null
+    ],
+    "t_2e631119": [
+      "blocked",
+      null,
+      null
+    ],
+    "t_461a2619": [
+      "blocked",
+      null,
+      null
+    ],
+    "t_b2541ab4": [
+      "blocked",
+      null,
+      null
+    ],
+    "t_89a1f8f1": [
+      "blocked",
+      null,
+      null
+    ],
+    "t_2929fc2c": [
+      "blocked",
+      null,
+      null
+    ],
+    "t_94bfe7c0": [
+      "blocked",
+      null,
+      null
+    ]
+  },
+  "workersStarted": false
+}

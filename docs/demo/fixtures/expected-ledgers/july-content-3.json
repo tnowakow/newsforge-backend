@@ -1,0 +1,78 @@
+{
+  "label": "july-content-3",
+  "sourceDocx": "/mnt/4tb/downloads/Will/Template Test/July Newsletter Content3.docx",
+  "file": "July Newsletter Content3.docx",
+  "sha256": "3dd4f354f5148026ffec0adc092f8f10cbfeecf5f3f76430bdb46456b1b2014f",
+  "byteSize": 35969,
+  "role": "filled",
+  "monthLabel": "July 2026",
+  "derivedBy": "manual-plain-text-review (pandoc plain, not the app parser)",
+  "expected": {
+    "proseStories": [
+      { "id": "c3-story-ed-corner", "kind": "prose-story", "heading": "ED Corner – July 2026", "required": true, "originalText": "Happy July, everyone! It's been an amazing summer so far of cookouts, nights spent with friends, and of course, refreshing Happy Hours to help us cool down. ... Have a great month! Yours in Service, Jodie Bilskie, Executive Director", "photoRefs": [] },
+      { "id": "c3-story-legacy-sharon-birthday", "kind": "prose-story", "heading": "Legacy News", "required": true, "originalText": "Birthdays are a time for having family around to help celebrate making everything better. Sharon's family celebrated with her by bringing the whole lane cupcakes for her birthday.", "photoRefs": ["Sharon Birthday"] },
+      { "id": "c3-story-volunteer-call", "kind": "prose-story", "heading": "Volunteer (from Optional Suggestions)", "required": false, "source": "optional-suggestions/Other Topics", "originalText": "Do you want to kick this month off with a bang? We have an idea for that to happen… come and join our volunteer team. Please see Wendie in Life Enrichment for volunteering opportunities.", "photoRefs": [] },
+      { "id": "c3-story-summer-field-trip-zoo", "kind": "prose-story", "heading": "Summer Field Trips — Indianapolis Zoo (from Optional Suggestions)", "required": false, "source": "optional-suggestions/Seasonal Programming", "originalText": "We enjoyed a wonderful day at the Indianapolis Zoo, exploring exhibits, seeing amazing animals, and making special memories with friends. The outing was filled with smiles and plenty of summer fun. We look forward to more adventures together.", "photoRefs": ["Zoo 5"] },
+      { "id": "c3-story-divisional-outing-otters", "kind": "prose-story", "heading": "Divisional Outing — Evansville Otters (from Optional Suggestions)", "required": false, "source": "optional-suggestions/Seasonal Programming", "originalText": "We knocked it out of the park during our divisional outing to the Evansville Otters Baseball game! We enjoyed cheering from the stands, snacking on the ballpark treats, and debating whether the players or the fans were having more fun. It was a home run of a day filled with laughter and plenty of team spirit.", "photoRefs": ["Otters 7"] }
+    ],
+    "scheduleGroups": [
+      { "id": "c3-sched-upcoming", "name": "Upcoming Campus Events", "entryCount": 2 },
+      { "id": "c3-sched-happy-hours", "name": "Happy Hour (Fridays)", "entryCount": 5 }
+    ],
+    "scheduleEntries": [
+      { "group": "Upcoming Campus Events", "date": "July 4th", "text": "Fourth of July Celebration at 1:30pm" },
+      { "group": "Upcoming Campus Events", "date": "Date TBD", "text": "Aikman Wildlife Adventure Summer Field Trip" },
+      { "group": "Happy Hour (Fridays)", "date": "3rd", "text": "Stars and Stripes Happy Hour" },
+      { "group": "Happy Hour (Fridays)", "date": "10th", "text": "Watermelon Wonder Happy Hour" },
+      { "group": "Happy Hour (Fridays)", "date": "17th", "text": "Beach Bash Happy Hour" },
+      { "group": "Happy Hour (Fridays)", "date": "24th", "text": "Jukebox Happy Hour" },
+      { "group": "Happy Hour (Fridays)", "date": "31st", "text": "Porch Party Happy Hour" }
+    ],
+    "photoCaptions": [
+      { "ref": "Otters 7", "caption": "Kathy proudly received the game ball at the Evansville Otter's Baseball Game- what a special moment!" },
+      { "ref": "Zoo 5", "caption": "A wild day of fun and memories at the Indianapolis Zoo!" },
+      { "ref": "Sharon Birthday", "caption": "Sharon's family celebrated her birthday with sweet cupcakes and even sweeter memories." },
+      { "ref": "Puppy", "caption": "Linda enjoyed some sweet puppy love!" },
+      { "ref": "Birdhouse", "caption": "Thank you, Kathi, for your help assembling bird houses for our bird house craft. Your support made it a success." }
+    ],
+    "namedReferences": ["Otters 7", "Zoo 5", "Sharon Birthday", "Puppy", "Birdhouse"],
+    "untaggedUploadedPhotos": [
+      "photo1.jpg", "photo2.jpg", "photo3.jpg",
+      "photo4.jpg", "photo5.jpg", "photo6.jpg", "photo7.jpg"
+    ],
+    "departmentHeads": [
+      "Jodie Bilskie - Executive Director",
+      "Laura Place - Director of Nursing",
+      "Conie Flood - EXM",
+      "Yasemin Swaim - Business Office Manager",
+      "Wendie Yaw - Life Enrichment Director",
+      "Lisa Ryan - Community Lifestyle Director",
+      "Terrie Pine - Director of Food Services",
+      "Jeffrey Knopp - Director of Plant Ops",
+      "Sherry Belcher - Director of Assisted Living",
+      "Alexis Waters - Director of Sales",
+      "Jamie Couthern - Director of Environmental Services",
+      "Tanya Woodall - Legacy Leader",
+      "Penny Winkler - Infection Control Nurse",
+      "Addison Pearson - Therapy Director"
+    ]
+  },
+  "expectedCounts": {
+    "proseStories": 5,
+    "scheduleGroups": 2,
+    "scheduleEntries": 7,
+    "photoCaptions": 5,
+    "namedReferences": 5,
+    "untaggedUploadedPhotos": 7,
+    "departmentHeads": 14
+  },
+  "instructionLeakageNotes": [
+    "The INTERESTING AND NEWSWORTHY numbered slots 1-3 are EMPTY in this packet; the real optional articles are instead pasted under the Optional Article Suggestions list (volunteer note, Happy Hour themes, zoo field trip, Otters divisional outing). A parser must not treat the blank numbered slots as stories, and must capture the suggestion-pasted articles as real content (R03: preserve real submitted copy pasted into the suggestion list).",
+    "Happy Hour themes appear under the Optional Suggestions list (Culinary Topics > Happy Hour), not under Upcoming Campus Events; treat them as a schedule group regardless of placement."
+  ],
+  "acceptanceNotes": [
+    "Five prose stories: ED Corner, Legacy (Sharon birthday), Volunteer call, Zoo field trip, Otters divisional outing.",
+    "Two schedule groups: Upcoming Campus Events (2), Friday Happy Hour themes (5) = 7 entries.",
+    "Five caption references with filename-stem names (Otters 7, Zoo 5, Sharon Birthday, Puppy, Birdhouse)."
+  ]
+}

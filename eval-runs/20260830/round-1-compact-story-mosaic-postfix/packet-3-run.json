@@ -1,0 +1,2390 @@
+{
+  "id": "c8lgd2p9sc1fqi7aax9zfcq5",
+  "clientId": "cf9d5c48ad3397d431d1e6cd",
+  "templateId": "v3-editorial-light",
+  "monthLabel": "July 2026",
+  "fillerMode": "PLACEHOLDER",
+  "articles": [
+    {
+      "id": "z69v9ane23x91ox8zmtzylip",
+      "body": "ED Corner – July 2026\n\nHappy July, everyone!\n\nIt’s been an amazing summer so far of cookouts, nights spent with friends, and of course, refreshing Happy Hours to help us cool down. In our childhoods, it was around this time of year that many of us started looking towards the dreaded return to the classroom – but here at our campus, the middle of July means that the party is just getting started.\n\nAs we head deeper into the season, there’s still plenty to look forward to around campus. From live entertainment and themed events to afternoons spent outside enjoying the sunshine, summer always has a way of bringing people together. It’s been wonderful seeing everyone catching up with neighbors, welcoming visiting family members, and making the most of these longer days. We hope you’ll continue joining us for all the fun, laughter, and little moments that make this time of year so special.\n\nHave a great month!\n\nYours in Service,\n\nJodie Bilskie\n\nExecutive Director",
+      "title": "Executive Director Corner",
+      "byline": "From the Executive Director",
+      "source": "UPLOAD",
+      "isFiller": false,
+      "imageRefs": [],
+      "sectionId": "director",
+      "wordCount": 165,
+      "articleType": "executive-note"
+    },
+    {
+      "id": "jmif9d9n8x5979ud3w7bmkxl",
+      "body": "Birthdays are a time for having family around to help celebrate making everything better. Sharon’s family celebrated with her by bringing the whole lane cupcakes for her birthday.",
+      "title": "Legacy News",
+      "source": "UPLOAD",
+      "isFiller": false,
+      "imageRefs": [
+        "1",
+        "2",
+        "3"
+      ],
+      "sectionId": "legacy",
+      "wordCount": 28,
+      "articleType": "resident-story"
+    }
+  ],
+  "images": [
+    {
+      "id": "a1sxr1cco2k35gkgkklc747k",
+      "alt": "photo1.jpg",
+      "url": "/uploads/kvvsqgr83o7d6cpdcat8ifmf.jpg",
+      "width": 641,
+      "aspect": "portrait",
+      "height": 895,
+      "source": "UPLOAD",
+      "isPlaceholder": false
+    },
+    {
+      "id": "z7oefa6w0uexnwijcxvihsyw",
+      "alt": "photo2.jpg",
+      "url": "/uploads/ep4h5pnc0dcakxwltynhw9ax.jpg",
+      "width": 1382,
+      "aspect": "portrait",
+      "height": 2115,
+      "source": "UPLOAD",
+      "isPlaceholder": false
+    },
+    {
+      "id": "afskpb1zfx77jsthok2gze5o",
+      "alt": "photo3.jpg",
+      "url": "/uploads/mlb4p9koisx4tycv931r9gmx.jpg",
+      "width": 927,
+      "aspect": "landscape",
+      "height": 619,
+      "source": "UPLOAD",
+      "isPlaceholder": false
+    },
+    {
+      "id": "i0wam37li4xehj5mqjxyyvef",
+      "alt": "photo4.jpg",
+      "url": "/uploads/d8bilx97lhm1gt8mqsay9tvc.jpg",
+      "width": 864,
+      "aspect": "landscape",
+      "height": 576,
+      "source": "UPLOAD",
+      "isPlaceholder": false
+    },
+    {
+      "id": "jt8fsyyzfrclil6cfmab2qzd",
+      "alt": "photo5.jpg",
+      "url": "/uploads/yh0247nshg4ozf0u55susun1.jpg",
+      "width": 618,
+      "aspect": "portrait",
+      "height": 927,
+      "source": "UPLOAD",
+      "isPlaceholder": false
+    }
+  ],
+  "assembledLayout": {
+    "stats": {
+      "emptySlots": 0,
+      "fillerBlocks": 1,
+      "placedImages": 5,
+      "placedArticles": 2
+    },
+    "blocks": [
+      {
+        "kind": "article",
+        "page": 1,
+        "style": {
+          "bg": "cream",
+          "compact": true,
+          "centered": true,
+          "panelRole": "featureBand",
+          "headerColor": "primary",
+          "cornerRadius": 0
+        },
+        "slotId": "demo-cover-title",
+        "zIndex": 0,
+        "blockId": "demo-cover-title",
+        "heading": "Trilogy Health Services",
+        "position": {
+          "col": 1,
+          "row": 1,
+          "colSpan": 15,
+          "rowSpan": 4
+        },
+        "inlineText": "July 2026\nCommunity Newsletter",
+        "needsFiller": false
+      },
+      {
+        "kind": "filler",
+        "page": 1,
+        "style": {
+          "bg": "sun",
+          "compact": true,
+          "panelRole": "birthday",
+          "headerColor": "coral",
+          "cornerRadius": 0
+        },
+        "slotId": "demo-cover-birthday",
+        "zIndex": 0,
+        "blockId": "demo-cover-birthday",
+        "heading": "Birthdays",
+        "position": {
+          "col": 1,
+          "row": 5,
+          "colSpan": 5,
+          "rowSpan": 4
+        },
+        "inlineText": "Resident and team celebrations appear here when supplied with the monthly packet.",
+        "needsFiller": false
+      },
+      {
+        "kind": "article",
+        "page": 1,
+        "style": {
+          "bg": "navy",
+          "compact": true,
+          "panelRole": "infoFooter",
+          "invertText": true,
+          "headerColor": "paper",
+          "cornerRadius": 0
+        },
+        "slotId": "demo-cover-inside",
+        "zIndex": 0,
+        "blockId": "demo-cover-inside",
+        "heading": "In This Issue",
+        "position": {
+          "col": 1,
+          "row": 9,
+          "colSpan": 5,
+          "rowSpan": 8
+        },
+        "inlineText": "- Executive Director Corner\n- Legacy News",
+        "needsFiller": false
+      },
+      {
+        "kind": "article",
+        "page": 1,
+        "style": {
+          "bg": "cream",
+          "compact": true,
+          "panelRole": "directorCorner",
+          "headerColor": "primary",
+          "cornerRadius": 10
+        },
+        "slotId": "demo-cover-director",
+        "zIndex": 0,
+        "blockId": "demo-cover-director",
+        "heading": "Executive Director Corner",
+        "position": {
+          "col": 6,
+          "row": 5,
+          "colSpan": 10,
+          "rowSpan": 7
+        },
+        "inlineText": "ED Corner – July 2026 Happy July, everyone! It’s been an amazing summer so far of cookouts, nights spent with friends, and of course, refreshing Happy Hours to help us cool down. In our childhoods, it was around this time of year that many…",
+        "needsFiller": false
+      },
+      {
+        "kind": "article",
+        "page": 1,
+        "style": {
+          "bg": "sky",
+          "compact": true,
+          "panelRole": "upcomingEvents",
+          "headerColor": "coral",
+          "cornerRadius": 0
+        },
+        "slotId": "demo-cover-events",
+        "zIndex": 0,
+        "blockId": "demo-cover-events",
+        "heading": "Executive Director Corner",
+        "position": {
+          "col": 6,
+          "row": 12,
+          "colSpan": 10,
+          "rowSpan": 5
+        },
+        "inlineText": "ED Corner – July 2026 Happy July, everyone! It’s been an amazing summer so far of cookouts, nights spent with friends, and of course, refreshing Happy…",
+        "needsFiller": false
+      },
+      {
+        "kind": "article",
+        "page": 1,
+        "style": {
+          "bg": "leaf",
+          "compact": true,
+          "centered": true,
+          "panelRole": "infoFooter",
+          "invertText": true,
+          "headerColor": "paper",
+          "cornerRadius": 0
+        },
+        "slotId": "demo-cover-community",
+        "zIndex": 0,
+        "blockId": "demo-cover-community",
+        "heading": "Community Snapshot",
+        "position": {
+          "col": 16,
+          "row": 1,
+          "colSpan": 9,
+          "rowSpan": 16
+        },
+        "inlineText": "Executive Director Corner",
+        "needsFiller": false
+      },
+      {
+        "kind": "recurring",
+        "page": 2,
+        "style": {
+          "bg": "cream",
+          "compact": true,
+          "panelRole": "directorCorner",
+          "invertText": false,
+          "headerColor": "navy",
+          "cornerRadius": 18,
+          "scriptHeading": true
+        },
+        "slotId": "source-z69v9ane23x91ox8zmtzylip",
+        "zIndex": 0,
+        "blockId": "source-1",
+        "heading": "Executive Director Corner",
+        "position": {
+          "col": 1,
+          "row": 1,
+          "colSpan": 10,
+          "rowSpan": 8
+        },
+        "articleId": "z69v9ane23x91ox8zmtzylip",
+        "compoundId": "compound-z69v9ane23x91ox8zmtzylip",
+        "sourceRole": "director-note",
+        "needsFiller": false,
+        "sourceOrder": 0
+      },
+      {
+        "kind": "image",
+        "page": 2,
+        "style": {
+          "cornerRadius": 6,
+          "photoTreatment": "rounded"
+        },
+        "slotId": "source-afskpb1zfx77jsthok2gze5o",
+        "zIndex": 0,
+        "blockId": "source-2",
+        "caption": "Executive Director Corner",
+        "imageId": "afskpb1zfx77jsthok2gze5o",
+        "position": {
+          "col": 11,
+          "row": 1,
+          "colSpan": 14,
+          "rowSpan": 8
+        },
+        "compoundId": "compound-z69v9ane23x91ox8zmtzylip",
+        "sourceRole": "director-note",
+        "needsFiller": false,
+        "sourceOrder": 0
+      },
+      {
+        "kind": "image",
+        "page": 2,
+        "style": {
+          "panelRole": "photoCluster",
+          "cornerRadius": 8,
+          "photoTreatment": "collage"
+        },
+        "slotId": "source-i0wam37li4xehj5mqjxyyvef",
+        "zIndex": 0,
+        "blockId": "source-3",
+        "imageId": "i0wam37li4xehj5mqjxyyvef",
+        "position": {
+          "col": 1,
+          "row": 9,
+          "colSpan": 12,
+          "rowSpan": 8
+        },
+        "needsFiller": false
+      },
+      {
+        "kind": "image",
+        "page": 2,
+        "style": {
+          "panelRole": "photoCluster",
+          "cornerRadius": 8,
+          "photoTreatment": "collage"
+        },
+        "slotId": "source-a1sxr1cco2k35gkgkklc747k",
+        "zIndex": 0,
+        "blockId": "source-4",
+        "imageId": "a1sxr1cco2k35gkgkklc747k",
+        "position": {
+          "col": 13,
+          "row": 9,
+          "colSpan": 12,
+          "rowSpan": 8
+        },
+        "needsFiller": false
+      },
+      {
+        "kind": "recurring",
+        "page": 3,
+        "style": {
+          "bg": "berry",
+          "compact": true,
+          "centered": true,
+          "panelRole": "spotlightRail",
+          "invertText": false,
+          "headerColor": "navy",
+          "cornerRadius": 0
+        },
+        "slotId": "source-jmif9d9n8x5979ud3w7bmkxl",
+        "zIndex": 0,
+        "blockId": "source-5",
+        "heading": "Legacy News",
+        "position": {
+          "col": 1,
+          "row": 1,
+          "colSpan": 10,
+          "rowSpan": 7
+        },
+        "articleId": "jmif9d9n8x5979ud3w7bmkxl",
+        "compoundId": "compound-jmif9d9n8x5979ud3w7bmkxl",
+        "sourceRole": "profile-story",
+        "needsFiller": false,
+        "sourceOrder": 1
+      },
+      {
+        "kind": "image",
+        "page": 3,
+        "style": {
+          "cornerRadius": 6,
+          "photoTreatment": "rounded"
+        },
+        "slotId": "source-jt8fsyyzfrclil6cfmab2qzd",
+        "zIndex": 0,
+        "blockId": "source-6",
+        "caption": "Legacy News",
+        "imageId": "jt8fsyyzfrclil6cfmab2qzd",
+        "position": {
+          "col": 11,
+          "row": 1,
+          "colSpan": 14,
+          "rowSpan": 7
+        },
+        "compoundId": "compound-jmif9d9n8x5979ud3w7bmkxl",
+        "sourceRole": "profile-story",
+        "needsFiller": false,
+        "sourceOrder": 1
+      },
+      {
+        "kind": "image",
+        "page": 3,
+        "style": {
+          "panelRole": "photoCluster",
+          "cornerRadius": 8,
+          "photoTreatment": "collage"
+        },
+        "slotId": "source-z7oefa6w0uexnwijcxvihsyw",
+        "zIndex": 0,
+        "blockId": "source-7",
+        "imageId": "z7oefa6w0uexnwijcxvihsyw",
+        "position": {
+          "col": 1,
+          "row": 8,
+          "colSpan": 12,
+          "rowSpan": 9
+        },
+        "needsFiller": false
+      },
+      {
+        "kind": "article",
+        "page": 4,
+        "style": {
+          "bg": "navy",
+          "compact": true,
+          "centered": true,
+          "panelRole": "infoFooter",
+          "invertText": true,
+          "headerColor": "paper",
+          "cornerRadius": 0
+        },
+        "slotId": "demo-back-looking-ahead",
+        "zIndex": 0,
+        "blockId": "demo-back-looking-ahead",
+        "heading": "Executive Director Corner",
+        "position": {
+          "col": 1,
+          "row": 1,
+          "colSpan": 10,
+          "rowSpan": 7
+        },
+        "inlineText": "ED Corner – July 2026 Happy July, everyone! It’s been an amazing summer so far of cookouts, nights spent with friends, and of course, refreshing Happy Hours to help us cool down. In our childhoods, it was around this time of year that many…",
+        "needsFiller": false
+      },
+      {
+        "kind": "article",
+        "page": 4,
+        "style": {
+          "bg": "coral",
+          "compact": true,
+          "centered": true,
+          "panelRole": "upcomingEvents",
+          "invertText": true,
+          "headerColor": "paper",
+          "cornerRadius": 0
+        },
+        "slotId": "demo-back-calendar",
+        "zIndex": 0,
+        "blockId": "demo-back-calendar",
+        "heading": "Stay Connected",
+        "position": {
+          "col": 1,
+          "row": 8,
+          "colSpan": 10,
+          "rowSpan": 9
+        },
+        "inlineText": "- Executive Director Corner",
+        "needsFiller": false
+      },
+      {
+        "kind": "article",
+        "page": 4,
+        "style": {
+          "bg": "cream",
+          "compact": true,
+          "panelRole": "featureBand",
+          "headerColor": "primary",
+          "cornerRadius": 0
+        },
+        "slotId": "demo-back-family",
+        "zIndex": 0,
+        "blockId": "demo-back-family",
+        "heading": "Community Moments",
+        "position": {
+          "col": 11,
+          "row": 1,
+          "colSpan": 14,
+          "rowSpan": 11
+        },
+        "inlineText": "Executive Director Corner",
+        "needsFiller": false
+      },
+      {
+        "kind": "article",
+        "page": 4,
+        "style": {
+          "bg": "sky",
+          "compact": true,
+          "panelRole": "infoFooter",
+          "headerColor": "navy",
+          "cornerRadius": 0
+        },
+        "slotId": "demo-back-office",
+        "zIndex": 0,
+        "blockId": "demo-back-office",
+        "heading": "Thank You",
+        "position": {
+          "col": 11,
+          "row": 12,
+          "colSpan": 7,
+          "rowSpan": 5
+        },
+        "inlineText": "Trilogy Health Services is grateful for the residents, families, team members, and neighbors who make the community feel like home.",
+        "needsFiller": false
+      },
+      {
+        "kind": "article",
+        "page": 4,
+        "style": {
+          "bg": "berry",
+          "compact": true,
+          "centered": true,
+          "panelRole": "spotlightRail",
+          "invertText": true,
+          "headerColor": "paper",
+          "cornerRadius": 0
+        },
+        "slotId": "demo-back-thanks",
+        "zIndex": 0,
+        "blockId": "demo-back-thanks",
+        "heading": "Next Month",
+        "position": {
+          "col": 18,
+          "row": 12,
+          "colSpan": 7,
+          "rowSpan": 5
+        },
+        "inlineText": "Watch for new stories, events, and community updates in the next issue.",
+        "needsFiller": false
+      }
+    ],
+    "version": 1,
+    "pageCount": 4,
+    "templateId": "v3-editorial-light",
+    "unfilledSlotIds": [],
+    "visualPersonality": "photo-journal"
+  },
+  "status": "READY",
+  "errorMessage": null,
+  "pdfPath": null,
+  "pdfGeneratedAt": null,
+  "layoutVersion": 1,
+  "createdAt": "2026-08-30T04:21:55.587Z",
+  "updatedAt": "2026-08-30T04:21:55.587Z",
+  "approvalStatus": "PENDING",
+  "approvalNotes": null,
+  "approvedAt": null,
+  "approvedBy": null,
+  "printPdfPath": null,
+  "printPdfGeneratedAt": null,
+  "layoutFitReport": {
+    "score": 0.2899927174674073,
+    "photoFit": [
+      {
+        "reason": "fit",
+        "slotId": "el-p1-img1",
+        "dropped": false,
+        "imageId": "a1sxr1cco2k35gkgkklc747k"
+      },
+      {
+        "reason": "fit",
+        "slotId": "el-p2-img1",
+        "dropped": false,
+        "imageId": "z7oefa6w0uexnwijcxvihsyw"
+      },
+      {
+        "reason": "fit",
+        "slotId": "el-p2-img2",
+        "dropped": false,
+        "imageId": "afskpb1zfx77jsthok2gze5o"
+      },
+      {
+        "reason": "fit",
+        "slotId": "el-p2-img3",
+        "dropped": false,
+        "imageId": "i0wam37li4xehj5mqjxyyvef"
+      },
+      {
+        "reason": "fit",
+        "slotId": "el-p2-img4",
+        "dropped": false,
+        "imageId": "jt8fsyyzfrclil6cfmab2qzd"
+      }
+    ],
+    "warnings": [],
+    "fitReport": {
+      "actions": [
+        {
+          "rung": 1,
+          "label": "Trilogy Health Services",
+          "action": "fit as written",
+          "blockId": "demo-cover-title"
+        },
+        {
+          "rung": 1,
+          "label": "Birthdays",
+          "action": "fit as written",
+          "blockId": "demo-cover-birthday"
+        },
+        {
+          "rung": 1,
+          "label": "In This Issue",
+          "action": "fit as written",
+          "blockId": "demo-cover-inside"
+        },
+        {
+          "rung": 1,
+          "label": "Executive Director Corner",
+          "action": "fit as written",
+          "blockId": "demo-cover-director"
+        },
+        {
+          "rung": 1,
+          "label": "Executive Director Corner",
+          "action": "fit as written",
+          "blockId": "demo-cover-events"
+        },
+        {
+          "rung": 1,
+          "label": "Community Snapshot",
+          "action": "fit as written",
+          "blockId": "demo-cover-community"
+        },
+        {
+          "rung": 1,
+          "label": "Executive Director Corner",
+          "action": "fit as written",
+          "blockId": "source-1"
+        },
+        {
+          "rung": 1,
+          "label": "Legacy News",
+          "action": "fit as written",
+          "blockId": "source-5"
+        },
+        {
+          "rung": 1,
+          "label": "Executive Director Corner",
+          "action": "fit as written",
+          "blockId": "demo-back-looking-ahead"
+        },
+        {
+          "rung": 1,
+          "label": "Stay Connected",
+          "action": "fit as written",
+          "blockId": "demo-back-calendar"
+        },
+        {
+          "rung": 1,
+          "label": "Community Moments",
+          "action": "fit as written",
+          "blockId": "demo-back-family"
+        },
+        {
+          "rung": 1,
+          "label": "Thank You",
+          "action": "fit as written",
+          "blockId": "demo-back-office"
+        },
+        {
+          "rung": 1,
+          "label": "Next Month",
+          "action": "fit as written",
+          "blockId": "demo-back-thanks"
+        }
+      ],
+      "summary": "⚠ 12 boxes remain below the Porter-like 0.80 fill target",
+      "feasibility": {
+        "status": "fit",
+        "requiredWords": 193,
+        "minimumCapacityWords": 193,
+        "measuredCapacityWords": 193
+      },
+      "truncations": [],
+      "templatePath": [
+        {
+          "action": "selected",
+          "templateId": "v3-editorial-light"
+        }
+      ],
+      "hardOverflowGate": true
+    },
+    "renderFit": 1,
+    "articleFit": [
+      {
+        "slotId": "el-p1-bday",
+        "trimmed": false,
+        "wordsIn": 165,
+        "wordsOut": 165,
+        "articleId": "z69v9ane23x91ox8zmtzylip"
+      },
+      {
+        "slotId": "el-p1-holiday",
+        "trimmed": false,
+        "wordsIn": 28,
+        "wordsOut": 28,
+        "articleId": "jmif9d9n8x5979ud3w7bmkxl"
+      }
+    ],
+    "candidates": [
+      {
+        "score": 0.7353333333333333,
+        "subscores": {
+          "photoCount": 1,
+          "articleCount": 0.25,
+          "avgWordDelta": 0.9783333333333333,
+          "articleTypeMatch": 1
+        },
+        "templateId": "v3-editorial-light"
+      },
+      {
+        "score": 0.6551428571428571,
+        "subscores": {
+          "photoCount": 0.7142857142857143,
+          "articleCount": 0.25,
+          "avgWordDelta": 0.8907142857142858,
+          "articleTypeMatch": 1
+        },
+        "templateId": "v3-resident-feature"
+      },
+      {
+        "score": 0.4399994588744589,
+        "subscores": {
+          "photoCount": 0.7142857142857143,
+          "articleCount": 0.1818181818181818,
+          "avgWordDelta": 0.7779166666666667,
+          "articleTypeMatch": 0.4
+        },
+        "templateId": "v3-panel-garden"
+      },
+      {
+        "score": 0.3989157509157509,
+        "subscores": {
+          "photoCount": 0.3846153846153846,
+          "articleCount": 0.25,
+          "avgWordDelta": 0.9526190476190476,
+          "articleTypeMatch": 0.4
+        },
+        "templateId": "v3-photo-festival"
+      },
+      {
+        "score": 0.4014722222222222,
+        "subscores": {
+          "photoCount": 0.625,
+          "articleCount": 0.2222222222222222,
+          "avgWordDelta": 0.4744444444444444,
+          "articleTypeMatch": 0.4
+        },
+        "templateId": "v3-spread-classic"
+      }
+    ],
+    "coverScore": 0.7525,
+    "designMode": "deterministic",
+    "emptySlots": [],
+    "fillRatios": [
+      {
+        "blockId": "demo-cover-title",
+        "fillRatio": 0.3319820780883294
+      },
+      {
+        "blockId": "demo-cover-birthday",
+        "fillRatio": 0.3888770357727047
+      },
+      {
+        "blockId": "demo-cover-inside",
+        "fillRatio": 0.2305306927901896
+      },
+      {
+        "blockId": "demo-cover-director",
+        "fillRatio": 0.6726752157432051
+      },
+      {
+        "blockId": "demo-cover-events",
+        "fillRatio": 0.4006008729663851
+      },
+      {
+        "blockId": "demo-cover-community",
+        "fillRatio": 0.5239774082649267
+      },
+      {
+        "blockId": "source-1",
+        "fillRatio": 0.9631287588846364
+      },
+      {
+        "blockId": "source-2",
+        "fillRatio": 1
+      },
+      {
+        "blockId": "source-3",
+        "fillRatio": 1
+      },
+      {
+        "blockId": "source-4",
+        "fillRatio": 1
+      },
+      {
+        "blockId": "source-5",
+        "fillRatio": 0.6083131305231876
+      },
+      {
+        "blockId": "source-6",
+        "fillRatio": 1
+      },
+      {
+        "blockId": "source-7",
+        "fillRatio": 1
+      },
+      {
+        "blockId": "demo-back-looking-ahead",
+        "fillRatio": 0.6139047470086807
+      },
+      {
+        "blockId": "demo-back-calendar",
+        "fillRatio": 0.5481414049461387
+      },
+      {
+        "blockId": "demo-back-family",
+        "fillRatio": 0.5379084643229037
+      },
+      {
+        "blockId": "demo-back-office",
+        "fillRatio": 0.3059082165430063
+      },
+      {
+        "blockId": "demo-back-thanks",
+        "fillRatio": 0.284693597142072
+      }
+    ],
+    "qualityGate": {
+      "floor": 0.6,
+      "passed": false,
+      "reason": "Final score 29% is below the 60% ship floor — export blocked until forced.",
+      "finalScore": 0.2899927174674073
+    },
+    "clippedBlocks": 0,
+    "editorialPlan": {
+      "items": [
+        {
+          "role": "lead",
+          "priority": 118,
+          "required": true,
+          "trimMode": "preserve",
+          "articleId": "jmif9d9n8x5979ud3w7bmkxl",
+          "preferredProminence": "hero"
+        },
+        {
+          "role": "executive-note",
+          "priority": 106,
+          "required": true,
+          "trimMode": "preserve",
+          "articleId": "z69v9ane23x91ox8zmtzylip",
+          "preferredProminence": "feature"
+        }
+      ],
+      "density": "sparse",
+      "photoGoal": "photo-led",
+      "leadArticleId": "jmif9d9n8x5979ud3w7bmkxl",
+      "visualPersonality": "photo-journal",
+      "compositionGrammar": "photo-recap-spread",
+      "requiredArticleIds": [
+        "jmif9d9n8x5979ud3w7bmkxl",
+        "z69v9ane23x91ox8zmtzylip"
+      ]
+    },
+    "missingImages": 0,
+    "coverRenderFit": 1,
+    "fallbackReason": "ai_layout_rejected_weighted_gate:clips=0,overflow=0,missing=0,coverage=0.553,coverageCollapse=true,utility=0.491,utilityCollapse=true,minPageUtility=0.489,pageUtilityCollapse=true,underfilled=2,invariants=1,aiScore=0.374,fallbackScore=0.550",
+    "minPageUtility": 0.1827386295447344,
+    "overflowBlocks": 0,
+    "renderedImages": 5,
+    "fullOutputScore": 0.2899927174674073,
+    "porterRetrieval": {
+      "family": "editorial-light",
+      "datedRows": 0,
+      "exampleIds": [
+        "01",
+        "04",
+        "08"
+      ],
+      "photoCount": 5,
+      "wordVolume": 193
+    },
+    "usefulOccupancy": 0.5004607569816019,
+    "chosenTemplateId": "v3-editorial-light",
+    "coverImageBlocks": 0,
+    "geometricCoverage": 0.9184077619621206,
+    "placeholderImages": 0,
+    "porterReferenceId": "example4-editorial-rail",
+    "underfilledBlocks": 12,
+    "adaptiveCandidates": [
+      {
+        "id": "source-compact-story-mosaic",
+        "label": "Uploaded source Porter composition: compact story mosaic",
+        "score": 0.6170498877580146,
+        "selected": true,
+        "warnings": [
+          "porter-photo-pairing:1/1",
+          "underfilled-blocks:1",
+          "low-utility-blocks:10"
+        ],
+        "subscores": {
+          "balance": 0.8363636363636364,
+          "occupancy": 0.9341032608695652,
+          "renderFit": 1,
+          "photoImpact": 0.4145454545454546,
+          "clippingRisk": 1,
+          "contentCoverage": 1,
+          "grammarAffinity": 0.48,
+          "usefulOccupancy": 0.5004607569816019,
+          "geometryValidity": 1,
+          "requiredCoverage": 1,
+          "geometricCoverage": 0.9184077619621206,
+          "porterReferenceId": "example4-editorial-rail",
+          "porterReferenceAffinity": 0.3306666666666667
+        },
+        "measurement": {
+          "fillRatios": [
+            {
+              "blockId": "demo-cover-title",
+              "fillRatio": 0.3319820780883294
+            },
+            {
+              "blockId": "demo-cover-birthday",
+              "fillRatio": 0.3888770357727047
+            },
+            {
+              "blockId": "demo-cover-inside",
+              "fillRatio": 0.2305306927901896
+            },
+            {
+              "blockId": "demo-cover-director",
+              "fillRatio": 0.6726752157432051
+            },
+            {
+              "blockId": "demo-cover-events",
+              "fillRatio": 0.4006008729663851
+            },
+            {
+              "blockId": "demo-cover-community",
+              "fillRatio": 0.5239774082649267
+            },
+            {
+              "blockId": "source-1",
+              "fillRatio": 0.9631287588846364
+            },
+            {
+              "blockId": "source-2",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "source-3",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "source-4",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "source-5",
+              "fillRatio": 0.6083131305231876
+            },
+            {
+              "blockId": "source-6",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "source-7",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "demo-back-looking-ahead",
+              "fillRatio": 0.6139047470086807
+            },
+            {
+              "blockId": "demo-back-calendar",
+              "fillRatio": 0.5481414049461387
+            },
+            {
+              "blockId": "demo-back-family",
+              "fillRatio": 0.5379084643229037
+            },
+            {
+              "blockId": "demo-back-office",
+              "fillRatio": 0.3059082165430063
+            },
+            {
+              "blockId": "demo-back-thanks",
+              "fillRatio": 0.284693597142072
+            }
+          ],
+          "candidateId": "source-compact-story-mosaic",
+          "clipDetails": [],
+          "pageMetrics": [
+            {
+              "page": 1,
+              "renderFit": 1,
+              "blockCount": 6,
+              "imageBlocks": 0,
+              "clippedBlocks": 0,
+              "missingImages": 0,
+              "overflowBlocks": 0,
+              "usefulOccupancy": 0.2379248026166109,
+              "contentBlockCount": 6,
+              "placeholderImages": 0
+            },
+            {
+              "page": 2,
+              "renderFit": 1,
+              "blockCount": 4,
+              "imageBlocks": 3,
+              "clippedBlocks": 0,
+              "missingImages": 0,
+              "overflowBlocks": 0,
+              "usefulOccupancy": 0.990340344920595,
+              "contentBlockCount": 4,
+              "placeholderImages": 0
+            },
+            {
+              "page": 3,
+              "renderFit": 1,
+              "blockCount": 3,
+              "imageBlocks": 2,
+              "clippedBlocks": 0,
+              "missingImages": 0,
+              "overflowBlocks": 0,
+              "usefulOccupancy": 0.5829209681687992,
+              "contentBlockCount": 3,
+              "placeholderImages": 0
+            },
+            {
+              "page": 4,
+              "renderFit": 1,
+              "blockCount": 5,
+              "imageBlocks": 0,
+              "clippedBlocks": 0,
+              "missingImages": 0,
+              "overflowBlocks": 0,
+              "usefulOccupancy": 0.1827386295447344,
+              "contentBlockCount": 5,
+              "placeholderImages": 0
+            }
+          ],
+          "totalImages": 5,
+          "clippedBlocks": 0,
+          "missingImages": 0,
+          "minPageUtility": 0.1827386295447344,
+          "overflowBlocks": 0,
+          "renderedImages": 5,
+          "clippedBlockIds": [],
+          "usefulOccupancy": 0.5004607569816019,
+          "lowUtilityBlocks": 10,
+          "geometricCoverage": 0.9184077619621206,
+          "placeholderImages": 0,
+          "underfilledBlocks": 12,
+          "realRenderedImages": 5,
+          "largestEmptyBandRatio": 0
+        },
+        "geometryVariant": "fixed"
+      },
+      {
+        "id": "editorial-priority",
+        "label": "Editorial priority",
+        "score": 0.5083256222014574,
+        "selected": false,
+        "warnings": [
+          "porter-photo-pairing:1/1",
+          "low-utility-blocks:1",
+          "underfilled-blocks:2"
+        ],
+        "subscores": {
+          "balance": 0.7751196172248804,
+          "occupancy": 0.8873980978260869,
+          "renderFit": 1,
+          "photoImpact": 0.8882296650717703,
+          "clippingRisk": 1,
+          "contentCoverage": 1,
+          "grammarAffinity": 0.48,
+          "usefulOccupancy": 0.580502113054121,
+          "geometryValidity": 1,
+          "requiredCoverage": 1,
+          "porterReferenceId": "example4-editorial-rail",
+          "porterReferenceAffinity": 0.3306666666666667
+        },
+        "measurement": {
+          "fillRatios": [
+            {
+              "blockId": "heoij7s7letcqqn4q6rkpbq2",
+              "fillRatio": 0.6490061257657207
+            },
+            {
+              "blockId": "ph9t3dh8lw7akjevxxq7ey98",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "olr9adro1dbs7210460vr8ln",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "p06b2g0xx50x9k7667okgdpy",
+              "fillRatio": 0.5587343755321685
+            },
+            {
+              "blockId": "kot165iebkle5j4mgvlugyam",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "obz511976l97t3ctc65q23ng",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "qrelaz8kb97kl5xnm1btbdw9",
+              "fillRatio": 1
+            }
+          ],
+          "candidateId": "editorial-priority",
+          "clipDetails": [],
+          "pageMetrics": [
+            {
+              "page": 1,
+              "renderFit": 1,
+              "blockCount": 3,
+              "imageBlocks": 2,
+              "clippedBlocks": 0,
+              "missingImages": 0,
+              "overflowBlocks": 0,
+              "usefulOccupancy": 0.5916190494561707,
+              "contentBlockCount": 3,
+              "placeholderImages": 0
+            },
+            {
+              "page": 2,
+              "renderFit": 1,
+              "blockCount": 4,
+              "imageBlocks": 3,
+              "clippedBlocks": 0,
+              "missingImages": 0,
+              "overflowBlocks": 0,
+              "usefulOccupancy": 0.5695207467509766,
+              "contentBlockCount": 4,
+              "placeholderImages": 0
+            }
+          ],
+          "totalImages": 5,
+          "clippedBlocks": 0,
+          "missingImages": 0,
+          "minPageUtility": 0.5695207467509766,
+          "overflowBlocks": 0,
+          "renderedImages": 5,
+          "clippedBlockIds": [],
+          "usefulOccupancy": 0.580502113054121,
+          "lowUtilityBlocks": 1,
+          "geometricCoverage": 0.8066539054465299,
+          "placeholderImages": 0,
+          "underfilledBlocks": 2,
+          "realRenderedImages": 5,
+          "largestEmptyBandRatio": 0
+        },
+        "geometryVariant": "lead-photo-swap"
+      },
+      {
+        "id": "photo-impact",
+        "label": "Photo impact",
+        "score": 0.5083256222014574,
+        "selected": false,
+        "warnings": [
+          "porter-photo-pairing:1/1",
+          "low-utility-blocks:1",
+          "underfilled-blocks:2"
+        ],
+        "subscores": {
+          "balance": 0.7751196172248804,
+          "occupancy": 0.8873980978260869,
+          "renderFit": 1,
+          "photoImpact": 0.8882296650717703,
+          "clippingRisk": 1,
+          "contentCoverage": 1,
+          "grammarAffinity": 0.48,
+          "usefulOccupancy": 0.580502113054121,
+          "geometryValidity": 1,
+          "requiredCoverage": 1,
+          "porterReferenceId": "example4-editorial-rail",
+          "porterReferenceAffinity": 0.3306666666666667
+        },
+        "measurement": {
+          "fillRatios": [
+            {
+              "blockId": "emvbssr8v0awtglzmh7e4vq9",
+              "fillRatio": 0.6490061257657207
+            },
+            {
+              "blockId": "sa42f777i7ymnmd8etzgdm39",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "vv6ra0h6ylnkk08arrxcsmd7",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "pr6k7nf12t61i9uvkh780xgo",
+              "fillRatio": 0.5587343755321685
+            },
+            {
+              "blockId": "gc4fpb4pwrogoo45wmviifuj",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "uzw8sryi37t3piasa0ebqmgn",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "po1xnrtv46fue2vrz9gsv9c9",
+              "fillRatio": 1
+            }
+          ],
+          "candidateId": "photo-impact",
+          "clipDetails": [],
+          "pageMetrics": [
+            {
+              "page": 1,
+              "renderFit": 1,
+              "blockCount": 3,
+              "imageBlocks": 2,
+              "clippedBlocks": 0,
+              "missingImages": 0,
+              "overflowBlocks": 0,
+              "usefulOccupancy": 0.5916190494561707,
+              "contentBlockCount": 3,
+              "placeholderImages": 0
+            },
+            {
+              "page": 2,
+              "renderFit": 1,
+              "blockCount": 4,
+              "imageBlocks": 3,
+              "clippedBlocks": 0,
+              "missingImages": 0,
+              "overflowBlocks": 0,
+              "usefulOccupancy": 0.5695207467509766,
+              "contentBlockCount": 4,
+              "placeholderImages": 0
+            }
+          ],
+          "totalImages": 5,
+          "clippedBlocks": 0,
+          "missingImages": 0,
+          "minPageUtility": 0.5695207467509766,
+          "overflowBlocks": 0,
+          "renderedImages": 5,
+          "clippedBlockIds": [],
+          "usefulOccupancy": 0.580502113054121,
+          "lowUtilityBlocks": 1,
+          "geometricCoverage": 0.8066539054465299,
+          "placeholderImages": 0,
+          "underfilledBlocks": 2,
+          "realRenderedImages": 5,
+          "largestEmptyBandRatio": 0
+        },
+        "geometryVariant": "photo-lead-swap"
+      },
+      {
+        "id": "text-photo-rebalance",
+        "label": "Text/photo rebalance",
+        "score": 0.4543230512855999,
+        "selected": false,
+        "warnings": [
+          "porter-critical:photo-only-inner-page: Inner page 2 contains images but no meaningful article or list content.",
+          "porter-photo-pairing:1/1",
+          "porter-critical:photo-only-page:1",
+          "low-utility-blocks:1",
+          "underfilled-blocks:2"
+        ],
+        "subscores": {
+          "balance": 0.7751196172248804,
+          "occupancy": 0.8873980978260869,
+          "renderFit": 1,
+          "photoImpact": 0.4480382775119618,
+          "clippingRisk": 1,
+          "contentCoverage": 1,
+          "grammarAffinity": 0.48,
+          "usefulOccupancy": 0.7446828212189871,
+          "geometryValidity": 1,
+          "requiredCoverage": 1,
+          "porterReferenceId": "example4-editorial-rail",
+          "porterReferenceAffinity": 0.3306666666666667
+        },
+        "measurement": {
+          "fillRatios": [
+            {
+              "blockId": "ozlkgx37k4xsix04u87cl4hu",
+              "fillRatio": 0.6490061257657207
+            },
+            {
+              "blockId": "taiepq6ksvhrgy6fcvy58d7l",
+              "fillRatio": 0.239640055376096
+            },
+            {
+              "blockId": "k9ha69ez3jhntfl729kkr2p4",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "tz3162nq424iqnq66w2b137l",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "csk8c341lrys5hxqna4gmrfu",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "f1j6ma6yzfxxa1vk29af2jkk",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "fdf3wpie4cvgx6dwgv52zqy8",
+              "fillRatio": 1
+            }
+          ],
+          "candidateId": "text-photo-rebalance",
+          "clipDetails": [],
+          "pageMetrics": [
+            {
+              "page": 1,
+              "renderFit": 1,
+              "blockCount": 3,
+              "imageBlocks": 1,
+              "clippedBlocks": 0,
+              "missingImages": 0,
+              "overflowBlocks": 0,
+              "usefulOccupancy": 0.4984060776560477,
+              "contentBlockCount": 3,
+              "placeholderImages": 0
+            },
+            {
+              "page": 2,
+              "renderFit": 1,
+              "blockCount": 4,
+              "imageBlocks": 4,
+              "clippedBlocks": 0,
+              "missingImages": 0,
+              "overflowBlocks": 0,
+              "usefulOccupancy": 0.9879562407297371,
+              "contentBlockCount": 4,
+              "placeholderImages": 0
+            }
+          ],
+          "totalImages": 5,
+          "clippedBlocks": 0,
+          "missingImages": 0,
+          "minPageUtility": 0.4984060776560477,
+          "overflowBlocks": 0,
+          "renderedImages": 5,
+          "clippedBlockIds": [],
+          "usefulOccupancy": 0.7446828212189871,
+          "lowUtilityBlocks": 1,
+          "geometricCoverage": 0.8066539054465299,
+          "placeholderImages": 0,
+          "underfilledBlocks": 2,
+          "realRenderedImages": 5,
+          "largestEmptyBandRatio": 0
+        },
+        "geometryVariant": "text-photo-rebalance"
+      },
+      {
+        "id": "briefs-first",
+        "label": "Briefs and recurring modules first",
+        "score": 0.4456870121611031,
+        "selected": false,
+        "warnings": [
+          "porter-critical:photo-only-inner-page: Inner page 2 contains images but no meaningful article or list content.",
+          "porter-photo-pairing:1/1",
+          "porter-critical:photo-only-page:1",
+          "low-utility-blocks:1",
+          "underfilled-blocks:2"
+        ],
+        "subscores": {
+          "balance": 0.7751196172248804,
+          "occupancy": 0.8873980978260869,
+          "renderFit": 1,
+          "photoImpact": 0.5054545454545454,
+          "clippingRisk": 1,
+          "contentCoverage": 1,
+          "grammarAffinity": 0.48,
+          "usefulOccupancy": 0.7218842557391768,
+          "geometryValidity": 1,
+          "requiredCoverage": 1,
+          "porterReferenceId": "example4-editorial-rail",
+          "porterReferenceAffinity": 0.3306666666666667
+        },
+        "measurement": {
+          "fillRatios": [
+            {
+              "blockId": "fvwv0z19myu28enoi87d9ykh",
+              "fillRatio": 0.6490061257657207
+            },
+            {
+              "blockId": "g88nyov0txasj3kmwc4bm0gp",
+              "fillRatio": 0.591
+            },
+            {
+              "blockId": "sfyr71f5uevm2vxm4b878tkd",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "xzj8ximjhnh6865r2gx4yi3p",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "pc8nsg39n8502tlommuce9gh",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "jgiercvjsvxd35mhlt2o0m1j",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "p541a8yexu932vh8wzsr1q7c",
+              "fillRatio": 1
+            }
+          ],
+          "candidateId": "briefs-first",
+          "clipDetails": [],
+          "pageMetrics": [
+            {
+              "page": 1,
+              "renderFit": 1,
+              "blockCount": 3,
+              "imageBlocks": 1,
+              "clippedBlocks": 0,
+              "missingImages": 0,
+              "overflowBlocks": 0,
+              "usefulOccupancy": 0.4525274877511851,
+              "contentBlockCount": 3,
+              "placeholderImages": 0
+            },
+            {
+              "page": 2,
+              "renderFit": 1,
+              "blockCount": 4,
+              "imageBlocks": 4,
+              "clippedBlocks": 0,
+              "missingImages": 0,
+              "overflowBlocks": 0,
+              "usefulOccupancy": 0.9879562407297371,
+              "contentBlockCount": 4,
+              "placeholderImages": 0
+            }
+          ],
+          "totalImages": 5,
+          "clippedBlocks": 0,
+          "missingImages": 0,
+          "minPageUtility": 0.4525274877511851,
+          "overflowBlocks": 0,
+          "renderedImages": 5,
+          "clippedBlockIds": [],
+          "usefulOccupancy": 0.7218842557391768,
+          "lowUtilityBlocks": 1,
+          "geometricCoverage": 0.8066539054465299,
+          "placeholderImages": 0,
+          "underfilledBlocks": 2,
+          "realRenderedImages": 5,
+          "largestEmptyBandRatio": 0
+        },
+        "geometryVariant": "brief-rail-swap"
+      },
+      {
+        "id": "grammar-feature-stack",
+        "label": "Grammar: feature stack",
+        "score": 0.4456870121611031,
+        "selected": false,
+        "warnings": [
+          "porter-critical:photo-only-inner-page: Inner page 2 contains images but no meaningful article or list content.",
+          "porter-photo-pairing:1/1",
+          "porter-critical:photo-only-page:1",
+          "low-utility-blocks:1",
+          "underfilled-blocks:2"
+        ],
+        "subscores": {
+          "balance": 0.7751196172248804,
+          "occupancy": 0.8873980978260869,
+          "renderFit": 1,
+          "photoImpact": 0.5054545454545454,
+          "clippingRisk": 1,
+          "contentCoverage": 1,
+          "grammarAffinity": 0.48,
+          "usefulOccupancy": 0.7218842557391768,
+          "geometryValidity": 1,
+          "requiredCoverage": 1,
+          "porterReferenceId": "example4-editorial-rail",
+          "porterReferenceAffinity": 0.3306666666666667
+        },
+        "measurement": {
+          "fillRatios": [
+            {
+              "blockId": "e7ib4m4ggdyhg59upthzoqym",
+              "fillRatio": 0.6490061257657207
+            },
+            {
+              "blockId": "khleswtjucnz4eu3ww1yhsq5",
+              "fillRatio": 0.591
+            },
+            {
+              "blockId": "pm6tf8l54f2c2v0489z7xv62",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "ydcvnx26upspseref3cwdyxr",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "qqjthb5q1a4d8e0f90t5ak4b",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "hcwtzwbh3u8p0qwooou267pe",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "pul8vyneomxypov5mm16fely",
+              "fillRatio": 1
+            }
+          ],
+          "candidateId": "grammar-feature-stack",
+          "clipDetails": [],
+          "pageMetrics": [
+            {
+              "page": 1,
+              "renderFit": 1,
+              "blockCount": 3,
+              "imageBlocks": 1,
+              "clippedBlocks": 0,
+              "missingImages": 0,
+              "overflowBlocks": 0,
+              "usefulOccupancy": 0.4525274877511851,
+              "contentBlockCount": 3,
+              "placeholderImages": 0
+            },
+            {
+              "page": 2,
+              "renderFit": 1,
+              "blockCount": 4,
+              "imageBlocks": 4,
+              "clippedBlocks": 0,
+              "missingImages": 0,
+              "overflowBlocks": 0,
+              "usefulOccupancy": 0.9879562407297371,
+              "contentBlockCount": 4,
+              "placeholderImages": 0
+            }
+          ],
+          "totalImages": 5,
+          "clippedBlocks": 0,
+          "missingImages": 0,
+          "minPageUtility": 0.4525274877511851,
+          "overflowBlocks": 0,
+          "renderedImages": 5,
+          "clippedBlockIds": [],
+          "usefulOccupancy": 0.7218842557391768,
+          "lowUtilityBlocks": 1,
+          "geometricCoverage": 0.8066539054465299,
+          "placeholderImages": 0,
+          "underfilledBlocks": 2,
+          "realRenderedImages": 5,
+          "largestEmptyBandRatio": 0
+        },
+        "geometryVariant": "grammar-feature-stack"
+      },
+      {
+        "id": "photo-band-expand",
+        "label": "Photo band expansion",
+        "score": 0.4456870121611031,
+        "selected": false,
+        "warnings": [
+          "porter-critical:photo-only-inner-page: Inner page 2 contains images but no meaningful article or list content.",
+          "porter-photo-pairing:1/1",
+          "porter-critical:photo-only-page:1",
+          "low-utility-blocks:1",
+          "underfilled-blocks:2"
+        ],
+        "subscores": {
+          "balance": 0.7751196172248804,
+          "occupancy": 0.8873980978260869,
+          "renderFit": 1,
+          "photoImpact": 0.5054545454545454,
+          "clippingRisk": 1,
+          "contentCoverage": 1,
+          "grammarAffinity": 0.48,
+          "usefulOccupancy": 0.7218842557391768,
+          "geometryValidity": 1,
+          "requiredCoverage": 1,
+          "porterReferenceId": "example4-editorial-rail",
+          "porterReferenceAffinity": 0.3306666666666667
+        },
+        "measurement": {
+          "fillRatios": [
+            {
+              "blockId": "ncct9n74yezvgh21wu4m6bk0",
+              "fillRatio": 0.6490061257657207
+            },
+            {
+              "blockId": "iubbq7917qes918ooh2cwwyg",
+              "fillRatio": 0.591
+            },
+            {
+              "blockId": "nfcuiepah5192zlekdeoepw4",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "f19n5fcvlp0lu4gfua8l60dx",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "e0jmn87l640kcj7gpee79xu4",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "adpm7cag0alf3xldtj0tndbd",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "mpzna3b6he9jj2hjqvcu6mvy",
+              "fillRatio": 1
+            }
+          ],
+          "candidateId": "photo-band-expand",
+          "clipDetails": [],
+          "pageMetrics": [
+            {
+              "page": 1,
+              "renderFit": 1,
+              "blockCount": 3,
+              "imageBlocks": 1,
+              "clippedBlocks": 0,
+              "missingImages": 0,
+              "overflowBlocks": 0,
+              "usefulOccupancy": 0.4525274877511851,
+              "contentBlockCount": 3,
+              "placeholderImages": 0
+            },
+            {
+              "page": 2,
+              "renderFit": 1,
+              "blockCount": 4,
+              "imageBlocks": 4,
+              "clippedBlocks": 0,
+              "missingImages": 0,
+              "overflowBlocks": 0,
+              "usefulOccupancy": 0.9879562407297371,
+              "contentBlockCount": 4,
+              "placeholderImages": 0
+            }
+          ],
+          "totalImages": 5,
+          "clippedBlocks": 0,
+          "missingImages": 0,
+          "minPageUtility": 0.4525274877511851,
+          "overflowBlocks": 0,
+          "renderedImages": 5,
+          "clippedBlockIds": [],
+          "usefulOccupancy": 0.7218842557391768,
+          "lowUtilityBlocks": 1,
+          "geometricCoverage": 0.8066539054465299,
+          "placeholderImages": 0,
+          "underfilledBlocks": 2,
+          "realRenderedImages": 5,
+          "largestEmptyBandRatio": 0
+        },
+        "geometryVariant": "photo-band-expand"
+      },
+      {
+        "id": "source-order",
+        "label": "Source order",
+        "score": 0.4456870121611031,
+        "selected": false,
+        "warnings": [
+          "porter-critical:photo-only-inner-page: Inner page 2 contains images but no meaningful article or list content.",
+          "porter-photo-pairing:1/1",
+          "porter-critical:photo-only-page:1",
+          "low-utility-blocks:1",
+          "underfilled-blocks:2"
+        ],
+        "subscores": {
+          "balance": 0.7751196172248804,
+          "occupancy": 0.8873980978260869,
+          "renderFit": 1,
+          "photoImpact": 0.5054545454545454,
+          "clippingRisk": 1,
+          "contentCoverage": 1,
+          "grammarAffinity": 0.48,
+          "usefulOccupancy": 0.7218842557391768,
+          "geometryValidity": 1,
+          "requiredCoverage": 1,
+          "porterReferenceId": "example4-editorial-rail",
+          "porterReferenceAffinity": 0.3306666666666667
+        },
+        "measurement": {
+          "fillRatios": [
+            {
+              "blockId": "v5nk2mllayhuwj99jbpn4211",
+              "fillRatio": 0.6490061257657207
+            },
+            {
+              "blockId": "nzi2dgzu1aohte3pcwzbo4v5",
+              "fillRatio": 0.591
+            },
+            {
+              "blockId": "arx405x3cke5l0i87y1cjlqi",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "bm6y5n0sns4ku2d88fe1rj1n",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "y8831qrmr3frofjx67e89k7j",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "evyftshiqbyi38bgb8zszeak",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "nuelh2dequxt30exnv4je5f1",
+              "fillRatio": 1
+            }
+          ],
+          "candidateId": "source-order",
+          "clipDetails": [],
+          "pageMetrics": [
+            {
+              "page": 1,
+              "renderFit": 1,
+              "blockCount": 3,
+              "imageBlocks": 1,
+              "clippedBlocks": 0,
+              "missingImages": 0,
+              "overflowBlocks": 0,
+              "usefulOccupancy": 0.4525274877511851,
+              "contentBlockCount": 3,
+              "placeholderImages": 0
+            },
+            {
+              "page": 2,
+              "renderFit": 1,
+              "blockCount": 4,
+              "imageBlocks": 4,
+              "clippedBlocks": 0,
+              "missingImages": 0,
+              "overflowBlocks": 0,
+              "usefulOccupancy": 0.9879562407297371,
+              "contentBlockCount": 4,
+              "placeholderImages": 0
+            }
+          ],
+          "totalImages": 5,
+          "clippedBlocks": 0,
+          "missingImages": 0,
+          "minPageUtility": 0.4525274877511851,
+          "overflowBlocks": 0,
+          "renderedImages": 5,
+          "clippedBlockIds": [],
+          "usefulOccupancy": 0.7218842557391768,
+          "lowUtilityBlocks": 1,
+          "geometricCoverage": 0.8066539054465299,
+          "placeholderImages": 0,
+          "underfilledBlocks": 2,
+          "realRenderedImages": 5,
+          "largestEmptyBandRatio": 0
+        },
+        "geometryVariant": "fixed"
+      },
+      {
+        "id": "grammar-photo-mosaic",
+        "label": "Grammar: photo mosaic",
+        "score": 0,
+        "selected": false,
+        "warnings": [
+          "porter-critical:photo-only-inner-page: Inner page 2 contains images but no meaningful article or list content.",
+          "porter-photo-pairing:1/1",
+          "porter-critical:photo-only-page:1",
+          "low-utility-blocks:1",
+          "underfilled-blocks:2",
+          "porter-critical:white-space-repair"
+        ],
+        "subscores": {
+          "balance": 0.9593147751605996,
+          "occupancy": 0.6609488224637681,
+          "renderFit": 1,
+          "photoImpact": 0.6923340471092077,
+          "clippingRisk": 1,
+          "contentCoverage": 1,
+          "grammarAffinity": 1,
+          "usefulOccupancy": 0.5125368581227909,
+          "geometryValidity": 1,
+          "requiredCoverage": 1,
+          "porterReferenceId": "example4-editorial-rail",
+          "porterReferenceAffinity": 0.4392777777777779
+        },
+        "measurement": {
+          "fillRatios": [
+            {
+              "blockId": "jmgh3b3oevu7hjh33mnt1kdl",
+              "fillRatio": 0.6490061257657207
+            },
+            {
+              "blockId": "ua9dtmwelswzy0sfjtrcd2eb",
+              "fillRatio": 0.591
+            },
+            {
+              "blockId": "hslclk1fjpa45yb5db7xbkjd",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "mquebrabj05gtkzfx0m08b76",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "wqmqtw6r1m1thna2sc7zv31e",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "hwuund8bphuo178u11ig22oi",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "mdzzs6jbonp1x7d9nzgb7y95",
+              "fillRatio": 1
+            }
+          ],
+          "candidateId": "grammar-photo-mosaic",
+          "clipDetails": [],
+          "pageMetrics": [
+            {
+              "page": 1,
+              "renderFit": 1,
+              "blockCount": 3,
+              "imageBlocks": 1,
+              "clippedBlocks": 0,
+              "missingImages": 0,
+              "overflowBlocks": 0,
+              "usefulOccupancy": 0.4525274877511851,
+              "contentBlockCount": 3,
+              "placeholderImages": 0
+            },
+            {
+              "page": 2,
+              "renderFit": 1,
+              "blockCount": 4,
+              "imageBlocks": 4,
+              "clippedBlocks": 0,
+              "missingImages": 0,
+              "overflowBlocks": 0,
+              "usefulOccupancy": 0.5718144192996414,
+              "contentBlockCount": 4,
+              "placeholderImages": 0
+            }
+          ],
+          "totalImages": 5,
+          "clippedBlocks": 0,
+          "missingImages": 0,
+          "minPageUtility": 0.4525274877511851,
+          "overflowBlocks": 0,
+          "renderedImages": 5,
+          "clippedBlockIds": [],
+          "usefulOccupancy": 0.5125368581227909,
+          "lowUtilityBlocks": 1,
+          "geometricCoverage": 0.597306507830144,
+          "placeholderImages": 0,
+          "underfilledBlocks": 2,
+          "realRenderedImages": 5,
+          "largestEmptyBandRatio": 0.3125
+        },
+        "geometryVariant": "grammar-photo-mosaic"
+      },
+      {
+        "id": "source-topology",
+        "label": "Uploaded source topology",
+        "score": 0,
+        "selected": false,
+        "warnings": [
+          "porter-photo-pairing:1/1",
+          "low-utility-blocks:1",
+          "underfilled-blocks:1",
+          "porter-critical:white-space-repair"
+        ],
+        "subscores": {
+          "balance": 0.7692307692307692,
+          "occupancy": 0.4415760869565217,
+          "renderFit": 1,
+          "photoImpact": 0.96,
+          "clippingRisk": 1,
+          "contentCoverage": 1,
+          "grammarAffinity": 0.48,
+          "usefulOccupancy": 0.3451549287306043,
+          "geometryValidity": 1,
+          "requiredCoverage": 1,
+          "porterReferenceId": "example4-editorial-rail",
+          "porterReferenceAffinity": 0.5995555555555556
+        },
+        "measurement": {
+          "fillRatios": [
+            {
+              "blockId": "source-1",
+              "fillRatio": 0.9382628776096894
+            },
+            {
+              "blockId": "source-4",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "source-5",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "source-6",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "source-7",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "source-2",
+              "fillRatio": 0.28470924480598
+            },
+            {
+              "blockId": "source-3",
+              "fillRatio": 1
+            }
+          ],
+          "candidateId": "source-topology",
+          "clipDetails": [],
+          "pageMetrics": [
+            {
+              "page": 1,
+              "renderFit": 1,
+              "blockCount": 5,
+              "imageBlocks": 4,
+              "clippedBlocks": 0,
+              "missingImages": 0,
+              "overflowBlocks": 0,
+              "usefulOccupancy": 0.4899752955392558,
+              "contentBlockCount": 5,
+              "placeholderImages": 0
+            },
+            {
+              "page": 2,
+              "renderFit": 1,
+              "blockCount": 2,
+              "imageBlocks": 1,
+              "clippedBlocks": 0,
+              "missingImages": 0,
+              "overflowBlocks": 0,
+              "usefulOccupancy": 0.2047024535669598,
+              "contentBlockCount": 2,
+              "placeholderImages": 0
+            }
+          ],
+          "totalImages": 5,
+          "clippedBlocks": 0,
+          "missingImages": 0,
+          "minPageUtility": 0.2047024535669598,
+          "overflowBlocks": 0,
+          "renderedImages": 5,
+          "clippedBlockIds": [],
+          "usefulOccupancy": 0.3451549287306043,
+          "lowUtilityBlocks": 1,
+          "geometricCoverage": 0.3975192260623878,
+          "placeholderImages": 0,
+          "underfilledBlocks": 1,
+          "realRenderedImages": 5,
+          "largestEmptyBandRatio": 0.6875
+        },
+        "geometryVariant": "fixed"
+      },
+      {
+        "id": "source-topology",
+        "label": "Uploaded source topology",
+        "score": 0,
+        "selected": false,
+        "warnings": [
+          "porter-photo-pairing:1/1",
+          "low-utility-blocks:1",
+          "underfilled-blocks:1",
+          "porter-critical:white-space-repair"
+        ],
+        "subscores": {
+          "balance": 0.7692307692307692,
+          "occupancy": 0.4415760869565217,
+          "renderFit": 1,
+          "photoImpact": 0.96,
+          "clippingRisk": 1,
+          "contentCoverage": 1,
+          "grammarAffinity": 0.48,
+          "usefulOccupancy": 0.3451549287306043,
+          "geometryValidity": 1,
+          "requiredCoverage": 1,
+          "porterReferenceId": "example4-editorial-rail",
+          "porterReferenceAffinity": 0.5995555555555556
+        },
+        "measurement": {
+          "fillRatios": [
+            {
+              "blockId": "source-1",
+              "fillRatio": 0.9382628776096894
+            },
+            {
+              "blockId": "source-4",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "source-5",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "source-6",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "source-7",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "source-2",
+              "fillRatio": 0.28470924480598
+            },
+            {
+              "blockId": "source-3",
+              "fillRatio": 1
+            }
+          ],
+          "candidateId": "source-topology",
+          "clipDetails": [],
+          "pageMetrics": [
+            {
+              "page": 1,
+              "renderFit": 1,
+              "blockCount": 5,
+              "imageBlocks": 4,
+              "clippedBlocks": 0,
+              "missingImages": 0,
+              "overflowBlocks": 0,
+              "usefulOccupancy": 0.4899752955392558,
+              "contentBlockCount": 5,
+              "placeholderImages": 0
+            },
+            {
+              "page": 2,
+              "renderFit": 1,
+              "blockCount": 2,
+              "imageBlocks": 1,
+              "clippedBlocks": 0,
+              "missingImages": 0,
+              "overflowBlocks": 0,
+              "usefulOccupancy": 0.2047024535669598,
+              "contentBlockCount": 2,
+              "placeholderImages": 0
+            }
+          ],
+          "totalImages": 5,
+          "clippedBlocks": 0,
+          "missingImages": 0,
+          "minPageUtility": 0.2047024535669598,
+          "overflowBlocks": 0,
+          "renderedImages": 5,
+          "clippedBlockIds": [],
+          "usefulOccupancy": 0.3451549287306043,
+          "lowUtilityBlocks": 1,
+          "geometricCoverage": 0.3975192260623878,
+          "placeholderImages": 0,
+          "underfilledBlocks": 1,
+          "realRenderedImages": 5,
+          "largestEmptyBandRatio": 0.6875
+        },
+        "geometryVariant": "fixed"
+      },
+      {
+        "id": "source-topology",
+        "label": "Uploaded source topology",
+        "score": 0,
+        "selected": false,
+        "warnings": [
+          "porter-photo-pairing:1/1",
+          "low-utility-blocks:1",
+          "underfilled-blocks:1",
+          "porter-critical:white-space-repair"
+        ],
+        "subscores": {
+          "balance": 0.7692307692307692,
+          "occupancy": 0.4415760869565217,
+          "renderFit": 1,
+          "photoImpact": 0.96,
+          "clippingRisk": 1,
+          "contentCoverage": 1,
+          "grammarAffinity": 0.48,
+          "usefulOccupancy": 0.3451549287306043,
+          "geometryValidity": 1,
+          "requiredCoverage": 1,
+          "porterReferenceId": "example4-editorial-rail",
+          "porterReferenceAffinity": 0.5995555555555556
+        },
+        "measurement": {
+          "fillRatios": [
+            {
+              "blockId": "source-1",
+              "fillRatio": 0.9382628776096894
+            },
+            {
+              "blockId": "source-4",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "source-5",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "source-6",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "source-7",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "source-2",
+              "fillRatio": 0.28470924480598
+            },
+            {
+              "blockId": "source-3",
+              "fillRatio": 1
+            }
+          ],
+          "candidateId": "source-topology",
+          "clipDetails": [],
+          "pageMetrics": [
+            {
+              "page": 1,
+              "renderFit": 1,
+              "blockCount": 5,
+              "imageBlocks": 4,
+              "clippedBlocks": 0,
+              "missingImages": 0,
+              "overflowBlocks": 0,
+              "usefulOccupancy": 0.4899752955392558,
+              "contentBlockCount": 5,
+              "placeholderImages": 0
+            },
+            {
+              "page": 2,
+              "renderFit": 1,
+              "blockCount": 2,
+              "imageBlocks": 1,
+              "clippedBlocks": 0,
+              "missingImages": 0,
+              "overflowBlocks": 0,
+              "usefulOccupancy": 0.2047024535669598,
+              "contentBlockCount": 2,
+              "placeholderImages": 0
+            }
+          ],
+          "totalImages": 5,
+          "clippedBlocks": 0,
+          "missingImages": 0,
+          "minPageUtility": 0.2047024535669598,
+          "overflowBlocks": 0,
+          "renderedImages": 5,
+          "clippedBlockIds": [],
+          "usefulOccupancy": 0.3451549287306043,
+          "lowUtilityBlocks": 1,
+          "geometricCoverage": 0.3975192260623878,
+          "placeholderImages": 0,
+          "underfilledBlocks": 1,
+          "realRenderedImages": 5,
+          "largestEmptyBandRatio": 0.6875
+        },
+        "geometryVariant": "fixed"
+      },
+      {
+        "id": "source-topology",
+        "label": "Uploaded source topology",
+        "score": 0,
+        "selected": false,
+        "warnings": [
+          "porter-photo-pairing:1/1",
+          "low-utility-blocks:1",
+          "underfilled-blocks:1",
+          "porter-critical:white-space-repair"
+        ],
+        "subscores": {
+          "balance": 0.7692307692307692,
+          "occupancy": 0.4415760869565217,
+          "renderFit": 1,
+          "photoImpact": 0.96,
+          "clippingRisk": 1,
+          "contentCoverage": 1,
+          "grammarAffinity": 0.48,
+          "usefulOccupancy": 0.3451549287306043,
+          "geometryValidity": 1,
+          "requiredCoverage": 1,
+          "porterReferenceId": "example4-editorial-rail",
+          "porterReferenceAffinity": 0.5995555555555556
+        },
+        "measurement": {
+          "fillRatios": [
+            {
+              "blockId": "source-1",
+              "fillRatio": 0.9382628776096894
+            },
+            {
+              "blockId": "source-4",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "source-5",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "source-6",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "source-7",
+              "fillRatio": 1
+            },
+            {
+              "blockId": "source-2",
+              "fillRatio": 0.28470924480598
+            },
+            {
+              "blockId": "source-3",
+              "fillRatio": 1
+            }
+          ],
+          "candidateId": "source-topology",
+          "clipDetails": [],
+          "pageMetrics": [
+            {
+              "page": 1,
+              "renderFit": 1,
+              "blockCount": 5,
+              "imageBlocks": 4,
+              "clippedBlocks": 0,
+              "missingImages": 0,
+              "overflowBlocks": 0,
+              "usefulOccupancy": 0.4899752955392558,
+              "contentBlockCount": 5,
+              "placeholderImages": 0
+            },
+            {
+              "page": 2,
+              "renderFit": 1,
+              "blockCount": 2,
+              "imageBlocks": 1,
+              "clippedBlocks": 0,
+              "missingImages": 0,
+              "overflowBlocks": 0,
+              "usefulOccupancy": 0.2047024535669598,
+              "contentBlockCount": 2,
+              "placeholderImages": 0
+            }
+          ],
+          "totalImages": 5,
+          "clippedBlocks": 0,
+          "missingImages": 0,
+          "minPageUtility": 0.2047024535669598,
+          "overflowBlocks": 0,
+          "renderedImages": 5,
+          "clippedBlockIds": [],
+          "usefulOccupancy": 0.3451549287306043,
+          "lowUtilityBlocks": 1,
+          "geometricCoverage": 0.3975192260623878,
+          "placeholderImages": 0,
+          "underfilledBlocks": 1,
+          "realRenderedImages": 5,
+          "largestEmptyBandRatio": 0.6875
+        },
+        "geometryVariant": "fixed"
+      }
+    ],
+    "coverClippedBlocks": 0,
+    "coverContentBlocks": 11,
+    "coverMissingImages": 0,
+    "realRenderedImages": 5,
+    "coverOverflowBlocks": 0,
+    "innerSpreadAffinity": 0.3306666666666667,
+    "porterLayoutPlaybook": {
+      "rules": [
+        {
+          "id": "hard-source-invariants",
+          "label": "Hard source invariants",
+          "score": 1,
+          "result": "No hard Porter source invariant failures.",
+          "status": "pass",
+          "target": "Required source units, rows, real images, non-photo-only pages, and explicit story/photo compounds cannot fail."
+        },
+        {
+          "id": "signature-rail",
+          "label": "Signature birthday/rail anchor",
+          "score": 1,
+          "result": "No inner-spread birthday block was present in this packet.",
+          "status": "not-applicable",
+          "target": "When birthdays appear on the inner spread, place the birthday rail in the upper-left page-2 zone."
+        },
+        {
+          "id": "director-anchor",
+          "label": "Executive Director anchor",
+          "score": 1,
+          "result": "Placed page 1, col 1, row 1, area 80.",
+          "status": "pass",
+          "target": "Executive Director should hold a stable top/left cream-panel anchor."
+        },
+        {
+          "id": "photo-story-pairing",
+          "label": "Referenced photos stay with stories",
+          "score": 1,
+          "result": "1/1 referenced story/photo pairs were near. Legacy News: adjacent",
+          "status": "pass",
+          "target": "Every DOCX-referenced photo should be on the same page and near its story."
+        },
+        {
+          "id": "photo-use-captions",
+          "label": "Real photos and human captions",
+          "score": 1,
+          "result": "5/5 supplied photos placed; 5/5 rendered as real photos; 0 placeholder/test images; 0 filename-like captions.",
+          "status": "pass",
+          "target": "Use all supplied real photos once, avoid filename captions, and reject rendered placeholder/test images."
+        },
+        {
+          "id": "page-anchors",
+          "label": "Every page has a Porter anchor",
+          "score": 1,
+          "result": "2/2 pages have an anchor (p1:anchor, p2:anchor).",
+          "status": "pass",
+          "target": "Each inner page needs a visible rail, photo strip, footer band, or mosaic anchor."
+        },
+        {
+          "id": "no-photo-only-pages",
+          "label": "No photo-only inner pages",
+          "score": 1,
+          "result": "Every inner page carries editorial text or structured list content.",
+          "status": "pass",
+          "target": "A Porter inner spread should not dedicate a whole page to loose photos unless the selected family is explicitly a collage-only page."
+        },
+        {
+          "id": "white-space-repair",
+          "label": "White-space repair",
+          "score": 0.510125559315685,
+          "result": "Useful 78.7%, min page utility 58.3%, underfilled 12, low-utility 10.",
+          "status": "fail",
+          "target": "If useful occupancy/page utility is low, grow adjacent photos, merge short text, or move lists into rails."
+        },
+        {
+          "id": "rendered-quality-gate",
+          "label": "Rendered quality gate",
+          "score": 0.6699999999999999,
+          "result": "Real rendered photos 5/5; useful 78.7%; min page utility 58.3%; underfilled 12; low-utility 10.",
+          "status": "warn",
+          "target": "High symbolic Porter adherence must still produce real photos, filled pages, and low dead space."
+        },
+        {
+          "id": "module-rhythm",
+          "label": "Varied module rhythm",
+          "score": 0.6,
+          "result": "3 distinct module widths; 0 repeated same-width stacks.",
+          "status": "warn",
+          "target": "Avoid repeated same-width stacked boxes; dense grids need varied widths and staggered panels."
+        }
+      ],
+      "score": 0.8644583954795205,
+      "family": "editorial-light",
+      "summary": "6 passed, 2 warned, 1 failed across 9 applicable Porter layout rules."
+    },
+    "largestEmptyBandRatio": 0,
+    "porterLayoutInvariants": {
+      "passed": true,
+      "failures": [],
+      "warnings": [],
+      "hardFailures": []
+    },
+    "porterReferenceAffinity": 0.3306666666666667,
+    "coverDuplicateBirthdayBlocks": 1
+  },
+  "complianceFlags": [
+    {
+      "id": "sq6l71gb1gthyu7dttvcyih1",
+      "reason": "Potential resident full name \"Happy Hours\"",
+      "target": {
+        "kind": "article",
+        "match": "Happy Hours",
+        "offset": 147,
+        "articleId": "z69v9ane23x91ox8zmtzylip"
+      },
+      "category": "resident-last-name",
+      "severity": "warn",
+      "resolvedByUser": false,
+      "detectorVersion": "regex@1"
+    }
+  ],
+  "bundleZipPath": null,
+  "bundleBuiltAt": null,
+  "bundleLayoutVersion": null
+}

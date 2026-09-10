@@ -1,0 +1,34 @@
+[
+  {
+    "packet": 5,
+    "runId": "w799rh4dhtuyh3jg6ucr94zj",
+    "templateId": "v3-spread-classic",
+    "score": 0.8784953551178787,
+    "forced": true,
+    "pdfUrl": "https://api-production-26a0.up.railway.app/pdfs/w799rh4dhtuyh3jg6ucr94zj-web-1788070339944.pdf",
+    "qualityGate": {
+      "floor": 0.6,
+      "passed": false,
+      "reason": "Hard Porter invariant failed — export blocked until forced. render-overflow-blocks: 2 overflowing rendered block(s).",
+      "finalScore": 0.8784953551178787,
+      "hardFailures": [
+        "render-overflow-blocks: 2 overflowing rendered block(s)."
+      ]
+    },
+    "playbook": "8 passed, 0 warned, 1 failed across 9 applicable Porter layout rules.",
+    "invariants": {
+      "passed": false,
+      "failures": [
+        {
+          "id": "render-overflow-blocks",
+          "message": "2 overflowing rendered block(s).",
+          "severity": "hard"
+        }
+      ],
+      "warnings": [],
+      "hardFailures": [
+        "render-overflow-blocks: 2 overflowing rendered block(s)."
+      ]
+    }
+  }
+]

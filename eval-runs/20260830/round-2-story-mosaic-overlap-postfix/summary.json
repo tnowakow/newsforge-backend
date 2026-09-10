@@ -1,0 +1,107 @@
+[
+  {
+    "packet": 2,
+    "runId": "kny232xshithls7hidz88www",
+    "templateId": "v3-photo-festival",
+    "score": 0.7344357048454853,
+    "forced": false,
+    "pdfUrl": "https://api-production-26a0.up.railway.app/pdfs/kny232xshithls7hidz88www-web-1788079721606.pdf",
+    "qualityGate": {
+      "floor": 0.6,
+      "passed": true,
+      "reason": "Final score 73.4% meets the 60% ship floor.",
+      "finalScore": 0.7344357048454853
+    },
+    "playbook": "8 passed, 0 warned, 1 failed across 9 applicable Porter layout rules.",
+    "invariants": {
+      "passed": true,
+      "failures": [],
+      "warnings": [],
+      "hardFailures": []
+    }
+  },
+  {
+    "packet": 3,
+    "runId": "hrli24dll44br81mxwss3ria",
+    "templateId": "v3-editorial-light",
+    "score": 0.7140888286313901,
+    "forced": false,
+    "pdfUrl": "https://api-production-26a0.up.railway.app/pdfs/hrli24dll44br81mxwss3ria-web-1788079760577.pdf",
+    "qualityGate": {
+      "floor": 0.6,
+      "passed": true,
+      "reason": "Final score 71.4% meets the 60% ship floor.",
+      "finalScore": 0.7140888286313901
+    },
+    "playbook": "9 passed, 0 warned, 0 failed across 9 applicable Porter layout rules.",
+    "invariants": {
+      "passed": true,
+      "failures": [],
+      "warnings": [],
+      "hardFailures": []
+    }
+  },
+  {
+    "packet": 4,
+    "runId": "mcxs9ifbwro1xeg4ghr8nz6z",
+    "templateId": "v3-photo-festival",
+    "score": 0.6804543020013267,
+    "forced": false,
+    "pdfUrl": "https://api-production-26a0.up.railway.app/pdfs/mcxs9ifbwro1xeg4ghr8nz6z-web-1788079809911.pdf",
+    "qualityGate": {
+      "floor": 0.6,
+      "passed": true,
+      "reason": "Final score 68% meets the 60% ship floor.",
+      "finalScore": 0.6804543020013267
+    },
+    "playbook": "8 passed, 0 warned, 1 failed across 9 applicable Porter layout rules.",
+    "invariants": {
+      "passed": true,
+      "failures": [],
+      "warnings": [],
+      "hardFailures": []
+    }
+  },
+  {
+    "packet": 5,
+    "runId": "dlsbdmftihzhue3xurvp6ab4",
+    "templateId": "v3-spread-classic",
+    "score": 0.9089270220817487,
+    "forced": false,
+    "pdfUrl": "https://api-production-26a0.up.railway.app/pdfs/dlsbdmftihzhue3xurvp6ab4-web-1788079857962.pdf",
+    "qualityGate": {
+      "floor": 0.6,
+      "passed": true,
+      "reason": "Final score 90.9% meets the 60% ship floor.",
+      "finalScore": 0.9089270220817487
+    },
+    "playbook": "9 passed, 0 warned, 0 failed across 9 applicable Porter layout rules.",
+    "invariants": {
+      "passed": true,
+      "failures": [],
+      "warnings": [],
+      "hardFailures": []
+    }
+  },
+  {
+    "packet": 6,
+    "runId": "wpwldnt8tork82em4got9l91",
+    "templateId": "v3-editorial-light",
+    "score": 0.7152763316871503,
+    "forced": false,
+    "pdfUrl": "https://api-production-26a0.up.railway.app/pdfs/wpwldnt8tork82em4got9l91-web-1788079891951.pdf",
+    "qualityGate": {
+      "floor": 0.6,
+      "passed": true,
+      "reason": "Final score 71.5% meets the 60% ship floor.",
+      "finalScore": 0.7152763316871503
+    },
+    "playbook": "9 passed, 0 warned, 0 failed across 9 applicable Porter layout rules.",
+    "invariants": {
+      "passed": true,
+      "failures": [],
+      "warnings": [],
+      "hardFailures": []
+    }
+  }
+]

@@ -1,0 +1,64 @@
+{
+  "label": "july-content-5",
+  "sourceDocx": "/mnt/4tb/downloads/Will/Template Test/July Newsletter Content5.docx",
+  "file": "July Newsletter Content5.docx",
+  "sha256": "b757e570a577092cc782dd40ac1fc66daf84a5e76b1e27391fc7f060d7e7a37e",
+  "byteSize": 36869,
+  "role": "filled",
+  "monthLabel": "July 2026",
+  "derivedBy": "manual-plain-text-review (pandoc plain, not the app parser)",
+  "expected": {
+    "proseStories": [
+      { "id": "c5-story-ed-corner", "kind": "prose-story", "heading": "Executive Directors Corner (no title line)", "required": true, "originalText": "Happy July, everyone! It's been an amazing summer so far of cookouts, nights spent with friends, and of course, refreshing Happy Hours to help us cool down. ... Have a great month! Yours in Service, Sean Medsker, Executive Director", "photoRefs": [] },
+      { "id": "c5-story-legacy-news", "kind": "prose-story", "heading": "Legacy News", "required": true, "originalText": "As the days grow warmer and brighter, our residents have been enjoying a variety of activities like gardening and outdoor games! ... This month join us in celebrating the Sampson's 63rd Wedding Anniversary! Families are always encouraged to share photos, stories, and memories that can be incorporated into reminiscing activities.", "photoRefs": ["Legacyjuly1.PNG", "LegacyJuly2.PNG"] },
+      { "id": "c5-story-day-at-the-market", "kind": "prose-story", "heading": "Day at the Market", "required": false, "originalText": "Farmer's Market…Farmers' Market….Farmers Market…? However it's spelled, we had such a great time at ours! We hope the smiles on all your faces were as genuine and filled with joy as they appeared! What was your favorite vendor/booth?", "photoRefs": ["marketday1.png", "marketday2.png", "marketday3.png", "marketday4.png", "marketday5.png"] },
+      { "id": "c5-story-volunteers-needed", "kind": "prose-story", "heading": "Volunteers Needed", "required": false, "originalText": "Let a Life Enrichment Specialist know if you are interested in teaching a class, presenting a hobby, or anything else you might be interested in sharing with our residents!", "photoRefs": [] },
+      { "id": "c5-story-transportation", "kind": "prose-story", "heading": "Then & Now: A 250-Year Journey Through Transportation", "required": false, "paragraphCount": 6, "originalText": "As America celebrates its 250th anniversary in 2026, transportation offers a fascinating look at how far our nation has come. From horse-drawn wagons to electric vehicles, the way Americans travel reflects two and a half centuries of innovation and progress. In 1776, most people traveled on foot, horseback, or by wagon. Roads were often rough dirt paths, and long-distance journeys could take days or even weeks. Traveling from one colony to another required patience, endurance, and careful planning. For many Americans, exploring far beyond their hometown was rare. During the 1800s, canals, steamboats, and railroads transformed transportation. The expansion of railroads connected distant communities and helped businesses grow. People and goods could move across the country faster than ever before, helping to unite a young nation. The twentieth century introduced the automobile and commercial air travel. Cars gave families greater freedom to travel, while highways connected cities across the country. Airplanes made cross-country trips possible in just hours instead of days. Today, Americans enjoy transportation technologies that would have seemed unimaginable in 1776. GPS navigation, electric vehicles, ride-sharing services, and advanced aircraft make travel faster, safer, and more convenient than ever. As we commemorate 250 years of American history, transportation reminds us of our nation's spirit of invention and determination. While the methods have changed dramatically, the desire to explore, connect, and move forward remains as strong today as it was at America's founding.", "photoRefs": [] },
+      { "id": "c5-story-talent-call-out", "kind": "prose-story", "heading": "Talent Call Out!", "required": false, "originalText": "Do you have a talent you'd like to have featured in our monthly newsletter? This could be an article, creative writing, a comic, poem, photo, anything! Talk to Sierra Fletcher (Life Enrichment Director) to find out how to be included.", "photoRefs": [] }
+    ],
+    "scheduleGroups": [
+      { "id": "c5-sched-upcoming", "name": "Upcoming Campus Events", "entryCount": 1 }
+    ],
+    "scheduleEntries": [
+      { "group": "Upcoming Campus Events", "date": "July 4th", "text": "250th Birthday Party for USA" }
+    ],
+    "photoCaptionSection": {
+      "note": "PHOTO CAPTIONS says 'No captions needed' but then lists two section-based file references — these are named asset references, not caption texts.",
+      "namedReferences": ["marketday1.png", "marketday2.png", "marketday3.png", "marketday4.png", "marketday5.png", "Legacyjuly1.PNG", "LegacyJuly2.PNG"]
+    },
+    "untaggedUploadedPhotos": [
+      "photo1.jpg", "photo2.jpg", "photo3.jpg",
+      "photo4.jpg", "photo5.jpg", "photo6.jpg", "photo7.jpg"
+    ],
+    "departmentHeads": [
+      "Sean Medsker - Executive Director",
+      "Cindy Mitten - Director of Health Services",
+      "Michelle Eslinger - Assistant Director of Health Services",
+      "Alice Lopera - Director of Sales",
+      "Shannon Riley - Business Office Manager",
+      "Jordan Pirsch - Social Services Director",
+      "Brooke Brandestein - Director of Assisted Living",
+      "Missie Bailey - Legacy Lane Coordinator",
+      "Sierra Fletcher - Life Enrichment Director",
+      "John Smith - Director of Plant Operations",
+      "Martina Creech - Environmental Services Director",
+      "Chelsea Welsh - Employee Experience Manager",
+      "Ronnie Beck - Transportation Associate",
+      "Christel Robbins - Guest Relations"
+    ]
+  },
+  "expectedCounts": {
+    "proseStories": 6,
+    "scheduleGroups": 1,
+    "scheduleEntries": 1,
+    "namedReferences": 7,
+    "untaggedUploadedPhotos": 7,
+    "departmentHeads": 14
+  },
+  "acceptanceNotes": [
+    "SIX cohesive stories: ED Corner (Sean Medsker), Legacy News (Sampson 63rd anniversary), Day at the Market, Volunteers Needed, Transportation, Talent Call Out.",
+    "The transportation article must remain ONE story with all six paragraphs intact — do not fragment it.",
+    "Short supplied headings must be preserved: 'Volunteers Needed' and 'Talent Call Out!' keep their headings (R03 acceptance).",
+    "The ED Corner in this packet has NO 'ED Corner – July 2026' title line — only the required-section label and the body; heading should come from the section label."
+  ]
+}

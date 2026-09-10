@@ -1,0 +1,165 @@
+{
+  "created": [
+    {
+      "id": "wrf73y3xvw7noxmp31ujkyhu",
+      "clientId": "cf9d5c48ad3397d431d1e6cd",
+      "type": "ARTICLE",
+      "contentOrUrl": "Executive Director Corner\nED Corner – July 2026\n\nHappy July, everyone!\n\nIt’s been an amazing summer so far of cookouts, nights spent with friends, and of course, refreshing Happy Hours to help us cool down. In our childhoods, it was around this time of year that many of us started looking towards the dreaded return to the classroom – but here at our campus, the middle of July means that the party is just getting started.\n\nAs we head deeper into the season, there’s still plenty to look forward to around campus. From live entertainment and themed events to afternoons spent outside enjoying the sunshine, summer always has a way of bringing people together. It’s been wonderful seeing everyone catching up with neighbors, welcoming visiting family members, and making the most of these longer days. We hope you’ll continue joining us for all the fun, laughter, and little moments that make this time of year so special.\n\nHave a great month!\n\nYours in Service,\n\nOlivia Hermiller\n\nExecutive Director\n\nLegacy News\nWe honored Dementia Action Week with a special balloon release in memory of those we have lost to dementia and in support of everyone affected by it. Our residents enjoyed the sunshine on such a beautiful day.",
+      "source": "UPLOAD",
+      "meta": {
+        "mime": "application/octet-stream",
+        "size": 34790,
+        "wordCount": 990,
+        "porterParse": {
+          "markers": {
+            "end": true,
+            "start": true
+          },
+          "captions": {},
+          "warnings": [
+            "birthday-source-missing: use recurring roster or evergreen teaser"
+          ],
+          "listCount": 0,
+          "articleCount": 2,
+          "datedRowCount": 0,
+          "parsedArticles": [
+            {
+              "id": "w766vklhmz2m2vfl2yg1e0u1",
+              "body": "ED Corner – July 2026\n\nHappy July, everyone!\n\nIt’s been an amazing summer so far of cookouts, nights spent with friends, and of course, refreshing Happy Hours to help us cool down. In our childhoods, it was around this time of year that many of us started looking towards the dreaded return to the classroom – but here at our campus, the middle of July means that the party is just getting started.\n\nAs we head deeper into the season, there’s still plenty to look forward to around campus. From live entertainment and themed events to afternoons spent outside enjoying the sunshine, summer always has a way of bringing people together. It’s been wonderful seeing everyone catching up with neighbors, welcoming visiting family members, and making the most of these longer days. We hope you’ll continue joining us for all the fun, laughter, and little moments that make this time of year so special.\n\nHave a great month!\n\nYours in Service,\n\nOlivia Hermiller\n\nExecutive Director",
+              "title": "Executive Director Corner",
+              "byline": "From the Executive Director",
+              "source": "UPLOAD",
+              "isFiller": false,
+              "imageRefs": [],
+              "sectionId": "director",
+              "wordCount": 165,
+              "compoundId": "compound-w766vklhmz2m2vfl2yg1e0u1",
+              "sourceRole": "director-note",
+              "articleType": "executive-note",
+              "sourceOrder": 0
+            },
+            {
+              "id": "s3ulkw6rh5txtk8p8g1fa2r5",
+              "body": "We honored Dementia Action Week with a special balloon release in memory of those we have lost to dementia and in support of everyone affected by it. Our residents enjoyed the sunshine on such a beautiful day.",
+              "title": "Legacy News",
+              "source": "UPLOAD",
+              "isFiller": false,
+              "imageRefs": [
+                "1",
+                "2",
+                "3"
+              ],
+              "sectionId": "legacy",
+              "wordCount": 37,
+              "compoundId": "compound-s3ulkw6rh5txtk8p8g1fa2r5",
+              "sourceRole": "profile-story",
+              "articleType": "resident-story",
+              "sourceOrder": 1
+            }
+          ],
+          "fallbackRequired": false,
+          "imageAssociations": {
+            "1": [
+              "legacy"
+            ],
+            "2": [
+              "legacy"
+            ],
+            "3": [
+              "legacy"
+            ]
+          }
+        },
+        "mammothMessages": [],
+        "originalFilename": "July_Newsletter_Content6.docx"
+      },
+      "createdAt": "2026-08-27T00:31:11.973Z"
+    },
+    {
+      "id": "ltw2lyja6b7wmz0fdpsqhnm8",
+      "clientId": "cf9d5c48ad3397d431d1e6cd",
+      "type": "IMAGE",
+      "contentOrUrl": "/uploads/ldbdh8zehdhoszvmeq3jm3oz.jpg",
+      "source": "UPLOAD",
+      "meta": {
+        "mime": "application/octet-stream",
+        "size": 159673,
+        "width": 641,
+        "format": "jpeg",
+        "height": 895,
+        "originalMime": "application/octet-stream",
+        "originalFilename": "photo1.jpg"
+      },
+      "createdAt": "2026-08-27T00:31:11.979Z"
+    },
+    {
+      "id": "o0olbktxbrlw3xtxmksouxh7",
+      "clientId": "cf9d5c48ad3397d431d1e6cd",
+      "type": "IMAGE",
+      "contentOrUrl": "/uploads/rtlqtz18mvx4ucsik73a6slc.jpg",
+      "source": "UPLOAD",
+      "meta": {
+        "mime": "application/octet-stream",
+        "size": 676166,
+        "width": 1382,
+        "format": "jpeg",
+        "height": 2115,
+        "originalMime": "application/octet-stream",
+        "originalFilename": "photo2.jpg"
+      },
+      "createdAt": "2026-08-27T00:31:11.982Z"
+    },
+    {
+      "id": "e0kaohjn3fpqz9n6xc6wyzzf",
+      "clientId": "cf9d5c48ad3397d431d1e6cd",
+      "type": "IMAGE",
+      "contentOrUrl": "/uploads/zztigjbiijs0n1vfsd1yyryk.jpg",
+      "source": "UPLOAD",
+      "meta": {
+        "mime": "application/octet-stream",
+        "size": 410499,
+        "width": 927,
+        "format": "jpeg",
+        "height": 619,
+        "originalMime": "application/octet-stream",
+        "originalFilename": "photo3.jpg"
+      },
+      "createdAt": "2026-08-27T00:31:11.984Z"
+    },
+    {
+      "id": "gk0004clw449pivr2tgpga22",
+      "clientId": "cf9d5c48ad3397d431d1e6cd",
+      "type": "IMAGE",
+      "contentOrUrl": "/uploads/o3ia0hv4btga1fyz5z5gu8v4.jpg",
+      "source": "UPLOAD",
+      "meta": {
+        "mime": "application/octet-stream",
+        "size": 215194,
+        "width": 864,
+        "format": "jpeg",
+        "height": 576,
+        "originalMime": "application/octet-stream",
+        "originalFilename": "photo4.jpg"
+      },
+      "createdAt": "2026-08-27T00:31:11.994Z"
+    },
+    {
+      "id": "z14qnvt3ksfniewamo2ksmyq",
+      "clientId": "cf9d5c48ad3397d431d1e6cd",
+      "type": "IMAGE",
+      "contentOrUrl": "/uploads/m9a5fagrd48t4cpekln3d26k.jpg",
+      "source": "UPLOAD",
+      "meta": {
+        "mime": "application/octet-stream",
+        "size": 146252,
+        "width": 618,
+        "format": "jpeg",
+        "height": 927,
+        "originalMime": "application/octet-stream",
+        "originalFilename": "photo5.jpg"
+      },
+      "createdAt": "2026-08-27T00:31:11.999Z"
+    }
+  ],
+  "skipped": []
+}

@@ -1,0 +1,46 @@
+{
+  "label": "july-blank",
+  "sourceDocx": "/mnt/4tb/downloads/Will/Template Test/Blank-Template.docx",
+  "file": "Blank-Template.docx",
+  "sha256": "c91c0133524fa1c95dab494ec8db4b08648e609f5c8c82b7cf6f7dd71797836a",
+  "byteSize": 33329,
+  "role": "blank-form",
+  "monthLabel": null,
+  "derivedBy": "manual-plain-text-review (pandoc plain, not the app parser)",
+  "expected": {
+    "proseStories": [],
+    "scheduleGroups": [],
+    "scheduleEntries": [],
+    "namedReferences": [],
+    "untaggedUploadedPhotos": [],
+    "departmentHeads": [],
+    "interestingAndNewsworthy": {
+      "requiredSlots": 3,
+      "filledSlots": 0,
+      "note": "All six INTERESTING AND NEWSWORTHY slots (3 required + 3 optional) are EMPTY — this is the blank form baseline."
+    },
+    "requiredSectionsPresent": [
+      "REQUIRED - Executive Directors Corner (label only, with instruction 'Customize the provided Trilogy Home Office content for your campus and paste it in the space below:')"
+    ]
+  },
+  "expectedCounts": {
+    "proseStories": 0,
+    "scheduleGroups": 0,
+    "scheduleEntries": 0,
+    "namedReferences": 0,
+    "untaggedUploadedPhotos": 0,
+    "departmentHeads": 0,
+    "interestingAndNewsworthyFilled": 0
+  },
+  "instructionLeakageNotes": [
+    "The ED Corner section in the blank form contains ONLY the instruction line 'Customize the provided Trilogy Home Office content for your campus and paste it in the space below:' — there is no actual ED Corner article. A parser must not treat this instruction text as a submitted story. Expected prose story count for this packet is ZERO (acceptance criterion).",
+    "All section labels, the submission-instructions block, and the Optional Article Suggestions topic list are TEMPLATE text, not submitted content — none of it counts as a story, schedule entry, or department head."
+  ],
+  "credentialRedaction": [
+    "The submission-instructions block contains a plaintext portal password (step 2: 'Enter the password: <value>'). The value MUST NOT be reproduced in any fixture, ledger, log, or parser output — reference its location only."
+  ],
+  "acceptanceNotes": [
+    "BLANK FORM baseline: expected story count is ZERO — any parser output that fabricates a story, schedule entry, or department head from the template boilerplate fails this ledger.",
+    "The template boilerplate (submission steps, required-section labels, optional-topic lists) must be recognized as non-content and excluded from all counts."
+  ]
+}

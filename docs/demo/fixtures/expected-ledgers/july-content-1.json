@@ -1,0 +1,75 @@
+{
+  "label": "july-content-1",
+  "sourceDocx": "/mnt/4tb/downloads/Will/Template Test/July Newsletter Content1.docx",
+  "file": "July Newsletter Content1.docx",
+  "sha256": "b1d4d8831c4b9b66dc4ed0caa75a839bcafbc7e2556b4b9c819b9d4d20fe30c5",
+  "byteSize": 36725,
+  "role": "filled",
+  "monthLabel": "July 2026",
+  "derivedBy": "manual-plain-text-review (pandoc plain, not the app parser)",
+  "expected": {
+    "proseStories": [
+      { "id": "c1-story-ed-corner", "kind": "prose-story", "heading": "ED Corner – July 2026", "required": true, "originalText": "Happy July, everyone! It's been an amazing summer so far of cookouts, nights spent with friends, and of course, refreshing Happy Hours to help us cool down. ... Have a great month! Yours in Service, Elise Van De Steenoven, Executive Director", "photoRefs": [] },
+      { "id": "c1-story-legacy-news", "kind": "prose-story", "heading": "Legacy News", "required": true, "originalText": "Legacy Lane residents and their families created special moments with ShoeBox memories! Family members shared treasured trinkets, recipes photos, and keepsakes in memory of loved ones in memory care.", "photoRefs": ["Legacy.jpg", "Legacy 2.jpg"] },
+      { "id": "c1-story-chef-circle", "kind": "prose-story", "heading": "Chef Circle", "required": false, "originalText": "Chef Circle brings residents together for a unique culinary experience featuring delicious food, engaging conversation, and a behind the scenes look at the creativity of our dining team. ...", "photoRefs": ["Chefs Circle.jpg"] },
+      { "id": "c1-story-campus-in-color", "kind": "prose-story", "heading": "Campus in Color", "required": false, "originalText": "Campus in Color is a Vibrant Celebration of Creativity, community and self-expression! Residents, team members, and families transform our campus into a living masterpiece. ...", "photoRefs": ["Campus in Color.jpg", "Campus in Color 2.HEIC"] },
+      { "id": "c1-story-oaks-jamestown", "kind": "prose-story", "heading": "The Oaks at Jamestown", "required": false, "originalText": "The Oaks at Jamestown is Proud to celebrate its second anniversary! Over the past two years, our community has blossomed into a place where residents, families, and team members come together ...", "photoRefs": [] }
+    ],
+    "scheduleGroups": [
+      { "id": "c1-sched-happy-hours", "name": "Happy Hours", "entryCount": 5 },
+      { "id": "c1-sched-socials", "name": "Socials", "entryCount": 4 },
+      { "id": "c1-sched-brunch", "name": "Brunch", "entryCount": 1 }
+    ],
+    "scheduleEntries": [
+      { "group": "Happy Hours", "date": "7/3", "text": "America's 250th Anniversary Bash" },
+      { "group": "Happy Hours", "date": "7/10", "text": "Summer Camp" },
+      { "group": "Happy Hours", "date": "7/17", "text": "Taco bout 2 Year Campus Anniversary" },
+      { "group": "Happy Hours", "date": "7/24", "text": "Lemonade Stand" },
+      { "group": "Happy Hours", "date": "7/31", "text": "Dog Days of Summer" },
+      { "group": "Socials", "date": "7/8", "text": "Watermelon Wednesday" },
+      { "group": "Socials", "date": "7/15", "text": "Lemon Slushies" },
+      { "group": "Socials", "date": "7/22", "text": "Ice Cream Sandwiches" },
+      { "group": "Socials", "date": "7/29", "text": "Root Beer Floats" },
+      { "group": "Brunch", "date": "7/12", "text": "July Brunch" }
+    ],
+    "namedReferences": [
+      "Legacy.jpg", "Legacy 2.jpg", "Chefs Circle.jpg",
+      "Campus in Color.jpg", "Campus in Color 2.HEIC"
+    ],
+    "untaggedUploadedPhotos": [
+      "photo1.jpg", "photo2.jpg", "photo3.jpg",
+      "photo4.jpg", "photo5.jpg", "photo6.jpg", "photo7.jpg"
+    ],
+    "departmentHeads": [
+      "Elise Van De Steenoven - Area Executive Director",
+      "Felicia Kas - Director of Health Services",
+      "Alfredo Torres - Assistant Director of Health Services",
+      "Andrea Millard - Director of Social Services",
+      "Justin Regan - Director of Plant Operations",
+      "Destiney Tuka - Business Office Manager",
+      "Trevor Jackson - Director of Food Services",
+      "Nichole Kelly - Director of Environmental Services",
+      "Adam Frizzle - Therapy Director",
+      "Lorraine Hirt - Life Enrichment Director",
+      "Tara Hilbink - Director of Assisted Living",
+      "Julie Adelberg - Legacy Leader"
+    ]
+  },
+  "expectedCounts": {
+    "proseStories": 5,
+    "scheduleGroups": 3,
+    "scheduleEntries": 10,
+    "namedReferences": 5,
+    "untaggedUploadedPhotos": 7,
+    "departmentHeads": 12
+  },
+  "equivalence": {
+    "equivalentTo": "july-primary",
+    "note": "Content-equivalent variant of the July primary packet (identical story set, schedule, named references, department heads). Per TRI-R02 work item 2, deduplicate for tuning but KEEP as a separate input-file test case. Only the file name and byte size differ from primary/campus."
+  },
+  "acceptanceNotes": [
+    "Five prose stories, same as primary.",
+    "Three schedule groups, ten entries, five named references, seven untagged photos — same as primary.",
+    "Password field is filled in this variant (trilogynews); not a story."
+  ]
+}

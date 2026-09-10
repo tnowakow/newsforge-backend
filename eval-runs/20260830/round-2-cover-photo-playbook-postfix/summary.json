@@ -1,0 +1,65 @@
+[
+  {
+    "packet": 2,
+    "runId": "jabzhhrcfo8yx9x918rf7ivr",
+    "templateId": "v3-photo-festival",
+    "score": 0.7344357048454853,
+    "forced": false,
+    "pdfUrl": "https://api-production-26a0.up.railway.app/pdfs/jabzhhrcfo8yx9x918rf7ivr-web-1788080865388.pdf",
+    "qualityGate": {
+      "floor": 0.6,
+      "passed": true,
+      "reason": "Final score 73.4% meets the 60% ship floor.",
+      "finalScore": 0.7344357048454853
+    },
+    "playbook": "9 passed, 0 warned, 0 failed across 9 applicable Porter layout rules.",
+    "invariants": {
+      "passed": true,
+      "failures": [],
+      "warnings": [],
+      "hardFailures": []
+    }
+  },
+  {
+    "packet": 3,
+    "runId": "z912jk81yoq1nzlnxzy8fpbl",
+    "templateId": "v3-editorial-light",
+    "score": 0.7140888286313901,
+    "forced": false,
+    "pdfUrl": "https://api-production-26a0.up.railway.app/pdfs/z912jk81yoq1nzlnxzy8fpbl-web-1788080899160.pdf",
+    "qualityGate": {
+      "floor": 0.6,
+      "passed": true,
+      "reason": "Final score 71.4% meets the 60% ship floor.",
+      "finalScore": 0.7140888286313901
+    },
+    "playbook": "9 passed, 0 warned, 0 failed across 9 applicable Porter layout rules.",
+    "invariants": {
+      "passed": true,
+      "failures": [],
+      "warnings": [],
+      "hardFailures": []
+    }
+  },
+  {
+    "packet": 4,
+    "runId": "a2i47ocu5sytu7aiqkulp2dn",
+    "templateId": "v3-photo-festival",
+    "score": 0.6804543020013267,
+    "forced": false,
+    "pdfUrl": "https://api-production-26a0.up.railway.app/pdfs/a2i47ocu5sytu7aiqkulp2dn-web-1788080950254.pdf",
+    "qualityGate": {
+      "floor": 0.6,
+      "passed": true,
+      "reason": "Final score 68% meets the 60% ship floor.",
+      "finalScore": 0.6804543020013267
+    },
+    "playbook": "9 passed, 0 warned, 0 failed across 9 applicable Porter layout rules.",
+    "invariants": {
+      "passed": true,
+      "failures": [],
+      "warnings": [],
+      "hardFailures": []
+    }
+  }
+]

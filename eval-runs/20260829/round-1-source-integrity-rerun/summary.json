@@ -1,0 +1,140 @@
+[
+  {
+    "packet": 2,
+    "runId": "ogpy3j08md8lbpeqr86taxgm",
+    "templateId": "v3-photo-festival",
+    "score": 0.1081298340154845,
+    "forced": true,
+    "pdfUrl": "https://api-production-26a0.up.railway.app/pdfs/ogpy3j08md8lbpeqr86taxgm-web-1788041146390.pdf",
+    "qualityGate": {
+      "floor": 0.6,
+      "passed": false,
+      "reason": "Hard Porter invariant failed — export blocked until forced. render-clipped-blocks: 3 clipped rendered block(s).",
+      "finalScore": 0.1081298340154845,
+      "hardFailures": [
+        "render-clipped-blocks: 3 clipped rendered block(s)."
+      ]
+    },
+    "playbook": "5 passed, 1 warned, 3 failed across 9 applicable Porter layout rules.",
+    "invariants": {
+      "passed": false,
+      "failures": [
+        {
+          "id": "render-clipped-blocks",
+          "message": "3 clipped rendered block(s).",
+          "severity": "hard"
+        }
+      ],
+      "warnings": [],
+      "hardFailures": [
+        "render-clipped-blocks: 3 clipped rendered block(s)."
+      ]
+    }
+  },
+  {
+    "packet": 3,
+    "runId": "kcpncbxnb5o4mk61xdg13ftj",
+    "templateId": "v3-editorial-light",
+    "score": 0.2535197925456293,
+    "forced": true,
+    "pdfUrl": "https://api-production-26a0.up.railway.app/pdfs/kcpncbxnb5o4mk61xdg13ftj-web-1788041233528.pdf",
+    "qualityGate": {
+      "floor": 0.6,
+      "passed": false,
+      "reason": "Final score 25.4% is below the 60% ship floor — export blocked until forced.",
+      "finalScore": 0.2535197925456293
+    },
+    "playbook": "6 passed, 1 warned, 3 failed across 10 applicable Porter layout rules.",
+    "invariants": {
+      "passed": true,
+      "failures": [],
+      "warnings": [],
+      "hardFailures": []
+    }
+  },
+  {
+    "packet": 4,
+    "runId": "h4oebj3dm38w6cjdj7inu39a",
+    "templateId": "v3-photo-festival",
+    "score": 0.1623677556077281,
+    "forced": true,
+    "pdfUrl": "https://api-production-26a0.up.railway.app/pdfs/h4oebj3dm38w6cjdj7inu39a-web-1788041347611.pdf",
+    "qualityGate": {
+      "floor": 0.6,
+      "passed": false,
+      "reason": "Hard Porter invariant failed — export blocked until forced. render-clipped-blocks: 1 clipped rendered block(s).",
+      "finalScore": 0.1623677556077281,
+      "hardFailures": [
+        "render-clipped-blocks: 1 clipped rendered block(s)."
+      ]
+    },
+    "playbook": "5 passed, 1 warned, 3 failed across 9 applicable Porter layout rules.",
+    "invariants": {
+      "passed": false,
+      "failures": [
+        {
+          "id": "render-clipped-blocks",
+          "message": "1 clipped rendered block(s).",
+          "severity": "hard"
+        }
+      ],
+      "warnings": [],
+      "hardFailures": [
+        "render-clipped-blocks: 1 clipped rendered block(s)."
+      ]
+    }
+  },
+  {
+    "packet": 5,
+    "runId": "nuls8jbdtb9h9b58k6ex09x9",
+    "templateId": "v3-spread-classic",
+    "score": 0.3877136517697326,
+    "forced": true,
+    "pdfUrl": "https://api-production-26a0.up.railway.app/pdfs/nuls8jbdtb9h9b58k6ex09x9-web-1788041459529.pdf",
+    "qualityGate": {
+      "floor": 0.6,
+      "passed": false,
+      "reason": "Hard Porter invariant failed — export blocked until forced. render-clipped-blocks: 2 clipped rendered block(s).",
+      "finalScore": 0.3877136517697326,
+      "hardFailures": [
+        "render-clipped-blocks: 2 clipped rendered block(s)."
+      ]
+    },
+    "playbook": "5 passed, 0 warned, 4 failed across 9 applicable Porter layout rules.",
+    "invariants": {
+      "passed": false,
+      "failures": [
+        {
+          "id": "render-clipped-blocks",
+          "message": "2 clipped rendered block(s).",
+          "severity": "hard"
+        }
+      ],
+      "warnings": [],
+      "hardFailures": [
+        "render-clipped-blocks: 2 clipped rendered block(s)."
+      ]
+    }
+  },
+  {
+    "packet": 6,
+    "runId": "q0ee4qblhykuqxhm2r6bc7qd",
+    "templateId": "v3-editorial-light",
+    "score": 0.2898402404386113,
+    "forced": true,
+    "pdfUrl": "https://api-production-26a0.up.railway.app/pdfs/q0ee4qblhykuqxhm2r6bc7qd-web-1788041540424.pdf",
+    "qualityGate": {
+      "floor": 0.6,
+      "passed": false,
+      "reason": "Final score 29% is below the 60% ship floor — export blocked until forced.",
+      "finalScore": 0.2898402404386113
+    },
+    "playbook": "6 passed, 1 warned, 2 failed across 9 applicable Porter layout rules.",
+    "invariants": {
+      "passed": true,
+      "failures": [],
+      "warnings": [],
+      "hardFailures": []
+    }
+  }
+]

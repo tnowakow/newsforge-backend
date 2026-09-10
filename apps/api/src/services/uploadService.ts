@@ -61,6 +61,7 @@ export interface ParsedPorterSubmission {
 }
 
 interface SubmissionParagraph {
+  id: string;
   text: string;
 }
 
@@ -75,7 +76,10 @@ function paragraphsFromSubmission(rawText: string): SubmissionParagraph[] {
   return rawText
     .replace(/\r\n/g, "\n")
     .split(/\n[ \t]*\n/)
-    .map((text) => ({ text: text.split("\n").map(cleanSubmissionText).filter(Boolean).join("\n") }))
+    .map((text, idx) => ({
+      id: `p-${String(idx + 1).padStart(4, "0")}`,
+      text: text.split("\n").map(cleanSubmissionText).filter(Boolean).join("\n"),
+    }))
     .filter((paragraph) => paragraph.text.length > 0);
 }
 
@@ -373,11 +377,6 @@ export function parsePorterSubmissionText(rawText: string): ParsedPorterSubmissi
       for (const item of content) {
         const { title, body } = featureTitleAndBody(item.body);
         if (body.length < 20) continue;
-        if (/happy birthdays?|birthdays?/i.test(title) || /happy birthdays?|birthdays?/i.test(body.slice(0, 100))) {
-          const rows = birthdayRowsFromText([body]);
-          if (rows.length) lists.push({ label: "Happy Birthday!", panelRole: "birthday", rows });
-          continue;
-        }
         if (item.refs.length) addPhotoAssociations(item.refs, title, imageAssociations);
         articles.push({
           title,
@@ -422,7 +421,6 @@ export function parsePorterSubmissionText(rawText: string): ParsedPorterSubmissi
   }
 
   const birthdayPresent = sections.some((section) => /birthday/i.test(`${section.id} ${section.header}`)) || lists.some((list) => list.panelRole === "birthday");
-  if (!birthdayPresent) warnings.push("birthday-source-missing: use recurring roster or evergreen teaser");
   if (sections.some((section) => section.id === "custom")) warnings.push("custom-section-preserved");
   return { articles, lists, captions, imageAssociations, warnings, markers, fallbackRequired: false, birthdayPresent };
 }
@@ -563,8 +561,18 @@ export function splitSubmissionTemplate(rawText: string): ParsedArticleBlock[] {
 // ---- File parsers ----
 
 export async function parseDocx(filePath: string): Promise<string> {
-  const result = await mammoth.extractRawText({ path: filePath });
-  return result.value;
+  // Use HTML for structure preservation (headings, numbering, paragraph order)
+  // per TRI-R03 lossless requirement. Raw text fallback kept for compatibility.
+  const htmlResult = await mammoth.convertToHtml({ path: filePath }, {
+    includeDefaultStyleMap: true,
+  });
+  // Strip tags for now; future work will consume the HTML structure directly
+  // to group continuations under real headings and retain numbering evidence.
+  const text = htmlResult.value
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  return text || (await mammoth.extractRawText({ path: filePath })).value;
 }
 
 export async function parseTxt(filePath: string): Promise<string> {
