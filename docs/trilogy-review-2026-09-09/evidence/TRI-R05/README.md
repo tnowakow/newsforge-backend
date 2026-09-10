@@ -1,5 +1,7 @@
 # TRI-R05 evidence
 
+Integrated SHA: `5669fb9c36a372164c5deb88b33901cd4c9c5779`
+
 ## Implemented
 1. `imageDescription.ts` — vision pixel describe (Gemini/OpenAI), cache by content hash + model + promptVersion `trilogy-r05-v1`. No people IDs / medical inference. Unavailable providers leave `analysisStatus=unavailable` (no fabricated scene).
 2. `photoAssignment.ts` — global visible-evidence ranking; deleted Legacy→veteran TOKEN_ALIASES shortcut; exact/confirmed reserved first; weak evidence stays UNASSIGNED; no metadata-scorer-as-inspection claim.
