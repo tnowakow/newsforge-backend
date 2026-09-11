@@ -25,6 +25,7 @@ import {
   type RecurringSection,
   type SourceAssetContract,
 } from "@newsforge/shared/schemas";
+import { LETTER_RENDER_CONTRACT } from "@newsforge/shared";
 import { callGeminiJson } from "../gemini.js";
 import { env } from "../env.js";
 import { assembleLayout } from "./layoutAssembly.js";
@@ -348,17 +349,34 @@ export async function designLayout(
   input: DesignLayoutInput,
 ): Promise<DesignLayoutResult> {
   if (input.layoutMode === "campus-inner-spread") {
+    // TRI-R07 — production path: composeInnerSpread measures real modules
+    // (Chromium + letter contract fonts/CSS) and drives placement from those
+    // heights. Type floor is the approved body pt (never squeezed).
     const composed = await composeInnerSpread({
       source: input.articles,
       images: input.images,
-      contract: { gridSpec: input.gridSpec, pageCount: 2, minBodyFontSizePt: 10.5 },
+      contract: {
+        gridSpec: input.gridSpec,
+        pageCount: 2,
+        minBodyFontSizePt: LETTER_RENDER_CONTRACT.type.bodyPt,
+        bodyFontSizePt: LETTER_RENDER_CONTRACT.type.bodyPt,
+      },
     });
     return {
       layout: composed.layout,
       mode: "deterministic",
-      designNotes: composed.status === "fit" ? "bounded deterministic inside-spread composition" : `overflow: ${composed.overflow?.reason ?? "required content did not fit"}`,
+      designNotes:
+        composed.status === "fit"
+          ? `bounded measured inside-spread composition (${composed.skeleton}; measurements=${composed.measurementCallCount})`
+          : `overflow: ${composed.overflow?.reason ?? "required content did not fit"}`,
       fallbackReason: composed.status === "fit" ? undefined : "inner_spread_overflow",
-      promptAudit: { systemPrompt: "deterministic inner spread contract", userPrompt: "", provider: "deterministic", model: "bounded-inner-spread", durationMs: 0 },
+      promptAudit: {
+        systemPrompt: "deterministic measured inner spread contract",
+        userPrompt: composed.decisionTrace.join(" | "),
+        provider: "deterministic",
+        model: "measured-inner-spread",
+        durationMs: 0,
+      },
     };
   }
   const adaptive = buildAdaptiveLayout({

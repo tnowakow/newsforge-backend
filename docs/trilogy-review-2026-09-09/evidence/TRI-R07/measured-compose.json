@@ -1,0 +1,49 @@
+{
+  "card": "TRI-R07",
+  "measuredModule": {
+    "intrinsicHeightPx": 190,
+    "contentHeightPx": 190,
+    "measured": true,
+    "missingFonts": [],
+    "sourceImageIds": [
+      "ia"
+    ]
+  },
+  "cases": {
+    "sparse": {
+      "status": "fit",
+      "skeleton": "sparse-editorial",
+      "measurementCallCount": 8,
+      "usedMeasurements": true,
+      "blocks": 2,
+      "omitted": []
+    },
+    "primary8": {
+      "status": "fit",
+      "skeleton": "long-copy-feature",
+      "measurementCallCount": 48,
+      "usedMeasurements": true,
+      "placedArticles": 8,
+      "placedImages": 4,
+      "omitted": [],
+      "overflowReason": null,
+      "reviewOptions": []
+    }
+  },
+  "productionPath": {
+    "model": "measured-inner-spread",
+    "designNotes": "bounded measured inside-spread composition (photo-heavy; measurements=16)",
+    "userPromptHasMeasure": true,
+    "measurementsInTrace": true,
+    "pageCount": 2,
+    "blockCount": 3
+  },
+  "contractFloor": {
+    "bodyPt": 11.5,
+    "fonts": {
+      "heading": "Source Sans 3",
+      "body": "EB Garamond"
+    }
+  },
+  "at": "2026-09-11T05:55:04.793Z"
+}

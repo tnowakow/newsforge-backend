@@ -38,3 +38,11 @@ This satisfies the new completion contract: integrated SHA + checks + evidence p
 - Specimen evidence: `evidence/TRI-SPEC-2P/` — 2-page Letter PDF (612x792), pdffonts = SourceSans3 + EBGaramond only, all subset-embedded, no FreeSerif; font-inspection.json all verdicts true; re-rendered from the integrated tree for this commit
 - Variant evidence: `evidence/TRI-R06/` — 5 metadata JSONs + rendered HTML/PNG proofs + A/B/C substitution screenshots + font-resolution.json
 - No production deployment
+
+## TRI-R07 — real module measurements drive bounded page composition
+- Card: t_b2541ab4
+- Integrated SHA: e565fbe8cfadcf330138609584621723e8b937ca
+- Modules: `storyModuleMeasurement.ts` (production-aligned Chromium measure + cache invalidation), `innerSpreadComposer.ts` (R06 skeleton search, measured row spans, all linked + gallery photos, compact rails, overflow review), `aiLayoutDesigner.ts` campus-inner-spread production path
+- Verification: typecheck green; build green; target suites innerSpreadComposer + storyModuleMeasurement (+ chromium) 26/26
+- Evidence: `docs/trilogy-review-2026-09-09/evidence/TRI-R07/` (README + measured-compose.json)
+- No production deployment
