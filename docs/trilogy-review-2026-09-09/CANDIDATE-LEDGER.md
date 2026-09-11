@@ -41,7 +41,7 @@ This satisfies the new completion contract: integrated SHA + checks + evidence p
 
 ## TRI-R07 — real module measurements drive bounded page composition
 - Card: t_b2541ab4
-- Integrated SHA: e565fbe8cfadcf330138609584621723e8b937ca
+- Integrated SHA: d6627d15f34e36b2199f85b898fe02a0e88acc13
 - Modules: `storyModuleMeasurement.ts` (production-aligned Chromium measure + cache invalidation), `innerSpreadComposer.ts` (R06 skeleton search, measured row spans, all linked + gallery photos, compact rails, overflow review), `aiLayoutDesigner.ts` campus-inner-spread production path
 - Verification: typecheck green; build green; target suites innerSpreadComposer + storyModuleMeasurement (+ chromium) 26/26
 - Evidence: `docs/trilogy-review-2026-09-09/evidence/TRI-R07/` (README + measured-compose.json)
