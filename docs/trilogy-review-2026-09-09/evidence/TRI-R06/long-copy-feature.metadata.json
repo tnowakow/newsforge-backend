@@ -1,0 +1,70 @@
+{
+  "variant": "long-copy-feature",
+  "task": "TRI-R06 layout-variant proof (Trilogy pages 2-3 follow-up)",
+  "source": {
+    "anchor": "example-18",
+    "referenceFile": "apps/api/src/reference/porter-examples/example-18.pdf",
+    "measured": {
+      "pageCount": 2,
+      "sizeIn": [
+        8.5,
+        11.0
+      ],
+      "distinctPhotos": 5,
+      "rawImageObjects": 9,
+      "totalChars": 5146,
+      "datedRows": 17,
+      "fonts": [
+        "BILHFQ+AGaramondPro-Regular",
+        "CPTITO+AGaramondPro-SemiboldItalic",
+        "HZLMLE+MuseoSans-500",
+        "JCKYNA+MuseoSans-700",
+        "NIIWRS+AGaramondPro-Semibold",
+        "YBXPPW+MuseoSans-900",
+        "ZFMVDU+AGaramondPro-BoldItalic"
+      ],
+      "birthdayMention": true
+    },
+    "measurementMethod": "PyMuPDF: get_image_info (IoU>=0.6 merged) for photos, get_text length for chars, dated-row regex, get_fonts; raw table in scratch/tri-r06/table30.json",
+    "specDivergenceFromAnchor": "Birthday roster and director headshot REMOVED per task requirement; all other grammar (panels, rails, footer, photo placement) kept from the anchor."
+  },
+  "geometry": {
+    "canvas": {
+      "widthIn": 17.0,
+      "heightIn": 11.0,
+      "scalePxPerIn": 144,
+      "widthPx": 2448,
+      "heightPx": 1584,
+      "page": "letter-inner-spread"
+    },
+    "modules": [
+      "masthead rule + heading (96-1296 x 58-150)",
+      "three long body paragraphs, 1050px column x 190-1120",
+      "feature photo 620x500 at (1250,190)",
+      "subhead + continuation (96-1146 x 660-1120)",
+      "navy footer band 150px full width"
+    ]
+  },
+  "bands": {
+    "moduleBand": [
+      6,
+      10
+    ],
+    "photoBand": [
+      2,
+      5
+    ],
+    "datedRowBand": [
+      0,
+      10
+    ],
+    "note": "Bands are targets, not mandates. Sparse variants must not inherit a 12-18 module floor (see PORTER_GRAMMAR_TARGETS.sparseMinModules=4)."
+  },
+  "artifacts": {
+    "html": "variants/long-copy-feature.html",
+    "png": "variants/long-copy-feature.png",
+    "generator": "variants/gen_proofs.py",
+    "render": "variants/render_pngs.mjs (puppeteer-core, chromium-1217)"
+  },
+  "scoreNote": "No similarity percentages recorded. The porterReferenceAffinity metric is a weighted closeness band 0-1 (photo 0.18 / panel 0.18 / image 0.14 / content 0.14 / dark 0.10 / rails 0.10 / largest 0.08 / bottom 0.08), not a design-similarity percentage."
+}

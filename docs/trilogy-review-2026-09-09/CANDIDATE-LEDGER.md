@@ -30,3 +30,11 @@ This satisfies the new completion contract: integrated SHA + checks + evidence p
 - Verification: typecheck + build pass; `photoAssignment.r05` + `sourceManifest` 18/19 (Ashford birthdayPresent pre-existing on clean main)
 - Evidence: `docs/trilogy-review-2026-09-09/evidence/TRI-R05/`
 - No production deployment
+
+## TRI-R06 — typography contract, layout variants, integrated specimen
+- Cards: t_ea0eef41 (font contract + hard gate), t_7f4506b4 (2-page specimen), t_996ab0ec (5 layout variants + rows 21–30), t_d3fbe9a6 (integration)
+- Modules: `renderContract.ts` (letter-inner-v1: body EB Garamond 11.5pt/1.38, display Source Sans 3 23pt/1.05), `pdf.ts` hard font gate (throws on missing family or computed-body mismatch — no silent FreeSerif), `renderHtml.ts` contract CSS wiring, `porterRetrieval.ts` rows 21–30, `porterGrammar.ts` sparse bands (4–9, no 12–18 floor), `families.md` bands, `Preview.tsx` closeness-band wording, Dockerfile font install, OFL font assets in `packages/shared/fonts/` (byte-identical to /home/tom/fonts-trilogy)
+- Verification (on integrated tree): typecheck green; build green (shared+api+web); target suites renderContract/renderHtml/porterRetrieval/porterOneReferenceScorer/porterLayoutInvariants/qualityGate 31/31; full api suite 184 pass / 5 fail / 1 skip — the 5 failures (photoAssignment.r05, sourceManifest, 3× Porter parser in uploadService) reproduce identically on clean main (verified via git stash by parent workers), pre-existing
+- Specimen evidence: `evidence/TRI-SPEC-2P/` — 2-page Letter PDF (612x792), pdffonts = SourceSans3 + EBGaramond only, all subset-embedded, no FreeSerif; font-inspection.json all verdicts true; re-rendered from the integrated tree for this commit
+- Variant evidence: `evidence/TRI-R06/` — 5 metadata JSONs + rendered HTML/PNG proofs + A/B/C substitution screenshots + font-resolution.json
+- No production deployment

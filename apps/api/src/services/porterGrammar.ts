@@ -30,8 +30,14 @@ export const PORTER_ROLE_GRAMMAR: Record<PanelRole, PorterRoleGrammar> = {
 
 export const PORTER_GRAMMAR_TARGETS = {
   familyCount: 6,
-  minModules: 12,
+  // Sparse input is allowed to run a lighter module count; 12 was a hard
+  // floor that penalized legitimate sparse spreads. The 8-18 band is the
+  // shared floor/ceiling for the dense families; the sparse family
+  // (editorial-light) is scored against its own narrower band below.
+  minModules: 8,
   maxModules: 18,
+  sparseMinModules: 4,
+  sparseMaxModules: 9,
   maxBlockAreaRatio: 0.24,
   minFillRatio: 0.8,
   photoBlocks: [5, 12] as [number, number],
@@ -51,9 +57,9 @@ export const PORTER_GRAMMAR_PROMPT = `
 PORTER GRAMMAR (six elastic families, not six rigid templates):
 - Shared vocabulary: birthday sun rail, cream director corner with navy heading, narrow dated-list rails, berry/navy spotlight panels, colored feature panels, navy info footer, and tight photo clusters.
 - Choose among birthday-exec-rail, birthday-feature-band, photo-mosaic-rail, dense-lavender-grid, editorial-light, and spotlight-feature according to content volume.
-- Target 12–18 meaningful modules across the inner spread, 5–12 photos when supplied, and no block above 24% of a page.
+- Module count is a band, not a mandate: dense families target 12-18 modules, sparse families (editorial-light, long-copy feature-band) may run as few as 4-9. 5-12 photos when supplied, and no block above 24% of a page.
 - Keep every content box at least 80% filled. If copy is short, shrink the box or grow an adjacent photo; never leave a tall colored slab with a few lines.
-- Birthday rails grow toward full height when the list is long. Director headshots are elastic: keep them only when the adjacent copy still fits; otherwise preserve the image exactly once in a nearby photo slot.
+- Birthday rails and director headshots are OPTIONAL modules: include them only when the supplied articles actually carry a birthday roster or a director letter. A sparse layout that omits both is valid; never pad a thin issue by forcing either.
 - Dated lists remain narrow rails with subtle high-contrast panels: Happy Hour uses a sky panel with navy heading, Upcoming Events uses a cream panel with coral heading. Never use sun/yellow-green as schedule heading text, and never use paper/cream text on light panels.
 - Every page needs a footer band, full-height rail, or photo mosaic anchor. Use purposeful color on mostly paper background.
 `;

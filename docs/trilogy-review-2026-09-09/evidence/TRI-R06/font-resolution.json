@@ -1,0 +1,65 @@
+{
+  "note": "Rendered with the sandboxed @sparticuz/chromium, whose bundled fontconfig is isolated from the host. The substitute faces were therefore loaded via data-URI @font-face from the exact in-repo bytes (packages/shared/fonts/), which is the only way to visually prove the substitute rendering in this environment. In the production Railway image (alpine chromium + system fontconfig) the same families resolve via the fonts baked in by the Dockerfile.",
+  "contract": {
+    "required": [
+      "EB Garamond",
+      "Source Sans 3"
+    ],
+    "strict": true,
+    "roles": {
+      "display": {
+        "fontStack": "\"Source Sans 3\", \"Museo Sans\", sans-serif",
+        "weight": 900,
+        "pt": 23,
+        "lineHeight": 1.05
+      },
+      "heading": {
+        "fontStack": "\"Source Sans 3\", \"Museo Sans\", sans-serif",
+        "weight": 700,
+        "pt": 15,
+        "lineHeight": 1.1
+      },
+      "body": {
+        "fontStack": "\"EB Garamond\", \"Adobe Garamond Pro\", serif",
+        "weight": 400,
+        "pt": 11.5,
+        "lineHeight": 1.38
+      },
+      "list": {
+        "fontStack": "\"EB Garamond\", \"Adobe Garamond Pro\", serif",
+        "weight": 400,
+        "pt": 11,
+        "lineHeight": 1.3
+      },
+      "caption": {
+        "fontStack": "\"EB Garamond\", \"Adobe Garamond Pro\", serif",
+        "weight": 400,
+        "pt": 9,
+        "lineHeight": 1.15
+      }
+    }
+  },
+  "resolved": {
+    "A-substitute-contract.png": {
+      "display": "\"Source Sans 3\", \"Museo Sans\", sans-serif",
+      "body": "\"EB Garamond\", \"Adobe Garamond Pro\", serif",
+      "caption": "\"EB Garamond\", \"Adobe Garamond Pro\", serif",
+      "loadedFonts": [
+        "EB Garamond 400 800 loaded",
+        "Source Sans 3 200 900 loaded"
+      ]
+    },
+    "B-generic-fallback.png": {
+      "display": "sans-serif",
+      "body": "serif",
+      "caption": "serif",
+      "loadedFonts": []
+    },
+    "C-freeserif-silent.png": {
+      "display": "FreeSans, sans-serif",
+      "body": "FreeSerif, serif",
+      "caption": "FreeSerif, serif",
+      "loadedFonts": []
+    }
+  }
+}

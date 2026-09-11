@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Campus Newsletter — July 2026 · Art-directed specimen (pages 2–3)</title>
+<style>
+/* ============================================================
+   TRI-SPEC-2P — art-directed specimen, pages 2 & 3
+   Typography contract: packages/shared/renderContract.ts
+   (letter-inner-v1, measured from Porter references, TRI-R06)
+   Fonts: EB Garamond (body serif) + Source Sans 3 (sans display)
+   — OFL substitutes for Adobe Garamond Pro / Museo Sans.
+   Layout: 8.5×11in letter, contract margins, fixed-height rows so
+   each page packs its content exactly (no clipped ending).
+   Photo crop: object-fit cover, object-position center-top →
+   subjects/faces stay in frame (subject-safe, matches TRI-R05 intent).
+   ============================================================ */
+:root {
+  --role-display-font: "Source Sans 3", "Museo Sans", sans-serif;
+  --role-display-pt: 23pt; --role-display-weight: 900; --role-display-lh: 1.05;
+  --role-heading-font: "Source Sans 3", "Museo Sans", sans-serif;
+  --role-heading-pt: 15pt; --role-heading-weight: 700; --role-heading-lh: 1.1;
+  --role-body-font: "EB Garamond", "Adobe Garamond Pro", serif;
+  --role-body-pt: 11.5pt; --role-body-weight: 400; --role-body-lh: 1.38;
+  --role-list-font: "EB Garamond", "Adobe Garamond Pro", serif;
+  --role-list-pt: 11pt; --role-list-weight: 400; --role-list-lh: 1.3;
+  --role-caption-font: "EB Garamond", "Adobe Garamond Pro", serif;
+  --role-caption-pt: 9pt; --role-caption-weight: 400; --role-caption-lh: 1.15;
+
+  --ink: #1c1a17;
+  --ink-soft: #4a463f;
+  --rule: #d8d2c6;
+  --accent: #a8432c;
+  --paper: #ffffff;
+
+  /* photo heights (px) — set per row for a tight vertical budget */
+  --ph-ed: 230px;
+  --ph-legacy: 300px;
+  --ph-oaks: 165px;
+  --ph-chef: 175px;
+  --ph-campus: 205px;
+  --ph-small: 140px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { background: #e9e6e0; }
+body { font-family: var(--role-body-font); color: var(--ink); }
+
+/* ---------- page (contract geometry) ---------- */
+.page {
+  width: 8.5in; height: 11in;
+  background: var(--paper);
+  padding: 0.34in 0.34in 0.4in 0.34in;   /* contract marginsIn */
+  position: relative; overflow: hidden;
+  page-break-after: always;
+}
+.page:last-of-type { page-break-after: auto; }
+
+/* ---------- row = one visual band, fixed height, 12-col grid inside ---------- */
+.row { display: grid; column-gap: 16px; height: 100%; }
+.row + .row, .masthead + .row, .row + .block { /* spacing via container */ }
+.band { display: flex; gap: 14px; }
+.band > * { min-width: 0; }
+
+/* 12-col proportions: two-thirds ≈ 66.6%, one-third ≈ 33.3% */
+.p66 { flex: 0 0 66.6%; }
+.p33 { flex: 0 0 33.4%; }
+.p50 { flex: 0 0 50%; }
+
+/* ---------- masthead ---------- */
+.masthead {
+  border-bottom: 1.5pt solid var(--ink);
+  padding-bottom: 8px; margin-bottom: 13px;
+  display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
+}
+.kicker {
+  font-family: var(--role-display-font);
+  font-weight: var(--role-display-weight);
+  font-size: var(--role-display-pt);
+  line-height: var(--role-display-lh);
+  letter-spacing: 0.02em; text-transform: uppercase;
+}
+.kicker .accent { color: var(--accent); }
+.edition {
+  font-family: var(--role-heading-font);
+  font-weight: 700; font-size: 10pt;
+  letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-soft);
+}
+
+/* ---------- section head ---------- */
+.block-head { display: flex; align-items: center; gap: 8px; margin-bottom: 7px; }
+.block-head .tick { width: 7pt; height: 7pt; background: var(--accent); flex: 0 0 auto; }
+.block-head .section-heading {
+  font-family: var(--role-heading-font);
+  font-weight: var(--role-heading-weight);
+  font-size: var(--role-heading-pt); line-height: var(--role-heading-lh);
+  text-transform: uppercase; letter-spacing: 0.06em;
+}
+.block-head .hair { flex: 1 1 auto; border-bottom: 0.5pt solid var(--rule); margin-bottom: 2px; }
+
+/* ---------- body ---------- */
+.body {
+  font-family: var(--role-body-font);
+  font-weight: var(--role-body-weight);
+  font-size: var(--role-body-pt); line-height: var(--role-body-lh);
+}
+.body .lede { font-family: var(--role-heading-font); font-weight: 600; }
+.sig { margin-top: 8px; }
+.sig .name { font-style: italic; }
+.sig .title {
+  font-family: var(--role-heading-font);
+  font-size: 8.5pt; font-weight: 600;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--ink-soft); margin-top: 1px;
+}
+
+/* ---------- photos ---------- */
+.photo { margin: 0; min-width: 0; }
+.photo .frame { width: 100%; overflow: hidden; background: #f1eee7; display: block; }
+.photo img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: center top; }
+/* subject-safe override: tall portrait forced into a landscape band —
+   anchor low so the people (bottom of frame) stay in view, not the sky */
+.photo.crop-low img { object-position: center 40%; }
+.photo[style*="--low"] img { object-position: center var(--low, 55%); }
+.photo figcaption {
+  font-family: var(--role-caption-font); font-style: italic;
+  font-size: var(--role-caption-pt); line-height: var(--role-caption-lh);
+  color: var(--ink-soft); margin-top: 5px;
+}
+.photo figcaption .src { font-style: normal; color: #8a857b; }
+.frame-h { height: var(--ph, 170px); }
+
+/* ---------- schedule (compact) ---------- */
+.sched-cols { display: flex; gap: 20px; }
+.sched-cols > div { flex: 1 1 0; min-width: 0; }
+.sched-group h4 {
+  font-family: var(--role-heading-font);
+  font-weight: 700; font-size: 9.5pt;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--accent); margin-bottom: 3px;
+}
+.sched-group h4 + h4 { margin-top: 7px; }
+.sched-group ul { list-style: none; }
+.sched-group li {
+  font-family: var(--role-list-font);
+  font-size: var(--role-list-pt); line-height: var(--role-list-lh);
+  display: flex; gap: 8px; padding: 1px 0;
+}
+.sched-group li .d { font-family: var(--role-heading-font); font-weight: 600; font-size: 10pt; min-width: 24px; }
+
+.closing-line { font-style: italic; color: var(--ink-soft); }
+
+/* ---------- footer ---------- */
+.foot {
+  position: absolute; left: 0.34in; right: 0.34in; bottom: 0.2in;
+  display: flex; justify-content: space-between; align-items: baseline;
+  border-top: 0.5pt solid var(--rule); padding-top: 4px;
+}
+.foot span {
+  font-family: var(--role-heading-font);
+  font-size: 7.5pt; font-weight: 600;
+  letter-spacing: 0.12em; text-transform: uppercase; color: #8a857b;
+}
+</style>
+</head>
+<body>
+
+<!-- ============================ PAGE 2 ============================ -->
+<section class="page" id="page-2">
+  <header class="masthead">
+    <div class="kicker"><span class="accent">July</span> 2026</div>
+    <div class="edition">Campus Newsletter · Inside</div>
+  </header>
+
+  <!-- ED Corner — text left, photo right -->
+  <div class="band" style="height: var(--ph-ed); margin-bottom: 15px;">
+    <div class="p66">
+      <div class="block-head"><div class="tick"></div><h2 class="section-heading">ED Corner</h2><div class="hair"></div></div>
+      <p class="body"><span class="lede">Happy July, everyone!</span> It's been an amazing summer so far — cookouts, nights with friends, and refreshing Happy Hours to help us cool down. Here on campus, midsummer means the party is just getting started: live entertainment, themed events, and afternoons outside in the sunshine. We hope you'll keep joining us for the fun, the laughter, and the little moments that make this time of year special. Have a great month!</p>
+      <div class="sig">
+        <div class="body name">Yours in service — Elise Van De Steenoven</div>
+        <div class="title">Executive Director</div>
+      </div>
+    </div>
+    <figure class="p33 photo">
+      <div class="frame" style="height: var(--ph-ed);"><img src="photos/photo3.jpg" alt="Five residents standing arm in arm, laughing, beneath leafy trees"></div>
+      <figcaption>Midsummer friends, caught mid-laugh in the shade. <span class="src">(photo3)</span></figcaption>
+    </figure>
+  </div>
+
+  <!-- Legacy News — text left, photo right -->
+  <div class="band" style="height: var(--ph-legacy); margin-bottom: 15px;">
+    <div class="p33">
+      <div class="block-head"><div class="tick"></div><h2 class="section-heading">Legacy News</h2><div class="hair"></div></div>
+      <p class="body">Legacy Lane residents and their families created special moments with ShoeBox memories. Family members shared treasured trinkets, recipe photos, and keepsakes — small objects, large stories — in memory of the people they love.</p>
+    </div>
+    <figure class="p66 photo crop-low">
+      <div class="frame" style="height: var(--ph-legacy);"><img src="photos/photo2.jpg" alt="Two men standing arm in arm, smiling outdoors"></div>
+      <figcaption>Kept close, kept safe — the quiet companions of Legacy Lane. <span class="src">(photo2)</span></figcaption>
+    </figure>
+  </div>
+
+  <!-- Upcoming Campus Events — compact schedule -->
+  <div class="block" style="margin-bottom: 15px;">
+    <div class="block-head"><div class="tick"></div><h2 class="section-heading">Upcoming Campus Events</h2><div class="hair"></div></div>
+    <div class="sched-cols">
+      <div class="sched-group">
+        <h4>Happy Hours</h4>
+        <ul>
+          <li><span class="d">7/3</span><span>America's 250th Anniversary Bash</span></li>
+          <li><span class="d">7/10</span><span>Summer Camp</span></li>
+          <li><span class="d">7/17</span><span>Taco bout 2-Year Campus Anniversary</span></li>
+          <li><span class="d">7/24</span><span>Lemonade Stand</span></li>
+          <li><span class="d">7/31</span><span>Dog Days of Summer</span></li>
+        </ul>
+      </div>
+      <div class="sched-group">
+        <h4>Socials</h4>
+        <ul>
+          <li><span class="d">7/8</span><span>Watermelon Wednesday</span></li>
+          <li><span class="d">7/15</span><span>Lemon Slushies</span></li>
+          <li><span class="d">7/22</span><span>Ice Cream Sandwiches</span></li>
+          <li><span class="d">7/29</span><span>Root Beer Floats</span></li>
+        </ul>
+        <h4>Brunch</h4>
+        <ul>
+          <li><span class="d">7/12</span><span>July Brunch</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- The Oaks at Jamestown — text left, photo right -->
+  <div class="band" style="height: var(--ph-oaks);">
+    <div class="p66">
+      <div class="block-head"><div class="tick"></div><h2 class="section-heading">The Oaks at Jamestown</h2><div class="hair"></div></div>
+      <p class="body">The Oaks at Jamestown celebrates its second anniversary. Two years in, our community has blossomed into a place where residents, families, and team members create meaningful connections, embrace wellness, and enjoy life to the fullest — and we look forward to many more years of a vibrant, welcoming community.</p>
+    </div>
+    <figure class="p33 photo">
+      <div class="frame" style="height: var(--ph-oaks);"><img src="photos/photo7.jpg" alt="A couple and their young child sitting together, holding small glasses"></div>
+      <figcaption>Three generations, one small table — the anniversary is everyone's. <span class="src">(photo7)</span></figcaption>
+    </figure>
+  </div>
+
+  <div class="foot"><span>July 2026 · Inside</span><span>2</span></div>
+</section>
+
+<!-- ============================ PAGE 3 ============================ -->
+<section class="page" id="page-3">
+  <header class="masthead">
+    <div class="kicker"><span class="accent">July</span> 2026</div>
+    <div class="edition">Campus Newsletter · Inside</div>
+  </header>
+
+  <!-- Chef Circle — photo left, text right -->
+  <div class="band" style="height: var(--ph-chef); margin-bottom: 15px;">
+    <figure class="p66 photo" style="--low: 32%;">
+      <div class="frame" style="height: var(--ph-chef);"><img src="photos/photo5.jpg" alt="A resident smiling at a dining table, fork in hand"></div>
+      <figcaption>The table's set, the mood's set — Chef Circle. <span class="src">(photo5)</span></figcaption>
+    </figure>
+    <div class="p33">
+      <div class="block-head"><div class="tick"></div><h2 class="section-heading">Chef Circle</h2><div class="hair"></div></div>
+      <p class="body">Chef Circle brings residents together for a unique culinary experience — delicious food, engaging conversation, and a behind-the-scenes look at the creativity of our dining team.</p>
+      <p class="body" style="margin-top:6px;">A wonderful chance to connect with friends, discover new flavors, and celebrate the joy of great food in a welcoming atmosphere.</p>
+    </div>
+  </div>
+
+  <!-- Campus in Color — text left, photo right -->
+  <div class="band" style="height: var(--ph-campus); margin-bottom: 15px;">
+    <div class="p66">
+      <div class="block-head"><div class="tick"></div><h2 class="section-heading">Campus in Color</h2><div class="hair"></div></div>
+      <p class="body">Campus in Color is a vibrant celebration of creativity, community, and self-expression. Residents, team members, and families transform our campus into a living masterpiece — bringing color, joy, and connection to every corner of the campus, from painted afternoons in the garden to a palette that keeps changing all month.</p>
+    </div>
+    <figure class="p33 photo">
+      <div class="frame" style="height: var(--ph-campus);"><img src="photos/photo4.jpg" alt="Two people relaxing on a picnic blanket, a chessboard between them"></div>
+      <figcaption>A game, a blanket, a good day — color finds its own way. <span class="src">(photo4)</span></figcaption>
+    </figure>
+  </div>
+
+  <!-- Around Campus — two small photos side by side -->
+  <div class="band" style="margin-bottom: 13px;">
+    <figure class="p50 photo" style="padding-right: 8px;">
+      <div class="frame frame-h" style="height: var(--ph-small);"><img src="photos/photo6.jpg" alt="A group gathered around a flag-decorated picnic table with cake"></div>
+      <figcaption>Flags out, cake on — the 250th Anniversary Bash. <span class="src">(photo6)</span></figcaption>
+    </figure>
+    <figure class="p50 photo crop-low" style="padding-left: 8px;">
+      <div class="frame frame-h" style="height: var(--ph-small);"><img src="photos/photo1.jpg" alt="A couple leaning together, smiling in a bright living room"></div>
+      <figcaption>Quiet corners, warm company — the everyday that makes a campus feel like home. <span class="src">(photo1)</span></figcaption>
+    </figure>
+  </div>
+
+  <!-- Closing line -->
+  <div class="block">
+    <p class="body closing-line">That's the inside view for July. The front page, back page, and this month's Word Search arrive with the Campus Home Office package — see you at the table.</p>
+  </div>
+
+  <div class="foot"><span>July 2026 · Inside</span><span>3</span></div>
+</section>
+
+</body>
+</html>

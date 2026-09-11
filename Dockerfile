@@ -30,7 +30,7 @@ RUN npm -w @newsforge/web run build
 FROM node:22-alpine
 
 # OpenSSL + Chromium deps for Puppeteer/Prisma
-RUN apk add --no-cache openssl libc6-compat chromium nss freetype harfbuzz ca-certificates ttf-freefont
+RUN apk add --no-cache openssl libc6-compat chromium nss freetype harfbuzz ca-certificates fontconfig ttf-freefont
 
 WORKDIR /app
 
@@ -43,6 +43,18 @@ COPY --from=builder /app/apps/api/src ./apps/api/src
 COPY --from=builder /app/apps/web/dist ./apps/web/dist
 COPY --from=builder /app/packages/shared ./packages/shared
 COPY --from=builder /app/prisma ./prisma
+
+# TRI-R06 — render-contract typography. The letter contract declares
+# EB Garamond + Source Sans 3 as required families (OFL substitutes for the
+# commercial AGaramondPro / Museo Sans reference faces). Ship them into the
+# image system-wide so Chromium's Font Loading API (and the hard gate in
+# pdf.ts) resolves them; the gate throws on a miss, so a prod render can
+# never silently fall back to FreeSerif.
+COPY --from=builder /app/packages/shared/fonts ./packages/shared/fonts
+RUN mkdir -p /usr/local/share/fonts/newsforge \
+  && cp /app/packages/shared/fonts/*.ttf /usr/local/share/fonts/newsforge/ \
+  && fc-cache -f /usr/local/share/fonts/newsforge \
+  && fc-list | grep -Ei "garamond|source sans"
 
 ENV NODE_ENV=production
 

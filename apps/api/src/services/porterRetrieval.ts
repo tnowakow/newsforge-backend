@@ -62,6 +62,16 @@ const EXAMPLES: PorterExampleSignature[] = [
   ["18", "feature-band", 8, 17, "v-high", true, true, false],
   ["19", "photo-mosaic", 14, 12, "med", false, true, false],
   ["20", "feature-band", 6, 20, "high", true, false, false],
+  ["21", "dense-lavender-grid", 6, 29, "med", false, true, true],
+  ["22", "photo-mosaic", 11, 12, "low", false, false, true],
+  ["23", "photo-mosaic", 13, 21, "low", false, true, true],
+  ["24", "community-collage", 8, 9, "med", false, false, true],
+  ["25", "community-collage", 9, 9, "med", false, false, true],
+  ["26", "dense-lavender-grid", 9, 26, "med", true, true, true],
+  ["27", "dense-lavender-grid", 7, 36, "med", false, true, true],
+  ["28", "photo-mosaic", 10, 20, "med", false, true, true],
+  ["29", "dense-lavender-grid", 7, 28, "med", false, true, true],
+  ["30", "community-collage", 8, 11, "med", false, false, true],
 ].map(([exampleId, family, photoCount, datedRows, wordBand, hasSpotlight, hasEventRecap, hasFooterBand]) => {
   const retrievalFamily = family as PorterRetrievalFamily;
   const examplePhotoCount = Number(photoCount);
@@ -87,7 +97,7 @@ const EXAMPLES: PorterExampleSignature[] = [
       hasEventRecap: Boolean(hasEventRecap),
       hasFooterBand: Boolean(hasFooterBand),
     },
-    notes: "Porter example signature seed from Addendum 7B.",
+    notes: "Measured from the reference PDF (photos/chars/dated via PyMuPDF); family and flags curated from the visual spread.",
   };
 });
 

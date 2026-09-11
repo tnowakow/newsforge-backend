@@ -14,6 +14,7 @@ import path from "node:path";
 import { getPage } from "../browser.js";
 import { env } from "../env.js";
 import { prisma } from "../db.js";
+import { LETTER_RENDER_CONTRACT } from "@newsforge/shared";
 
 export type PdfVariant = "web" | "print" | "spread";
 
@@ -38,22 +39,29 @@ export async function generatePdfForRun(
 
   const page = await getPage();
   await page.goto(renderUrl, { waitUntil: "networkidle0", timeout: 30_000 });
-  await page.evaluate(async () => {
+  await page.evaluate(async (contract) => {
     const doc = (globalThis as unknown as { document: any }).document;
     await doc.fonts.ready;
-    const required = ["Georgia"];
+    // TRI-R06 — explicit, contract-driven font availability. Every family
+    // the render contract requires MUST load; a miss throws instead of
+    // silently substituting (no more Georgia-only gate, no FreeSerif).
+    const required: string[] = contract.fontAvailability?.required ?? [];
     for (const family of required) {
       if (!doc.fonts.check(`10pt "${family}"`)) {
         throw new Error(`render contract font unavailable: ${family}`);
       }
     }
+    // Verify the body actually resolved to the contract's primary body
+    // family (detects a silent generic/FreeSerif fallback even when
+    // fonts.check passes).
+    const expectedBody = contract.roles?.body?.fontStack?.split(",")[0]?.trim().replace(/^"|"$/g, "");
+    const bodyFont = doc.defaultView.getComputedStyle(doc.body).fontFamily;
+    if (expectedBody && !bodyFont.includes(expectedBody)) {
+      throw new Error(`render contract body font mismatch: expected "${expectedBody}" in "${bodyFont}"`);
+    }
     const images: any[] = Array.from(doc.images);
     await Promise.all(images.map((image) => image.decode().catch(() => undefined)));
-    const bodyFont = doc.defaultView.getComputedStyle(doc.body).fontFamily;
-    if (!bodyFont.trim().startsWith("Georgia")) {
-      throw new Error(`render contract body font mismatch: ${bodyFont}`);
-    }
-  });
+  }, { fontAvailability: LETTER_RENDER_CONTRACT.fontAvailability, roles: LETTER_RENDER_CONTRACT.roles });
 
   if (variant === "print") {
     await page.pdf({

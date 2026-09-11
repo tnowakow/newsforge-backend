@@ -1,0 +1,68 @@
+{
+  "variant": "medium-panel",
+  "task": "TRI-R06 layout-variant proof (Trilogy pages 2-3 follow-up)",
+  "source": {
+    "anchor": "example-02",
+    "referenceFile": "apps/api/src/reference/porter-examples/example-02.pdf",
+    "measured": {
+      "pageCount": 1,
+      "sizeIn": [
+        17.0,
+        11.0
+      ],
+      "distinctPhotos": 6,
+      "rawImageObjects": 7,
+      "totalChars": 2455,
+      "datedRows": 26,
+      "fonts": [
+        "NEZALY+AGaramondPro-Semibold",
+        "ODJGZW+AGaramondPro-Regular",
+        "ODJGZW+MuseoSans-900",
+        "PHYMNU+AGaramondPro-BoldItalic",
+        "RKXYPQ+MuseoSans-500"
+      ],
+      "birthdayMention": true
+    },
+    "measurementMethod": "PyMuPDF: get_image_info (IoU>=0.6 merged) for photos, get_text length for chars, dated-row regex, get_fonts; raw table in scratch/tri-r06/table30.json",
+    "specDivergenceFromAnchor": "Birthday roster and director headshot REMOVED per task requirement; all other grammar (panels, rails, footer, photo placement) kept from the anchor."
+  },
+  "geometry": {
+    "canvas": {
+      "widthIn": 17.0,
+      "heightIn": 11.0,
+      "scalePxPerIn": 144,
+      "widthPx": 2448,
+      "heightPx": 1584,
+      "page": "letter-inner-spread"
+    },
+    "modules": [
+      "masthead rule + heading (96-996 x 58-150)",
+      "two feature stories left column (96-526 x 190-640)",
+      "3-photo vertical stack (580-1100 x 190-1240)",
+      "dated-events rail 460x980 at (1180,190), 10 rows, no birthdays",
+      "navy footer band 150px full width"
+    ]
+  },
+  "bands": {
+    "moduleBand": [
+      8,
+      12
+    ],
+    "photoBand": [
+      4,
+      8
+    ],
+    "datedRowBand": [
+      6,
+      14
+    ],
+    "note": "Bands are targets, not mandates. Sparse variants must not inherit a 12-18 module floor (see PORTER_GRAMMAR_TARGETS.sparseMinModules=4)."
+  },
+  "artifacts": {
+    "html": "variants/medium-panel.html",
+    "png": "variants/medium-panel.png",
+    "generator": "variants/gen_proofs.py",
+    "render": "variants/render_pngs.mjs (puppeteer-core, chromium-1217)"
+  },
+  "scoreNote": "No similarity percentages recorded. The porterReferenceAffinity metric is a weighted closeness band 0-1 (photo 0.18 / panel 0.18 / image 0.14 / content 0.14 / dark 0.10 / rails 0.10 / largest 0.08 / bottom 0.08), not a design-similarity percentage."
+}

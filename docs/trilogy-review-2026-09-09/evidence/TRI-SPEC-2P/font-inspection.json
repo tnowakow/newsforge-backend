@@ -1,0 +1,77 @@
+{
+  "contractId": "letter-inner-v1 (packages/shared/renderContract.ts)",
+  "checkedAt": "2026-09-11T05:35:37.620Z",
+  "required": {
+    "EB Garamond": true,
+    "Source Sans 3": true
+  },
+  "computed": {
+    "body": "\"EB Garamond\", \"Adobe Garamond Pro\", serif",
+    "kicker": "\"Source Sans 3\", \"Museo Sans\", sans-serif"
+  },
+  "images": [
+    {
+      "src": "photo3.jpg",
+      "complete": true,
+      "naturalWidth": 927,
+      "naturalHeight": 619
+    },
+    {
+      "src": "photo2.jpg",
+      "complete": true,
+      "naturalWidth": 1382,
+      "naturalHeight": 2115
+    },
+    {
+      "src": "photo7.jpg",
+      "complete": true,
+      "naturalWidth": 864,
+      "naturalHeight": 576
+    },
+    {
+      "src": "photo5.jpg",
+      "complete": true,
+      "naturalWidth": 618,
+      "naturalHeight": 927
+    },
+    {
+      "src": "photo4.jpg",
+      "complete": true,
+      "naturalWidth": 864,
+      "naturalHeight": 576
+    },
+    {
+      "src": "photo6.jpg",
+      "complete": true,
+      "naturalWidth": 927,
+      "naturalHeight": 618
+    },
+    {
+      "src": "photo1.jpg",
+      "complete": true,
+      "naturalWidth": 641,
+      "naturalHeight": 895
+    }
+  ],
+  "fontFaces": [],
+  "overflow": [
+    {
+      "page": 1,
+      "pageBottom": 1056,
+      "contentBottom": 1037,
+      "fits": true
+    },
+    {
+      "page": 2,
+      "pageBottom": 2112,
+      "contentBottom": 2093,
+      "fits": true
+    }
+  ],
+  "verdict": {
+    "requiredFamiliesLoaded": true,
+    "bodyFontResolved": true,
+    "allImagesLoaded": true,
+    "noOverflow": true
+  }
+}

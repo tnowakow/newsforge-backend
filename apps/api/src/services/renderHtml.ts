@@ -24,6 +24,7 @@ import {
   LETTER_RENDER_CONTRACT,
   type RenderContract,
   contractCss,
+  contractRoleCss,
 } from "@newsforge/shared";
 import {
   DARK_TOKENS,
@@ -361,13 +362,14 @@ export function renderRunHtml(input: RenderInput): string {
 <meta charset="utf-8"/>
 <style>
   :root {
-    --heading-font: ${esc(contract.fonts.heading)}, Georgia, serif;
-    --body-font: ${esc(contract.fonts.body)}, Georgia, serif;
+    --heading-font: ${esc(contract.roles.display.fontStack)};
+    --body-font: ${esc(contract.roles.body.fontStack)};
     --contract-body-pt: ${contract.type.bodyPt}pt;
     --contract-caption-pt: ${contract.type.captionPt}pt;
     --contract-list-pt: ${contract.type.listPt}pt;
     --contract-line-height: ${contract.type.lineHeight};
   }
+  ${contractRoleCss(contract)}
   * { margin:0; padding:0; box-sizing:border-box; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
   body { font-family: var(--body-font); color:#20242B; background:#fff; }
   @page { size: letter; margin: 0; }
@@ -500,7 +502,7 @@ export function renderRunHtml(input: RenderInput): string {
     .role-directorCorner .script-heading { font-size: clamp(17pt, 3vw, 23pt); font-style: normal; text-transform: uppercase; letter-spacing:0.02em; }
     .director-heading { font-family: var(--heading-font); font-size: clamp(17pt, 3vw, 23pt); line-height:0.95; letter-spacing:0.01em; margin-bottom:3pt; }
     .director-heading span { font-weight:900; text-transform:uppercase; }
-    .director-heading em { font-family: Georgia, "Times New Roman", serif; font-size:0.76em; font-style:italic; font-weight:500; text-transform:none; letter-spacing:0; }
+    .director-heading em { font-family: var(--role-body-font); font-size:0.76em; font-style:italic; font-weight:500; text-transform:none; letter-spacing:0; }
     .role-directorCorner .body { font-weight: 600; font-size: 9.1pt; line-height:1.18; }
     .role-happyHour .section-heading,
     .role-upcomingEvents .section-heading,
@@ -533,13 +535,10 @@ export function renderRunHtml(input: RenderInput): string {
     .role-infoFooter .body { font-size: 8.1pt; font-weight: 600; line-height:1.12; }
   .pagefoot { margin-top: 0.05in; padding-top: 3pt; border-top: 2px solid; display:flex; justify-content:space-between; font-size: 7.2pt; letter-spacing: 0.1em; text-transform: uppercase; color:#666; }
   ${pageCss}
-  .render-contract .body { font-size: var(--contract-body-pt) !important; line-height: var(--contract-line-height) !important; }
-  .render-contract .list-body { font-size: var(--contract-list-pt) !important; line-height: var(--contract-line-height) !important; }
-  .render-contract .photo figcaption { font-size: var(--contract-caption-pt) !important; line-height: 1.08 !important; }
-  .render-contract .section-heading { font-size: 15pt !important; }
-  .render-contract .script-heading { font-size: 18pt !important; }
-  .render-contract .director-heading { font-size: 23pt !important; }
-  .render-contract .masthead h1 { font-size: 26pt !important; }
+  /* TRI-R06: per-role typography is driven by the render contract via
+     contractRoleCss() (emitted near :root). Keep only the copy-fit-sm
+     reset here — the "measured clip repair" step still applies, but it
+     inherits from the contract's body/list roles instead of a hardcoded 7.65pt. */
   .render-contract .copy-fit-sm .body,
   .render-contract .copy-fit-sm .list-body { font-size: inherit !important; line-height: inherit !important; }
 </style>

@@ -888,7 +888,7 @@ function ScoreDetailsModal({
   const measurement = selected?.measurement;
   const sub = selected?.subscores;
   const metricRows = [
-    ["PorterOne reference affinity", sub?.porterReferenceAffinity ?? report?.porterReferenceAffinity, "Reference-family resemblance; 15% static / 12% measured"],
+    ["PorterOne reference band", sub?.porterReferenceAffinity ?? report?.porterReferenceAffinity, "Internal weighted closeness band 0-1 against the measured reference fingerprints (photo 0.18 / panel 0.18 / image 0.14 / content 0.14 / dark 0.10 / rails 0.10 / largest 0.08 / bottom 0.08). Not a design-similarity percentage."],
     ["Useful occupancy", sub?.usefulOccupancy ?? report?.usefulOccupancy, "Useful canvas after browser measurement; 19% measured"],
     ["Render fit", sub?.renderFit ?? report?.renderFit, "No clipping, overflow, or missing images; 17% measured"],
     ["Geometric coverage", sub?.geometricCoverage ?? report?.geometricCoverage ?? measurement?.geometricCoverage, "Canvas coverage after rendering; 14% measured"],
@@ -967,10 +967,10 @@ function ScoreDetailsModal({
             <h3 className="font-display font-semibold mb-2">How the score is calculated</h3>
             <div className="border border-rule rounded-md divide-y divide-rule overflow-hidden">
               <div className="px-3 py-2 bg-bg text-xs text-ink-muted">
-                Static candidate score = occupancy 14% + content coverage 14% + required coverage 18% + balance 9% + clipping risk 13% + geometry validity 8% + photo impact 5% + grammar affinity 4% + PorterOne affinity 15%.
+                Static candidate score = occupancy 14% + content coverage 14% + required coverage 18% + balance 9% + clipping risk 13% + geometry validity 8% + photo impact 5% + grammar band 4% + PorterOne reference band 15%.
               </div>
               <div className="px-3 py-2 bg-bg text-xs text-ink-muted">
-                Measured winner score = static score 38% + render fit 17% + useful occupancy 19% + geometric coverage 14% + reference affinity 12%, minus clipping, underfill, coverage, page-utility, empty-band, and low-utility deductions.
+                Measured winner score = static score 38% + render fit 17% + useful occupancy 19% + geometric coverage 14% + PorterOne reference band 12%, minus clipping, underfill, coverage, page-utility, empty-band, and low-utility deductions. The "reference band" is a weighted closeness score (0-100) against the measured reference fingerprints, not a design-similarity percentage.
               </div>
             </div>
           </section>
@@ -1214,11 +1214,11 @@ function buildScoreDetailsText(report: LayoutFitReport): string {
       : "Hard source invariants: not recorded",
     "",
     "How the score is calculated",
-    "Static candidate score = occupancy 14% + content coverage 14% + required coverage 18% + balance 9% + clipping risk 13% + geometry validity 8% + photo impact 5% + grammar affinity 4% + PorterOne affinity 15%.",
-    "Measured winner score = static score 38% + render fit 17% + useful occupancy 19% + geometric coverage 14% + reference affinity 12%, minus clipping, underfill, coverage, page-utility, empty-band, and low-utility deductions.",
+    "Static candidate score = occupancy 14% + content coverage 14% + required coverage 18% + balance 9% + clipping risk 13% + geometry validity 8% + photo impact 5% + grammar band 4% + PorterOne reference band 15%.",
+    "Measured winner score = static score 38% + render fit 17% + useful occupancy 19% + geometric coverage 14% + PorterOne reference band 12%, minus clipping, underfill, coverage, page-utility, empty-band, and low-utility deductions. The reference band is a weighted closeness score (0-100), not a design-similarity percentage.",
     "",
     "Selected candidate inputs",
-    `PorterOne reference affinity: ${formatScoreValue(sub?.porterReferenceAffinity ?? report.porterReferenceAffinity)}`,
+    `PorterOne reference band (weighted closeness, 0-100): ${formatScoreValue(sub?.porterReferenceAffinity ?? report.porterReferenceAffinity)}`,
     `Useful occupancy: ${formatScoreValue(sub?.usefulOccupancy ?? report.usefulOccupancy)}`,
     `Render fit: ${formatScoreValue(sub?.renderFit ?? report.renderFit)}`,
     `Geometric coverage: ${formatScoreValue(sub?.geometricCoverage ?? report.geometricCoverage ?? measurement?.geometricCoverage)}`,

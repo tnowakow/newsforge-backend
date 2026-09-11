@@ -34,6 +34,9 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { createHash } from "node:crypto";
 import { spawn } from "node:child_process";
+// TRI-R06: the canonical contract lives in @newsforge/shared — imported here so
+// the digest below can never drift from the API's digestFinalArtifact().
+import { LETTER_RENDER_CONTRACT as CANONICAL_CONTRACT } from "@newsforge/shared";
 
 // ── Render contract digest ────────────────────────────────────────────────────
 function digestValue(value) {
@@ -51,17 +54,39 @@ function digestValue(value) {
   return createHash("sha256").update(JSON.stringify(normalize(value))).digest("hex");
 }
 
-const RENDER_CONTRACT = {
+// TRI-R06: the canonical contract (fonts, per-role type, font availability,
+// columns) lives in @newsforge/shared (imported above). This literal is only
+// a fallback for running before `npm run build:shared`.
+const RENDER_CONTRACT_FALLBACK = {
   id: "letter-inner-v1",
   page: { widthIn: 8.5, heightIn: 11 },
   marginsIn: { top: 0.34, right: 0.34, bottom: 0.4, left: 0.34 },
   gutterPx: 4,
   headerHeightIn: 0.48,
   footerHeightIn: 0.16,
-  fonts: { heading: "Georgia", body: "Georgia" },
-  type: { bodyPt: 10.5, captionPt: 9, listPt: 10.5, lineHeight: 1.2 },
+  fonts: { heading: "Source Sans 3", body: "EB Garamond" },
+  fontAvailability: {
+    strict: true,
+    required: ["EB Garamond", "Source Sans 3"],
+    declaredFallbacks: ["serif", "sans-serif"],
+    substitutions: [
+      { approvedFace: "Adobe Garamond Pro (AGaramondPro)", substitute: "EB Garamond", license: "OFL" },
+      { approvedFace: "Museo Sans", substitute: "Source Sans 3", license: "OFL" },
+    ],
+    inRepoAssets: ["packages/shared/fonts/EB-Garamond-Variable.ttf", "packages/shared/fonts/Source-Sans-3-Variable.ttf"],
+  },
+  roles: {
+    display: { fontStack: '"Source Sans 3", "Museo Sans", sans-serif', weight: 900, pt: 23, lineHeight: 1.05 },
+    heading: { fontStack: '"Source Sans 3", "Museo Sans", sans-serif', weight: 700, pt: 15, lineHeight: 1.1 },
+    body: { fontStack: '"EB Garamond", "Adobe Garamond Pro", serif', weight: 400, pt: 11.5, lineHeight: 1.38 },
+    list: { fontStack: '"EB Garamond", "Adobe Garamond Pro", serif', weight: 400, pt: 11, lineHeight: 1.3 },
+    caption: { fontStack: '"EB Garamond", "Adobe Garamond Pro", serif', weight: 400, pt: 9, lineHeight: 1.15 },
+  },
+  type: { bodyPt: 11.5, captionPt: 9, listPt: 11, lineHeight: 1.38, headingPt: 15, displayPt: 23 },
+  columns: { count: 12, gutterPx: 4, maxMeasureChars: 66, minMeasureChars: 44 },
   readable: true,
 };
+const RENDER_CONTRACT = CANONICAL_CONTRACT ?? RENDER_CONTRACT_FALLBACK;
 const RENDER_CONTRACT_ID = RENDER_CONTRACT.id;
 const RENDER_CONTRACT_DIGEST = digestValue(RENDER_CONTRACT);
 
