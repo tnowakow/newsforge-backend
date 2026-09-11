@@ -29,11 +29,10 @@ import { generateMockContentWithAi } from "../services/mockContent.js";
 import { generateFiller } from "../services/filler.js";
 import { runAiEdit } from "../services/aiEdit.js";
 import {
-  generatePdfForRun,
-  generatePdfPair,
   invalidatePdfCache,
   type PdfVariant,
 } from "../services/pdf.js";
+import { validateFinalPdfArtifact } from "../services/finalArtifactValidation.js";
 import { buildRunHtml } from "../services/runHtml.js";
 import {
   aiRateLimit,
@@ -1033,7 +1032,6 @@ runsRouter.post("/", async (req, res) => {
 
   // Always measure the exact layout that will be persisted/exported. Adaptive
   // metadata is optional and must never make final validation optional.
-  let finalMeasurementStatus: "passed" | "failed" | "unknown" = "unknown";
   const deliveredMeasurement = await measureFinalLayout({
     clientName: client.name,
     monthLabel,
@@ -1046,10 +1044,8 @@ runsRouter.post("/", async (req, res) => {
   });
   if (deliveredMeasurement.status === "passed") {
     finalMeasurement = deliveredMeasurement.measurement;
-    finalMeasurementStatus = "passed";
   } else {
     finalMeasurement = undefined;
-    finalMeasurementStatus = deliveredMeasurement.status;
     if (deliveredMeasurement.error) {
       console.warn("[layout-measurement] final delivered layout failed:", deliveredMeasurement.error);
     }
@@ -1085,17 +1081,12 @@ runsRouter.post("/", async (req, res) => {
     requiredLinksResolved: !porterLayoutInvariants.warnings.some((warning) =>
       warning.startsWith("source-photo-unresolved:"),
     ),
-    actualPageCount: layout.pageCount,
-    expectedPageCount: layout.pageCount,
-    measurementStatus: finalMeasurementStatus,
-    measurement: finalMeasurement,
-    minBodyFontPt: LETTER_RENDER_CONTRACT.type.bodyPt,
-    minCaptionFontPt: LETTER_RENDER_CONTRACT.type.captionPt,
-    requiredBodyFontPt: LETTER_RENDER_CONTRACT.type.bodyPt,
-    requiredCaptionFontPt: LETTER_RENDER_CONTRACT.type.captionPt,
+    actualPageCount: 0,
+    expectedPageCount: sourceOnlyLayoutMode ? 2 : template.pageCount,
+    measurementStatus: "unknown",
     contentDigest,
     renderContractDigest,
-    reportDigest: digestFinalArtifact({ contentDigest, renderContractDigest }),
+    layoutVersion: layout.version,
     duplicateIssues: [],
   });
 
@@ -1823,45 +1814,6 @@ runsRouter.post("/:id/pdf", async (req, res) => {
     req.query.force === "1" ||
     req.query.force === "true" ||
     (req.body as { force?: unknown } | undefined)?.force === true;
-  const finalGate = qgReport?.finalArtifactGate;
-  const currentContentDigest = digestFinalArtifact({
-    layout: run.assembledLayout,
-    articles: run.articles,
-    images: run.images,
-  });
-  const currentRenderContractDigest = digestFinalArtifact(LETTER_RENDER_CONTRACT);
-  const finalGateBound = Boolean(
-    finalGate?.contentDigest === currentContentDigest &&
-    finalGate?.renderContractDigest === currentRenderContractDigest,
-  );
-  if ((!finalGate || !finalGate.passed || !finalGateBound) && !qgForced) {
-    const failures = [
-      ...(finalGate?.failures ?? ["final-artifact-report-missing"]),
-      ...(!finalGateBound ? ["stale-or-unbound-report"] : []),
-    ];
-    res.status(409).json({
-      error: "final_artifact_gate_blocked",
-      finalArtifactGate: finalGate ?? {
-        passed: false,
-        failures,
-        measurementStatus: "unknown",
-      },
-      message: "Final rendered artifact has not passed all acceptance checks; diagnostic force export is not demo-ready.",
-    });
-    return;
-  }
-  if (qgScore != null) {
-    const gate = qgReport?.qualityGate ?? evaluateQualityGate(qgScore);
-    if (!gate.passed && !qgForced) {
-      res.status(409).json({
-        error: "quality_gate_blocked",
-        qualityGate: gate,
-        message: `Final score ${(gate.finalScore * 100).toFixed(1)}% is below the ${(gate.floor * 100).toFixed(0)}% ship floor — re-arrange, or force the download to compare.`,
-      });
-      return;
-    }
-  }
-
   const variantParsed = z
     .enum(["web", "print", "spread"])
     .default("web")
@@ -1869,15 +1821,47 @@ runsRouter.post("/:id/pdf", async (req, res) => {
   const variant: PdfVariant = variantParsed.success ? variantParsed.data : "web";
 
   try {
-    const { pdfPath, pdfUrl } = await generatePdfForRun(run.id, variant);
-    await prisma.newsletterRun.update({
-      where: { id: run.id },
-      data:
-        variant === "print"
-          ? { printPdfPath: pdfPath, printPdfGeneratedAt: new Date() }
-          : { pdfPath, pdfGeneratedAt: new Date() },
+    const validation = await validateFinalPdfArtifact(run.id, variant);
+    const { pdfPath, pdfUrl } = validation.pdf;
+    if (!validation.gate.passed && !qgForced) {
+      res.status(409).json({
+        error: "final_artifact_gate_blocked",
+        finalArtifactGate: validation.gate,
+        measurementError: validation.measurementError,
+        inspectionError: validation.inspectionError,
+        message: "The generated PDF failed final-artifact checks; diagnostic force export is not demo-ready.",
+      });
+      return;
+    }
+    if (qgScore != null) {
+      const designGate = qgReport?.qualityGate ?? evaluateQualityGate(qgScore);
+      if (!designGate.passed && !qgForced) {
+        res.status(409).json({
+          error: "quality_gate_blocked",
+          qualityGate: designGate,
+          finalArtifactGate: validation.gate,
+          message: `Correctness passed, but the design score ${(designGate.finalScore * 100).toFixed(1)}% is below the ${(designGate.floor * 100).toFixed(0)}% ship floor.`,
+        });
+        return;
+      }
+    }
+    if (validation.gate.passed) {
+      await prisma.newsletterRun.update({
+        where: { id: run.id },
+        data:
+          variant === "print"
+            ? { printPdfPath: pdfPath, printPdfGeneratedAt: new Date() }
+            : { pdfPath, pdfGeneratedAt: new Date() },
+      });
+    }
+    res.json({
+      pdfUrl,
+      pdfPath,
+      variant,
+      finalArtifactGate: validation.gate,
+      acceptanceEligible: validation.gate.passed && !qgForced,
+      diagnosticOnly: qgForced || !validation.gate.passed,
     });
-    res.json({ pdfUrl, pdfPath, variant, acceptanceEligible: !qgForced });
   } catch (err) {
     console.error("[pdf] generation failed", err);
     res.status(500).json({ error: "pdf_generation_failed" });
@@ -2098,26 +2082,24 @@ runsRouter.post("/:id/approve", approvalRateLimit, async (req, res) => {
     return;
   }
 
-  // Idempotent by (runId, layoutVersion): if already approved at this
-  // version AND all three artifacts exist, return cached URLs.
-  const alreadyApprovedAtVersion =
-    run.approvalStatus === "APPROVED" &&
-    run.bundleLayoutVersion === run.layoutVersion &&
-    run.pdfPath &&
-    run.printPdfPath &&
-    run.bundleZipPath;
-
-  if (alreadyApprovedAtVersion) {
-    const bundle = await buildBundle(run.id); // cache-hit path, refreshes signed URL
-    if ("error" in bundle) {
-      res.status(bundle.status).json({ error: bundle.error });
-      return;
-    }
-    res.json({
-      run,
-      pdfWebUrl: pdfPathToUrl(run.pdfPath),
-      pdfPrintUrl: pdfPathToUrl(run.printPdfPath),
-      bundleUrl: bundle.bundleUrl,
+  let webValidation: Awaited<ReturnType<typeof validateFinalPdfArtifact>>;
+  let printValidation: Awaited<ReturnType<typeof validateFinalPdfArtifact>>;
+  try {
+    webValidation = await validateFinalPdfArtifact(run.id, "web");
+    printValidation = await validateFinalPdfArtifact(run.id, "print");
+  } catch (err) {
+    console.error("[approve] final artifact validation failed", err);
+    res.status(500).json({ error: "final_artifact_validation_failed" });
+    return;
+  }
+  if (!webValidation.gate.passed || !printValidation.gate.passed) {
+    res.status(409).json({
+      error: "final_artifact_gate_blocked",
+      finalArtifactGate: {
+        web: webValidation.gate,
+        print: printValidation.gate,
+      },
+      message: "Approval requires both final web and print PDFs to pass actual-artifact validation.",
     });
     return;
   }
@@ -2129,22 +2111,17 @@ runsRouter.post("/:id/approve", approvalRateLimit, async (req, res) => {
       approvedAt: new Date(),
       approvedBy: parsed.data.approvedBy ?? null,
       approvalNotes: parsed.data.notes ?? null,
+      pdfPath: webValidation.pdf.pdfPath,
+      pdfGeneratedAt: new Date(),
+      printPdfPath: printValidation.pdf.pdfPath,
+      printPdfGeneratedAt: new Date(),
     },
   });
 
-  let pdfWebUrl: string | null = null;
-  let pdfPrintUrl: string | null = null;
+  let pdfWebUrl: string | null = webValidation.pdf.pdfUrl;
+  let pdfPrintUrl: string | null = printValidation.pdf.pdfUrl;
   let bundleUrl: string | null = null;
   const errors: string[] = [];
-
-  try {
-    const pair = await generatePdfPair(run.id);
-    pdfWebUrl = pair.web.pdfUrl;
-    pdfPrintUrl = pair.print.pdfUrl;
-  } catch (err) {
-    console.error("[approve] pdf pair failed", err);
-    errors.push("pdf_generation_failed");
-  }
 
   try {
     const bundle = await buildBundle(run.id, { regenerate: true });
@@ -2167,14 +2144,6 @@ runsRouter.post("/:id/approve", approvalRateLimit, async (req, res) => {
     errors: errors.length ? errors : undefined,
   });
 });
-
-function pdfPathToUrl(pdfPath: string | null): string | null {
-  if (!pdfPath) return null;
-  const filename = pdfPath.split(/[\\/]/).pop();
-  return filename
-    ? `${process.env.PUBLIC_BASE_URL?.replace(/\/$/, "") ?? ""}/pdfs/${filename}`
-    : null;
-}
 
 // ---- Request changes (no password) ----
 const RequestChangesBody = z.object({

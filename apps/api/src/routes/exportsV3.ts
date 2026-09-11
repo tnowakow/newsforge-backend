@@ -17,16 +17,48 @@ export const exportsV3Router: Router = Router();
 exportsV3Router.post("/:id/export/idml", async (req, res) => {
   const run = await prisma.newsletterRun.findUnique({
     where: { id: String(req.params.id) },
-    select: { layoutFitReport: true, assembledLayout: true, articles: true, images: true },
+    select: {
+      layoutFitReport: true,
+      assembledLayout: true,
+      layoutVersion: true,
+      sourceAssetContract: true,
+      articles: true,
+      images: true,
+    },
   });
   if (!run) {
     res.status(404).json({ error: "run_not_found" });
     return;
   }
-  const report = run.layoutFitReport as { finalArtifactGate?: { passed?: boolean; failures?: string[]; contentDigest?: string; renderContractDigest?: string } } | null;
-  const currentContentDigest = digestFinalArtifact({ layout: run.assembledLayout, articles: run.articles, images: run.images });
-  const currentRenderContractDigest = digestFinalArtifact(LETTER_RENDER_CONTRACT);
-  const bound = report?.finalArtifactGate?.contentDigest === currentContentDigest && report?.finalArtifactGate?.renderContractDigest === currentRenderContractDigest;
+  const report = run.layoutFitReport as {
+    finalArtifactGate?: {
+      passed?: boolean;
+      failures?: string[];
+      contentDigest?: string;
+      renderContractDigest?: string;
+      artifactDigest?: string;
+      exportVariant?: string;
+      layoutVersion?: number;
+    };
+  } | null;
+  const gate = report?.finalArtifactGate;
+  const currentContentDigest = digestFinalArtifact({
+    layout: run.assembledLayout,
+    layoutVersion: run.layoutVersion,
+    articles: run.articles,
+    images: run.images,
+    sourceAssetContract: run.sourceAssetContract,
+  });
+  const currentRenderContractDigest = digestFinalArtifact({
+    contract: LETTER_RENDER_CONTRACT,
+    exportVariant: gate?.exportVariant,
+  });
+  const bound = Boolean(
+    gate?.contentDigest === currentContentDigest &&
+    gate?.renderContractDigest === currentRenderContractDigest &&
+    gate?.layoutVersion === run.layoutVersion &&
+    gate?.artifactDigest,
+  );
   const forced = req.query.force === "1" || req.query.force === "true" || (req.body as { force?: unknown } | undefined)?.force === true;
   if ((!report?.finalArtifactGate?.passed || !bound) && !forced) {
     const failures = [...(report?.finalArtifactGate?.failures ?? ["final-artifact-report-missing"]), ...(!bound ? ["stale-or-unbound-report"] : [])];
@@ -42,5 +74,11 @@ exportsV3Router.post("/:id/export/idml", async (req, res) => {
     res.status(result.status).json({ error: result.reason });
     return;
   }
-  res.json({ ok: true, url: result.publicUrl, fileName: result.fileName, acceptanceEligible: !forced });
+  res.json({
+    ok: true,
+    url: result.publicUrl,
+    fileName: result.fileName,
+    acceptanceEligible: !forced,
+    diagnosticOnly: forced,
+  });
 });

@@ -11,10 +11,15 @@
  */
 import fs from "node:fs/promises";
 import path from "node:path";
+import crypto from "node:crypto";
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
 import { getPage } from "../browser.js";
 import { env } from "../env.js";
 import { prisma } from "../db.js";
 import { LETTER_RENDER_CONTRACT } from "@newsforge/shared";
+
+const execFileAsync = promisify(execFile);
 
 export type PdfVariant = "web" | "print" | "spread";
 
@@ -149,4 +154,55 @@ export async function invalidatePdfCache(runId: string): Promise<void> {
       printPdfGeneratedAt: null,
     },
   });
+}
+
+export interface PdfArtifactInspection {
+  actualPageCount: number;
+  embeddedFonts: string[];
+  missingEmbeddedFonts: string[];
+  outputHash: string;
+}
+
+function normalizedFontName(value: string): string {
+  return value.replace(/^[A-Z]{6}\+/, "").replace(/[^a-z0-9]/gi, "").toLowerCase();
+}
+
+export function expectedPdfPageCount(layoutPageCount: number, variant: PdfVariant): number {
+  return variant === "spread" && layoutPageCount >= 2 ? 1 : layoutPageCount;
+}
+
+export async function inspectPdfArtifact(
+  pdfRelPath: string,
+  requiredFonts: string[],
+): Promise<PdfArtifactInspection> {
+  const fullPath = path.resolve(process.cwd(), pdfRelPath);
+  const [{ stdout: info }, { stdout: fonts }, bytes] = await Promise.all([
+    execFileAsync("pdfinfo", [fullPath]),
+    execFileAsync("pdffonts", [fullPath]),
+    fs.readFile(fullPath),
+  ]);
+  const pageMatch = info.match(/^Pages:\s+(\d+)\s*$/m);
+  if (!pageMatch) throw new Error("pdfinfo did not report a page count");
+  const fontRows = fonts.split(/\r?\n/).slice(2).map((line) => line.trim()).filter(Boolean);
+  const embeddedFonts = fontRows
+    .filter((line) => /\byes\b/i.test(line))
+    .map((line) => line.split(/\s+/)[0] ?? "")
+    .filter(Boolean);
+  const embeddedNormalized = embeddedFonts.map(normalizedFontName);
+  const missingEmbeddedFonts = requiredFonts.filter((required) => {
+    const normalizedRequired = normalizedFontName(required);
+    return !embeddedNormalized.some((font) =>
+      font.includes(normalizedRequired) || normalizedRequired.includes(font),
+    );
+  });
+  return {
+    actualPageCount: Number.parseInt(pageMatch[1], 10),
+    embeddedFonts,
+    missingEmbeddedFonts,
+    outputHash: crypto.createHash("sha256").update(bytes).digest("hex"),
+  };
+}
+
+export async function getPdfPageCount(pdfRelPath: string): Promise<number> {
+  return (await inspectPdfArtifact(pdfRelPath, [])).actualPageCount;
 }

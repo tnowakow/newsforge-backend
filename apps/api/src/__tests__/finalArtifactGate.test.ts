@@ -1,6 +1,10 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { digestFinalArtifact, evaluateFinalArtifactGate } from "../services/finalArtifactGate.js";
+import {
+  digestFinalArtifact,
+  evaluateFinalArtifactGate,
+  finalArtifactReportDigest,
+} from "../services/finalArtifactGate.js";
 
 const measurement = {
   clippedBlocks: 0,
@@ -13,6 +17,13 @@ const measurement = {
 function passingInput() {
   const contentDigest = digestFinalArtifact({ content: "final" });
   const renderContractDigest = digestFinalArtifact({ contract: "v1" });
+  const binding = {
+    contentDigest,
+    renderContractDigest,
+    artifactDigest: digestFinalArtifact({ pdf: "bytes" }),
+    exportVariant: "web",
+    layoutVersion: 7,
+  };
   return {
     sourceComplete: true,
     requiredLinksResolved: true,
@@ -24,9 +35,8 @@ function passingInput() {
     minCaptionFontPt: 9,
     requiredBodyFontPt: 10.5,
     requiredCaptionFontPt: 9,
-    contentDigest,
-    renderContractDigest,
-    reportDigest: digestFinalArtifact({ contentDigest, renderContractDigest }),
+    ...binding,
+    reportDigest: finalArtifactReportDigest(binding),
   };
 }
 
@@ -42,7 +52,7 @@ describe("evaluateFinalArtifactGate", () => {
     assert.ok(evaluateFinalArtifactGate({ ...input, reportDigest: "stale" }).failures.includes("stale-or-unbound-report"));
   });
 
-  it("checks every page and rejects sparse/unsafe output", () => {
+  it("checks every page while keeping whitespace a design warning", () => {
     const input = passingInput();
     const bad = evaluateFinalArtifactGate({
       ...input,
@@ -51,7 +61,32 @@ describe("evaluateFinalArtifactGate", () => {
     });
     assert.equal(bad.passed, false);
     assert.ok(bad.failures.includes("page-count-mismatch"));
-    assert.ok(bad.failures.includes("largest-unused-region"));
     assert.ok(bad.failures.includes("page-2-clipping"));
+    assert.ok(bad.warnings.includes("large-empty-region-review"));
+
+    const airy = evaluateFinalArtifactGate({
+      ...input,
+      measurement: { ...measurement, largestEmptyBandRatio: 0.2 },
+    });
+    assert.equal(airy.passed, true);
+    assert.deepEqual(airy.warnings, ["large-empty-region-review"]);
+  });
+
+  it("binds the report to revision, variant, and exact PDF hash", () => {
+    const input = passingInput();
+    assert.equal(evaluateFinalArtifactGate({ ...input, artifactDigest: undefined }).passed, false);
+    assert.equal(evaluateFinalArtifactGate({ ...input, exportVariant: "print" }).passed, false);
+    assert.equal(evaluateFinalArtifactGate({ ...input, layoutVersion: 8 }).passed, false);
+  });
+
+  it("rejects missing embedded fonts and source copy even when upstream JSON exists", () => {
+    const input = passingInput();
+    const bad = evaluateFinalArtifactGate({
+      ...input,
+      missingEmbeddedFonts: ["EB Garamond"],
+      measurement: { ...measurement, sourceTextMissing: ["director:body", "chef:ending"] },
+    });
+    assert.ok(bad.failures.includes("missing-embedded-font:EB Garamond"));
+    assert.ok(bad.failures.includes("missing-visible-copy:chef:ending"));
   });
 });

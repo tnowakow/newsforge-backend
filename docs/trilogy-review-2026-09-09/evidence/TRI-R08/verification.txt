@@ -1,0 +1,84 @@
+
+> newsforge-backend@0.1.0 typecheck
+> npm run build:shared && tsc -p apps/api/tsconfig.json --noEmit && tsc -p packages/shared/tsconfig.json --noEmit
+
+
+> newsforge-backend@0.1.0 build:shared
+> npm -w @newsforge/shared run build
+
+
+> @newsforge/shared@0.1.0 build
+> tsc -p tsconfig.json
+
+▶ demo acceptance fixtures fail closed
+  ✔ blocks tiny text (0.850033ms)
+  ✔ blocks clipped heading or ancestor (0.134684ms)
+  ✔ blocks partially clipped Chef line (0.12202ms)
+  ✔ blocks missing image (0.115918ms)
+  ✔ blocks missing embedded font (0.119345ms)
+  ✔ blocks measurement exception (0.118954ms)
+  ✔ blocks stale report after crop edit (0.171934ms)
+  ✔ blocks wrong PDF page count (0.139683ms)
+  ✔ blocks missing output hash (0.161615ms)
+  ✔ blocks dropped source paragraph (0.198444ms)
+  ✔ blocks missing second photo (0.112381ms)
+✔ demo acceptance fixtures fail closed (3.478478ms)
+▶ evaluateFinalArtifactGate
+  ✔ passes only a fully bound final artifact (6.831429ms)
+  ✔ fails unknown measurements and missing reports closed (0.696563ms)
+  ✔ checks every page while keeping whitespace a design warning (0.693548ms)
+  ✔ binds the report to revision, variant, and exact PDF hash (0.303071ms)
+  ✔ rejects missing embedded fonts and source copy even when upstream JSON exists (0.242047ms)
+✔ evaluateFinalArtifactGate (9.963333ms)
+▶ final layout DOM evidence
+  ✔ detects ancestor-clipped director and Chef endings despite source JSON (593.164277ms)
+  ✔ marks an unplaced immutable source article as missing visible copy (509.26128ms)
+  ✔ shuts down Chromium (35.131391ms)
+✔ final layout DOM evidence (1139.068698ms)
+▶ PDF artifact inspection
+  ✔ reads the actual two-page specimen and its embedded fonts (232.178016ms)
+  ✔ derives spread page expectations from output mode (0.357083ms)
+✔ PDF artifact inspection (233.349354ms)
+▶ resolveQualityGateFloor
+  ✔ defaults to 0.6 when env is unset (0.517966ms)
+  ✔ parses valid values (0–1) (0.105218ms)
+  ✔ falls back to default on invalid or out-of-range values (0.115538ms)
+✔ resolveQualityGateFloor (1.663016ms)
+▶ evaluateQualityGate
+  ✔ passes at and above the floor (0.396938ms)
+  ✔ fails below the floor (Tom's 29.5% Trilogy run) (0.176493ms)
+  ✔ clamps out-of-range scores and floors (0.120256ms)
+✔ evaluateQualityGate (0.956113ms)
+ℹ tests 27
+ℹ suites 6
+ℹ pass 27
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1537.952035
+
+> newsforge-backend@0.1.0 build
+> npm run build --workspaces --if-present
+
+
+> @newsforge/shared@0.1.0 build
+> tsc -p tsconfig.json
+
+
+> @newsforge/api@0.1.0 build
+> tsc -p tsconfig.json
+
+
+> @newsforge/web@0.1.1 build
+> tsc --noEmit && vite build
+
+vite v5.4.21 building for production...
+transforming...
+✓ 65 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                   0.68 kB │ gzip:   0.44 kB
+dist/assets/index-0wCpIXod.css   43.44 kB │ gzip:   8.84 kB
+dist/assets/index-DfatUZOh.js   337.17 kB │ gzip: 101.77 kB
+✓ built in 1.14s

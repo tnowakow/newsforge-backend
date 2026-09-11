@@ -24,6 +24,7 @@ interface MeasureInput {
   images: NewsImage[];
   recurringSections: RecurringSection[];
   candidates: AdaptiveLayoutCandidate[];
+  variant?: "web" | "print" | "spread";
 }
 
 interface DomMeasurement {
@@ -31,10 +32,14 @@ interface DomMeasurement {
   clippedBlockIds: string[];
   underfilledBlocks: number;
   fillRatios: Array<{ blockId: string; fillRatio: number }>;
-  clipDetails: Array<{ blockId: string; overflowPx: number }>;
+  clipDetails: Array<{ blockId: string; overflowPx: number; boundary?: string }>;
   overflowBlocks: number;
   missingImages: number;
   missingFonts: string[];
+  effectiveFonts: string[];
+  minBodyFontPt?: number;
+  minCaptionFontPt?: number;
+  sourceTextMissing: string[];
   renderedImages: number;
   placeholderImages: number;
   realRenderedImages: number;
@@ -108,6 +113,25 @@ async function measureCandidate(input: Omit<MeasureInput, "candidates"> & {
 }): Promise<CandidateMeasurement> {
   const page = await getPage();
   const measurementImages = await imagesWithMeasurementDataUrls(input.images);
+  const articlesById = new Map(input.articles.map((article) => [article.id, article]));
+  const placedArticleIds = new Set(input.candidate.layout.blocks
+    .map((block) => block.articleId)
+    .filter((id): id is string => typeof id === "string"));
+  const unplacedSourceArticleIds = input.articles
+    .filter((article) => article.source === "UPLOAD" && !placedArticleIds.has(article.id))
+    .map((article) => article.id);
+  const sourceByBlock = Object.fromEntries(input.candidate.layout.blocks.map((block) => {
+    const article = block.articleId ? articlesById.get(block.articleId) : undefined;
+    const sourceText = [
+      block.heading ?? article?.title,
+      article?.byline ? `By ${article.byline}` : undefined,
+      article?.body,
+      block.inlineText,
+      block.caption,
+      ...(block.listItems ?? []).flatMap((item) => [item.label, item.value]),
+    ].filter((value): value is string => typeof value === "string" && value.trim().length > 0);
+    return [block.blockId, sourceText];
+  }));
   const html = renderRunHtml({
     clientName: input.clientName,
     monthLabel: input.monthLabel,
@@ -117,6 +141,7 @@ async function measureCandidate(input: Omit<MeasureInput, "candidates"> & {
     articles: input.articles,
     images: measurementImages,
     recurringSections: input.recurringSections,
+    variant: input.variant,
   });
   await page.setContent(htmlWithMeasurementBase(html), { waitUntil: "domcontentloaded", timeout: 8_000 });
   await page.waitForNetworkIdle({ idleTime: 500, timeout: 5_000 }).catch(() => {
@@ -125,29 +150,48 @@ async function measureCandidate(input: Omit<MeasureInput, "candidates"> & {
   await page.evaluate(() => (globalThis as any).document?.fonts?.ready).catch(() => {
     // Font readiness is best-effort; continue with layout measurement either way.
   });
-  const measured = await page.evaluate(({ headingFont, bodyFont }): DomMeasurement => {
+  // tsx/esbuild may inject a naming helper into serialized callbacks. Define
+  // the no-op helper in the page so Chromium tests exercise the same code.
+  await page.evaluate("globalThis.__name = (target) => target");
+  const measured = await page.evaluate(({ headingFont, bodyFont, sourceByBlock, unplacedSourceArticleIds }): DomMeasurement => {
     const doc = (globalThis as any).document;
     const blocks = Array.from(doc.querySelectorAll(".block")) as any[];
     const clippedBlockSet = new Set<any>();
-    const clipDetails: Array<{ blockId: string; overflowPx: number }> = [];
+    const clipDetails: Array<{ blockId: string; overflowPx: number; boundary?: string }> = [];
     const clipTargets = Array.from(doc.querySelectorAll(
-      ".body,.list-body,.section-heading,.script-heading,figcaption",
+      ".body p,.list-row,.list-group,.section-heading,.script-heading,.director-heading,.byline,figcaption",
     )) as any[];
     for (const target of clipTargets) {
-      const clipsVertically = target.scrollHeight > target.clientHeight + 1;
-      const clipsHorizontally = target.scrollWidth > target.clientWidth + 1;
-      if (clipsVertically || clipsHorizontally) {
-        const owner = target.closest(".block");
-        if (owner) {
-          clippedBlockSet.add(owner);
-          const blockId = owner.getAttribute("data-block-id");
-          if (blockId) {
-            clipDetails.push({
-              blockId,
-              overflowPx: Math.max(target.scrollHeight - target.clientHeight, target.scrollWidth - target.clientWidth),
-            });
-          }
+      const owner = target.closest(".block");
+      if (!owner) continue;
+      let boundary = target;
+      let overflowPx = 0;
+      let boundaryName = target.className || target.tagName;
+      while (boundary && boundary !== owner.parentElement) {
+        const targetRect = target.getBoundingClientRect();
+        const boundaryRect = boundary.getBoundingClientRect();
+        const boundaryStyle = doc.defaultView.getComputedStyle(boundary);
+        const clipsX = /(hidden|clip|auto|scroll)/.test(boundaryStyle.overflowX);
+        const clipsY = /(hidden|clip|auto|scroll)/.test(boundaryStyle.overflowY);
+        const amount = Math.max(
+          clipsX ? boundaryRect.left - targetRect.left : 0,
+          clipsX ? targetRect.right - boundaryRect.right : 0,
+          clipsY ? boundaryRect.top - targetRect.top : 0,
+          clipsY ? targetRect.bottom - boundaryRect.bottom : 0,
+          boundary.scrollHeight - boundary.clientHeight,
+          boundary.scrollWidth - boundary.clientWidth,
+          0,
+        );
+        if (amount > overflowPx + 1) {
+          overflowPx = amount;
+          boundaryName = boundary.className || boundary.tagName;
         }
+        boundary = boundary.parentElement;
+      }
+      if (overflowPx > 1) {
+        clippedBlockSet.add(owner);
+        const blockId = owner.getAttribute("data-block-id");
+        if (blockId) clipDetails.push({ blockId, overflowPx, boundary: String(boundaryName) });
       }
     }
     const clippedBlocks = clippedBlockSet.size;
@@ -365,6 +409,33 @@ async function measureCandidate(input: Omit<MeasureInput, "candidates"> & {
     const missingFonts = [headingFont, bodyFont]
       .filter((font, index, list) => list.indexOf(font) === index)
       .filter((font) => !doc.fonts.check(`16px "${font}"`));
+    const renderedTextNodes = Array.from(doc.querySelectorAll(
+      ".body p,.list-row,.list-group,.section-heading,.script-heading,.director-heading,.byline,figcaption",
+    )) as any[];
+    const effectiveFonts = Array.from(new Set(renderedTextNodes.map((node) =>
+      String(doc.defaultView.getComputedStyle(node).fontFamily),
+    )));
+    const pointSizes = (selector: string): number[] => (Array.from(doc.querySelectorAll(selector)) as any[])
+      .filter((node) => String(node.textContent ?? "").trim().length > 0)
+      .map((node) => Number.parseFloat(doc.defaultView.getComputedStyle(node).fontSize) * 0.75)
+      .filter((size) => Number.isFinite(size));
+    const bodyPointSizes = pointSizes(".body p,.list-row,.list-group");
+    const captionPointSizes = pointSizes("figcaption");
+    const normalizeText = (value: string): string => value
+      .normalize("NFKC")
+      .replace(/[\u00ad\u200b-\u200d\ufeff]/g, "")
+      .replace(/\s+/g, " ")
+      .trim()
+      .toLowerCase();
+    const sourceTextMissing: string[] = (unplacedSourceArticleIds as string[])
+      .map((articleId) => `article:${articleId}:unplaced`);
+    for (const [blockId, expectedParts] of Object.entries(sourceByBlock as Record<string, string[]>)) {
+      const block = doc.querySelector(`[data-block-id="${String(blockId).replace(/["\\]/g, "\\$&")}"]`);
+      const visible = normalizeText(String(block?.innerText ?? ""));
+      for (const [partIndex, expected] of expectedParts.entries()) {
+        if (!visible.includes(normalizeText(expected))) sourceTextMissing.push(`${blockId}:${partIndex}`);
+      }
+    }
     return {
       clippedBlocks,
       clippedBlockIds,
@@ -374,6 +445,10 @@ async function measureCandidate(input: Omit<MeasureInput, "candidates"> & {
       overflowBlocks,
       missingImages: images.length - renderedImages,
       missingFonts,
+      effectiveFonts,
+      minBodyFontPt: bodyPointSizes.length > 0 ? Math.min(...bodyPointSizes) : undefined,
+      minCaptionFontPt: captionPointSizes.length > 0 ? Math.min(...captionPointSizes) : undefined,
+      sourceTextMissing,
       renderedImages,
       placeholderImages,
       realRenderedImages,
@@ -385,7 +460,12 @@ async function measureCandidate(input: Omit<MeasureInput, "candidates"> & {
       lowUtilityBlocks,
       pageMetrics,
     };
-  }, { headingFont: input.brandKit.headingFont, bodyFont: input.brandKit.bodyFont });
+  }, {
+    headingFont: input.brandKit.headingFont,
+    bodyFont: input.brandKit.bodyFont,
+    sourceByBlock,
+    unplacedSourceArticleIds,
+  });
   if (measured.missingImages > 0) throw new Error(`layout measurement missing ${measured.missingImages} image(s)`);
   if (measured.missingFonts.length > 0) throw new Error(`layout measurement missing font(s): ${measured.missingFonts.join(", ")}`);
   return {

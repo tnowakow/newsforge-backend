@@ -229,11 +229,15 @@ export type PorterLayoutInvariantReport = z.infer<typeof PorterLayoutInvariantRe
 export const FinalArtifactGateReportSchema = z.object({
   passed: z.boolean(),
   failures: z.array(z.string()),
+  warnings: z.array(z.string()).default([]),
   measurementStatus: z.enum(["passed", "failed", "unknown"]),
   actualPageCount: z.number().int().nonnegative(),
   expectedPageCount: z.number().int().nonnegative(),
   contentDigest: z.string().optional(),
   renderContractDigest: z.string().optional(),
+  artifactDigest: z.string().optional(),
+  exportVariant: z.string().optional(),
+  layoutVersion: z.number().int().positive().optional(),
 });
 export type FinalArtifactGateReport = z.infer<typeof FinalArtifactGateReportSchema>;
 

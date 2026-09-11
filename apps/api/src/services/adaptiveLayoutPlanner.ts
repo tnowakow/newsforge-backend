@@ -95,9 +95,14 @@ export interface CandidateMeasurement {
   clippedBlockIds?: string[];
   underfilledBlocks?: number;
   fillRatios?: Array<{ blockId: string; fillRatio: number }>;
-  clipDetails?: Array<{ blockId: string; overflowPx: number }>;
+  clipDetails?: Array<{ blockId: string; overflowPx: number; boundary?: string }>;
   overflowBlocks: number;
   missingImages: number;
+  missingFonts?: string[];
+  effectiveFonts?: string[];
+  minBodyFontPt?: number;
+  minCaptionFontPt?: number;
+  sourceTextMissing?: string[];
   renderedImages: number;
   placeholderImages?: number;
   realRenderedImages?: number;

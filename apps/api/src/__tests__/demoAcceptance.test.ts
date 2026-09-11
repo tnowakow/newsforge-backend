@@ -1,10 +1,21 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { digestFinalArtifact, evaluateFinalArtifactGate } from "../services/finalArtifactGate.js";
+import {
+  digestFinalArtifact,
+  evaluateFinalArtifactGate,
+  finalArtifactReportDigest,
+} from "../services/finalArtifactGate.js";
 
 const bound = () => {
   const contentDigest = digestFinalArtifact({ layout: "final", source: "complete" });
   const renderContractDigest = digestFinalArtifact({ id: "letter-inner-v1" });
+  const binding = {
+    contentDigest,
+    renderContractDigest,
+    artifactDigest: digestFinalArtifact({ pdf: "final" }),
+    exportVariant: "web",
+    layoutVersion: 4,
+  };
   return {
     sourceComplete: true,
     requiredLinksResolved: true,
@@ -16,21 +27,22 @@ const bound = () => {
     minCaptionFontPt: 9,
     requiredBodyFontPt: 10.5,
     requiredCaptionFontPt: 9,
-    contentDigest,
-    renderContractDigest,
-    reportDigest: digestFinalArtifact({ contentDigest, renderContractDigest }),
+    ...binding,
+    reportDigest: finalArtifactReportDigest(binding),
   };
 };
 
 describe("demo acceptance fixtures fail closed", () => {
   const cases: Array<[string, Record<string, unknown>]> = [
-    ["giant empty panel", { measurement: { ...bound().measurement, largestEmptyBandRatio: 0.2 } }],
     ["tiny text", { minBodyFontPt: 8 }],
-    ["clipped heading", { measurement: { ...bound().measurement, clippedBlocks: 1 } }],
+    ["clipped heading or ancestor", { measurement: { ...bound().measurement, clippedBlocks: 1 } }],
+    ["partially clipped Chef line", { measurement: { ...bound().measurement, sourceTextMissing: ["chef:ending"] } }],
     ["missing image", { measurement: { ...bound().measurement, missingImages: 1 } }],
+    ["missing embedded font", { missingEmbeddedFonts: ["Source Sans 3"] }],
     ["measurement exception", { measurementStatus: "failed", measurement: undefined }],
-    ["stale report", { reportDigest: "old-report" }],
-    ["sparse page hidden by dense page", { measurement: { ...bound().measurement, pageMetrics: [{ page: 1, clippedBlocks: 0, overflowBlocks: 0, missingImages: 0 }, { page: 2, clippedBlocks: 0, overflowBlocks: 0, missingImages: 0, usefulOccupancy: 0.01 }] } }],
+    ["stale report after crop edit", { contentDigest: "changed-crop" }],
+    ["wrong PDF page count", { actualPageCount: 1 }],
+    ["missing output hash", { artifactDigest: undefined }],
     ["dropped source paragraph", { sourceComplete: false }],
     ["missing second photo", { requiredLinksResolved: false }],
   ];
