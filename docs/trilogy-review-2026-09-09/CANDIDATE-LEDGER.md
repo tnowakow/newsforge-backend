@@ -8,6 +8,7 @@ Current integrated SHA: 6eaaeec5f0e3e9e9e9e9e9e9e9e9e9e9e9e9e9e9 (HEAD)
 
 - T06 / t_e30c1681 (innerSpreadComposer measured composition): included via eea2d96 (feat: compose measured inside spreads without content loss). The composer now calls real measurement service instead of word-count estimates; clipCount handling corrected.
 - T08 / t_6d2f4141 (finalArtifactGate): included via 6eaaeec (fix: fail closed on final spread acceptance checks). Gate now derives expected from output mode, inspects embedded fonts, binds to content hashes, fails unknown/stale measurements.
+- TRI-R08 / t_89a1f8f1: integrated via 2bc4d6b (fix(TRI-R08): validate final PDF artifacts fail closed). Ordinary PDF and approval paths now generate and inspect the exact PDF, bind output hash/layout/assets/variant/version, remeasure after edits, inspect embedded fonts, and reject ancestor clipping or missing visible source copy. Evidence: `evidence/TRI-R08/`.
 - T09 / t_ae43d1c6 and children (demo rehearsal): preserved in a8a46e6 and beb2691 (demo-docs freeze).
 - T10 / t_73cbc1f8 (freeze demo): preserved.
 
